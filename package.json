@@ -1,0 +1,27 @@
+{
+  "name": "vlatam-ai-lab",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Experimental AI operations and regulatory intelligence lab for vLatamGlobal (production-isolated sandbox).",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test tests/**/*.test.ts",
+    "lint": "eslint .",
+    "format": "prettier --check .",
+    "format:write": "prettier --write .",
+    "pcram:delta": "tsx src/pipelines/pcram-delta.ts"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.18.0",
+    "@types/node": "^22.10.2",
+    "eslint": "^9.18.0",
+    "prettier": "^3.4.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.19.0"
+  }
+}
