@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/pcram-delta.schema.json",
+  "title": "PCRAM Delta",
+  "description": "Schema for local-only detected deltas between PCRAM snapshots.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "delta_id",
+    "source_id",
+    "previous_snapshot_id",
+    "current_snapshot_id",
+    "change_type",
+    "affected_codes",
+    "summary",
+    "operational_impact",
+    "risk_level",
+    "requires_human_review",
+    "evidence_paths"
+  ],
+  "properties": {
+    "delta_id": {
+      "type": "string",
+      "description": "Unique local identifier for this delta.",
+      "minLength": 1
+    },
+    "source_id": {
+      "type": "string",
+      "description": "Stable identifier of the source being compared.",
+      "minLength": 1
+    },
+    "previous_snapshot_id": {
+      "type": "string",
+      "description": "Identifier of the baseline snapshot.",
+      "minLength": 1
+    },
+    "current_snapshot_id": {
+      "type": "string",
+      "description": "Identifier of the latest snapshot.",
+      "minLength": 1
+    },
+    "change_type": {
+      "type": "string",
+      "description": "Primary type of detected change.",
+      "enum": [
+        "added",
+        "removed",
+        "modified",
+        "reclassified",
+        "no_change",
+        "unknown"
+      ]
+    },
+    "affected_codes": {
+      "type": "array",
+      "description": "Potentially affected classification codes (for example NCM).",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "summary": {
+      "type": "string",
+      "description": "Human-readable concise summary of the detected delta.",
+      "minLength": 1
+    },
+    "operational_impact": {
+      "type": "string",
+      "description": "Operational hypothesis of impact. Requires human validation.",
+      "minLength": 1
+    },
+    "risk_level": {
+      "type": "string",
+      "description": "Risk level assigned in lab context.",
+      "enum": ["low", "medium", "high", "critical"]
+    },
+    "requires_human_review": {
+      "type": "boolean",
+      "description": "Whether human review is mandatory before any downstream action."
+    },
+    "evidence_paths": {
+      "type": "array",
+      "description": "Relative paths to supporting evidence artifacts.",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1
+    }
+  }
+}
