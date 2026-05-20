@@ -47,6 +47,12 @@ Run local schema validation against the sample fixture:
 
 `npm exec --yes pnpm@latest -- pcram:validate-snapshot`
 
+### Local delta generation command
+
+Run local deterministic delta generation between the sample snapshots:
+
+`npm exec --yes pnpm@latest -- pcram:generate-delta`
+
 ## Snapshot lifecycle
 
 1. **Capture**: ingest local text/payload from approved source folders.
