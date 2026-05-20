@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/pcram-source-snapshot.schema.json",
+  "title": "PCRAM Source Snapshot",
+  "description": "Schema for local-only PCRAM source snapshots used in the regulatory intelligence lab.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "snapshot_id",
+    "source_id",
+    "source_name",
+    "source_type",
+    "source_url",
+    "captured_at",
+    "captured_by",
+    "capture_method",
+    "content_hash",
+    "raw_text_path",
+    "normalized_payload",
+    "notes"
+  ],
+  "properties": {
+    "snapshot_id": {
+      "type": "string",
+      "description": "Unique local identifier for this snapshot.",
+      "minLength": 1
+    },
+    "source_id": {
+      "type": "string",
+      "description": "Stable identifier of the source definition.",
+      "minLength": 1
+    },
+    "source_name": {
+      "type": "string",
+      "description": "Human-readable source name.",
+      "minLength": 1
+    },
+    "source_type": {
+      "type": "string",
+      "description": "Category of source monitored by the lab.",
+      "enum": ["pcram_bulletin", "pcram_ncm_lookup", "future_official_source"]
+    },
+    "source_url": {
+      "type": "string",
+      "description": "Canonical source URL reference. Kept as metadata only in P0.",
+      "format": "uri"
+    },
+    "captured_at": {
+      "type": "string",
+      "description": "UTC timestamp of snapshot capture.",
+      "format": "date-time"
+    },
+    "captured_by": {
+      "type": "string",
+      "description": "Actor or tool that created the snapshot.",
+      "minLength": 1
+    },
+    "capture_method": {
+      "type": "string",
+      "description": "Local capture method used in the lab.",
+      "enum": ["manual_local_ingest", "local_file_import", "simulated_fixture"]
+    },
+    "content_hash": {
+      "type": "string",
+      "description": "Deterministic hash of normalized content (recommended SHA-256 hex).",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "raw_text_path": {
+      "type": "string",
+      "description": "Relative path to local raw text artifact.",
+      "minLength": 1
+    },
+    "normalized_payload": {
+      "type": "object",
+      "description": "Structured normalized payload for downstream delta analysis."
+    },
+    "notes": {
+      "type": "array",
+      "description": "Human-readable capture notes and assumptions.",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}
