@@ -41,6 +41,12 @@ This P0 stage formalizes source and evidence contracts so future implementation 
 4. Evidence writer produces markdown report with assumptions and impact notes.
 5. Human reviewer validates findings before any downstream action.
 
+### Local snapshot validation command
+
+Run local schema validation against the sample fixture:
+
+`npm exec --yes pnpm@latest -- pcram:validate-snapshot`
+
 ## Snapshot lifecycle
 
 1. **Capture**: ingest local text/payload from approved source folders.
