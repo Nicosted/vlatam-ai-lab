@@ -1,0 +1,28 @@
+{
+  "snapshot_id": "snapshot-pcram-bulletin-2026-05-13t120000z",
+  "source_id": "pcram-bulletin",
+  "source_name": "PCRAM Bulletin (Sample)",
+  "source_type": "pcram_bulletin",
+  "source_url": "https://example.local/pcram/bulletin",
+  "captured_at": "2026-05-13T12:00:00.000Z",
+  "captured_by": "local-fixture-generator",
+  "capture_method": "simulated_fixture",
+  "content_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "raw_text_path": "snapshots/pcram/raw/example-bulletin-2026-05-13.txt",
+  "normalized_payload": {
+    "title": "Sample PCRAM Bulletin",
+    "sections": [
+      {
+        "section_id": "s1",
+        "heading": "General Updates",
+        "body": "Previous sample bulletin text used for local delta generation."
+      }
+    ],
+    "ncm_mentions": ["0101.21.00"]
+  },
+  "notes": [
+    "Local-only sample fixture.",
+    "No external fetch was executed.",
+    "Previous snapshot for deterministic delta tests."
+  ]
+}
