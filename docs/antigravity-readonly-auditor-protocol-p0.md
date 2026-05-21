@@ -24,18 +24,44 @@ Antigravity may:
 - Propose changes for human review.
 - Identify inconsistencies between contracts, schemas, scripts, and docs.
 
-## Explicitly allowed commands
+## Audit command profiles
+
+Antigravity audits must declare the command profile before running validation commands.
+
+### `read_only_audit`
+
+Allowed commands:
 
 - `npm exec --yes pnpm@latest -- typecheck`
 - `npm exec --yes pnpm@latest -- test`
 - `npm exec --yes pnpm@latest -- lint`
 - `npm exec --yes pnpm@latest -- format`
 - `npm exec --yes pnpm@latest -- pcram:validate-snapshot`
-- `npm exec --yes pnpm@latest -- pcram:generate-delta`
-- `npm exec --yes pnpm@latest -- pcram:generate-evidence`
 - `git status --short`
 - `git diff --stat`
 - `git diff --check`
+
+Not allowed in this profile:
+
+- `npm exec --yes pnpm@latest -- pcram:generate-delta`
+- `npm exec --yes pnpm@latest -- pcram:generate-evidence`
+
+These commands are excluded from strict read-only audits because they may produce file writes or timestamp drift.
+
+### `deterministic_regen_check`
+
+This profile may include regeneration commands:
+
+- `npm exec --yes pnpm@latest -- pcram:generate-delta`
+- `npm exec --yes pnpm@latest -- pcram:generate-evidence`
+
+Required controls:
+
+- Run `git status --short` before and after regeneration commands.
+- Record an explicit list of any modified files.
+- Restore unintended generated-file or timestamp drift.
+- Confirm at the end that only intended files changed.
+- Obtain human approval before staging.
 
 ## Forbidden actions
 

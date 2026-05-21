@@ -4,9 +4,13 @@
 
 ## Scope
 
+## Command profile used
+
 ## Files inspected
 
 ## Commands run
+
+## Drift / generated-file handling
 
 ## Findings
 

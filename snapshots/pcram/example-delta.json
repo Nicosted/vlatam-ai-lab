@@ -4,9 +4,7 @@
   "previous_snapshot_id": "snapshot-pcram-bulletin-2026-05-13t120000z",
   "current_snapshot_id": "snapshot-pcram-bulletin-2026-05-20t120000z",
   "change_type": "modified",
-  "affected_codes": [
-    "0101.29.00"
-  ],
+  "affected_codes": ["0101.29.00"],
   "summary": "Normalized payload changed between snapshots.",
   "operational_impact": "Possible regulatory interpretation impact; human review required before any action.",
   "risk_level": "medium",

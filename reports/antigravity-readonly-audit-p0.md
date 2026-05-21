@@ -124,6 +124,10 @@ Final `git status --short` after report creation:
 - Resolve repository baseline formatting issue for `snapshots/pcram/example-delta.json`.
 - Consider deterministic `generatedAt` control for the example evidence artifact workflow to avoid timestamp drift during audit reruns.
 
+Follow-up note:
+
+- The protocol has since been refined to distinguish strict read-only audits from deterministic regeneration checks.
+
 ## Risks
 
 - **Process risk (low/medium):** read-only protocol ambiguity can cause accidental file drift during audits.
