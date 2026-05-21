@@ -56,3 +56,4 @@ All PCRAM agent roles must not:
 - Agents must not assume one-size-fits-all outputs.
 - When profile context is available, agents should frame outputs by broker/user specialization, country or jurisdiction scope, topics of interest, and preferred information style.
 - When no personalization profile is available, agents must state that outputs are generated from a general baseline profile.
+- Future PCRAM agents should apply profile guidance from `docs/broker-intelligence-profile-p0.md` when profile context exists.
