@@ -20,6 +20,7 @@ The profile helps future outputs become more relevant to broker/despachante prac
 - vLatamGlobal is a future API consumer, not the owner of this internal profile model.
 - No direct coupling is allowed to vLatamGlobal databases, internal runtime, or private schemas.
 - Future integration must occur through reviewed, versioned, schema-valid API artifacts.
+- Classifier ownership boundaries must follow `docs/classifier-lab-runtime-boundary-p0.md`.
 
 ## Why broker specialization matters
 
