@@ -63,5 +63,6 @@ All analytical output should follow this flow:
 - Future agent outputs must respect explicit broker/user specialization and preferred information style when such profile context exists.
 - Personalization/profile usage must follow `docs/broker-intelligence-profile-p0.md`.
 - Future classifier-related agents must respect the Classifier Lab / Runtime boundary and must not duplicate vLatamGlobal runtime responsibilities.
+- Future API handoffs must expose reviewed artifacts only and must not expose raw internal agent state.
 - Future agent work must pass `agents/pcram-contract-conformance-checklist.md` before any runtime activation proposal.
 - Until separate governance approval, these contracts are documentation-only and do not authorize runtime autonomous execution.
