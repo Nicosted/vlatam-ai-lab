@@ -26,6 +26,12 @@ Execution order for future approved orchestration:
 - `pcram-evidence-writer.md`
 - `pcram-human-review-gate.md`
 
+## Conformance checklist
+
+Before any future runtime proposal, reviewers must complete:
+
+- `pcram-contract-conformance-checklist.md`
+
 ## Global forbidden actions
 
 All PCRAM agent roles must not:
