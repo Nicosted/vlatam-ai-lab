@@ -100,6 +100,7 @@ High-level future API boundary:
 - vLatamGlobal must not receive unreviewed raw deltas by default.
 - The API must expose reviewed artifacts, not internal agent state.
 - The API must preserve auditability and traceability.
+- Reviewed artifact handoff expectations should follow `docs/reviewed-artifact-api-handoff-p0.md`.
 
 ## Non-goals
 

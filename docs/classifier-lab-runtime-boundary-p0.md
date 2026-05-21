@@ -66,6 +66,8 @@ Conceptual exchange artifacts for the boundary:
 
 These are conceptual P0 names, not implemented schemas yet.
 
+Reviewed artifact API handoff expectations should follow `docs/reviewed-artifact-api-handoff-p0.md`.
+
 ## Proposed flow
 
 PCRAM / ARCA / Mercosur / HS / NCM / regulations
