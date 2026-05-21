@@ -7,6 +7,7 @@ This folder defines documentation-only contracts for a future PCRAM agent chain 
 - Documentation-only.
 - No runtime agents are implemented or authorized yet.
 - No Antigravity execution is active in P0.
+- Antigravity usage is limited to `docs/antigravity-readonly-auditor-protocol-p0.md` in P0.
 
 ## Agent chain overview
 
