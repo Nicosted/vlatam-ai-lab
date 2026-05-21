@@ -25,3 +25,11 @@ Pipeline stages for local regulatory intelligence experiments:
 6. **Human Review**
    - Human validates conclusions.
    - No autonomous production action.
+
+## PCRAM agent chain reference (P0)
+
+For PCRAM-specific planning, follow the contract chain documented in `agents/README.md`:
+
+Source Monitor -> Snapshot Writer -> Delta Analyzer -> Evidence Writer -> Human Review Gate
+
+Status remains documentation-only in P0 (no runtime agents yet).

@@ -56,3 +56,9 @@ All analytical output should follow this flow:
 3. Write explicit assumptions and limitations
 4. Produce markdown evidence report
 5. Route to human review before action
+
+## 7) PCRAM contract reference (future agentic layer)
+
+- Future PCRAM agents must follow `agents/README.md` and the role contracts under `agents/`.
+- Future agent outputs must respect explicit broker/user specialization and preferred information style when such profile context exists.
+- Until separate governance approval, these contracts are documentation-only and do not authorize runtime autonomous execution.
