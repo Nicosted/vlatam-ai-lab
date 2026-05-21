@@ -53,6 +53,12 @@ Run local deterministic delta generation between the sample snapshots:
 
 `npm exec --yes pnpm@latest -- pcram:generate-delta`
 
+### Local evidence report generation command
+
+Render a local human-readable markdown evidence report from previous/current snapshots and a delta artifact:
+
+`npm exec --yes pnpm@latest -- pcram:generate-evidence`
+
 ## Snapshot lifecycle
 
 1. **Capture**: ingest local text/payload from approved source folders.
