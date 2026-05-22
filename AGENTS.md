@@ -64,6 +64,7 @@ All analytical output should follow this flow:
 - Personalization/profile usage must follow `docs/broker-intelligence-profile-p0.md`.
 - Future classifier-related agents must respect the Classifier Lab / Runtime boundary and must not duplicate vLatamGlobal runtime responsibilities.
 - Future API handoffs must expose reviewed artifacts only and must not expose raw internal agent state.
+- P1 runtime/API work must not start until required schemas are defined, tested, and reviewed.
 - Antigravity usage is limited to the read-only auditor protocol until a separate runtime-agent approval exists.
 - Antigravity audits must declare the command profile used before running validation commands.
 - Future agent work must pass `agents/pcram-contract-conformance-checklist.md` before any runtime activation proposal.

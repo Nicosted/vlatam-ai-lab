@@ -98,6 +98,7 @@ Conceptual-only endpoint examples (non-implementation in P0):
 ## Relationship with classifier boundary
 
 Reference: `docs/classifier-lab-runtime-boundary-p0.md`
+Reference: `docs/p0-p1-schema-hardening-plan.md`
 
 - API handoff must respect Lab/Runtime separation.
 - vLatamGlobal consumes approved artifacts, not internal lab mechanics.
