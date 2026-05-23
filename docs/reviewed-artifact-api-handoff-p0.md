@@ -16,6 +16,7 @@ Define the future API boundary for reviewed intelligence artifacts.
 - vLatamGlobal must not consume raw unreviewed deltas by default.
 - Only reviewed artifacts can be exposed by the future API.
 - Future API handoff should expose approved artifact envelopes conforming to `approved-artifact.schema.json`.
+- Once `evidence-report-metadata.schema.json` is implemented, evidence markdown should be exposed via metadata/reference fields, not embedded as raw body in envelope payloads.
 - Internal agent state must not be exposed.
 - Every artifact must preserve traceability and review status.
 

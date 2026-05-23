@@ -1,0 +1,156 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/evidence-report-metadata.schema.json",
+  "title": "Evidence Report Metadata",
+  "description": "Schema for structured metadata indexing markdown evidence reports without embedding the full markdown body.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "evidence_report_id",
+    "schema_version",
+    "title",
+    "report_ref",
+    "report_hash",
+    "created_at",
+    "source_version_refs",
+    "review_manifest_ref",
+    "approved_artifact_ref",
+    "jurisdiction_scope",
+    "report_type",
+    "risk_level",
+    "human_review_required",
+    "limitations"
+  ],
+  "properties": {
+    "evidence_report_id": {
+      "type": "string",
+      "description": "Unique identifier for this evidence report metadata record.",
+      "minLength": 1
+    },
+    "schema_version": {
+      "type": "string",
+      "description": "Schema version of this evidence_report_metadata payload.",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "title": {
+      "type": "string",
+      "description": "Human-readable report title.",
+      "minLength": 1
+    },
+    "report_ref": {
+      "type": "string",
+      "description": "Path or stable reference to the markdown report. The report body is not embedded.",
+      "minLength": 1
+    },
+    "report_hash": {
+      "type": "string",
+      "description": "Report hash in sha256 format (with optional 'sha256:' prefix).",
+      "pattern": "^(sha256:)?[a-fA-F0-9]{64}$"
+    },
+    "created_at": {
+      "type": "string",
+      "description": "UTC timestamp when this metadata record was created.",
+      "format": "date-time"
+    },
+    "source_version_refs": {
+      "type": "array",
+      "description": "Referenced source_version identifiers used to produce this evidence report.",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1
+    },
+    "review_manifest_ref": {
+      "type": "string",
+      "description": "Reference to the associated review_manifest identifier.",
+      "minLength": 1
+    },
+    "approved_artifact_ref": {
+      "type": "string",
+      "description": "Reference to the associated approved_artifact identifier.",
+      "minLength": 1
+    },
+    "jurisdiction_scope": {
+      "type": "array",
+      "description": "Jurisdictions covered by this evidence report.",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1
+    },
+    "report_type": {
+      "type": "string",
+      "description": "Evidence report classification.",
+      "enum": [
+        "regulatory_delta_evidence",
+        "classification_evidence",
+        "source_monitoring_evidence",
+        "jurisdiction_pack_evidence",
+        "relevance_assessment_evidence"
+      ]
+    },
+    "risk_level": {
+      "type": "string",
+      "description": "Risk level associated with the evidence report.",
+      "enum": ["low", "medium", "high", "critical", "unknown"]
+    },
+    "human_review_required": {
+      "type": "boolean",
+      "description": "Whether human review is required before downstream usage."
+    },
+    "limitations": {
+      "type": "array",
+      "description": "Known limitations for this evidence report metadata entry.",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1
+    },
+    "summary": {
+      "type": "string",
+      "description": "Optional short summary of the evidence report.",
+      "minLength": 1
+    },
+    "affected_codes": {
+      "type": "array",
+      "description": "Optional list of affected nomenclature/regulatory codes.",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "profile_context_used": {
+      "type": "array",
+      "description": "Optional profile context identifiers used during report preparation.",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "evidence_refs": {
+      "type": "array",
+      "description": "Optional evidence artifact references related to this report.",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "producer": {
+      "type": "string",
+      "description": "Optional producer identifier.",
+      "minLength": 1
+    },
+    "valid_until": {
+      "type": "string",
+      "description": "Optional timestamp until this metadata record is valid.",
+      "format": "date-time"
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Optional local metadata for traceability."
+    }
+  }
+}
