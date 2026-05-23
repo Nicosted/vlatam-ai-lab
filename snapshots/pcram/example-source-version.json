@@ -1,0 +1,22 @@
+{
+  "source_version_id": "source-version-pcram-bulletin-2026-05-20t120000z",
+  "source_id": "pcram-bulletin",
+  "source_name": "PCRAM Bulletin (Sample)",
+  "source_type": "pcram_bulletin",
+  "source_ref": "bulletin-2026-05-20",
+  "source_url": "https://example.local/pcram/bulletin",
+  "captured_at": "2026-05-20T12:00:00.000Z",
+  "content_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "capture_method": "local_fixture",
+  "jurisdiction_scope": ["AR"],
+  "schema_version": "1.0.0",
+  "valid_from": "2026-05-20T00:00:00.000Z",
+  "parser_version": "fixture-parser-v1",
+  "capture_tool": "local-fixture-generator",
+  "notes": ["Local-only sample fixture.", "No external fetch was executed."],
+  "limitations": ["Sample source content for schema validation only."],
+  "metadata": {
+    "environment": "local",
+    "family": "pcram"
+  }
+}

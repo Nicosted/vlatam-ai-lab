@@ -92,6 +92,8 @@ Each required schema should meet all of the following:
 
 ## Dependency order
 
+Status update: `source_version.schema.json` is now the first implemented foundation schema in this plan.
+
 Recommended implementation order:
 
 1. `source_version`
