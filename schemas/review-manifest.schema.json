@@ -1,0 +1,185 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/review-manifest.schema.json",
+  "title": "Review Manifest",
+  "description": "Schema for machine-checkable human review status, approval scope, and downstream permission semantics.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "review_manifest_id",
+    "artifact_id",
+    "artifact_type",
+    "schema_version",
+    "review_status",
+    "reviewed_by",
+    "reviewed_at",
+    "approval_scope",
+    "jurisdiction_scope",
+    "source_version_refs",
+    "evidence_refs",
+    "limitations",
+    "downstream_allowed"
+  ],
+  "properties": {
+    "review_manifest_id": {
+      "type": "string",
+      "description": "Unique identifier for this review manifest.",
+      "minLength": 1
+    },
+    "artifact_id": {
+      "type": "string",
+      "description": "Identifier of the reviewed artifact.",
+      "minLength": 1
+    },
+    "artifact_type": {
+      "type": "string",
+      "description": "Type of artifact under review.",
+      "enum": [
+        "source_snapshot",
+        "regulatory_delta",
+        "evidence_report",
+        "approved_artifact",
+        "approved_kb_snapshot",
+        "jurisdiction_pack",
+        "relevance_assessment"
+      ]
+    },
+    "schema_version": {
+      "type": "string",
+      "description": "Schema version of this review_manifest payload.",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "review_status": {
+      "type": "string",
+      "description": "Review decision state.",
+      "enum": ["pending", "approved", "rejected", "needs_changes", "expired"]
+    },
+    "reviewed_by": {
+      "type": "string",
+      "description": "Reviewer identity or reviewer role identifier.",
+      "minLength": 1
+    },
+    "reviewed_at": {
+      "type": "string",
+      "description": "UTC timestamp when the review decision was recorded.",
+      "format": "date-time"
+    },
+    "approval_scope": {
+      "type": "object",
+      "description": "Approved consumer/use-case/country scope for downstream usage.",
+      "additionalProperties": false,
+      "required": [
+        "allowed_consumers",
+        "allowed_use_cases",
+        "country_scope",
+        "validity_notes"
+      ],
+      "properties": {
+        "allowed_consumers": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1
+        },
+        "allowed_use_cases": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1
+        },
+        "country_scope": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1
+        },
+        "validity_notes": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "jurisdiction_scope": {
+      "type": "array",
+      "description": "Jurisdiction labels associated with this review decision.",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1
+    },
+    "source_version_refs": {
+      "type": "array",
+      "description": "Referenced source_version identifiers used for provenance.",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1
+    },
+    "evidence_refs": {
+      "type": "array",
+      "description": "Referenced evidence artifacts supporting this review decision.",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1
+    },
+    "limitations": {
+      "type": "array",
+      "description": "Known limitations attached to this review decision.",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1
+    },
+    "downstream_allowed": {
+      "type": "boolean",
+      "description": "Whether downstream consumption is allowed under this review decision."
+    },
+    "review_notes": {
+      "type": "array",
+      "description": "Optional notes produced during review.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "expires_at": {
+      "type": "string",
+      "description": "Optional timestamp when this review decision expires.",
+      "format": "date-time"
+    },
+    "valid_until": {
+      "type": "string",
+      "description": "Optional timestamp until this review decision is valid.",
+      "format": "date-time"
+    },
+    "risk_level": {
+      "type": "string",
+      "description": "Optional risk level assigned during review.",
+      "enum": ["low", "medium", "high", "critical", "unknown"]
+    },
+    "review_method": {
+      "type": "string",
+      "description": "Optional method used to produce final review decision.",
+      "enum": [
+        "manual",
+        "dual_review",
+        "committee_review",
+        "automated_precheck_manual_final"
+      ]
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Optional local metadata for audit traceability."
+    }
+  }
+}
