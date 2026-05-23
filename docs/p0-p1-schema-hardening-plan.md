@@ -93,6 +93,7 @@ Each required schema should meet all of the following:
 ## Dependency order
 
 Status update: `source_version.schema.json` is now the first implemented foundation schema in this plan.
+Status update: `review_manifest.schema.json` is now implemented as the next foundation schema after `source_version.schema.json`.
 
 Recommended implementation order:
 

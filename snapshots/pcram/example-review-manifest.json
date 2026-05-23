@@ -1,0 +1,40 @@
+{
+  "review_manifest_id": "review-manifest-pcram-delta-2026-05-20",
+  "artifact_id": "delta-pcram-bulletin-2026-05-20t120000z",
+  "artifact_type": "regulatory_delta",
+  "schema_version": "1.0.0",
+  "review_status": "approved",
+  "reviewed_by": "human-review-gate",
+  "reviewed_at": "2026-05-21T10:00:00.000Z",
+  "approval_scope": {
+    "allowed_consumers": ["vTradeGlobal"],
+    "allowed_use_cases": [
+      "regulatory_intelligence_review",
+      "internal_risk_triage"
+    ],
+    "country_scope": ["AR"],
+    "validity_notes": "Approved for local intelligence workflows; not a legal/customs determination."
+  },
+  "jurisdiction_scope": ["AR"],
+  "source_version_refs": ["source-version-pcram-bulletin-2026-05-20t120000z"],
+  "evidence_refs": [
+    "snapshots/pcram/example-delta.json",
+    "reports/example-pcram-delta-report.md"
+  ],
+  "limitations": [
+    "Sample review manifest for schema validation only.",
+    "No production integration or external connectivity."
+  ],
+  "downstream_allowed": true,
+  "review_notes": [
+    "Human reviewer confirmed traceability to source_version fixture.",
+    "Operational decisions still require separate human legal/customs review."
+  ],
+  "expires_at": "2026-12-31T23:59:59.000Z",
+  "risk_level": "medium",
+  "review_method": "manual",
+  "metadata": {
+    "environment": "local",
+    "review_cycle": "p1-foundation"
+  }
+}
