@@ -1,0 +1,29 @@
+{
+  "artifact_id": "approved-artifact-pcram-delta-2026-05-20",
+  "artifact_type": "regulatory_delta",
+  "schema_version": "1.0.0",
+  "created_at": "2026-05-21T10:05:00.000Z",
+  "source_version_refs": ["source-version-pcram-bulletin-2026-05-20t120000z"],
+  "review_manifest_ref": "review-manifest-pcram-delta-2026-05-20",
+  "content_ref": "snapshots/pcram/example-delta.json",
+  "content_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "jurisdiction_scope": ["AR"],
+  "review_status": "approved",
+  "downstream_allowed": true,
+  "limitations": [
+    "Approved artifact envelope sample for schema validation only.",
+    "No production integration or external connectivity."
+  ],
+  "valid_until": "2026-12-31T23:59:59.000Z",
+  "producer": "pcram-human-review-gate",
+  "risk_level": "medium",
+  "profile_context_used": ["broker-profile-sample-ar-generalist"],
+  "evidence_refs": [
+    "snapshots/pcram/example-review-manifest.json",
+    "reports/example-pcram-delta-report.md"
+  ],
+  "metadata": {
+    "environment": "local",
+    "review_cycle": "p1-foundation"
+  }
+}

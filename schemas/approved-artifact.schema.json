@@ -1,0 +1,142 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/approved-artifact.schema.json",
+  "title": "Approved Artifact",
+  "description": "Schema for approved artifact envelopes used for downstream consumption.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "artifact_id",
+    "artifact_type",
+    "schema_version",
+    "created_at",
+    "source_version_refs",
+    "review_manifest_ref",
+    "content_ref",
+    "content_hash",
+    "jurisdiction_scope",
+    "review_status",
+    "downstream_allowed",
+    "limitations"
+  ],
+  "properties": {
+    "artifact_id": {
+      "type": "string",
+      "description": "Unique identifier for this approved artifact envelope.",
+      "minLength": 1
+    },
+    "artifact_type": {
+      "type": "string",
+      "description": "Approved artifact type for downstream consumers.",
+      "enum": [
+        "source_snapshot",
+        "regulatory_delta",
+        "evidence_report",
+        "approved_kb_snapshot",
+        "jurisdiction_pack",
+        "relevance_assessment"
+      ]
+    },
+    "schema_version": {
+      "type": "string",
+      "description": "Schema version of this approved_artifact payload.",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "created_at": {
+      "type": "string",
+      "description": "UTC timestamp when this approved artifact envelope was created.",
+      "format": "date-time"
+    },
+    "source_version_refs": {
+      "type": "array",
+      "description": "Referenced source_version identifiers backing this artifact.",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1
+    },
+    "review_manifest_ref": {
+      "type": "string",
+      "description": "Reference to the associated review_manifest identifier.",
+      "minLength": 1
+    },
+    "content_ref": {
+      "type": "string",
+      "description": "Path or stable reference to approved content. Raw content is not embedded in this envelope.",
+      "minLength": 1
+    },
+    "content_hash": {
+      "type": "string",
+      "description": "Content hash in sha256 format (with optional 'sha256:' prefix).",
+      "pattern": "^(sha256:)?[a-fA-F0-9]{64}$"
+    },
+    "jurisdiction_scope": {
+      "type": "array",
+      "description": "Jurisdictions covered by this approved artifact.",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1
+    },
+    "review_status": {
+      "type": "string",
+      "description": "Review status for approved envelopes.",
+      "enum": ["approved"]
+    },
+    "downstream_allowed": {
+      "type": "boolean",
+      "description": "Whether downstream consumption is allowed."
+    },
+    "limitations": {
+      "type": "array",
+      "description": "Known limitations attached to downstream consumption.",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1
+    },
+    "expires_at": {
+      "type": "string",
+      "description": "Optional timestamp when this envelope expires.",
+      "format": "date-time"
+    },
+    "valid_until": {
+      "type": "string",
+      "description": "Optional timestamp until this envelope remains valid.",
+      "format": "date-time"
+    },
+    "producer": {
+      "type": "string",
+      "description": "Optional producer identifier.",
+      "minLength": 1
+    },
+    "risk_level": {
+      "type": "string",
+      "description": "Optional risk level for downstream prioritization.",
+      "enum": ["low", "medium", "high", "critical", "unknown"]
+    },
+    "profile_context_used": {
+      "type": "array",
+      "description": "Optional profile context identifiers used in artifact preparation.",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "evidence_refs": {
+      "type": "array",
+      "description": "Optional evidence artifact references.",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Optional local metadata for traceability."
+    }
+  }
+}
