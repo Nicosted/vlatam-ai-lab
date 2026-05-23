@@ -1,0 +1,133 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/source-version.schema.json",
+  "title": "Source Version",
+  "description": "Schema for source provenance and version identity used by reviewed artifacts.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "source_version_id",
+    "source_id",
+    "source_name",
+    "source_type",
+    "source_ref",
+    "captured_at",
+    "content_hash",
+    "capture_method",
+    "jurisdiction_scope",
+    "schema_version"
+  ],
+  "properties": {
+    "source_version_id": {
+      "type": "string",
+      "description": "Unique identifier for this specific source version.",
+      "minLength": 1
+    },
+    "source_id": {
+      "type": "string",
+      "description": "Stable identifier of the logical source.",
+      "minLength": 1
+    },
+    "source_name": {
+      "type": "string",
+      "description": "Human-readable source name.",
+      "minLength": 1
+    },
+    "source_type": {
+      "type": "string",
+      "description": "Source family used for provenance classification.",
+      "enum": [
+        "pcram_bulletin",
+        "arca_notice",
+        "mercosur_norm",
+        "hs_reference",
+        "ncm_reference",
+        "manual_source",
+        "other"
+      ]
+    },
+    "source_ref": {
+      "type": "string",
+      "description": "Stable source reference for this version (local id, bulletin reference, or similar).",
+      "minLength": 1
+    },
+    "source_url": {
+      "type": "string",
+      "description": "Optional canonical source URL metadata.",
+      "format": "uri"
+    },
+    "captured_at": {
+      "type": "string",
+      "description": "UTC timestamp when this source version was captured.",
+      "format": "date-time"
+    },
+    "content_hash": {
+      "type": "string",
+      "description": "Content hash in sha256 format (with optional 'sha256:' prefix).",
+      "pattern": "^(sha256:)?[a-fA-F0-9]{64}$"
+    },
+    "capture_method": {
+      "type": "string",
+      "description": "How the source version was captured.",
+      "enum": [
+        "manual",
+        "local_fixture",
+        "approved_fetch",
+        "api_import",
+        "other"
+      ]
+    },
+    "jurisdiction_scope": {
+      "type": "array",
+      "description": "Jurisdictions covered by this source version.",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "schema_version": {
+      "type": "string",
+      "description": "Schema version for this source_version payload.",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "valid_from": {
+      "type": "string",
+      "description": "Optional validity window start timestamp.",
+      "format": "date-time"
+    },
+    "valid_to": {
+      "type": "string",
+      "description": "Optional validity window end timestamp.",
+      "format": "date-time"
+    },
+    "parser_version": {
+      "type": "string",
+      "description": "Optional parser version used to normalize source content.",
+      "minLength": 1
+    },
+    "capture_tool": {
+      "type": "string",
+      "description": "Optional capture tool identifier.",
+      "minLength": 1
+    },
+    "notes": {
+      "type": "array",
+      "description": "Optional capture notes.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "limitations": {
+      "type": "array",
+      "description": "Optional limitations observed during capture or normalization.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Optional extra metadata for local traceability."
+    }
+  }
+}

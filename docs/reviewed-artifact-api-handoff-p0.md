@@ -35,6 +35,8 @@ Conceptual artifact types in P0:
 
 Conceptual fields for future reviewed artifact handoff metadata:
 
+Future note: once `source-version.schema.json` is implemented, reviewed artifacts should include reference(s) to `source_version` records for provenance continuity.
+
 - `artifact_id`
 - `artifact_type`
 - `source_system`
