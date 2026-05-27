@@ -100,6 +100,7 @@ Status update: `broker-profile.schema.json` is now implemented as the next found
 Status update: `relevance-assessment.schema.json` is now implemented as the next foundation schema after `broker-profile.schema.json`.
 Status update: `jurisdiction-pack.schema.json` is now implemented as the next foundation schema after `relevance-assessment.schema.json`.
 Status update: `approved-kb-snapshot.schema.json` is now implemented as the final P1 foundation schema after `jurisdiction-pack.schema.json`.
+Status update: completed schema hardening contracts are indexed in `schemas/schema-registry.json`.
 
 Recommended implementation order:
 

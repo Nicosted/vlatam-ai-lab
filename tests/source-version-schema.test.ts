@@ -65,12 +65,10 @@ test("valid source version example passes", async () => {
 test("missing required field fails", async () => {
   const validate = await buildSourceVersionValidator();
   const sample = await readJsonFixture(
-    "snapshots/pcram/example-source-version.json",
+    "snapshots/pcram/invalid-source-version-missing-required.json",
   );
-  const invalid = { ...sample };
-  delete invalid["source_version_id"];
 
-  const isValid = validate(invalid);
+  const isValid = validate(sample);
 
   assert.equal(isValid, false);
   assert.equal(
@@ -86,14 +84,10 @@ test("missing required field fails", async () => {
 test("invalid source_type fails", async () => {
   const validate = await buildSourceVersionValidator();
   const sample = await readJsonFixture(
-    "snapshots/pcram/example-source-version.json",
+    "snapshots/pcram/invalid-source-version-unsupported-enum.json",
   );
-  const invalid = {
-    ...sample,
-    source_type: "unsupported_source_type",
-  };
 
-  const isValid = validate(invalid);
+  const isValid = validate(sample);
 
   assert.equal(isValid, false);
   assert.equal(

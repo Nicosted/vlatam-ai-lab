@@ -1,0 +1,135 @@
+{
+  "contracts": [
+    {
+      "contract_name": "source_version",
+      "schema_file": "schemas/source-version.schema.json",
+      "valid_fixture": "snapshots/pcram/example-source-version.json",
+      "invalid_fixtures": [
+        "snapshots/pcram/invalid-source-version-missing-required.json",
+        "snapshots/pcram/invalid-source-version-unsupported-enum.json"
+      ],
+      "test_file": "tests/source-version-schema.test.ts",
+      "status": "implemented",
+      "purpose": "Captures source provenance and version identity for traceable reviewed artifacts.",
+      "downstream_role": "Provides provenance references used by downstream contract records.",
+      "requires_human_review_semantics": false,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": false
+    },
+    {
+      "contract_name": "review_manifest",
+      "schema_file": "schemas/review-manifest.schema.json",
+      "valid_fixture": "snapshots/pcram/example-review-manifest.json",
+      "invalid_fixtures": [
+        "snapshots/pcram/invalid-review-manifest-missing-required.json",
+        "snapshots/pcram/invalid-review-manifest-unsupported-enum.json"
+      ],
+      "test_file": "tests/review-manifest-schema.test.ts",
+      "status": "implemented",
+      "purpose": "Records machine-checkable human review decisions and approval scope.",
+      "downstream_role": "Serves as the reviewed permission gate for consumable artifacts.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": true
+    },
+    {
+      "contract_name": "approved_artifact",
+      "schema_file": "schemas/approved-artifact.schema.json",
+      "valid_fixture": "snapshots/pcram/example-approved-artifact.json",
+      "invalid_fixtures": [
+        "snapshots/pcram/invalid-approved-artifact-missing-required.json",
+        "snapshots/pcram/invalid-approved-artifact-unsupported-enum.json"
+      ],
+      "test_file": "tests/approved-artifact-schema.test.ts",
+      "status": "implemented",
+      "purpose": "Wraps approved content references in a traceable artifact envelope.",
+      "downstream_role": "Provides the stable approved artifact boundary for later handoff work.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": true
+    },
+    {
+      "contract_name": "evidence_report_metadata",
+      "schema_file": "schemas/evidence-report-metadata.schema.json",
+      "valid_fixture": "snapshots/pcram/example-evidence-report-metadata.json",
+      "invalid_fixtures": [
+        "snapshots/pcram/invalid-evidence-report-metadata-missing-required.json",
+        "snapshots/pcram/invalid-evidence-report-metadata-unsupported-enum.json"
+      ],
+      "test_file": "tests/evidence-report-metadata-schema.test.ts",
+      "status": "implemented",
+      "purpose": "Indexes structured metadata for evidence report artifacts without embedding report bodies.",
+      "downstream_role": "Supports cataloging and filtering of reviewed evidence metadata.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": false
+    },
+    {
+      "contract_name": "broker_profile",
+      "schema_file": "schemas/broker-profile.schema.json",
+      "valid_fixture": "snapshots/pcram/example-broker-profile.json",
+      "invalid_fixtures": [
+        "snapshots/pcram/invalid-broker-profile-missing-context.json",
+        "snapshots/pcram/invalid-broker-profile-unsupported-style.json"
+      ],
+      "test_file": "tests/broker-profile-schema.test.ts",
+      "status": "implemented",
+      "purpose": "Defines broker profile inputs used for relevance and presentation context.",
+      "downstream_role": "Provides curated profile context for relevance assessment contracts.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": false
+    },
+    {
+      "contract_name": "relevance_assessment",
+      "schema_file": "schemas/relevance-assessment.schema.json",
+      "valid_fixture": "snapshots/pcram/example-relevance-assessment.json",
+      "invalid_fixtures": [
+        "snapshots/pcram/invalid-relevance-assessment-missing-ref.json",
+        "snapshots/pcram/invalid-relevance-assessment-unsupported-enum.json",
+        "snapshots/pcram/invalid-relevance-assessment-additional-property.json"
+      ],
+      "test_file": "tests/relevance-assessment-schema.test.ts",
+      "status": "implemented",
+      "purpose": "Captures profile-aware relevance, urgency, risk framing, and scope.",
+      "downstream_role": "Provides reviewed prioritization context for consumer-facing artifacts.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": false
+    },
+    {
+      "contract_name": "jurisdiction_pack",
+      "schema_file": "schemas/jurisdiction-pack.schema.json",
+      "valid_fixture": "snapshots/pcram/example-jurisdiction-pack.json",
+      "invalid_fixtures": [
+        "snapshots/pcram/invalid-jurisdiction-pack-missing-ref.json",
+        "snapshots/pcram/invalid-jurisdiction-pack-unsupported-enum.json",
+        "snapshots/pcram/invalid-jurisdiction-pack-additional-property.json"
+      ],
+      "test_file": "tests/jurisdiction-pack-schema.test.ts",
+      "status": "implemented",
+      "purpose": "Packages jurisdiction-scoped regulatory intelligence with assumptions and limitations.",
+      "downstream_role": "Provides jurisdiction-scoped inputs for reviewed knowledge packaging.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": true
+    },
+    {
+      "contract_name": "approved_kb_snapshot",
+      "schema_file": "schemas/approved-kb-snapshot.schema.json",
+      "valid_fixture": "snapshots/pcram/example-approved-kb-snapshot.json",
+      "invalid_fixtures": [
+        "snapshots/pcram/invalid-approved-kb-snapshot-missing-ref.json",
+        "snapshots/pcram/invalid-approved-kb-snapshot-unsupported-enum.json",
+        "snapshots/pcram/invalid-approved-kb-snapshot-additional-property.json"
+      ],
+      "test_file": "tests/approved-kb-snapshot-schema.test.ts",
+      "status": "implemented",
+      "purpose": "Defines approved and versioned knowledge snapshot records for controlled handoff.",
+      "downstream_role": "Aggregates approved artifact and jurisdiction references into a reviewed snapshot.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": true
+    }
+  ]
+}

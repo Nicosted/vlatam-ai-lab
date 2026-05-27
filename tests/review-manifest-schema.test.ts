@@ -65,12 +65,10 @@ test("valid review manifest example passes", async () => {
 test("missing required field fails", async () => {
   const validate = await buildReviewManifestValidator();
   const sample = await readJsonFixture(
-    "snapshots/pcram/example-review-manifest.json",
+    "snapshots/pcram/invalid-review-manifest-missing-required.json",
   );
-  const invalid = { ...sample };
-  delete invalid["review_manifest_id"];
 
-  const isValid = validate(invalid);
+  const isValid = validate(sample);
 
   assert.equal(isValid, false);
   assert.equal(
@@ -86,14 +84,10 @@ test("missing required field fails", async () => {
 test("invalid review_status fails", async () => {
   const validate = await buildReviewManifestValidator();
   const sample = await readJsonFixture(
-    "snapshots/pcram/example-review-manifest.json",
+    "snapshots/pcram/invalid-review-manifest-unsupported-enum.json",
   );
-  const invalid = {
-    ...sample,
-    review_status: "manually_approved",
-  };
 
-  const isValid = validate(invalid);
+  const isValid = validate(sample);
 
   assert.equal(isValid, false);
   assert.equal(
