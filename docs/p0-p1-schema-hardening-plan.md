@@ -97,6 +97,7 @@ Status update: `review_manifest.schema.json` is now implemented as the next foun
 Status update: `approved_artifact.schema.json` is now implemented as the next foundation schema after `review_manifest.schema.json`.
 Status update: `evidence_report_metadata.schema.json` is now implemented as the next foundation schema after `approved_artifact.schema.json`.
 Status update: `broker-profile.schema.json` is now implemented as the next foundation schema after `evidence_report_metadata.schema.json`.
+Status update: `relevance-assessment.schema.json` is now implemented as the next foundation schema after `broker-profile.schema.json`.
 
 Recommended implementation order:
 

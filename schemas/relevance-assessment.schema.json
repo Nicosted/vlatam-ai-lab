@@ -1,0 +1,262 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/relevance-assessment.schema.json",
+  "title": "Relevance Assessment",
+  "description": "Schema for reviewable profile-aware relevance metadata for regulatory and trade intelligence artifacts.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "assessment_id",
+    "assessed_at",
+    "assessed_by",
+    "profile_ref",
+    "artifact_ref",
+    "country_scope",
+    "jurisdiction_scope",
+    "affected_codes",
+    "affected_commodities",
+    "affected_topics",
+    "profile_match",
+    "relevance_level",
+    "risk_level",
+    "urgency",
+    "explanation",
+    "limitations",
+    "requires_human_review",
+    "review_status",
+    "created_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "description": "Schema version of this relevance_assessment payload.",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "assessment_id": {
+      "type": "string",
+      "description": "Stable identifier for this relevance assessment.",
+      "minLength": 1,
+      "maxLength": 140
+    },
+    "assessed_at": {
+      "type": "string",
+      "description": "UTC timestamp when this relevance assessment was produced.",
+      "format": "date-time"
+    },
+    "assessed_by": {
+      "type": "string",
+      "description": "Reviewer, workflow, or local producer identifier for this assessment.",
+      "minLength": 1,
+      "maxLength": 120
+    },
+    "profile_ref": {
+      "type": "string",
+      "description": "Reference to the broker_profile context used for this assessment.",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "artifact_ref": {
+      "type": "string",
+      "description": "Reference to the reviewed artifact, delta, evidence report, source snapshot, or approved knowledge element being assessed.",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "country_scope": {
+      "type": "array",
+      "description": "Country or regional codes explicitly covered by this relevance assessment.",
+      "items": {
+        "type": "string",
+        "minLength": 2,
+        "maxLength": 12,
+        "pattern": "^[A-Z0-9_-]+$"
+      },
+      "minItems": 1,
+      "maxItems": 20,
+      "uniqueItems": true
+    },
+    "jurisdiction_scope": {
+      "type": "array",
+      "description": "Human-readable jurisdictions explicitly covered by this relevance assessment.",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80
+      },
+      "minItems": 1,
+      "maxItems": 40,
+      "uniqueItems": true
+    },
+    "affected_codes": {
+      "type": "array",
+      "description": "Affected nomenclature, tariff, or regulatory codes relevant to this assessment.",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 60
+      },
+      "minItems": 1,
+      "maxItems": 100,
+      "uniqueItems": true
+    },
+    "affected_commodities": {
+      "type": "array",
+      "description": "Affected commodity labels relevant to this assessment.",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 100
+      },
+      "minItems": 1,
+      "maxItems": 75,
+      "uniqueItems": true
+    },
+    "affected_topics": {
+      "type": "array",
+      "description": "Affected regulatory or operational topics relevant to this assessment.",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 100
+      },
+      "minItems": 1,
+      "maxItems": 75,
+      "uniqueItems": true
+    },
+    "profile_match": {
+      "type": "string",
+      "description": "How closely the assessed artifact matches the referenced profile context.",
+      "enum": ["none", "low", "medium", "high", "direct"]
+    },
+    "relevance_level": {
+      "type": "string",
+      "description": "Overall relevance level for the referenced profile context.",
+      "enum": ["not_relevant", "low", "medium", "high", "critical"]
+    },
+    "risk_level": {
+      "type": "string",
+      "description": "Risk level associated with this relevance assessment.",
+      "enum": ["low", "medium", "high", "critical"]
+    },
+    "urgency": {
+      "type": "string",
+      "description": "Recommended urgency for review or monitoring.",
+      "enum": ["informational", "monitor", "review_soon", "immediate_review"]
+    },
+    "explanation": {
+      "type": "string",
+      "description": "Human-readable explanation of why the artifact is or is not relevant to the referenced profile context.",
+      "minLength": 1,
+      "maxLength": 2000
+    },
+    "limitations": {
+      "type": "array",
+      "description": "Known limitations for this assessment.",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 500
+      },
+      "minItems": 1,
+      "maxItems": 20
+    },
+    "requires_human_review": {
+      "type": "boolean",
+      "description": "Whether this relevance assessment requires human review before downstream use."
+    },
+    "review_status": {
+      "type": "string",
+      "description": "Review state for this relevance assessment.",
+      "enum": ["draft", "pending_review", "approved", "rejected", "superseded"]
+    },
+    "created_at": {
+      "type": "string",
+      "description": "UTC timestamp when this assessment record was created.",
+      "format": "date-time"
+    },
+    "source_refs": {
+      "type": "array",
+      "description": "Optional source_version or local source references supporting this assessment. Raw source bodies are not embedded.",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 160,
+        "not": {
+          "pattern": "^https?://"
+        }
+      },
+      "minItems": 1,
+      "maxItems": 40,
+      "uniqueItems": true
+    },
+    "evidence_refs": {
+      "type": "array",
+      "description": "Optional evidence artifact references supporting this assessment.",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 200,
+        "not": {
+          "pattern": "^https?://"
+        }
+      },
+      "minItems": 1,
+      "maxItems": 40,
+      "uniqueItems": true
+    },
+    "review_manifest_ref": {
+      "type": "string",
+      "description": "Optional review_manifest reference associated with this assessment.",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "affected_specializations": {
+      "type": "array",
+      "description": "Optional broker profile specializations affected by the assessed artifact.",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 100
+      },
+      "minItems": 1,
+      "maxItems": 75,
+      "uniqueItems": true
+    },
+    "recommended_actions": {
+      "type": "array",
+      "description": "Optional human-reviewed recommended actions or checks.",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 500
+      },
+      "minItems": 1,
+      "maxItems": 20
+    },
+    "uncertainty_notes": {
+      "type": "array",
+      "description": "Optional uncertainty notes that preserve explainability and review context.",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 500
+      },
+      "minItems": 1,
+      "maxItems": 20
+    },
+    "effective_date": {
+      "type": "string",
+      "description": "Optional date when the assessed relevance becomes effective.",
+      "format": "date"
+    },
+    "expires_at": {
+      "type": "string",
+      "description": "Optional UTC timestamp when this assessment expires.",
+      "format": "date-time"
+    },
+    "downstream_allowed": {
+      "type": "boolean",
+      "description": "Optional flag indicating whether downstream consumption is allowed under the current review state."
+    }
+  }
+}
