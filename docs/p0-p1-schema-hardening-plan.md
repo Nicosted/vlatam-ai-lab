@@ -102,6 +102,7 @@ Status update: `jurisdiction-pack.schema.json` is now implemented as the next fo
 Status update: `approved-kb-snapshot.schema.json` is now implemented as the final P1 foundation schema after `jurisdiction-pack.schema.json`.
 Status update: completed schema hardening contracts are indexed in `schemas/schema-registry.json`.
 Status update: the completed registry can produce `reports/schema-readiness-p1.md` for local readiness review.
+Status update: the completed registry now supports a local premium operational briefing preview for operator-facing intelligence review.
 
 Recommended implementation order:
 
