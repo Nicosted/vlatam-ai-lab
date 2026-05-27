@@ -1,0 +1,301 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/jurisdiction-pack.schema.json",
+  "title": "Jurisdiction Pack",
+  "description": "Schema for jurisdiction-scoped regulatory intelligence packaging used by reviewed artifacts and future downstream consumers.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "jurisdiction_pack_id",
+    "pack_name",
+    "country_scope",
+    "jurisdiction_scope",
+    "legal_system_scope",
+    "nomenclature_scope",
+    "regulatory_source_families",
+    "source_refs",
+    "review_manifest_ref",
+    "effective_from",
+    "status",
+    "assumptions",
+    "limitations",
+    "downstream_allowed",
+    "created_at",
+    "updated_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "description": "Schema version of this jurisdiction_pack payload.",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "jurisdiction_pack_id": {
+      "type": "string",
+      "description": "Stable identifier for this jurisdiction pack.",
+      "minLength": 1,
+      "maxLength": 140
+    },
+    "pack_name": {
+      "type": "string",
+      "description": "Human-readable name for this jurisdiction pack.",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "country_scope": {
+      "type": "array",
+      "description": "Country or regional codes explicitly covered by this jurisdiction pack.",
+      "items": {
+        "type": "string",
+        "minLength": 2,
+        "maxLength": 12,
+        "pattern": "^[A-Z0-9_-]+$"
+      },
+      "minItems": 1,
+      "maxItems": 20,
+      "uniqueItems": true
+    },
+    "jurisdiction_scope": {
+      "type": "array",
+      "description": "Human-readable jurisdictions explicitly covered by this pack.",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 100
+      },
+      "minItems": 1,
+      "maxItems": 40,
+      "uniqueItems": true
+    },
+    "legal_system_scope": {
+      "type": "string",
+      "description": "Legal system scope represented by this jurisdiction pack.",
+      "enum": [
+        "national",
+        "customs_union",
+        "regional_bloc",
+        "supranational",
+        "mixed"
+      ]
+    },
+    "nomenclature_scope": {
+      "type": "string",
+      "description": "Nomenclature or tariff schedule scope covered by this pack.",
+      "enum": ["HS", "NCM", "MERCOSUR_NCM", "local_tariff_schedule", "mixed"]
+    },
+    "regulatory_source_families": {
+      "type": "array",
+      "description": "Regulatory source families explicitly included in this jurisdiction pack.",
+      "items": {
+        "type": "string",
+        "enum": [
+          "pcram_bulletin",
+          "arca_notice",
+          "mercosur_norm",
+          "hs_reference",
+          "ncm_reference",
+          "tariff_schedule",
+          "customs_code",
+          "manual_source",
+          "other"
+        ]
+      },
+      "minItems": 1,
+      "maxItems": 40,
+      "uniqueItems": true
+    },
+    "source_refs": {
+      "type": "array",
+      "description": "Explicit local or reviewed source references supporting this jurisdiction pack. Raw source bodies and production URLs are not embedded.",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 200,
+        "not": {
+          "pattern": "^https?://"
+        }
+      },
+      "minItems": 1,
+      "maxItems": 60,
+      "uniqueItems": true
+    },
+    "review_manifest_ref": {
+      "type": "string",
+      "description": "Reference to the associated review_manifest identifier.",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "effective_from": {
+      "type": "string",
+      "description": "Date when this jurisdiction pack becomes effective.",
+      "format": "date"
+    },
+    "status": {
+      "type": "string",
+      "description": "Review and lifecycle status for this jurisdiction pack.",
+      "enum": [
+        "draft",
+        "pending_review",
+        "approved",
+        "superseded",
+        "deprecated",
+        "rejected"
+      ]
+    },
+    "assumptions": {
+      "type": "array",
+      "description": "Explicit assumptions that constrain safe use of this pack.",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 500
+      },
+      "minItems": 1,
+      "maxItems": 30
+    },
+    "limitations": {
+      "type": "array",
+      "description": "Known limitations for this jurisdiction pack.",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 500
+      },
+      "minItems": 1,
+      "maxItems": 30
+    },
+    "downstream_allowed": {
+      "type": "boolean",
+      "description": "Whether downstream consumption is allowed under the current review state."
+    },
+    "created_at": {
+      "type": "string",
+      "description": "UTC timestamp when this jurisdiction pack record was created.",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "description": "UTC timestamp when this jurisdiction pack record was last updated.",
+      "format": "date-time"
+    },
+    "pack_version": {
+      "type": "string",
+      "description": "Optional semantic version for this jurisdiction pack.",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "region_scope": {
+      "type": "array",
+      "description": "Optional regional scope labels for this pack.",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80
+      },
+      "minItems": 1,
+      "maxItems": 20,
+      "uniqueItems": true
+    },
+    "valid_until": {
+      "type": "string",
+      "description": "Optional UTC timestamp until this pack remains valid.",
+      "format": "date-time"
+    },
+    "source_version_refs": {
+      "type": "array",
+      "description": "Optional source_version identifiers backing this jurisdiction pack.",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 160
+      },
+      "minItems": 1,
+      "maxItems": 60,
+      "uniqueItems": true
+    },
+    "evidence_refs": {
+      "type": "array",
+      "description": "Optional evidence artifact references supporting this pack.",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 200,
+        "not": {
+          "pattern": "^https?://"
+        }
+      },
+      "minItems": 1,
+      "maxItems": 60,
+      "uniqueItems": true
+    },
+    "affected_topics": {
+      "type": "array",
+      "description": "Optional regulatory or operational topics covered by this pack.",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 100
+      },
+      "minItems": 1,
+      "maxItems": 75,
+      "uniqueItems": true
+    },
+    "supported_artifact_types": {
+      "type": "array",
+      "description": "Optional artifact types this jurisdiction pack can support.",
+      "items": {
+        "type": "string",
+        "enum": [
+          "source_snapshot",
+          "regulatory_delta",
+          "evidence_report",
+          "approved_artifact",
+          "approved_kb_snapshot",
+          "jurisdiction_pack",
+          "relevance_assessment"
+        ]
+      },
+      "minItems": 1,
+      "maxItems": 20,
+      "uniqueItems": true
+    },
+    "language": {
+      "type": "string",
+      "description": "Optional primary language tag for this pack.",
+      "pattern": "^[a-z]{2}(-[A-Z]{2})?$"
+    },
+    "owner": {
+      "type": "string",
+      "description": "Optional local owner or steward identifier.",
+      "minLength": 1,
+      "maxLength": 120
+    },
+    "reviewer_notes": {
+      "type": "array",
+      "description": "Optional reviewer notes that preserve audit context.",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 500
+      },
+      "minItems": 1,
+      "maxItems": 20
+    },
+    "uncertainty_notes": {
+      "type": "array",
+      "description": "Optional uncertainty notes for downstream interpretation.",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 500
+      },
+      "minItems": 1,
+      "maxItems": 20
+    },
+    "supersedes_pack_ref": {
+      "type": "string",
+      "description": "Optional reference to a prior jurisdiction pack superseded by this one.",
+      "minLength": 1,
+      "maxLength": 160
+    }
+  }
+}
