@@ -103,6 +103,7 @@ Status update: `approved-kb-snapshot.schema.json` is now implemented as the fina
 Status update: completed schema hardening contracts are indexed in `schemas/schema-registry.json`.
 Status update: the completed registry can produce `reports/schema-readiness-p1.md` for local readiness review.
 Status update: the completed registry now supports a local premium operational briefing preview for operator-facing intelligence review.
+Status update: the operational briefing preview is now protected by a local quality gate for premium, evidence-first, human-review aware output.
 
 Recommended implementation order:
 
