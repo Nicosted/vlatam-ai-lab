@@ -1,0 +1,56 @@
+{
+  "schema_version": "1.0.0",
+  "snapshot_id": "approved-kb-snapshot-ar-mercosur-p1-sample",
+  "snapshot_version": "1.0.0",
+  "snapshot_name": "Argentina / MERCOSUR Approved KB Snapshot (Sample)",
+  "generated_at": "2026-05-21T11:00:00.000Z",
+  "generated_by": "local-human-review-workflow",
+  "status": "pending_review",
+  "country_scope": ["AR", "MERCOSUR"],
+  "jurisdiction_scope": ["Argentina", "MERCOSUR"],
+  "nomenclature_scope": "MERCOSUR_NCM",
+  "source_version_refs": ["source-version-pcram-bulletin-2026-05-20t120000z"],
+  "approved_artifact_refs": ["approved-artifact-pcram-delta-2026-05-20"],
+  "review_manifest_ref": "review-manifest-pcram-delta-2026-05-20",
+  "jurisdiction_pack_ref": "jurisdiction-pack-ar-mercosur-p1-sample",
+  "evidence_refs": [
+    "reports/example-pcram-delta-report.md",
+    "snapshots/pcram/example-evidence-report-metadata.json"
+  ],
+  "content_summary": "Sample approved KB snapshot manifest for Argentina/MERCOSUR regulatory intelligence references. It aggregates reviewed artifact and provenance references without embedding raw source material.",
+  "included_artifact_types": [
+    "approved_artifact",
+    "evidence_report",
+    "jurisdiction_pack",
+    "relevance_assessment"
+  ],
+  "effective_from": "2026-05-21",
+  "limitations": [
+    "Sample approved KB snapshot for schema validation only.",
+    "Does not authorize classifier write-back or production runtime consumption."
+  ],
+  "downstream_allowed": false,
+  "created_at": "2026-05-21T11:00:00.000Z",
+  "valid_until": "2026-12-31T23:59:59.000Z",
+  "source_snapshot_refs": ["snapshot-pcram-current-sample"],
+  "regulatory_delta_refs": ["delta-pcram-sample-2026-05-20"],
+  "relevance_assessment_refs": [
+    "relevance-assessment-pcram-ar-mercosur-broker-2026-05-21"
+  ],
+  "affected_codes": ["6109.10.00", "6204.62.00"],
+  "affected_topics": [
+    "NCM_updates",
+    "customs_valuation",
+    "origin_and_labeling"
+  ],
+  "supported_country_packs": ["jurisdiction-pack-ar-mercosur-p1-sample"],
+  "language": "es-AR",
+  "checksum": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "export_format": "bundle_manifest",
+  "reviewer_notes": [
+    "Fixture snapshot requires human review before downstream use."
+  ],
+  "uncertainty_notes": [
+    "Fixture references are illustrative and not a complete approved KB export."
+  ]
+}

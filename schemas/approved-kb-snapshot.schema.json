@@ -1,0 +1,334 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/approved-kb-snapshot.schema.json",
+  "title": "Approved KB Snapshot",
+  "description": "Schema for approved, versioned, and traceable classifier/intelligence knowledge base snapshots for downstream consumption.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "snapshot_id",
+    "snapshot_version",
+    "snapshot_name",
+    "generated_at",
+    "generated_by",
+    "status",
+    "country_scope",
+    "jurisdiction_scope",
+    "nomenclature_scope",
+    "source_version_refs",
+    "approved_artifact_refs",
+    "review_manifest_ref",
+    "jurisdiction_pack_ref",
+    "evidence_refs",
+    "content_summary",
+    "included_artifact_types",
+    "effective_from",
+    "limitations",
+    "downstream_allowed",
+    "created_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "description": "Schema version of this approved_kb_snapshot payload.",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "snapshot_id": {
+      "type": "string",
+      "description": "Stable identifier for this approved KB snapshot.",
+      "minLength": 1,
+      "maxLength": 140
+    },
+    "snapshot_version": {
+      "type": "string",
+      "description": "Semantic version for this approved KB snapshot.",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "snapshot_name": {
+      "type": "string",
+      "description": "Human-readable name for this approved KB snapshot.",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "generated_at": {
+      "type": "string",
+      "description": "UTC timestamp when this approved KB snapshot was generated.",
+      "format": "date-time"
+    },
+    "generated_by": {
+      "type": "string",
+      "description": "Local producer or reviewed workflow identifier.",
+      "minLength": 1,
+      "maxLength": 120
+    },
+    "status": {
+      "type": "string",
+      "description": "Review and lifecycle status for this approved KB snapshot.",
+      "enum": [
+        "draft",
+        "pending_review",
+        "approved",
+        "superseded",
+        "deprecated",
+        "rejected"
+      ]
+    },
+    "country_scope": {
+      "type": "array",
+      "description": "Country or regional codes explicitly covered by this snapshot.",
+      "items": {
+        "type": "string",
+        "minLength": 2,
+        "maxLength": 12,
+        "pattern": "^[A-Z0-9_-]+$"
+      },
+      "minItems": 1,
+      "maxItems": 20,
+      "uniqueItems": true
+    },
+    "jurisdiction_scope": {
+      "type": "array",
+      "description": "Human-readable jurisdictions explicitly covered by this snapshot.",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 100
+      },
+      "minItems": 1,
+      "maxItems": 40,
+      "uniqueItems": true
+    },
+    "nomenclature_scope": {
+      "type": "string",
+      "description": "Nomenclature or tariff schedule scope covered by this snapshot.",
+      "enum": ["HS", "NCM", "MERCOSUR_NCM", "local_tariff_schedule", "mixed"]
+    },
+    "source_version_refs": {
+      "type": "array",
+      "description": "Source version identifiers backing this approved KB snapshot.",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 160
+      },
+      "minItems": 1,
+      "maxItems": 100,
+      "uniqueItems": true
+    },
+    "approved_artifact_refs": {
+      "type": "array",
+      "description": "Approved artifact identifiers included in this export-ready KB snapshot.",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 160
+      },
+      "minItems": 1,
+      "maxItems": 100,
+      "uniqueItems": true
+    },
+    "review_manifest_ref": {
+      "type": "string",
+      "description": "Reference to the review_manifest approving this snapshot.",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "jurisdiction_pack_ref": {
+      "type": "string",
+      "description": "Reference to the jurisdiction_pack that scopes this snapshot.",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "evidence_refs": {
+      "type": "array",
+      "description": "Evidence artifact references supporting this snapshot. Raw evidence bodies are not embedded.",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 200,
+        "not": {
+          "pattern": "^https?://"
+        }
+      },
+      "minItems": 1,
+      "maxItems": 100,
+      "uniqueItems": true
+    },
+    "content_summary": {
+      "type": "string",
+      "description": "Bounded human-readable summary of included approved KB content.",
+      "minLength": 1,
+      "maxLength": 2000
+    },
+    "included_artifact_types": {
+      "type": "array",
+      "description": "Artifact types included in this approved KB snapshot.",
+      "items": {
+        "type": "string",
+        "enum": [
+          "source_snapshot",
+          "regulatory_delta",
+          "evidence_report",
+          "broker_profile_context",
+          "relevance_assessment",
+          "review_manifest",
+          "approved_artifact",
+          "jurisdiction_pack",
+          "nomenclature_entry",
+          "classification_rule",
+          "ruling",
+          "evidence_bundle"
+        ]
+      },
+      "minItems": 1,
+      "maxItems": 30,
+      "uniqueItems": true
+    },
+    "effective_from": {
+      "type": "string",
+      "description": "Date when this approved KB snapshot becomes effective.",
+      "format": "date"
+    },
+    "limitations": {
+      "type": "array",
+      "description": "Known limitations for downstream consumption of this snapshot.",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 500
+      },
+      "minItems": 1,
+      "maxItems": 30
+    },
+    "downstream_allowed": {
+      "type": "boolean",
+      "description": "Whether downstream consumption is allowed under the current review state."
+    },
+    "created_at": {
+      "type": "string",
+      "description": "UTC timestamp when this snapshot record was created.",
+      "format": "date-time"
+    },
+    "valid_until": {
+      "type": "string",
+      "description": "Optional UTC timestamp until this snapshot remains valid.",
+      "format": "date-time"
+    },
+    "supersedes_snapshot_ref": {
+      "type": "string",
+      "description": "Optional reference to a prior approved KB snapshot superseded by this one.",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "source_snapshot_refs": {
+      "type": "array",
+      "description": "Optional source snapshot references included in this approved KB snapshot.",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 160
+      },
+      "minItems": 1,
+      "maxItems": 100,
+      "uniqueItems": true
+    },
+    "regulatory_delta_refs": {
+      "type": "array",
+      "description": "Optional reviewed regulatory delta references included in this snapshot.",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 160
+      },
+      "minItems": 1,
+      "maxItems": 100,
+      "uniqueItems": true
+    },
+    "relevance_assessment_refs": {
+      "type": "array",
+      "description": "Optional relevance assessment references included in this snapshot.",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 160
+      },
+      "minItems": 1,
+      "maxItems": 100,
+      "uniqueItems": true
+    },
+    "affected_codes": {
+      "type": "array",
+      "description": "Optional nomenclature, tariff, or regulatory codes covered by this snapshot.",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 60
+      },
+      "minItems": 1,
+      "maxItems": 200,
+      "uniqueItems": true
+    },
+    "affected_topics": {
+      "type": "array",
+      "description": "Optional regulatory or operational topics covered by this snapshot.",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 100
+      },
+      "minItems": 1,
+      "maxItems": 100,
+      "uniqueItems": true
+    },
+    "supported_country_packs": {
+      "type": "array",
+      "description": "Optional jurisdiction_pack references supported by this snapshot.",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 160
+      },
+      "minItems": 1,
+      "maxItems": 40,
+      "uniqueItems": true
+    },
+    "language": {
+      "type": "string",
+      "description": "Optional primary language tag for this snapshot.",
+      "pattern": "^[a-z]{2}(-[A-Z]{2})?$"
+    },
+    "checksum": {
+      "type": "string",
+      "description": "Optional snapshot checksum in sha256 format with optional prefix.",
+      "pattern": "^(sha256:)?[a-fA-F0-9]{64}$"
+    },
+    "export_format": {
+      "type": "string",
+      "description": "Optional export format for this snapshot manifest.",
+      "enum": ["json", "jsonl", "bundle_manifest", "markdown_index", "other"]
+    },
+    "reviewer_notes": {
+      "type": "array",
+      "description": "Optional reviewer notes preserving audit context.",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 500
+      },
+      "minItems": 1,
+      "maxItems": 20
+    },
+    "uncertainty_notes": {
+      "type": "array",
+      "description": "Optional uncertainty notes for downstream interpretation.",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 500
+      },
+      "minItems": 1,
+      "maxItems": 20
+    }
+  }
+}

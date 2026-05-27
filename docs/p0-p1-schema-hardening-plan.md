@@ -99,6 +99,7 @@ Status update: `evidence_report_metadata.schema.json` is now implemented as the 
 Status update: `broker-profile.schema.json` is now implemented as the next foundation schema after `evidence_report_metadata.schema.json`.
 Status update: `relevance-assessment.schema.json` is now implemented as the next foundation schema after `broker-profile.schema.json`.
 Status update: `jurisdiction-pack.schema.json` is now implemented as the next foundation schema after `relevance-assessment.schema.json`.
+Status update: `approved-kb-snapshot.schema.json` is now implemented as the final P1 foundation schema after `jurisdiction-pack.schema.json`.
 
 Recommended implementation order:
 
