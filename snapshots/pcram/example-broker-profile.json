@@ -1,0 +1,42 @@
+{
+  "schema_version": "1.0.0",
+  "profile_id": "broker-profile-sample-ar-mercosur-despachante",
+  "role": "customs_broker_despachante",
+  "country_scope": ["AR", "MERCOSUR"],
+  "jurisdiction_scope": ["Argentina", "MERCOSUR"],
+  "nationality_or_operating_country": "Argentina",
+  "commodity_specializations": ["textiles", "footwear", "toys"],
+  "product_verticals": ["apparel", "retail_imports", "consumer_goods"],
+  "regulatory_specializations": [
+    "tariff_classification",
+    "import_documentation",
+    "origin_and_labeling"
+  ],
+  "topics_of_interest": [
+    "NCM_updates",
+    "non_automatic_licenses",
+    "customs_valuation"
+  ],
+  "preferred_information_style": "checklist",
+  "detail_level": "operational",
+  "language": "es-AR",
+  "risk_tolerance": "conservative",
+  "human_review_preferences": {
+    "always_review_medium_or_higher_risk": true,
+    "include_uncertainty_notes": true,
+    "require_source_traceability": true,
+    "escalate_regulatory_ambiguity": true
+  },
+  "created_at": "2026-05-21T10:20:00.000Z",
+  "updated_at": "2026-05-21T10:20:00.000Z",
+  "operating_corridors": ["MERCOSUR_to_AR", "BR_to_AR"],
+  "client_types": ["SME_importers", "retail_importers"],
+  "complexity_level": "specialized",
+  "alert_frequency": "daily_digest",
+  "notes": ["Sample broker profile for schema validation only."],
+  "limitations": [
+    "Does not authorize automatic relevance assessment.",
+    "No production integration or external connectivity."
+  ],
+  "source_refs": ["docs/broker-intelligence-profile-p0.md"]
+}

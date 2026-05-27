@@ -1,0 +1,267 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/broker-profile.schema.json",
+  "title": "Broker Intelligence Profile",
+  "description": "Schema for explicit broker/trade intelligence profile context used as personalization input, not as a runtime user database model.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "profile_id",
+    "role",
+    "country_scope",
+    "jurisdiction_scope",
+    "commodity_specializations",
+    "product_verticals",
+    "regulatory_specializations",
+    "topics_of_interest",
+    "preferred_information_style",
+    "detail_level",
+    "language",
+    "risk_tolerance",
+    "human_review_preferences",
+    "created_at",
+    "updated_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "description": "Schema version of this broker_profile payload.",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "profile_id": {
+      "type": "string",
+      "description": "Stable identifier for this explicit profile context.",
+      "minLength": 1,
+      "maxLength": 120
+    },
+    "role": {
+      "type": "string",
+      "description": "Trade intelligence role represented by this profile context.",
+      "enum": [
+        "customs_broker_despachante",
+        "importer",
+        "exporter",
+        "analyst",
+        "admin",
+        "general_trade_user"
+      ]
+    },
+    "country_scope": {
+      "type": "array",
+      "description": "Country or regional codes explicitly covered by this profile context.",
+      "items": {
+        "type": "string",
+        "minLength": 2,
+        "maxLength": 12,
+        "pattern": "^[A-Z0-9_-]+$"
+      },
+      "minItems": 1,
+      "maxItems": 20,
+      "uniqueItems": true
+    },
+    "jurisdiction_scope": {
+      "type": "array",
+      "description": "Human-readable jurisdictions explicitly covered by this profile context.",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80
+      },
+      "minItems": 1,
+      "maxItems": 40,
+      "uniqueItems": true
+    },
+    "nationality_or_operating_country": {
+      "type": "string",
+      "description": "Optional operating country label when relevant to context framing.",
+      "minLength": 1,
+      "maxLength": 80
+    },
+    "commodity_specializations": {
+      "type": "array",
+      "description": "Explicit commodity specializations used for profile-aware framing.",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80
+      },
+      "minItems": 1,
+      "maxItems": 50,
+      "uniqueItems": true
+    },
+    "product_verticals": {
+      "type": "array",
+      "description": "Explicit product verticals used for profile-aware framing.",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80
+      },
+      "minItems": 1,
+      "maxItems": 50,
+      "uniqueItems": true
+    },
+    "regulatory_specializations": {
+      "type": "array",
+      "description": "Explicit regulatory specializations used for profile-aware framing.",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 100
+      },
+      "minItems": 1,
+      "maxItems": 50,
+      "uniqueItems": true
+    },
+    "topics_of_interest": {
+      "type": "array",
+      "description": "Explicit topics of interest available for later relevance assessment.",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 100
+      },
+      "minItems": 1,
+      "maxItems": 75,
+      "uniqueItems": true
+    },
+    "preferred_information_style": {
+      "type": "string",
+      "description": "Preferred information framing style for future presentation layers.",
+      "enum": [
+        "executive_summary",
+        "technical_operational",
+        "checklist",
+        "legal_reference_heavy",
+        "risk_first",
+        "action_first"
+      ]
+    },
+    "detail_level": {
+      "type": "string",
+      "description": "Preferred level of detail for future output framing.",
+      "enum": ["brief", "operational", "technical", "exhaustive"]
+    },
+    "language": {
+      "type": "string",
+      "description": "Preferred language tag for future output framing.",
+      "pattern": "^[a-z]{2}(-[A-Z]{2})?$"
+    },
+    "risk_tolerance": {
+      "type": "string",
+      "description": "Risk tolerance used for framing and human-review routing expectations.",
+      "enum": ["conservative", "balanced", "aggressive"]
+    },
+    "human_review_preferences": {
+      "type": "object",
+      "description": "Explicit human-review routing preferences for profile-aware outputs.",
+      "additionalProperties": false,
+      "required": [
+        "always_review_medium_or_higher_risk",
+        "include_uncertainty_notes",
+        "require_source_traceability",
+        "escalate_regulatory_ambiguity"
+      ],
+      "properties": {
+        "always_review_medium_or_higher_risk": {
+          "type": "boolean",
+          "description": "Whether medium-or-higher risk outputs should always route to human review."
+        },
+        "include_uncertainty_notes": {
+          "type": "boolean",
+          "description": "Whether future outputs should include explicit uncertainty notes."
+        },
+        "require_source_traceability": {
+          "type": "boolean",
+          "description": "Whether profile-aware outputs should preserve source traceability."
+        },
+        "escalate_regulatory_ambiguity": {
+          "type": "boolean",
+          "description": "Whether ambiguous regulatory interpretations should be escalated to human review."
+        }
+      }
+    },
+    "operating_corridors": {
+      "type": "array",
+      "description": "Optional explicitly provided operating corridors.",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 100
+      },
+      "minItems": 1,
+      "maxItems": 40,
+      "uniqueItems": true
+    },
+    "client_types": {
+      "type": "array",
+      "description": "Optional explicitly provided client type context.",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80
+      },
+      "minItems": 1,
+      "maxItems": 40,
+      "uniqueItems": true
+    },
+    "complexity_level": {
+      "type": "string",
+      "description": "Optional complexity level for the profile context.",
+      "enum": ["low", "moderate", "high", "specialized"]
+    },
+    "alert_frequency": {
+      "type": "string",
+      "description": "Optional preferred alert frequency for future alerting layers.",
+      "enum": ["none", "immediate", "daily_digest", "weekly_digest"]
+    },
+    "notes": {
+      "type": "array",
+      "description": "Optional bounded notes for profile curation context.",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 500
+      },
+      "minItems": 1,
+      "maxItems": 20
+    },
+    "limitations": {
+      "type": "array",
+      "description": "Optional bounded limitations for safe personalization usage.",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 500
+      },
+      "minItems": 1,
+      "maxItems": 20
+    },
+    "source_refs": {
+      "type": "array",
+      "description": "Optional local or reviewed references supporting this profile context. URLs and credentials are not part of this contract.",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 160,
+        "not": {
+          "pattern": "^https?://"
+        }
+      },
+      "minItems": 1,
+      "maxItems": 20,
+      "uniqueItems": true
+    },
+    "created_at": {
+      "type": "string",
+      "description": "UTC timestamp when this profile context was created.",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "description": "UTC timestamp when this profile context was last updated.",
+      "format": "date-time"
+    }
+  }
+}
