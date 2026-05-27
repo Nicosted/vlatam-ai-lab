@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0.0",
+  "jurisdiction_pack_id": "jurisdiction-pack-invalid-unsupported-enum",
+  "pack_name": "Invalid Jurisdiction Pack Unsupported Enum",
+  "country_scope": ["AR"],
+  "jurisdiction_scope": ["Argentina"],
+  "legal_system_scope": "private_platform_rules",
+  "nomenclature_scope": "NCM",
+  "regulatory_source_families": ["pcram_bulletin"],
+  "source_refs": ["source-version-pcram-bulletin-2026-05-20t120000z"],
+  "review_manifest_ref": "review-manifest-pcram-delta-2026-05-20",
+  "effective_from": "2026-05-21",
+  "status": "pending_review",
+  "assumptions": ["Invalid fixture for enum validation."],
+  "limitations": ["Invalid fixture uses unsupported legal_system_scope."],
+  "downstream_allowed": false,
+  "created_at": "2026-05-21T10:45:00.000Z",
+  "updated_at": "2026-05-21T10:45:00.000Z"
+}

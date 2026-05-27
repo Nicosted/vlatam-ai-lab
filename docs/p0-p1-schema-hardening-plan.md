@@ -98,6 +98,7 @@ Status update: `approved_artifact.schema.json` is now implemented as the next fo
 Status update: `evidence_report_metadata.schema.json` is now implemented as the next foundation schema after `approved_artifact.schema.json`.
 Status update: `broker-profile.schema.json` is now implemented as the next foundation schema after `evidence_report_metadata.schema.json`.
 Status update: `relevance-assessment.schema.json` is now implemented as the next foundation schema after `broker-profile.schema.json`.
+Status update: `jurisdiction-pack.schema.json` is now implemented as the next foundation schema after `relevance-assessment.schema.json`.
 
 Recommended implementation order:
 
