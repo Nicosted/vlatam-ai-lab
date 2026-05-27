@@ -65,12 +65,10 @@ test("valid approved artifact example passes", async () => {
 test("missing required field fails", async () => {
   const validate = await buildApprovedArtifactValidator();
   const sample = await readJsonFixture(
-    "snapshots/pcram/example-approved-artifact.json",
+    "snapshots/pcram/invalid-approved-artifact-missing-required.json",
   );
-  const invalid = { ...sample };
-  delete invalid["review_manifest_ref"];
 
-  const isValid = validate(invalid);
+  const isValid = validate(sample);
 
   assert.equal(isValid, false);
   assert.equal(
@@ -86,14 +84,10 @@ test("missing required field fails", async () => {
 test("invalid artifact_type fails", async () => {
   const validate = await buildApprovedArtifactValidator();
   const sample = await readJsonFixture(
-    "snapshots/pcram/example-approved-artifact.json",
+    "snapshots/pcram/invalid-approved-artifact-unsupported-enum.json",
   );
-  const invalid = {
-    ...sample,
-    artifact_type: "approved_artifact",
-  };
 
-  const isValid = validate(invalid);
+  const isValid = validate(sample);
 
   assert.equal(isValid, false);
   assert.equal(

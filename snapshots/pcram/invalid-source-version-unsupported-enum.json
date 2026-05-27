@@ -1,0 +1,12 @@
+{
+  "source_version_id": "source-version-invalid-unsupported-enum",
+  "source_id": "pcram-bulletin",
+  "source_name": "PCRAM Bulletin Sample",
+  "source_type": "unsupported_source_type",
+  "source_ref": "bulletin-2026-05-20",
+  "captured_at": "2026-05-20T12:00:00.000Z",
+  "content_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "capture_method": "local_fixture",
+  "jurisdiction_scope": ["AR"],
+  "schema_version": "1.0.0"
+}

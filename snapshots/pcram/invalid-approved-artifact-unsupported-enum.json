@@ -1,0 +1,14 @@
+{
+  "artifact_id": "approved-artifact-invalid-unsupported-enum",
+  "artifact_type": "approved_artifact",
+  "schema_version": "1.0.0",
+  "created_at": "2026-05-21T10:05:00.000Z",
+  "source_version_refs": ["source-version-pcram-bulletin-2026-05-20t120000z"],
+  "review_manifest_ref": "review-manifest-pcram-delta-2026-05-20",
+  "content_ref": "snapshots/pcram/example-delta.json",
+  "content_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "jurisdiction_scope": ["AR"],
+  "review_status": "approved",
+  "downstream_allowed": true,
+  "limitations": ["Schema validation fixture."]
+}

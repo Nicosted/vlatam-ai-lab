@@ -1,0 +1,16 @@
+{
+  "evidence_report_id": "evidence-report-invalid-unsupported-enum",
+  "schema_version": "1.0.0",
+  "title": "PCRAM Delta Evidence Report Metadata Invalid Fixture",
+  "report_ref": "reports/example-pcram-delta-report.md",
+  "report_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "created_at": "2026-05-21T10:10:00.000Z",
+  "source_version_refs": ["source-version-pcram-bulletin-2026-05-20t120000z"],
+  "review_manifest_ref": "review-manifest-pcram-delta-2026-05-20",
+  "approved_artifact_ref": "approved-artifact-pcram-delta-2026-05-20",
+  "jurisdiction_scope": ["AR"],
+  "report_type": "generic_evidence",
+  "risk_level": "medium",
+  "human_review_required": true,
+  "limitations": ["Schema validation fixture."]
+}

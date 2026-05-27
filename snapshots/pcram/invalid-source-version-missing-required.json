@@ -1,0 +1,11 @@
+{
+  "source_id": "pcram-bulletin",
+  "source_name": "PCRAM Bulletin Sample",
+  "source_type": "pcram_bulletin",
+  "source_ref": "bulletin-2026-05-20",
+  "captured_at": "2026-05-20T12:00:00.000Z",
+  "content_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "capture_method": "local_fixture",
+  "jurisdiction_scope": ["AR"],
+  "schema_version": "1.0.0"
+}

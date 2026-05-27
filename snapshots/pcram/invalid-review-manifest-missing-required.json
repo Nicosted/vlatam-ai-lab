@@ -1,0 +1,19 @@
+{
+  "artifact_id": "delta-pcram-bulletin-2026-05-20t120000z",
+  "artifact_type": "regulatory_delta",
+  "schema_version": "1.0.0",
+  "review_status": "approved",
+  "reviewed_by": "human-review-gate",
+  "reviewed_at": "2026-05-21T10:00:00.000Z",
+  "approval_scope": {
+    "allowed_consumers": ["local-review-consumer"],
+    "allowed_use_cases": ["regulatory_intelligence_review"],
+    "country_scope": ["AR"],
+    "validity_notes": "Approved for local schema validation workflows."
+  },
+  "jurisdiction_scope": ["AR"],
+  "source_version_refs": ["source-version-pcram-bulletin-2026-05-20t120000z"],
+  "evidence_refs": ["reports/example-pcram-delta-report.md"],
+  "limitations": ["Schema validation fixture."],
+  "downstream_allowed": true
+}

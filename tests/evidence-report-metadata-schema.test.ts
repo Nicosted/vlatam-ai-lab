@@ -67,12 +67,10 @@ test("valid evidence report metadata example passes", async () => {
 test("missing required field fails", async () => {
   const validate = await buildEvidenceReportMetadataValidator();
   const sample = await readJsonFixture(
-    "snapshots/pcram/example-evidence-report-metadata.json",
+    "snapshots/pcram/invalid-evidence-report-metadata-missing-required.json",
   );
-  const invalid = { ...sample };
-  delete invalid["approved_artifact_ref"];
 
-  const isValid = validate(invalid);
+  const isValid = validate(sample);
 
   assert.equal(isValid, false);
   assert.equal(
@@ -88,14 +86,10 @@ test("missing required field fails", async () => {
 test("invalid report_type fails", async () => {
   const validate = await buildEvidenceReportMetadataValidator();
   const sample = await readJsonFixture(
-    "snapshots/pcram/example-evidence-report-metadata.json",
+    "snapshots/pcram/invalid-evidence-report-metadata-unsupported-enum.json",
   );
-  const invalid = {
-    ...sample,
-    report_type: "generic_evidence",
-  };
 
-  const isValid = validate(invalid);
+  const isValid = validate(sample);
 
   assert.equal(isValid, false);
   assert.equal(
