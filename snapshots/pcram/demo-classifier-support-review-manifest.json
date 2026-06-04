@@ -1,0 +1,46 @@
+{
+  "review_manifest_id": "review-manifest-classifier-support-ar-textiles-2026-05-21",
+  "artifact_id": "relevance-assessment-classifier-support-ar-textiles-2026-05-21",
+  "artifact_type": "relevance_assessment",
+  "schema_version": "1.0.0",
+  "review_status": "approved",
+  "reviewed_by": "human-review-gate",
+  "reviewed_at": "2026-05-21T11:30:00.000Z",
+  "approval_scope": {
+    "allowed_consumers": ["vLatamGlobal"],
+    "allowed_use_cases": [
+      "classifier_decision_workspace_demo",
+      "broker_intelligence_review"
+    ],
+    "country_scope": ["AR", "MERCOSUR"],
+    "validity_notes": "Approved as local demo intelligence for future classifier-support consumption only; not approved as a final classification or runtime write-back."
+  },
+  "jurisdiction_scope": ["Argentina", "MERCOSUR"],
+  "source_version_refs": ["source-version-pcram-bulletin-2026-05-20t120000z"],
+  "evidence_refs": [
+    "snapshots/pcram/demo-classifier-support-relevance-assessment.json",
+    "snapshots/pcram/example-approved-artifact.json",
+    "reports/example-pcram-delta-report.md",
+    "docs/classifier-lab-runtime-boundary-p0.md",
+    "docs/reviewed-artifact-api-handoff-p0.md"
+  ],
+  "limitations": [
+    "Reviewed for demo bridge narrative and schema validation only.",
+    "Does not authorize direct vLatamGlobal database coupling, production ingestion, classifier write-back, or live API calls.",
+    "vLatamGlobal must perform its own runtime-side human review before operational use."
+  ],
+  "downstream_allowed": true,
+  "review_notes": [
+    "Reviewer confirmed the bridge references approved/versioned local artifacts rather than raw LLM output.",
+    "Verified evidence references and AI-inferred classifier-support summary are intentionally separated.",
+    "Future integration must use a reviewed-artifact API or export contract."
+  ],
+  "expires_at": "2026-12-31T23:59:59.000Z",
+  "risk_level": "medium",
+  "review_method": "manual",
+  "metadata": {
+    "environment": "local",
+    "review_cycle": "classifier-demo-bridge-p1",
+    "runtime_coupling": "none"
+  }
+}

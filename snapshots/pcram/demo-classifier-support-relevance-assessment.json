@@ -1,0 +1,59 @@
+{
+  "schema_version": "1.0.0",
+  "assessment_id": "relevance-assessment-classifier-support-ar-textiles-2026-05-21",
+  "assessed_at": "2026-05-21T11:20:00.000Z",
+  "assessed_by": "local-human-review-workflow",
+  "profile_ref": "broker-profile-sample-ar-mercosur-despachante",
+  "artifact_ref": "approved-artifact-pcram-delta-2026-05-20",
+  "country_scope": ["AR", "MERCOSUR"],
+  "jurisdiction_scope": ["Argentina", "MERCOSUR"],
+  "affected_codes": ["6109.10.00", "6204.62.00"],
+  "affected_commodities": ["textiles", "apparel"],
+  "affected_topics": [
+    "NCM_updates",
+    "origin_and_labeling",
+    "classifier_decision_support"
+  ],
+  "profile_match": "direct",
+  "relevance_level": "high",
+  "risk_level": "medium",
+  "urgency": "review_soon",
+  "explanation": "Reviewed local intelligence indicates that the approved PCRAM regulatory delta can support, but not decide, a future vLatamGlobal Classifier review for Argentina/MERCOSUR textile and apparel cases. The support is limited to evidence-backed context, affected-code awareness, and broker-facing review prompts.",
+  "limitations": [
+    "Demo fixture for approved-artifact bridge validation only.",
+    "Does not provide final tariff classification, legal advice, customs clearance, production runtime behavior, or database synchronization.",
+    "Downstream classifier use requires vLatamGlobal human review and an approved future API or artifact export contract."
+  ],
+  "requires_human_review": true,
+  "review_status": "approved",
+  "created_at": "2026-05-21T11:20:00.000Z",
+  "source_refs": [
+    "source-version-pcram-bulletin-2026-05-20t120000z",
+    "snapshots/pcram/example-source-version.json"
+  ],
+  "evidence_refs": [
+    "snapshots/pcram/example-approved-artifact.json",
+    "snapshots/pcram/example-review-manifest.json",
+    "reports/example-pcram-delta-report.md"
+  ],
+  "review_manifest_ref": "review-manifest-classifier-support-ar-textiles-2026-05-21",
+  "affected_specializations": [
+    "tariff_classification",
+    "import_documentation",
+    "origin_and_labeling",
+    "classifier_review"
+  ],
+  "recommended_actions": [
+    "Use the approved artifact as a reviewed evidence reference inside a future classifier decision workspace.",
+    "Keep classifier output in vLatamGlobal as human-reviewed decision support, not autonomous clearance.",
+    "Consume this bridge only through a future reviewed-artifact API or export contract; do not copy schemas, code, or database records into runtime."
+  ],
+  "uncertainty_notes": [
+    "The country pack is sample-scoped and does not represent a complete Argentina/MERCOSUR corpus.",
+    "The fixture separates verified local evidence references from the relevance and classifier-support inference.",
+    "Current readiness is demo-oriented and local-only."
+  ],
+  "effective_date": "2026-05-21",
+  "expires_at": "2026-12-31T23:59:59.000Z",
+  "downstream_allowed": true
+}

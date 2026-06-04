@@ -1,0 +1,34 @@
+{
+  "artifact_id": "approved-artifact-classifier-support-ar-textiles-2026-05-21",
+  "artifact_type": "relevance_assessment",
+  "schema_version": "1.0.0",
+  "created_at": "2026-05-21T11:35:00.000Z",
+  "source_version_refs": ["source-version-pcram-bulletin-2026-05-20t120000z"],
+  "review_manifest_ref": "review-manifest-classifier-support-ar-textiles-2026-05-21",
+  "content_ref": "snapshots/pcram/demo-classifier-support-relevance-assessment.json",
+  "content_hash": "sha256:a422a6698fe9bed6c4b86e9341e767e65ab7e9f8152baa0819912efb7d6a6a56",
+  "jurisdiction_scope": ["AR", "MERCOSUR"],
+  "review_status": "approved",
+  "downstream_allowed": true,
+  "limitations": [
+    "Approved local demo bridge artifact for future classifier-support consumption only.",
+    "Not a final legal, tariff, customs, or operational classifier decision.",
+    "No live API, shared database, direct vLatamGlobal coupling, or copied runtime code is authorized."
+  ],
+  "valid_until": "2026-12-31T23:59:59.000Z",
+  "producer": "pcram-human-review-gate",
+  "risk_level": "medium",
+  "profile_context_used": ["broker-profile-sample-ar-mercosur-despachante"],
+  "evidence_refs": [
+    "snapshots/pcram/demo-classifier-support-review-manifest.json",
+    "snapshots/pcram/demo-classifier-support-relevance-assessment.json",
+    "reports/classifier-approved-artifact-demo-bridge-p1.md"
+  ],
+  "metadata": {
+    "environment": "local",
+    "review_cycle": "classifier-demo-bridge-p1",
+    "classifier_support_summary": "Reviewed intelligence can support affected-code awareness and broker review prompts for a future vLatamGlobal Classifier workspace.",
+    "verified_evidence_boundary": "Evidence refs point to local reviewed fixtures and reports; the classifier-support summary is an interpretation for human review.",
+    "downstream_boundary": "Consume through future reviewed-artifact API or export only; do not copy code, schemas, database records, or internal agent state."
+  }
+}
