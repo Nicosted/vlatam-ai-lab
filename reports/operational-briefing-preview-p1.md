@@ -21,7 +21,7 @@ Premium local preview for reviewed AI Lab intelligence inside a future vLatamGlo
 | Review status                | pending_review                                      |
 | Downstream allowed           | no                                                  |
 | Confidence / risk / urgency  | high relevance / medium risk / review_soon          |
-| Registry coverage            | 8 hardened local contracts indexed                  |
+| Registry coverage            | 9 hardened local contracts indexed                  |
 
 ## Why This Matters Operationally
 

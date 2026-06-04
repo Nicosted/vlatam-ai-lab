@@ -1,0 +1,327 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/classifier-approved-artifact-export-contract.schema.json",
+  "title": "Classifier Approved Artifact Export Contract",
+  "description": "Schema for read-only, export-ready classifier intelligence contract records that expose only reviewed, versioned, traceable artifacts to future downstream consumers.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract_id",
+    "contract_schema_version",
+    "exported_at",
+    "export_version",
+    "export_scope",
+    "consumer_scope",
+    "artifacts",
+    "integration_boundary",
+    "limitations"
+  ],
+  "properties": {
+    "contract_id": {
+      "type": "string",
+      "description": "Stable identifier for this export contract fixture or bundle index.",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "contract_schema_version": {
+      "type": "string",
+      "description": "Semantic version of this export contract schema.",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "exported_at": {
+      "type": "string",
+      "description": "UTC timestamp when this export contract record was generated.",
+      "format": "date-time"
+    },
+    "export_version": {
+      "type": "string",
+      "description": "Semantic version marker for this export bundle/index.",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "export_scope": {
+      "type": "string",
+      "description": "Purpose of this export contract record.",
+      "enum": ["classifier_approved_artifact_demo"]
+    },
+    "consumer_scope": {
+      "type": "array",
+      "description": "Named future consumers permitted by the reviewed contract scope.",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80
+      },
+      "minItems": 1,
+      "maxItems": 10,
+      "uniqueItems": true
+    },
+    "artifacts": {
+      "type": "array",
+      "description": "Reviewed artifact entries eligible or ineligible for downstream consumption.",
+      "items": {
+        "$ref": "#/$defs/export_artifact"
+      },
+      "minItems": 1,
+      "maxItems": 50
+    },
+    "integration_boundary": {
+      "type": "object",
+      "description": "Explicit no-coupling declarations for the future runtime boundary.",
+      "additionalProperties": false,
+      "required": [
+        "integration_mode",
+        "read_only",
+        "live_integration",
+        "shared_database_coupling",
+        "production_api_route",
+        "runtime_writeback",
+        "raw_llm_output_included"
+      ],
+      "properties": {
+        "integration_mode": {
+          "type": "string",
+          "enum": ["local_export_fixture"]
+        },
+        "read_only": {
+          "const": true
+        },
+        "live_integration": {
+          "const": false
+        },
+        "shared_database_coupling": {
+          "const": false
+        },
+        "production_api_route": {
+          "const": false
+        },
+        "runtime_writeback": {
+          "const": false
+        },
+        "raw_llm_output_included": {
+          "const": false
+        }
+      }
+    },
+    "limitations": {
+      "type": "array",
+      "description": "Known limitations for downstream interpretation of this contract.",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 500
+      },
+      "minItems": 1,
+      "maxItems": 20
+    }
+  },
+  "$defs": {
+    "export_artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifact_id",
+        "artifact_version",
+        "artifact_type",
+        "country_scope",
+        "jurisdiction_scope",
+        "source_traceability",
+        "review_status",
+        "approval_state",
+        "human_review_required",
+        "downstream_eligible",
+        "risk_posture",
+        "contract_schema_version"
+      ],
+      "properties": {
+        "artifact_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "artifact_version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$"
+        },
+        "artifact_type": {
+          "type": "string",
+          "enum": [
+            "source_snapshot",
+            "regulatory_delta",
+            "evidence_report",
+            "approved_kb_snapshot",
+            "jurisdiction_pack",
+            "relevance_assessment"
+          ]
+        },
+        "country_scope": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 12,
+            "pattern": "^[A-Z0-9_-]+$"
+          },
+          "minItems": 1,
+          "maxItems": 20,
+          "uniqueItems": true
+        },
+        "jurisdiction_scope": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "minItems": 1,
+          "maxItems": 40,
+          "uniqueItems": true
+        },
+        "source_traceability": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "source_version_refs",
+            "review_manifest_ref",
+            "content_ref",
+            "content_hash",
+            "evidence_refs"
+          ],
+          "properties": {
+            "source_version_refs": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 160
+              },
+              "minItems": 1,
+              "maxItems": 100,
+              "uniqueItems": true
+            },
+            "review_manifest_ref": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 160
+            },
+            "content_ref": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200,
+              "not": {
+                "pattern": "^https?://"
+              }
+            },
+            "content_hash": {
+              "type": "string",
+              "pattern": "^(sha256:)?[a-fA-F0-9]{64}$"
+            },
+            "evidence_refs": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200,
+                "not": {
+                  "pattern": "^https?://"
+                }
+              },
+              "minItems": 1,
+              "maxItems": 100,
+              "uniqueItems": true
+            }
+          }
+        },
+        "review_status": {
+          "type": "string",
+          "enum": [
+            "draft",
+            "pending_review",
+            "approved",
+            "rejected",
+            "superseded"
+          ]
+        },
+        "approval_state": {
+          "type": "string",
+          "enum": ["approved", "rejected", "not_approved"]
+        },
+        "human_review_required": {
+          "type": "boolean"
+        },
+        "downstream_eligible": {
+          "type": "boolean"
+        },
+        "risk_posture": {
+          "type": "string",
+          "enum": ["low", "medium", "high", "critical", "unknown"]
+        },
+        "contract_schema_version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "downstream_eligible": {
+                "const": true
+              }
+            },
+            "required": ["downstream_eligible"]
+          },
+          "then": {
+            "properties": {
+              "review_status": {
+                "const": "approved"
+              },
+              "approval_state": {
+                "const": "approved"
+              },
+              "human_review_required": {
+                "const": true
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "anyOf": [
+              {
+                "properties": {
+                  "review_status": {
+                    "const": "draft"
+                  }
+                },
+                "required": ["review_status"]
+              },
+              {
+                "properties": {
+                  "review_status": {
+                    "const": "pending_review"
+                  }
+                },
+                "required": ["review_status"]
+              },
+              {
+                "properties": {
+                  "approval_state": {
+                    "const": "not_approved"
+                  }
+                },
+                "required": ["approval_state"]
+              }
+            ]
+          },
+          "then": {
+            "properties": {
+              "downstream_eligible": {
+                "const": false
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

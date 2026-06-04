@@ -1,0 +1,46 @@
+{
+  "contract_id": "classifier-approved-artifact-export-contract-invalid-draft",
+  "contract_schema_version": "1.0.0",
+  "exported_at": "2026-05-21T12:00:00.000Z",
+  "export_version": "1.0.0",
+  "export_scope": "classifier_approved_artifact_demo",
+  "consumer_scope": ["vLatamGlobal"],
+  "artifacts": [
+    {
+      "artifact_id": "draft-artifact-classifier-support-ar-textiles-2026-05-21",
+      "artifact_version": "0.1.0",
+      "artifact_type": "relevance_assessment",
+      "country_scope": ["AR", "MERCOSUR"],
+      "jurisdiction_scope": ["Argentina", "MERCOSUR"],
+      "source_traceability": {
+        "source_version_refs": [
+          "source-version-pcram-bulletin-2026-05-20t120000z"
+        ],
+        "review_manifest_ref": "review-manifest-classifier-support-ar-textiles-2026-05-21",
+        "content_ref": "snapshots/pcram/demo-classifier-support-relevance-assessment.json",
+        "content_hash": "sha256:a422a6698fe9bed6c4b86e9341e767e65ab7e9f8152baa0819912efb7d6a6a56",
+        "evidence_refs": [
+          "snapshots/pcram/demo-classifier-support-review-manifest.json"
+        ]
+      },
+      "review_status": "draft",
+      "approval_state": "not_approved",
+      "human_review_required": true,
+      "downstream_eligible": true,
+      "risk_posture": "medium",
+      "contract_schema_version": "1.0.0"
+    }
+  ],
+  "integration_boundary": {
+    "integration_mode": "local_export_fixture",
+    "read_only": true,
+    "live_integration": false,
+    "shared_database_coupling": false,
+    "production_api_route": false,
+    "runtime_writeback": false,
+    "raw_llm_output_included": false
+  },
+  "limitations": [
+    "Invalid fixture: draft artifacts must not be export eligible."
+  ]
+}
