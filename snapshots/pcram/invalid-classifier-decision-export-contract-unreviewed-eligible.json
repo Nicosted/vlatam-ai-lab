@@ -1,0 +1,46 @@
+{
+  "contract_id": "classifier-approved-artifact-export-contract-br-liion-unreviewed",
+  "contract_schema_version": "1.0.0",
+  "exported_at": "2026-06-04T15:00:00.000Z",
+  "export_version": "1.0.0",
+  "export_scope": "classifier_approved_artifact_demo",
+  "consumer_scope": ["vLatamGlobal"],
+  "artifacts": [
+    {
+      "artifact_id": "approved-artifact-classifier-decision-br-liion-2026-06-04",
+      "artifact_version": "1.0.0",
+      "artifact_type": "relevance_assessment",
+      "country_scope": ["BR", "MERCOSUR"],
+      "jurisdiction_scope": ["Brazil", "MERCOSUR"],
+      "source_traceability": {
+        "source_version_refs": [
+          "source-version-pcram-bulletin-2026-05-20t120000z"
+        ],
+        "review_manifest_ref": "review-manifest-classifier-decision-br-liion-2026-06-04",
+        "content_ref": "snapshots/pcram/demo-classifier-decision-relevance-assessment.json",
+        "content_hash": "sha256:5a7e1e87fc8d51a7213da83348f8482adcbf879db7d9e47cb342f5bd267c09ea",
+        "evidence_refs": [
+          "snapshots/pcram/demo-classifier-decision-relevance-assessment.json"
+        ]
+      },
+      "review_status": "pending_review",
+      "approval_state": "not_approved",
+      "human_review_required": true,
+      "downstream_eligible": true,
+      "risk_posture": "high",
+      "contract_schema_version": "1.0.0"
+    }
+  ],
+  "integration_boundary": {
+    "integration_mode": "local_export_fixture",
+    "read_only": true,
+    "live_integration": false,
+    "shared_database_coupling": false,
+    "production_api_route": false,
+    "runtime_writeback": false,
+    "raw_llm_output_included": false
+  },
+  "limitations": [
+    "Invalid fixture: an unreviewed classification candidate must not be marked downstream-eligible."
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "artifact_id": "approved-artifact-classifier-decision-br-liion-2026-06-04",
+  "artifact_type": "relevance_assessment",
+  "schema_version": "1.0.0",
+  "created_at": "2026-06-04T14:25:00.000Z",
+  "source_version_refs": ["source-version-pcram-bulletin-2026-05-20t120000z"],
+  "review_manifest_ref": "review-manifest-classifier-decision-br-liion-2026-06-04",
+  "content_ref": "snapshots/pcram/demo-classifier-decision-relevance-assessment.json",
+  "content_hash": "sha256:5a7e1e87fc8d51a7213da83348f8482adcbf879db7d9e47cb342f5bd267c09ea",
+  "jurisdiction_scope": ["BR", "MERCOSUR"],
+  "review_status": "approved",
+  "downstream_allowed": true,
+  "limitations": [
+    "Approved local demo pack artifact for future classifier-decision support only.",
+    "Carries a reviewed classification candidate, not a final legal, tariff, customs, or operational classification decision.",
+    "No live API, shared database, direct vLatamGlobal coupling, or copied runtime code is authorized."
+  ],
+  "valid_until": "2026-12-31T23:59:59.000Z",
+  "producer": "pcram-human-review-gate",
+  "risk_level": "high",
+  "profile_context_used": ["broker-profile-sample-ar-mercosur-despachante"],
+  "evidence_refs": [
+    "snapshots/pcram/demo-classifier-decision-review-manifest.json",
+    "snapshots/pcram/demo-classifier-decision-relevance-assessment.json",
+    "reports/classifier-approved-artifact-demo-pack-p1.md"
+  ],
+  "metadata": {
+    "environment": "local",
+    "review_cycle": "classifier-demo-pack-p1",
+    "product_description": "Portable lithium-ion power bank (rechargeable battery pack with integrated DC output) imported into Brazil.",
+    "classification_candidate": "8507.60.00 (primary); 8504.40.90 (considered alternative).",
+    "classifier_support_summary": "Reviewed intelligence supplies an evidence-backed NCM classification candidate and rationale for a future vLatamGlobal Classifier decision workspace.",
+    "verified_evidence_boundary": "Evidence refs point to local reviewed fixtures and reports; the classification candidate is an interpretation for human review.",
+    "downstream_boundary": "Consume through future reviewed-artifact API or export only; do not copy code, schemas, database records, or internal agent state."
+  }
+}

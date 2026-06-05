@@ -1,0 +1,58 @@
+{
+  "schema_version": "1.0.0",
+  "assessment_id": "relevance-assessment-classifier-decision-br-liion-2026-06-04",
+  "assessed_at": "2026-06-04T14:05:00.000Z",
+  "assessed_by": "local-human-review-workflow",
+  "profile_ref": "broker-profile-sample-ar-mercosur-despachante",
+  "artifact_ref": "approved-artifact-pcram-delta-2026-05-20",
+  "country_scope": ["BR", "MERCOSUR"],
+  "jurisdiction_scope": ["Brazil", "MERCOSUR"],
+  "affected_codes": ["8507.60.00", "8504.40.90"],
+  "affected_commodities": ["lithium-ion battery packs", "portable power banks"],
+  "affected_topics": [
+    "NCM_classification",
+    "customs_classification_decision_support",
+    "import_documentation"
+  ],
+  "profile_match": "direct",
+  "relevance_level": "high",
+  "risk_level": "high",
+  "urgency": "review_soon",
+  "explanation": "Product under review: a portable lithium-ion power bank (rechargeable battery pack with an integrated DC output) imported into Brazil. Reviewed local intelligence supports a primary NCM classification candidate of 8507.60.00 (lithium-ion accumulators) over the alternative 8504.40.90 (static converters), because the essential character of the good is the rechargeable battery rather than the conversion circuit. This is evidence-backed decision support for a future vLatamGlobal Classifier review; it is not a final tariff ruling or customs clearance decision.",
+  "limitations": [
+    "Demo fixture for the approved-artifact classifier decision pack only.",
+    "Provides a reviewed classification candidate and rationale, not a final tariff classification, binding ruling, legal advice, or customs clearance.",
+    "Downstream classifier use requires vLatamGlobal human review and an approved future API or artifact export contract."
+  ],
+  "requires_human_review": true,
+  "review_status": "approved",
+  "created_at": "2026-06-04T14:05:00.000Z",
+  "source_refs": [
+    "source-version-pcram-bulletin-2026-05-20t120000z",
+    "snapshots/pcram/example-source-version.json"
+  ],
+  "evidence_refs": [
+    "snapshots/pcram/example-approved-artifact.json",
+    "snapshots/pcram/example-review-manifest.json",
+    "reports/example-pcram-delta-report.md"
+  ],
+  "review_manifest_ref": "review-manifest-classifier-decision-br-liion-2026-06-04",
+  "affected_specializations": [
+    "tariff_classification",
+    "import_documentation",
+    "classifier_review"
+  ],
+  "recommended_actions": [
+    "Present 8507.60.00 as the primary reviewed classification candidate with 8504.40.90 recorded as the considered alternative.",
+    "Keep the candidate as human-reviewed decision support inside vLatamGlobal, not autonomous customs clearance.",
+    "Consume this pack only through a future reviewed-artifact API or export contract; do not copy schemas, code, or database records into runtime."
+  ],
+  "uncertainty_notes": [
+    "Classification turns on the essential-character determination; a different product configuration could shift the candidate.",
+    "The fixture separates verified local evidence references from the classification-candidate inference.",
+    "The country pack is sample-scoped and does not represent a complete Brazil/MERCOSUR corpus."
+  ],
+  "effective_date": "2026-06-04",
+  "expires_at": "2026-12-31T23:59:59.000Z",
+  "downstream_allowed": true
+}
