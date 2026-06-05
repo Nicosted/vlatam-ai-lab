@@ -1,0 +1,294 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/classifier-approved-artifact-export-catalog.schema.json",
+  "title": "Classifier Approved Artifact Export Catalog",
+  "description": "Schema for a read-only discovery catalog/index that lists reviewed classifier approved artifact export contracts so a future downstream consumer can discover eligible intelligence artifacts through a stable file boundary without database coupling or runtime code sharing.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "catalog_id",
+    "catalog_schema_version",
+    "catalog_version",
+    "generated_at",
+    "catalog_scope",
+    "consumer_scope",
+    "entries",
+    "integration_boundary",
+    "limitations"
+  ],
+  "properties": {
+    "catalog_id": {
+      "type": "string",
+      "description": "Stable identifier for this export catalog index.",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "catalog_schema_version": {
+      "type": "string",
+      "description": "Semantic version of this export catalog schema.",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "catalog_version": {
+      "type": "string",
+      "description": "Semantic version marker for this catalog index instance.",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "generated_at": {
+      "type": "string",
+      "description": "Static UTC timestamp marker for when this catalog index was assembled.",
+      "format": "date-time"
+    },
+    "catalog_scope": {
+      "type": "string",
+      "description": "Purpose of this export catalog.",
+      "enum": ["classifier_approved_artifact_export_discovery"]
+    },
+    "consumer_scope": {
+      "type": "array",
+      "description": "Named future consumers permitted by the reviewed catalog scope.",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80
+      },
+      "minItems": 1,
+      "maxItems": 10,
+      "uniqueItems": true
+    },
+    "entries": {
+      "type": "array",
+      "description": "Discovery entries, each pointing at one reviewed export contract record.",
+      "items": {
+        "$ref": "#/$defs/catalog_entry"
+      },
+      "minItems": 1,
+      "maxItems": 100
+    },
+    "integration_boundary": {
+      "type": "object",
+      "description": "Explicit no-coupling declarations for the future runtime boundary.",
+      "additionalProperties": false,
+      "required": [
+        "integration_mode",
+        "read_only",
+        "live_integration",
+        "shared_database_coupling",
+        "production_api_route",
+        "runtime_writeback",
+        "raw_llm_output_included"
+      ],
+      "properties": {
+        "integration_mode": {
+          "type": "string",
+          "enum": ["local_export_catalog"]
+        },
+        "read_only": {
+          "const": true
+        },
+        "live_integration": {
+          "const": false
+        },
+        "shared_database_coupling": {
+          "const": false
+        },
+        "production_api_route": {
+          "const": false
+        },
+        "runtime_writeback": {
+          "const": false
+        },
+        "raw_llm_output_included": {
+          "const": false
+        }
+      }
+    },
+    "limitations": {
+      "type": "array",
+      "description": "Known limitations for downstream interpretation of this catalog.",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 500
+      },
+      "minItems": 1,
+      "maxItems": 20
+    }
+  },
+  "$defs": {
+    "catalog_entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "entry_id",
+        "artifact_id",
+        "artifact_version",
+        "contract_schema_name",
+        "contract_schema_version",
+        "country_scope",
+        "jurisdiction_scope",
+        "product_summary",
+        "review_status",
+        "approval_state",
+        "human_review_required",
+        "downstream_eligible",
+        "export_contract_ref",
+        "artifact_ref",
+        "export_contract_hash"
+      ],
+      "properties": {
+        "entry_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "artifact_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "artifact_version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$"
+        },
+        "contract_schema_name": {
+          "type": "string",
+          "enum": ["classifier_approved_artifact_export_contract"]
+        },
+        "contract_schema_version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$"
+        },
+        "country_scope": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 12,
+            "pattern": "^[A-Z0-9_-]+$"
+          },
+          "minItems": 1,
+          "maxItems": 20,
+          "uniqueItems": true
+        },
+        "jurisdiction_scope": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "minItems": 1,
+          "maxItems": 40,
+          "uniqueItems": true
+        },
+        "product_summary": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "review_status": {
+          "type": "string",
+          "enum": [
+            "draft",
+            "pending_review",
+            "approved",
+            "rejected",
+            "superseded"
+          ]
+        },
+        "approval_state": {
+          "type": "string",
+          "enum": ["approved", "rejected", "not_approved"]
+        },
+        "human_review_required": {
+          "type": "boolean"
+        },
+        "downstream_eligible": {
+          "type": "boolean"
+        },
+        "export_contract_ref": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "not": {
+            "pattern": "^https?://"
+          }
+        },
+        "artifact_ref": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "not": {
+            "pattern": "^https?://"
+          }
+        },
+        "export_contract_hash": {
+          "type": "string",
+          "pattern": "^(sha256:)?[a-fA-F0-9]{64}$"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "downstream_eligible": {
+                "const": true
+              }
+            },
+            "required": ["downstream_eligible"]
+          },
+          "then": {
+            "properties": {
+              "review_status": {
+                "const": "approved"
+              },
+              "approval_state": {
+                "const": "approved"
+              },
+              "human_review_required": {
+                "const": true
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "anyOf": [
+              {
+                "properties": {
+                  "review_status": {
+                    "const": "draft"
+                  }
+                },
+                "required": ["review_status"]
+              },
+              {
+                "properties": {
+                  "review_status": {
+                    "const": "pending_review"
+                  }
+                },
+                "required": ["review_status"]
+              },
+              {
+                "properties": {
+                  "approval_state": {
+                    "const": "not_approved"
+                  }
+                },
+                "required": ["approval_state"]
+              }
+            ]
+          },
+          "then": {
+            "properties": {
+              "downstream_eligible": {
+                "const": false
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

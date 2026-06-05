@@ -8,10 +8,10 @@
 
 ## Summary
 
-- total_contracts: `9`
-- total_valid_fixtures: `9`
-- total_invalid_fixtures: `21`
-- total_test_files: `9`
+- total_contracts: `10`
+- total_valid_fixtures: `10`
+- total_invalid_fixtures: `23`
+- total_test_files: `10`
 
 ## Contract Names
 
@@ -24,6 +24,7 @@
 - `jurisdiction_pack`
 - `approved_kb_snapshot`
 - `classifier_approved_artifact_export_contract`
+- `classifier_approved_artifact_export_catalog`
 
 ## Contract Inventory
 
@@ -38,6 +39,7 @@
 | `jurisdiction_pack`                            | `implemented` | `schemas/jurisdiction-pack.schema.json`                            | `snapshots/pcram/example-jurisdiction-pack.json`                         |                3 | `tests/jurisdiction-pack-schema.test.ts`                     | yes                    | yes          | yes                      |
 | `approved_kb_snapshot`                         | `implemented` | `schemas/approved-kb-snapshot.schema.json`                         | `snapshots/pcram/example-approved-kb-snapshot.json`                      |                3 | `tests/approved-kb-snapshot-schema.test.ts`                  | yes                    | yes          | yes                      |
 | `classifier_approved_artifact_export_contract` | `implemented` | `schemas/classifier-approved-artifact-export-contract.schema.json` | `snapshots/pcram/demo-classifier-approved-artifact-export-contract.json` |                2 | `tests/classifier-approved-artifact-export-contract.test.ts` | yes                    | yes          | yes                      |
+| `classifier_approved_artifact_export_catalog`  | `implemented` | `schemas/classifier-approved-artifact-export-catalog.schema.json`  | `snapshots/pcram/demo-classifier-approved-artifact-export-catalog.json`  |                2 | `tests/classifier-approved-artifact-export-catalog.test.ts`  | yes                    | yes          | yes                      |
 
 ## Missing Reference Summary
 
