@@ -130,6 +130,22 @@
       "requires_human_review_semantics": true,
       "requires_traceability": true,
       "downstream_allowed_field_present": true
+    },
+    {
+      "contract_name": "classifier_approved_artifact_export_contract",
+      "schema_file": "schemas/classifier-approved-artifact-export-contract.schema.json",
+      "valid_fixture": "snapshots/pcram/demo-classifier-approved-artifact-export-contract.json",
+      "invalid_fixtures": [
+        "snapshots/pcram/invalid-classifier-export-contract-draft-eligible.json",
+        "snapshots/pcram/invalid-classifier-export-contract-live-coupling.json"
+      ],
+      "test_file": "tests/classifier-approved-artifact-export-contract.test.ts",
+      "status": "implemented",
+      "purpose": "Indexes reviewed classifier-support artifact envelopes for future read-only export/API handoff.",
+      "downstream_role": "Defines what a future vLatamGlobal consumer may read without receiving raw LLM output, runtime state, or shared database access.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": true
     }
   ]
 }

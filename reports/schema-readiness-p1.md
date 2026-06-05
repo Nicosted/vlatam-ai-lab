@@ -8,10 +8,10 @@
 
 ## Summary
 
-- total_contracts: `8`
-- total_valid_fixtures: `8`
-- total_invalid_fixtures: `19`
-- total_test_files: `8`
+- total_contracts: `9`
+- total_valid_fixtures: `9`
+- total_invalid_fixtures: `21`
+- total_test_files: `9`
 
 ## Contract Names
 
@@ -23,19 +23,21 @@
 - `relevance_assessment`
 - `jurisdiction_pack`
 - `approved_kb_snapshot`
+- `classifier_approved_artifact_export_contract`
 
 ## Contract Inventory
 
-| Contract                   | Status        | Schema                                         | Valid Fixture                                           | Invalid Fixtures | Test File                                       | Human Review Semantics | Traceability | Downstream Allowed Field |
-| -------------------------- | ------------- | ---------------------------------------------- | ------------------------------------------------------- | ---------------: | ----------------------------------------------- | ---------------------- | ------------ | ------------------------ |
-| `source_version`           | `implemented` | `schemas/source-version.schema.json`           | `snapshots/pcram/example-source-version.json`           |                2 | `tests/source-version-schema.test.ts`           | no                     | yes          | no                       |
-| `review_manifest`          | `implemented` | `schemas/review-manifest.schema.json`          | `snapshots/pcram/example-review-manifest.json`          |                2 | `tests/review-manifest-schema.test.ts`          | yes                    | yes          | yes                      |
-| `approved_artifact`        | `implemented` | `schemas/approved-artifact.schema.json`        | `snapshots/pcram/example-approved-artifact.json`        |                2 | `tests/approved-artifact-schema.test.ts`        | yes                    | yes          | yes                      |
-| `evidence_report_metadata` | `implemented` | `schemas/evidence-report-metadata.schema.json` | `snapshots/pcram/example-evidence-report-metadata.json` |                2 | `tests/evidence-report-metadata-schema.test.ts` | yes                    | yes          | no                       |
-| `broker_profile`           | `implemented` | `schemas/broker-profile.schema.json`           | `snapshots/pcram/example-broker-profile.json`           |                2 | `tests/broker-profile-schema.test.ts`           | yes                    | yes          | no                       |
-| `relevance_assessment`     | `implemented` | `schemas/relevance-assessment.schema.json`     | `snapshots/pcram/example-relevance-assessment.json`     |                3 | `tests/relevance-assessment-schema.test.ts`     | yes                    | yes          | no                       |
-| `jurisdiction_pack`        | `implemented` | `schemas/jurisdiction-pack.schema.json`        | `snapshots/pcram/example-jurisdiction-pack.json`        |                3 | `tests/jurisdiction-pack-schema.test.ts`        | yes                    | yes          | yes                      |
-| `approved_kb_snapshot`     | `implemented` | `schemas/approved-kb-snapshot.schema.json`     | `snapshots/pcram/example-approved-kb-snapshot.json`     |                3 | `tests/approved-kb-snapshot-schema.test.ts`     | yes                    | yes          | yes                      |
+| Contract                                       | Status        | Schema                                                             | Valid Fixture                                                            | Invalid Fixtures | Test File                                                    | Human Review Semantics | Traceability | Downstream Allowed Field |
+| ---------------------------------------------- | ------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------ | ---------------: | ------------------------------------------------------------ | ---------------------- | ------------ | ------------------------ |
+| `source_version`                               | `implemented` | `schemas/source-version.schema.json`                               | `snapshots/pcram/example-source-version.json`                            |                2 | `tests/source-version-schema.test.ts`                        | no                     | yes          | no                       |
+| `review_manifest`                              | `implemented` | `schemas/review-manifest.schema.json`                              | `snapshots/pcram/example-review-manifest.json`                           |                2 | `tests/review-manifest-schema.test.ts`                       | yes                    | yes          | yes                      |
+| `approved_artifact`                            | `implemented` | `schemas/approved-artifact.schema.json`                            | `snapshots/pcram/example-approved-artifact.json`                         |                2 | `tests/approved-artifact-schema.test.ts`                     | yes                    | yes          | yes                      |
+| `evidence_report_metadata`                     | `implemented` | `schemas/evidence-report-metadata.schema.json`                     | `snapshots/pcram/example-evidence-report-metadata.json`                  |                2 | `tests/evidence-report-metadata-schema.test.ts`              | yes                    | yes          | no                       |
+| `broker_profile`                               | `implemented` | `schemas/broker-profile.schema.json`                               | `snapshots/pcram/example-broker-profile.json`                            |                2 | `tests/broker-profile-schema.test.ts`                        | yes                    | yes          | no                       |
+| `relevance_assessment`                         | `implemented` | `schemas/relevance-assessment.schema.json`                         | `snapshots/pcram/example-relevance-assessment.json`                      |                3 | `tests/relevance-assessment-schema.test.ts`                  | yes                    | yes          | no                       |
+| `jurisdiction_pack`                            | `implemented` | `schemas/jurisdiction-pack.schema.json`                            | `snapshots/pcram/example-jurisdiction-pack.json`                         |                3 | `tests/jurisdiction-pack-schema.test.ts`                     | yes                    | yes          | yes                      |
+| `approved_kb_snapshot`                         | `implemented` | `schemas/approved-kb-snapshot.schema.json`                         | `snapshots/pcram/example-approved-kb-snapshot.json`                      |                3 | `tests/approved-kb-snapshot-schema.test.ts`                  | yes                    | yes          | yes                      |
+| `classifier_approved_artifact_export_contract` | `implemented` | `schemas/classifier-approved-artifact-export-contract.schema.json` | `snapshots/pcram/demo-classifier-approved-artifact-export-contract.json` |                2 | `tests/classifier-approved-artifact-export-contract.test.ts` | yes                    | yes          | yes                      |
 
 ## Missing Reference Summary
 

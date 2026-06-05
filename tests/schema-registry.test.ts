@@ -15,6 +15,7 @@ const expectedContracts = [
   "relevance_assessment",
   "jurisdiction_pack",
   "approved_kb_snapshot",
+  "classifier_approved_artifact_export_contract",
 ];
 const requiredKeys = [
   "contract_name",

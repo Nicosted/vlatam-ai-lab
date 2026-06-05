@@ -19,6 +19,7 @@ const expectedContracts = [
   "relevance_assessment",
   "jurisdiction_pack",
   "approved_kb_snapshot",
+  "classifier_approved_artifact_export_contract",
 ];
 const forbiddenPathPattern =
   /(^|[/\\])\.env|https?:\/\/|supabase\.(co|com)|production\.(local|com|net)|secret|credentials/i;
@@ -30,7 +31,7 @@ function normalizeMarkdownText(input: string): string {
 test("schema readiness generator reads the schema registry", async () => {
   const registry = await readSchemaRegistry();
 
-  assert.equal(registry.contracts.length, 8);
+  assert.equal(registry.contracts.length, 9);
   assert.deepEqual(
     registry.contracts.map((entry) => entry.contract_name),
     expectedContracts,
@@ -50,10 +51,10 @@ test("schema readiness markdown includes contract, fixture, and test counts", as
   const summary = await buildSchemaReadinessSummary();
   const markdown = renderSchemaReadinessReport(summary);
 
-  assert.equal(markdown.includes("- total_contracts: `8`"), true);
-  assert.equal(markdown.includes("- total_valid_fixtures: `8`"), true);
-  assert.equal(markdown.includes("- total_invalid_fixtures: `19`"), true);
-  assert.equal(markdown.includes("- total_test_files: `8`"), true);
+  assert.equal(markdown.includes("- total_contracts: `9`"), true);
+  assert.equal(markdown.includes("- total_valid_fixtures: `9`"), true);
+  assert.equal(markdown.includes("- total_invalid_fixtures: `21`"), true);
+  assert.equal(markdown.includes("- total_test_files: `9`"), true);
 });
 
 test("schema readiness markdown includes local-only no-production note", async () => {
