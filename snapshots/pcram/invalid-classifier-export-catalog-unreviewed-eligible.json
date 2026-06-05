@@ -1,0 +1,39 @@
+{
+  "catalog_id": "classifier-approved-artifact-export-catalog-invalid-unreviewed-eligible",
+  "catalog_schema_version": "1.0.0",
+  "catalog_version": "1.0.0",
+  "generated_at": "2026-06-04T15:30:00.000Z",
+  "catalog_scope": "classifier_approved_artifact_export_discovery",
+  "consumer_scope": ["vLatamGlobal"],
+  "entries": [
+    {
+      "entry_id": "catalog-entry-invalid-unreviewed-eligible",
+      "artifact_id": "approved-artifact-classifier-support-ar-textiles-2026-05-21",
+      "artifact_version": "1.0.0",
+      "contract_schema_name": "classifier_approved_artifact_export_contract",
+      "contract_schema_version": "1.0.0",
+      "country_scope": ["AR", "MERCOSUR"],
+      "jurisdiction_scope": ["Argentina", "MERCOSUR"],
+      "product_summary": "Unreviewed entry incorrectly marked downstream eligible.",
+      "review_status": "pending_review",
+      "approval_state": "not_approved",
+      "human_review_required": true,
+      "downstream_eligible": true,
+      "export_contract_ref": "snapshots/pcram/demo-classifier-approved-artifact-export-contract.json",
+      "artifact_ref": "snapshots/pcram/demo-classifier-support-approved-artifact.json",
+      "export_contract_hash": "sha256:81289d27f54720673bde82a95da62ea70e7fbf8bf769f905722ed9d484034ab4"
+    }
+  ],
+  "integration_boundary": {
+    "integration_mode": "local_export_catalog",
+    "read_only": true,
+    "live_integration": false,
+    "shared_database_coupling": false,
+    "production_api_route": false,
+    "runtime_writeback": false,
+    "raw_llm_output_included": false
+  },
+  "limitations": [
+    "Invalid fixture: an unreviewed artifact must never be marked downstream eligible."
+  ]
+}

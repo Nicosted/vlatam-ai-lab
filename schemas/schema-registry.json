@@ -146,6 +146,22 @@
       "requires_human_review_semantics": true,
       "requires_traceability": true,
       "downstream_allowed_field_present": true
+    },
+    {
+      "contract_name": "classifier_approved_artifact_export_catalog",
+      "schema_file": "schemas/classifier-approved-artifact-export-catalog.schema.json",
+      "valid_fixture": "snapshots/pcram/demo-classifier-approved-artifact-export-catalog.json",
+      "invalid_fixtures": [
+        "snapshots/pcram/invalid-classifier-export-catalog-unreviewed-eligible.json",
+        "snapshots/pcram/invalid-classifier-export-catalog-live-coupling.json"
+      ],
+      "test_file": "tests/classifier-approved-artifact-export-catalog.test.ts",
+      "status": "implemented",
+      "purpose": "Indexes reviewed classifier approved artifact export contracts as a read-only discovery catalog for future downstream consumers.",
+      "downstream_role": "Lets a future vLatamGlobal consumer discover eligible export contracts through a stable file boundary without database coupling or runtime code sharing.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": true
     }
   ]
 }

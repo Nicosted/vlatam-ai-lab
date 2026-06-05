@@ -1,0 +1,59 @@
+{
+  "catalog_id": "classifier-approved-artifact-export-catalog-2026-06-04",
+  "catalog_schema_version": "1.0.0",
+  "catalog_version": "1.0.0",
+  "generated_at": "2026-06-04T15:30:00.000Z",
+  "catalog_scope": "classifier_approved_artifact_export_discovery",
+  "consumer_scope": ["vLatamGlobal"],
+  "entries": [
+    {
+      "entry_id": "catalog-entry-classifier-support-ar-textiles-2026-05-21",
+      "artifact_id": "approved-artifact-classifier-support-ar-textiles-2026-05-21",
+      "artifact_version": "1.0.0",
+      "contract_schema_name": "classifier_approved_artifact_export_contract",
+      "contract_schema_version": "1.0.0",
+      "country_scope": ["AR", "MERCOSUR"],
+      "jurisdiction_scope": ["Argentina", "MERCOSUR"],
+      "product_summary": "Argentina/MERCOSUR textile and apparel classifier support: reviewed NCM relevance assessment candidate for despachante decision context.",
+      "review_status": "approved",
+      "approval_state": "approved",
+      "human_review_required": true,
+      "downstream_eligible": true,
+      "export_contract_ref": "snapshots/pcram/demo-classifier-approved-artifact-export-contract.json",
+      "artifact_ref": "snapshots/pcram/demo-classifier-support-approved-artifact.json",
+      "export_contract_hash": "sha256:81289d27f54720673bde82a95da62ea70e7fbf8bf769f905722ed9d484034ab4"
+    },
+    {
+      "entry_id": "catalog-entry-classifier-decision-br-liion-2026-06-04",
+      "artifact_id": "approved-artifact-classifier-decision-br-liion-2026-06-04",
+      "artifact_version": "1.0.0",
+      "contract_schema_name": "classifier_approved_artifact_export_contract",
+      "contract_schema_version": "1.0.0",
+      "country_scope": ["BR", "MERCOSUR"],
+      "jurisdiction_scope": ["Brazil", "MERCOSUR"],
+      "product_summary": "Portable lithium-ion power bank imported into Brazil: reviewed NCM classification candidate (8507.60.00 primary; 8504.40.90 alternative) for a future classifier decision workspace.",
+      "review_status": "approved",
+      "approval_state": "approved",
+      "human_review_required": true,
+      "downstream_eligible": true,
+      "export_contract_ref": "snapshots/pcram/demo-classifier-decision-export-contract.json",
+      "artifact_ref": "snapshots/pcram/demo-classifier-decision-approved-artifact.json",
+      "export_contract_hash": "sha256:143ea0e10dd7fd0272eb927e3064658134219a41d6ca143f7e4383fa56217a38"
+    }
+  ],
+  "integration_boundary": {
+    "integration_mode": "local_export_catalog",
+    "read_only": true,
+    "live_integration": false,
+    "shared_database_coupling": false,
+    "production_api_route": false,
+    "runtime_writeback": false,
+    "raw_llm_output_included": false
+  },
+  "limitations": [
+    "Local export catalog index only; not a production API route, service registry, or live integration.",
+    "Catalog entries are discovery pointers to reviewed export contracts; downstream consumers must still verify the referenced export contract, review manifest, and source traceability.",
+    "Only reviewed, versioned, schema-valid, evidence-backed artifacts marked downstream_eligible may be consumed.",
+    "No shared database, runtime write-back, copied runtime code, or raw LLM output delivery is authorized."
+  ]
+}
