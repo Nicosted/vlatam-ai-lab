@@ -20,6 +20,8 @@ const expectedContracts = [
   "intelligence_source_registry",
   "intelligence_source_snapshot",
   "ai_extraction_job",
+  "snapshot_review_manifest",
+  "extractable_evidence_packet",
 ];
 const requiredKeys = [
   "contract_name",

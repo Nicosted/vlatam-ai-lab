@@ -216,6 +216,42 @@
       "requires_human_review_semantics": true,
       "requires_traceability": true,
       "downstream_allowed_field_present": true
+    },
+    {
+      "contract_name": "snapshot_review_manifest",
+      "schema_file": "schemas/snapshot-review-manifest.schema.json",
+      "valid_fixture": "snapshots/pcram/snapshot-review-manifest-wco-hs-2022.json",
+      "invalid_fixtures": [
+        "snapshots/pcram/invalid-snapshot-review-manifest-extraction-without-review.json",
+        "snapshots/pcram/invalid-snapshot-review-manifest-extraction-missing-gates.json",
+        "snapshots/pcram/invalid-snapshot-review-manifest-downstream-without-approval.json",
+        "snapshots/pcram/invalid-snapshot-review-manifest-missing-snapshot-id.json"
+      ],
+      "test_file": "tests/snapshot-review-manifest-schema.test.ts",
+      "status": "implemented",
+      "purpose": "Records the human/documentary review gate between a captured source snapshot and future AI extraction, with verified identity/locator/capture/version gates.",
+      "downstream_role": "Permits AI extraction only when explicitly approved and fully gated; never approves downstream classifier use on its own.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": true
+    },
+    {
+      "contract_name": "extractable_evidence_packet",
+      "schema_file": "schemas/extractable-evidence-packet.schema.json",
+      "valid_fixture": "snapshots/pcram/extractable-evidence-packet-wco-hs-2022.json",
+      "invalid_fixtures": [
+        "snapshots/pcram/invalid-extractable-evidence-packet-missing-review-manifest-id.json",
+        "snapshots/pcram/invalid-extractable-evidence-packet-missing-snapshot-id.json",
+        "snapshots/pcram/invalid-extractable-evidence-packet-extraction-without-reference.json",
+        "snapshots/pcram/invalid-extractable-evidence-packet-downstream-without-approval.json"
+      ],
+      "test_file": "tests/extractable-evidence-packet-schema.test.ts",
+      "status": "implemented",
+      "purpose": "Defines a structured, source-backed extraction input bound to a reviewed snapshot via its review manifest, using bounded references rather than copied source content.",
+      "downstream_role": "May be AI-ready as an extraction input but is never classifier-approved or downstream-safe; downstream use requires a separate classifier approval.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": true
     }
   ]
 }

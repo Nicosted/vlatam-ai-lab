@@ -1,0 +1,14 @@
+{
+  "review_manifest_id": "invalid-manifest-missing-snapshot-id",
+  "source_id": "wco-hs-2022-edition",
+  "review_status": "in_review",
+  "source_identity_verified": true,
+  "locator_verified": true,
+  "capture_reference_verified": false,
+  "content_fingerprint_verified": false,
+  "version_scope_verified": false,
+  "extraction_allowed": false,
+  "human_review_required": true,
+  "downstream_allowed": false,
+  "schema_version": "1.0.0"
+}

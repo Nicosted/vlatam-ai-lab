@@ -1,0 +1,190 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/extractable-evidence-packet.schema.json",
+  "title": "Extractable Evidence Packet",
+  "description": "Schema for a structured, source-backed input prepared for a future AI extraction job. An evidence packet binds a reviewed snapshot (via its review manifest) to bounded evidence references — locators, excerpt references, and optional content fingerprints — not large copied source text. No scraping, no network, no AI provider calls, and no full source content ingestion happen in this layer. An evidence packet may be AI-ready, but it is never classifier-approved or downstream-safe by virtue of being extractable.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "evidence_packet_id",
+    "review_manifest_id",
+    "snapshot_id",
+    "source_id",
+    "evidence_scope",
+    "extraction_input_type",
+    "extraction_allowed",
+    "extraction_status",
+    "human_review_required",
+    "downstream_allowed",
+    "schema_version"
+  ],
+  "properties": {
+    "evidence_packet_id": {
+      "type": "string",
+      "description": "Unique identifier for this evidence packet.",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "review_manifest_id": {
+      "type": "string",
+      "description": "Identifier of the review manifest that gates this packet. An evidence packet without its review manifest is not a controlled input.",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "snapshot_id": {
+      "type": "string",
+      "description": "Identifier of the source snapshot this packet is derived from.",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "source_id": {
+      "type": "string",
+      "description": "Identifier of the registered source the snapshot belongs to.",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "evidence_scope": {
+      "type": "string",
+      "description": "What this packet scopes the evidence to (e.g. hs_chapter_headings, ncm_aec_rates). Describes intent, not a regulatory conclusion.",
+      "minLength": 1,
+      "maxLength": 400
+    },
+    "jurisdiction_scope": {
+      "type": "string",
+      "description": "Optional jurisdiction scope label for the evidence (e.g. international, mercosur, ar).",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "language": {
+      "type": "string",
+      "description": "Optional primary language of the referenced source material (e.g. en, es).",
+      "minLength": 2,
+      "maxLength": 16
+    },
+    "content_reference": {
+      "type": "string",
+      "description": "Optional bounded local/manual reference to the captured material. Not raw ingested content. Placeholder references must be labelled manual/local/requires-verification.",
+      "minLength": 1,
+      "maxLength": 400
+    },
+    "excerpt_reference": {
+      "type": "string",
+      "description": "Optional bounded reference to a specific excerpt/location (e.g. section/page anchor), never large copied source text.",
+      "minLength": 1,
+      "maxLength": 400
+    },
+    "content_fingerprint": {
+      "type": "string",
+      "description": "Optional content fingerprint in sha256 format (with optional 'sha256:' prefix). Only present when genuinely tied to captured content.",
+      "pattern": "^(sha256:)?[a-fA-F0-9]{64}$"
+    },
+    "extraction_input_type": {
+      "type": "string",
+      "description": "The kind of input this packet provides to a future extraction job.",
+      "enum": [
+        "locator_reference",
+        "excerpt_reference",
+        "fingerprint_reference",
+        "manual_metadata",
+        "other"
+      ]
+    },
+    "extraction_allowed": {
+      "type": "boolean",
+      "description": "Whether AI extraction may consume this packet. Only true where the governing review manifest supports it and a usable content/excerpt/fingerprint reference exists. Defaults to false."
+    },
+    "extraction_status": {
+      "type": "string",
+      "description": "AI extraction preparation state for this packet. No provider integration exists in this layer.",
+      "enum": [
+        "not_started",
+        "prepared",
+        "extracted",
+        "extraction_failed",
+        "unknown"
+      ]
+    },
+    "human_review_required": {
+      "type": "boolean",
+      "description": "Must be true for any packet that may back classification/compliance intelligence. Defaults to true."
+    },
+    "downstream_allowed": {
+      "type": "boolean",
+      "description": "Whether downstream classifier use is approved. An evidence packet must not approve downstream use on its own; defaults to false."
+    },
+    "classifier_approval_reference": {
+      "type": "string",
+      "description": "Optional reference to a separate classifier-approval record. Required before downstream_allowed may be true, which this evidence layer does not itself grant.",
+      "minLength": 1,
+      "maxLength": 400
+    },
+    "warnings": {
+      "type": "array",
+      "description": "Optional warnings raised during evidence preparation (e.g. a missing fingerprint).",
+      "items": { "type": "string" }
+    },
+    "limitations": {
+      "type": "array",
+      "description": "Optional known limitations of this packet (e.g. content not ingested, no regulatory claim made).",
+      "items": { "type": "string" }
+    },
+    "notes": {
+      "type": "array",
+      "description": "Optional non-authoritative preparation notes.",
+      "items": { "type": "string" }
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Optional extra metadata for local traceability."
+    },
+    "created_at": {
+      "type": "string",
+      "description": "Optional UTC timestamp when the packet record was created.",
+      "format": "date-time"
+    },
+    "contract_version": {
+      "type": "string",
+      "description": "Optional semantic version of the evidence packet contract this record follows.",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "schema_version": {
+      "type": "string",
+      "description": "Semantic version of this evidence packet payload.",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    }
+  },
+  "allOf": [
+    {
+      "description": "An extractable packet must be traceable to bounded evidence: at least one of a content reference, excerpt reference, or content fingerprint. Extraction readiness without any reference is not allowed.",
+      "if": {
+        "properties": { "extraction_allowed": { "const": true } },
+        "required": ["extraction_allowed"]
+      },
+      "then": {
+        "properties": {
+          "human_review_required": { "const": true }
+        },
+        "required": ["human_review_required"],
+        "anyOf": [
+          { "required": ["content_reference"] },
+          { "required": ["excerpt_reference"] },
+          { "required": ["content_fingerprint"] }
+        ]
+      }
+    },
+    {
+      "description": "An evidence packet must not approve downstream classifier use on its own. Downstream use requires a separate classifier approval reference; this packet is AI-ready, not downstream-approved.",
+      "if": {
+        "properties": { "downstream_allowed": { "const": true } },
+        "required": ["downstream_allowed"]
+      },
+      "then": {
+        "properties": {
+          "human_review_required": { "const": true },
+          "classifier_approval_reference": { "type": "string", "minLength": 1 }
+        },
+        "required": ["human_review_required", "classifier_approval_reference"]
+      }
+    }
+  ]
+}
