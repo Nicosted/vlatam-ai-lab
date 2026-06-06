@@ -8,10 +8,10 @@
 
 ## Summary
 
-- total_contracts: `13`
-- total_valid_fixtures: `13`
-- total_invalid_fixtures: `35`
-- total_test_files: `13`
+- total_contracts: `15`
+- total_valid_fixtures: `15`
+- total_invalid_fixtures: `43`
+- total_test_files: `15`
 
 ## Contract Names
 
@@ -28,6 +28,8 @@
 - `intelligence_source_registry`
 - `intelligence_source_snapshot`
 - `ai_extraction_job`
+- `snapshot_review_manifest`
+- `extractable_evidence_packet`
 
 ## Contract Inventory
 
@@ -46,6 +48,8 @@
 | `intelligence_source_registry`                 | `implemented` | `schemas/intelligence-source-registry.schema.json`                 | `snapshots/pcram/intelligence-source-registry-wco-hs.json`               |                3 | `tests/intelligence-source-registry-schema.test.ts`          | yes                    | yes          | yes                      |
 | `intelligence_source_snapshot`                 | `implemented` | `schemas/intelligence-source-snapshot.schema.json`                 | `snapshots/pcram/intelligence-source-snapshot-example.json`              |                6 | `tests/intelligence-source-snapshot-schema.test.ts`          | yes                    | yes          | yes                      |
 | `ai_extraction_job`                            | `implemented` | `schemas/ai-extraction-job.schema.json`                            | `snapshots/pcram/ai-extraction-job-example.json`                         |                3 | `tests/ai-extraction-job-schema.test.ts`                     | yes                    | yes          | yes                      |
+| `snapshot_review_manifest`                     | `implemented` | `schemas/snapshot-review-manifest.schema.json`                     | `snapshots/pcram/snapshot-review-manifest-wco-hs-2022.json`              |                4 | `tests/snapshot-review-manifest-schema.test.ts`              | yes                    | yes          | yes                      |
+| `extractable_evidence_packet`                  | `implemented` | `schemas/extractable-evidence-packet.schema.json`                  | `snapshots/pcram/extractable-evidence-packet-wco-hs-2022.json`           |                4 | `tests/extractable-evidence-packet-schema.test.ts`           | yes                    | yes          | yes                      |
 
 ## Missing Reference Summary
 

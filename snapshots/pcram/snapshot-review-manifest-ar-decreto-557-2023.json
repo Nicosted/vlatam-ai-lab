@@ -1,0 +1,35 @@
+{
+  "review_manifest_id": "review-manifest-ar-decreto-557-2023-2026-06-06t001500z",
+  "snapshot_id": "snapshot-ar-decreto-557-2023-2026-06-06t000000z",
+  "source_id": "ar-decreto-557-2023",
+  "review_origin": "human",
+  "reviewer_role": "ai-lab-source-reviewer",
+  "review_status": "in_review",
+  "source_identity_verified": true,
+  "locator_verified": true,
+  "capture_reference_verified": false,
+  "content_fingerprint_verified": false,
+  "version_scope_verified": false,
+  "extraction_allowed": false,
+  "human_review_required": true,
+  "downstream_allowed": false,
+  "warnings": [
+    "Capture reference and version scope are not yet confirmed; extraction must remain blocked until review is approved.",
+    "No content hash is tied to this snapshot; fingerprint cannot be verified."
+  ],
+  "limitations": [
+    "The Decreto 557/2023 text has not been ingested or extracted.",
+    "This manifest makes no regulatory or classification claim; review is still in progress.",
+    "Approval of source identity alone never makes a snapshot extraction-ready."
+  ],
+  "notes": [
+    "Review in progress: source identity and locator confirmed, capture reference and version scope pending."
+  ],
+  "metadata": {
+    "review_basis": "verified-official-source-onboarding",
+    "issuing_authority": "Boletín Oficial de la República Argentina"
+  },
+  "created_at": "2026-06-06T00:15:00.000Z",
+  "contract_version": "1.0.0",
+  "schema_version": "1.0.0"
+}

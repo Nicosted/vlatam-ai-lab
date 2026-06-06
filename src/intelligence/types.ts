@@ -87,6 +87,67 @@ export interface SourceSnapshot {
   schema_version: string;
 }
 
+export type ReviewOrigin = "human" | "system" | "mixed" | "unknown";
+
+export type ExtractionInputType =
+  | "locator_reference"
+  | "excerpt_reference"
+  | "fingerprint_reference"
+  | "manual_metadata"
+  | "other";
+
+export interface SnapshotReviewManifest {
+  review_manifest_id: string;
+  snapshot_id: string;
+  source_id: string;
+  review_origin?: ReviewOrigin;
+  reviewer_role?: string;
+  review_status: ReviewStatus;
+  reviewed_at?: string;
+  source_identity_verified: boolean;
+  locator_verified: boolean;
+  capture_reference_verified: boolean;
+  content_fingerprint_verified: boolean;
+  version_scope_verified: boolean;
+  extraction_allowed: boolean;
+  human_review_required: boolean;
+  downstream_allowed: boolean;
+  classifier_approval_reference?: string;
+  warnings?: string[];
+  limitations?: string[];
+  notes?: string[];
+  metadata?: Record<string, unknown>;
+  created_at?: string;
+  contract_version?: string;
+  schema_version: string;
+}
+
+export interface ExtractableEvidencePacket {
+  evidence_packet_id: string;
+  review_manifest_id: string;
+  snapshot_id: string;
+  source_id: string;
+  evidence_scope: string;
+  jurisdiction_scope?: string;
+  language?: string;
+  content_reference?: string;
+  excerpt_reference?: string;
+  content_fingerprint?: string;
+  extraction_input_type: ExtractionInputType;
+  extraction_allowed: boolean;
+  extraction_status: ExtractionStatus;
+  human_review_required: boolean;
+  downstream_allowed: boolean;
+  classifier_approval_reference?: string;
+  warnings?: string[];
+  limitations?: string[];
+  notes?: string[];
+  metadata?: Record<string, unknown>;
+  created_at?: string;
+  contract_version?: string;
+  schema_version: string;
+}
+
 export interface SourceRegistryEntry {
   source_id: string;
   source_name: string;

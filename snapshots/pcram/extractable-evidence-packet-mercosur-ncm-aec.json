@@ -1,0 +1,33 @@
+{
+  "evidence_packet_id": "evidence-packet-mercosur-ncm-aec-2026-06-06t002000z",
+  "review_manifest_id": "review-manifest-mercosur-ncm-aec-2026-06-06t001000z",
+  "snapshot_id": "snapshot-mercosur-ncm-aec-2026-06-06t000000z",
+  "source_id": "mercosur-ncm-aec",
+  "evidence_scope": "ncm_aec_reference",
+  "jurisdiction_scope": "mercosur",
+  "language": "es",
+  "content_reference": "manual/local/requires-verification: MERCOSUR institutional portal recorded by hand; NCM/AEC instruments not downloaded or ingested.",
+  "excerpt_reference": "MERCOSUR NCM/AEC portal landing reference (section/anchor reference only).",
+  "extraction_input_type": "locator_reference",
+  "extraction_allowed": true,
+  "extraction_status": "prepared",
+  "human_review_required": true,
+  "downstream_allowed": false,
+  "warnings": [
+    "No content hash is tied to the underlying snapshot; this packet references locators/excerpts only, not ingested content."
+  ],
+  "limitations": [
+    "No NCM codes, AEC rates, or norms are embedded; only bounded references are provided.",
+    "This packet is AI-ready as an extraction input only; it is not classifier-approved and not downstream-safe.",
+    "Any future extraction output remains subject to human review before it can be considered intelligence."
+  ],
+  "notes": [
+    "Prepared from the approved MERCOSUR NCM/AEC review manifest as a locator-level extraction input."
+  ],
+  "metadata": {
+    "issuing_authority": "MERCOSUR"
+  },
+  "created_at": "2026-06-06T00:20:00.000Z",
+  "contract_version": "1.0.0",
+  "schema_version": "1.0.0"
+}

@@ -1,0 +1,35 @@
+{
+  "review_manifest_id": "review-manifest-wco-hs-2022-edition-2026-06-06t001000z",
+  "snapshot_id": "snapshot-wco-hs-2022-edition-2026-06-06t000000z",
+  "source_id": "wco-hs-2022-edition",
+  "review_origin": "human",
+  "reviewer_role": "ai-lab-source-reviewer",
+  "review_status": "approved",
+  "reviewed_at": "2026-06-06T00:10:00.000Z",
+  "source_identity_verified": true,
+  "locator_verified": true,
+  "capture_reference_verified": true,
+  "content_fingerprint_verified": false,
+  "version_scope_verified": true,
+  "extraction_allowed": true,
+  "human_review_required": true,
+  "downstream_allowed": false,
+  "warnings": [
+    "Fingerprint verification waived: no content hash is tied to this snapshot. Extraction is limited to locator/reference-level evidence and remains subject to human review."
+  ],
+  "limitations": [
+    "No HS headings, notes, or correlations have been ingested or extracted.",
+    "This manifest makes no regulatory or classification claim; it records a review decision only.",
+    "Extraction readiness here permits AI extraction only; it does not approve any downstream classifier use."
+  ],
+  "notes": [
+    "Documentary review of the WCO HS 2022 Edition snapshot against the expected official source identity."
+  ],
+  "metadata": {
+    "review_basis": "verified-official-source-onboarding",
+    "issuing_authority": "World Customs Organization (WCO)"
+  },
+  "created_at": "2026-06-06T00:10:00.000Z",
+  "contract_version": "1.0.0",
+  "schema_version": "1.0.0"
+}

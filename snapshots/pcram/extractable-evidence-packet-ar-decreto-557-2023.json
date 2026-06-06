@@ -1,0 +1,33 @@
+{
+  "evidence_packet_id": "evidence-packet-ar-decreto-557-2023-2026-06-06t002500z",
+  "review_manifest_id": "review-manifest-ar-decreto-557-2023-2026-06-06t001500z",
+  "snapshot_id": "snapshot-ar-decreto-557-2023-2026-06-06t000000z",
+  "source_id": "ar-decreto-557-2023",
+  "evidence_scope": "decreto_557_2023_reference",
+  "jurisdiction_scope": "ar",
+  "language": "es",
+  "content_reference": "manual/local/requires-verification: Boletín Oficial portal recorded by hand; Decreto 557/2023 text not downloaded or ingested.",
+  "extraction_input_type": "manual_metadata",
+  "extraction_allowed": false,
+  "extraction_status": "not_started",
+  "human_review_required": true,
+  "downstream_allowed": false,
+  "warnings": [
+    "Governing review manifest is still in review; extraction is not permitted yet.",
+    "No content hash is tied to the underlying snapshot."
+  ],
+  "limitations": [
+    "The Decreto 557/2023 text has not been ingested or extracted.",
+    "This packet is a placeholder extraction input; it is neither AI-ready nor downstream-safe until its review manifest is approved.",
+    "This packet makes no regulatory or classification claim."
+  ],
+  "notes": [
+    "Prepared alongside an in-review manifest to show that an evidence packet is not extraction-ready until review is approved."
+  ],
+  "metadata": {
+    "issuing_authority": "Boletín Oficial de la República Argentina"
+  },
+  "created_at": "2026-06-06T00:25:00.000Z",
+  "contract_version": "1.0.0",
+  "schema_version": "1.0.0"
+}

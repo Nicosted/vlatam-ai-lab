@@ -1,0 +1,36 @@
+{
+  "review_manifest_id": "review-manifest-ar-arca-arancel-integrado-2026-06-06t001800z",
+  "snapshot_id": "snapshot-ar-arca-arancel-integrado-2026-06-06t000000z",
+  "source_id": "ar-arca-arancel-integrado",
+  "review_origin": "human",
+  "reviewer_role": "ai-lab-source-reviewer",
+  "review_status": "approved",
+  "reviewed_at": "2026-06-06T00:18:00.000Z",
+  "source_identity_verified": true,
+  "locator_verified": true,
+  "capture_reference_verified": true,
+  "content_fingerprint_verified": false,
+  "version_scope_verified": false,
+  "extraction_allowed": false,
+  "human_review_required": true,
+  "downstream_allowed": false,
+  "warnings": [
+    "Version scope is not yet confirmed for the Arancel Integrado capture; extraction stays blocked even though the source identity review is approved.",
+    "No content hash is tied to this snapshot; fingerprint cannot be verified."
+  ],
+  "limitations": [
+    "No Arancel Integrado tariff data has been ingested or extracted.",
+    "This manifest makes no regulatory or classification claim; it records a review decision only.",
+    "An approved review status does not by itself make a snapshot extraction-ready when a required gate (version scope) is unverified."
+  ],
+  "notes": [
+    "Source identity, locator, and capture reference confirmed; version/edition scope of the Arancel Integrado is still unconfirmed, so extraction remains blocked."
+  ],
+  "metadata": {
+    "review_basis": "verified-official-source-onboarding",
+    "issuing_authority": "ARCA (ex-AFIP)"
+  },
+  "created_at": "2026-06-06T00:18:00.000Z",
+  "contract_version": "1.0.0",
+  "schema_version": "1.0.0"
+}

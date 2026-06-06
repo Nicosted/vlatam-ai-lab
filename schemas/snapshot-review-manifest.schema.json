@@ -1,0 +1,194 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/snapshot-review-manifest.schema.json",
+  "title": "Snapshot Review Manifest",
+  "description": "Schema for a human/documentary review gate that sits between a captured source snapshot and any future AI extraction. A manifest records which verification checks a reviewer performed (identity, locator, capture reference, content fingerprint, version scope) and whether extraction is permitted as a result. No scraping, no network, no AI provider calls, and no source content ingestion happen in this layer. An official source or a captured snapshot is never extraction-ready or downstream-safe merely because it exists; only an explicitly reviewed manifest may permit AI extraction, and it never approves downstream classifier use.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "review_manifest_id",
+    "snapshot_id",
+    "source_id",
+    "review_status",
+    "source_identity_verified",
+    "locator_verified",
+    "capture_reference_verified",
+    "content_fingerprint_verified",
+    "version_scope_verified",
+    "extraction_allowed",
+    "human_review_required",
+    "downstream_allowed",
+    "schema_version"
+  ],
+  "properties": {
+    "review_manifest_id": {
+      "type": "string",
+      "description": "Unique identifier for this review manifest.",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "snapshot_id": {
+      "type": "string",
+      "description": "Identifier of the source snapshot this manifest reviews. A manifest is meaningless without the snapshot it gates.",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "source_id": {
+      "type": "string",
+      "description": "Identifier of the registered source the reviewed snapshot belongs to.",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "review_origin": {
+      "type": "string",
+      "description": "Who/what produced the review decision. Documentary/manual review is the default in this layer.",
+      "enum": ["human", "system", "mixed", "unknown"]
+    },
+    "reviewer_role": {
+      "type": "string",
+      "description": "Optional non-PII role label for the reviewer (e.g. a role or team name), never a personal identity.",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "review_status": {
+      "type": "string",
+      "description": "Human review state of the reviewed snapshot. Anything other than 'approved' keeps extraction behind the gate.",
+      "enum": ["not_reviewed", "in_review", "approved", "rejected", "unknown"]
+    },
+    "reviewed_at": {
+      "type": "string",
+      "description": "Optional UTC timestamp when the review decision was recorded.",
+      "format": "date-time"
+    },
+    "source_identity_verified": {
+      "type": "boolean",
+      "description": "Whether the reviewer confirmed the snapshot maps to the expected official source identity."
+    },
+    "locator_verified": {
+      "type": "boolean",
+      "description": "Whether the reviewer confirmed the snapshot locator/reference is valid and stable."
+    },
+    "capture_reference_verified": {
+      "type": "boolean",
+      "description": "Whether the reviewer confirmed the capture reference is a genuine, traceable capture record (not an invented placeholder)."
+    },
+    "content_fingerprint_verified": {
+      "type": "boolean",
+      "description": "Whether a genuine content fingerprint was verified. When false, extraction may only be permitted if fingerprint verification is intentionally waived with an explicit warning."
+    },
+    "version_scope_verified": {
+      "type": "boolean",
+      "description": "Whether the reviewer confirmed the version/edition scope the snapshot claims to represent."
+    },
+    "extraction_allowed": {
+      "type": "boolean",
+      "description": "Whether AI extraction may consume evidence derived from this snapshot. Must be false unless the manifest explicitly passes the required review gates. Defaults to false."
+    },
+    "human_review_required": {
+      "type": "boolean",
+      "description": "Must be true for any manifest that may back classification/compliance intelligence. Defaults to true."
+    },
+    "downstream_allowed": {
+      "type": "boolean",
+      "description": "Whether downstream classifier use is approved. A review manifest must not approve downstream use on its own; defaults to false."
+    },
+    "classifier_approval_reference": {
+      "type": "string",
+      "description": "Optional reference to a separate classifier-approval record. Required before downstream_allowed may be true, which this review layer does not itself grant.",
+      "minLength": 1,
+      "maxLength": 400
+    },
+    "warnings": {
+      "type": "array",
+      "description": "Optional warnings raised during review (e.g. a waived fingerprint verification).",
+      "items": { "type": "string" }
+    },
+    "limitations": {
+      "type": "array",
+      "description": "Optional known limitations of this review (e.g. content not ingested, no regulatory claim made).",
+      "items": { "type": "string" }
+    },
+    "notes": {
+      "type": "array",
+      "description": "Optional non-authoritative review notes.",
+      "items": { "type": "string" }
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Optional extra metadata for local traceability."
+    },
+    "created_at": {
+      "type": "string",
+      "description": "Optional UTC timestamp when the manifest record was created.",
+      "format": "date-time"
+    },
+    "contract_version": {
+      "type": "string",
+      "description": "Optional semantic version of the review manifest contract this record follows.",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "schema_version": {
+      "type": "string",
+      "description": "Semantic version of this review manifest payload.",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    }
+  },
+  "allOf": [
+    {
+      "description": "Allowing AI extraction requires explicit review approval and verified identity/locator/capture/version gates. Official source identity or a captured snapshot never satisfies this on its own.",
+      "if": {
+        "properties": { "extraction_allowed": { "const": true } },
+        "required": ["extraction_allowed"]
+      },
+      "then": {
+        "properties": {
+          "review_status": { "const": "approved" },
+          "human_review_required": { "const": true },
+          "source_identity_verified": { "const": true },
+          "locator_verified": { "const": true },
+          "capture_reference_verified": { "const": true },
+          "version_scope_verified": { "const": true }
+        },
+        "required": [
+          "review_status",
+          "human_review_required",
+          "source_identity_verified",
+          "locator_verified",
+          "capture_reference_verified",
+          "version_scope_verified"
+        ],
+        "anyOf": [
+          {
+            "description": "A verified content fingerprint satisfies the fingerprint gate.",
+            "properties": { "content_fingerprint_verified": { "const": true } },
+            "required": ["content_fingerprint_verified"]
+          },
+          {
+            "description": "Or the missing fingerprint verification is intentionally waived with an explicit warning.",
+            "properties": { "warnings": { "type": "array", "minItems": 1 } },
+            "required": ["warnings"]
+          }
+        ]
+      }
+    },
+    {
+      "description": "A review manifest must not approve downstream classifier use on its own. Downstream use requires a separate classifier approval reference plus review approval; this layer is AI-ready, not downstream-approved.",
+      "if": {
+        "properties": { "downstream_allowed": { "const": true } },
+        "required": ["downstream_allowed"]
+      },
+      "then": {
+        "properties": {
+          "review_status": { "const": "approved" },
+          "human_review_required": { "const": true },
+          "classifier_approval_reference": { "type": "string", "minLength": 1 }
+        },
+        "required": [
+          "review_status",
+          "human_review_required",
+          "classifier_approval_reference"
+        ]
+      }
+    }
+  ]
+}
