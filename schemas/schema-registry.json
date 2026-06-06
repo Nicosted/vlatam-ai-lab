@@ -218,6 +218,22 @@
       "downstream_allowed_field_present": true
     },
     {
+      "contract_name": "ai_extraction_result",
+      "schema_file": "schemas/ai-extraction-result.schema.json",
+      "valid_fixture": "snapshots/pcram/ai-extraction-result-qwen-langgraph-draft-success.json",
+      "invalid_fixtures": [
+        "snapshots/pcram/invalid-ai-extraction-result-downstream-allowed.json",
+        "snapshots/pcram/invalid-ai-extraction-result-missing-required.json"
+      ],
+      "test_file": "tests/ai-extraction-result-schema.test.ts",
+      "status": "implemented",
+      "purpose": "Captures draft-only AI extraction outputs from controlled provider/workflow spikes.",
+      "downstream_role": "Raw or unreviewed AI extraction results are never downstream-safe and require human review before any artifact can be approved.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": true
+    },
+    {
       "contract_name": "snapshot_review_manifest",
       "schema_file": "schemas/snapshot-review-manifest.schema.json",
       "valid_fixture": "snapshots/pcram/snapshot-review-manifest-wco-hs-2022.json",

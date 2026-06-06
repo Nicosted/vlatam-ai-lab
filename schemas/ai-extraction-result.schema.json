@@ -1,0 +1,188 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/ai-extraction-result.schema.json",
+  "title": "AI Extraction Result Contract",
+  "description": "Draft-only result contract for controlled AI-assisted evidence extraction. These records may be produced by local spike workflows, but they are unreviewed, never classifier-approved, and never downstream-safe.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "extraction_result_id",
+    "evidence_packet_id",
+    "review_manifest_id",
+    "snapshot_id",
+    "source_id",
+    "provider_id",
+    "model_id",
+    "extraction_status",
+    "extracted_claims",
+    "unsupported_claims",
+    "warnings",
+    "confidence",
+    "critic_summary",
+    "human_review_required",
+    "downstream_allowed",
+    "created_at",
+    "contract_version",
+    "schema_version"
+  ],
+  "properties": {
+    "extraction_result_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 180
+    },
+    "extraction_job_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "evidence_packet_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "review_manifest_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "snapshot_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "source_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "provider_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80
+    },
+    "model_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "extraction_status": {
+      "type": "string",
+      "enum": [
+        "draft_unreviewed",
+        "critique_flagged",
+        "validation_failed",
+        "provider_failed"
+      ]
+    },
+    "extracted_claims": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/extractedClaim" }
+    },
+    "unsupported_claims": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/unsupportedClaim" }
+    },
+    "warnings": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Provider or workflow confidence for draft triage only. This never implies approval."
+    },
+    "critic_summary": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1200
+    },
+    "human_review_required": {
+      "type": "boolean",
+      "const": true
+    },
+    "downstream_allowed": {
+      "type": "boolean",
+      "const": false
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "contract_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "schema_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    }
+  },
+  "$defs": {
+    "extractedClaim": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "claim_id",
+        "claim_text",
+        "evidence_reference",
+        "support_status",
+        "confidence"
+      ],
+      "properties": {
+        "claim_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "claim_text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "evidence_reference": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 400
+        },
+        "support_status": {
+          "type": "string",
+          "enum": ["supported_by_packet", "unsupported", "needs_human_review"]
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      }
+    },
+    "unsupportedClaim": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["claim_text", "reason"],
+      "properties": {
+        "claim_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "claim_text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "evidence_reference": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 400
+        }
+      }
+    }
+  }
+}

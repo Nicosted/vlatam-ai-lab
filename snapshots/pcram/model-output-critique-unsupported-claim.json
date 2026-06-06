@@ -1,0 +1,12 @@
+{
+  "critic_summary": "The draft includes a conclusion that is not supported by the bounded evidence packet.",
+  "unsupported_claims": [
+    {
+      "claim_id": "claim-unsupported-001",
+      "claim_text": "The packet proves a tariff classification outcome.",
+      "reason": "The packet contains locator-level evidence only and does not provide a classifier-approved conclusion.",
+      "evidence_reference": "HS 2022 Edition nomenclature landing page (section/anchor reference only)."
+    }
+  ],
+  "warnings": []
+}

@@ -1,0 +1,13 @@
+{
+  "extracted_claims": [
+    {
+      "claim_id": "claim-001",
+      "claim_text": "The packet references the WCO HS 2022 Edition as locator-level evidence.",
+      "evidence_reference": "HS 2022 Edition nomenclature landing page (section/anchor reference only).",
+      "support_status": "supported_by_packet",
+      "confidence": 0.62
+    }
+  ],
+  "warnings": [],
+  "confidence": 0.62
+}
