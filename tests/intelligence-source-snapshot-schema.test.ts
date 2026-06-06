@@ -89,6 +89,61 @@ test("unreviewed snapshot marked downstream_allowed is rejected", async () => {
   assert.equal(validate(sample), false);
 });
 
+const officialSnapshotFixtures = [
+  "snapshots/pcram/intelligence-source-snapshot-wco-hs-2022-official.json",
+  "snapshots/pcram/intelligence-source-snapshot-mercosur-ncm-aec-official.json",
+  "snapshots/pcram/intelligence-source-snapshot-ar-decreto-557-2023-official.json",
+  "snapshots/pcram/intelligence-source-snapshot-ar-arca-arancel-official.json",
+];
+
+for (const fixture of officialSnapshotFixtures) {
+  test(`official-source snapshot fixture passes validation: ${fixture}`, async () => {
+    const validate = await buildValidator();
+    const sample = await readJsonFixture(fixture);
+
+    assert.equal(validate(sample), true);
+  });
+}
+
+test("official-source snapshots are conservative and not downstream-safe", async () => {
+  for (const fixture of officialSnapshotFixtures) {
+    const sample = await readJsonFixture(fixture);
+
+    assert.equal(sample.human_review_required, true, fixture);
+    assert.equal(sample.downstream_allowed, false, fixture);
+    assert.equal(sample.review_status, "not_reviewed", fixture);
+    assert.equal(sample.extraction_status, "not_started", fixture);
+    assert.notEqual(sample.freshness_status, "current", fixture);
+  }
+});
+
+test("missing captured_at fails", async () => {
+  const validate = await buildValidator();
+  const sample = await readJsonFixture(
+    "snapshots/pcram/invalid-intelligence-source-snapshot-missing-captured-at.json",
+  );
+
+  assert.equal(validate(sample), false);
+});
+
+test("missing locator/reference fails", async () => {
+  const validate = await buildValidator();
+  const sample = await readJsonFixture(
+    "snapshots/pcram/invalid-intelligence-source-snapshot-missing-locator.json",
+  );
+
+  assert.equal(validate(sample), false);
+});
+
+test("downstream_allowed with non-current freshness is rejected", async () => {
+  const validate = await buildValidator();
+  const sample = await readJsonFixture(
+    "snapshots/pcram/invalid-intelligence-source-snapshot-downstream-stale-freshness.json",
+  );
+
+  assert.equal(validate(sample), false);
+});
+
 test("credential-like unknown fields are rejected", async () => {
   const validate = await buildValidator();
   const sample = await readJsonFixture(

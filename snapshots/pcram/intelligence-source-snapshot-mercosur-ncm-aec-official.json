@@ -1,0 +1,36 @@
+{
+  "snapshot_id": "snapshot-mercosur-ncm-aec-2026-06-06t000000z",
+  "source_id": "mercosur-ncm-aec",
+  "captured_at": "2026-06-06T00:00:00.000Z",
+  "capture_method": "manual",
+  "capture_origin": "human",
+  "capture_actor": "ai-lab-source-curator",
+  "source_locator": "https://www.mercosur.int/",
+  "official_url": "https://www.mercosur.int/",
+  "content_reference": "manual/local/requires-verification: MERCOSUR institutional portal recorded by hand; NCM/AEC instruments not downloaded or ingested.",
+  "source_version_label": "NCM/AEC reference (capture 2026-06)",
+  "freshness_status": "requires_review",
+  "review_status": "not_reviewed",
+  "extraction_status": "not_started",
+  "human_review_required": true,
+  "downstream_allowed": false,
+  "notes": [
+    "Controlled manual capture of the MERCOSUR NCM/AEC official source reference.",
+    "Only capture metadata is recorded; no source content was fetched, scraped, or ingested."
+  ],
+  "warnings": [
+    "No verifiable content hash/checksum is tied to this snapshot; fingerprint cannot be verified."
+  ],
+  "limitations": [
+    "No NCM codes, AEC rates, or norms have been ingested or extracted.",
+    "This snapshot makes no regulatory or classification claim; it records an observed source state only.",
+    "The specific NCM/AEC resolution behind this portal is not captured or version-pinned here."
+  ],
+  "metadata": {
+    "onboarding": "verified-official-source-onboarding",
+    "issuing_authority": "MERCOSUR"
+  },
+  "created_at": "2026-06-06T00:05:00.000Z",
+  "contract_version": "1.0.0",
+  "schema_version": "1.0.0"
+}

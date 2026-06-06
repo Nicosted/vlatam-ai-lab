@@ -1,0 +1,36 @@
+{
+  "snapshot_id": "snapshot-ar-decreto-557-2023-2026-06-06t000000z",
+  "source_id": "ar-decreto-557-2023",
+  "captured_at": "2026-06-06T00:00:00.000Z",
+  "capture_method": "manual",
+  "capture_origin": "human",
+  "capture_actor": "ai-lab-source-curator",
+  "source_locator": "https://www.boletinoficial.gob.ar/",
+  "official_url": "https://www.boletinoficial.gob.ar/",
+  "content_reference": "manual/local/requires-verification: Boletín Oficial portal recorded by hand; Decreto 557/2023 text not downloaded or ingested.",
+  "source_version_label": "Decreto 557/2023",
+  "freshness_status": "requires_review",
+  "review_status": "not_reviewed",
+  "extraction_status": "not_started",
+  "human_review_required": true,
+  "downstream_allowed": false,
+  "notes": [
+    "Controlled manual capture of the Argentina Decreto 557/2023 official source reference.",
+    "Only capture metadata is recorded; no source content was fetched, scraped, or ingested."
+  ],
+  "warnings": [
+    "No verifiable content hash/checksum is tied to this snapshot; fingerprint cannot be verified."
+  ],
+  "limitations": [
+    "No decree articles, NCM adjustments, AEC rates, or export refunds have been ingested or extracted.",
+    "This snapshot makes no regulatory or classification claim; it records an observed source state only.",
+    "The exact published decree document is not captured or version-pinned here."
+  ],
+  "metadata": {
+    "onboarding": "verified-official-source-onboarding",
+    "issuing_authority": "Boletín Oficial de la República Argentina"
+  },
+  "created_at": "2026-06-06T00:05:00.000Z",
+  "contract_version": "1.0.0",
+  "schema_version": "1.0.0"
+}

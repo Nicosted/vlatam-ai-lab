@@ -1,0 +1,12 @@
+{
+  "snapshot_id": "snapshot-missing-locator",
+  "source_id": "ar-ncm-customs",
+  "captured_at": "2026-06-06T00:00:00.000Z",
+  "capture_method": "manual",
+  "freshness_status": "requires_review",
+  "review_status": "not_reviewed",
+  "extraction_status": "not_started",
+  "human_review_required": true,
+  "downstream_allowed": false,
+  "schema_version": "1.0.0"
+}

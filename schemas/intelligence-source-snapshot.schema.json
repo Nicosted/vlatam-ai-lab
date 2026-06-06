@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://vlatam-ai-lab.local/schemas/intelligence-source-snapshot.schema.json",
   "title": "Intelligence Source Snapshot",
-  "description": "Schema for a captured check/version of a registered source. Represents a recorded capture event, not the full scraped content. No network capture is implemented in this layer.",
+  "description": "Schema for a gated, controlled capture of a registered source. Represents a recorded capture event and its review/extraction/downstream gates, not the full scraped content. No network capture, scraping, or AI extraction is implemented in this layer. A verified official source does not make a snapshot approved.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -13,6 +13,7 @@
     "freshness_status",
     "review_status",
     "extraction_status",
+    "human_review_required",
     "downstream_allowed",
     "schema_version"
   ],
@@ -31,7 +32,7 @@
     },
     "captured_at": {
       "type": "string",
-      "description": "UTC timestamp when this snapshot/check was captured.",
+      "description": "UTC timestamp when this snapshot/check was captured. A missing captured_at must never be treated as current.",
       "format": "date-time"
     },
     "capture_method": {
@@ -45,9 +46,37 @@
         "other"
       ]
     },
+    "capture_origin": {
+      "type": "string",
+      "description": "Who/what produced the capture. Used for traceability of manual vs system captures.",
+      "enum": ["human", "system", "mixed", "unknown"]
+    },
+    "capture_actor": {
+      "type": "string",
+      "description": "Optional non-PII actor label/handle responsible for the capture (e.g. a role or service name).",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "source_locator": {
+      "type": "string",
+      "description": "Stable locator of the captured source state (verified official locator or labelled manual/local reference).",
+      "minLength": 1,
+      "maxLength": 400
+    },
+    "official_url": {
+      "type": "string",
+      "description": "Optional canonical official URL the capture refers to.",
+      "format": "uri"
+    },
+    "content_reference": {
+      "type": "string",
+      "description": "Optional local/manual reference to the captured material. Not raw ingested content. Placeholder references must be labelled manual/local/requires-verification.",
+      "minLength": 1,
+      "maxLength": 400
+    },
     "content_hash": {
       "type": "string",
-      "description": "Optional content hash in sha256 format (with optional 'sha256:' prefix).",
+      "description": "Optional content hash in sha256 format (with optional 'sha256:' prefix). Only present when genuinely tied to captured content.",
       "pattern": "^(sha256:)?[a-fA-F0-9]{64}$"
     },
     "source_version_label": {
@@ -58,17 +87,17 @@
     },
     "freshness_status": {
       "type": "string",
-      "description": "Conservative freshness classification for this snapshot.",
+      "description": "Conservative freshness classification for this snapshot. Missing data must never read as current.",
       "enum": ["current", "stale", "unknown", "requires_review"]
     },
     "review_status": {
       "type": "string",
-      "description": "Human review state of this snapshot.",
+      "description": "Human review state of this snapshot. A missing/not_reviewed status requires review before any downstream use.",
       "enum": ["not_reviewed", "in_review", "approved", "rejected", "unknown"]
     },
     "extraction_status": {
       "type": "string",
-      "description": "AI extraction preparation state for this snapshot.",
+      "description": "AI extraction preparation state for this snapshot. No provider integration exists in this layer.",
       "enum": [
         "not_started",
         "prepared",
@@ -76,6 +105,10 @@
         "extraction_failed",
         "unknown"
       ]
+    },
+    "human_review_required": {
+      "type": "boolean",
+      "description": "Must be true for snapshots that may back classification/compliance intelligence. Defaults to true."
     },
     "downstream_allowed": {
       "type": "boolean",
@@ -88,7 +121,12 @@
     },
     "warnings": {
       "type": "array",
-      "description": "Optional warnings raised when the capture is incomplete.",
+      "description": "Optional warnings raised when the capture is incomplete (e.g. a missing content hash).",
+      "items": { "type": "string" }
+    },
+    "limitations": {
+      "type": "array",
+      "description": "Optional known limitations of this snapshot (e.g. content not ingested, no regulatory claim made).",
       "items": { "type": "string" }
     },
     "errors": {
@@ -105,6 +143,11 @@
       "description": "Optional UTC timestamp when the snapshot record was created.",
       "format": "date-time"
     },
+    "contract_version": {
+      "type": "string",
+      "description": "Optional semantic version of the capture contract this snapshot follows.",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
     "schema_version": {
       "type": "string",
       "description": "Semantic version of this snapshot payload.",
@@ -113,6 +156,15 @@
   },
   "allOf": [
     {
+      "description": "A snapshot must carry at least one locator/reference so it remains traceable to its source state.",
+      "anyOf": [
+        { "required": ["source_locator"] },
+        { "required": ["official_url"] },
+        { "required": ["content_reference"] }
+      ]
+    },
+    {
+      "description": "Downstream consumption requires explicit human review approval and a usable freshness state. Official source identity alone never satisfies this.",
       "if": {
         "properties": { "downstream_allowed": { "const": true } },
         "required": ["downstream_allowed"]
@@ -120,11 +172,16 @@
       "then": {
         "properties": {
           "review_status": { "const": "approved" },
+          "human_review_required": { "const": true },
           "freshness_status": {
             "enum": ["current", "stale"]
           }
         },
-        "required": ["review_status", "freshness_status"]
+        "required": [
+          "review_status",
+          "human_review_required",
+          "freshness_status"
+        ]
       }
     }
   ]
