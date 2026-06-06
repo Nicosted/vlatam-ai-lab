@@ -42,20 +42,57 @@ workflow contract.
 
 Use only fixture/demo evidence. Do not send customer data.
 
-Required environment variables:
+Required environment variables (manual use only):
 
 - `DASHSCOPE_API_KEY`
 - `QWEN_MODEL`
 - `QWEN_BASE_URL` optional; defaults to DashScope OpenAI-compatible base URL
 
-Run:
+Recommended manual commands:
 
 ```sh
+export QWEN_MODEL="qwen-plus"
 pnpm ai:extract:dry-run
 ```
 
+`qwen3.7-plus` may also be tested manually (`export QWEN_MODEL="qwen3.7-plus"`),
+but the repository does not require it and no automated test depends on it.
+
 The script fails safely when required variables are missing. When it runs, it
 prints a draft/unreviewed result and never writes an approved artifact.
+
+### Provider connectivity vs. validation
+
+Qwen/DashScope connectivity is working when the dry-run prints
+`provider_id=dashscope_qwen` and a non-empty `model_id`. That confirms the
+provider boundary, not approved intelligence.
+
+On the locator-only WCO HS 2022 packet, `extraction_status=validation_failed`
+is the **expected** outcome: the packet carries only bounded locators/excerpt
+references (no embedded evidence text), so there is nothing for the model to
+ground a claim on, and any invalid `extracted_claims` shape (for example a plain
+string instead of a claim object) is rejected into the conservative fallback.
+
+## Embedded-Evidence Demo Path (Schema Validation Only)
+
+To exercise the schema-valid extraction path without a live provider, the repo
+ships a synthetic, demo-only evidence packet
+(`snapshots/pcram/extractable-evidence-packet-demo-embedded-evidence.json`) that
+embeds short, fictional excerpts under `metadata.embedded_evidence.excerpts`
+(stable excerpt IDs, anchors, summaries, and per-excerpt content hashes). The
+content is invented (a fictional "Veldoria Demo Tariff Nomenclature") and is
+explicitly marked demo-only, non-authoritative, and not classifier-approved.
+
+A deterministic, network-free provider
+(`src/intelligence/embedded-evidence-demo-provider.ts`) maps each embedded
+excerpt to a schema-compliant draft claim. Run it with no credentials:
+
+```sh
+pnpm ai:extract:demo
+```
+
+This path exists for schema validation only. Its output is still draft/unreviewed
+and is not approved intelligence; the fictional regime carries no legal meaning.
 
 ## Draft-Only Doctrine
 
@@ -81,6 +118,15 @@ providers cover:
 - invalid model output
 - incomplete model output with conservative fallback
 - final safety flags
+
+The deterministic `EmbeddedEvidenceDemoProvider` additionally backs three
+schema-focused tests:
+
+- the embedded-evidence demo packet produces at least one schema-valid claim and
+  the whole result validates against `ai-extraction-result.schema.json`
+- the locator-only packet stays conservative (empty claims, no downstream)
+- plain strings inside `extracted_claims` are rejected with a path-specific
+  warning (e.g. `extracted_claims[0]: claim must be a JSON object ...`)
 
 No test requires `DASHSCOPE_API_KEY`, contacts DashScope, or performs any real
 network call.

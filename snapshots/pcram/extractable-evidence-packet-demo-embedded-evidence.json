@@ -1,0 +1,65 @@
+{
+  "evidence_packet_id": "evidence-packet-demo-embedded-evidence-2026-06-06t010000z",
+  "review_manifest_id": "review-manifest-demo-embedded-evidence-2026-06-06t005000z",
+  "snapshot_id": "snapshot-demo-embedded-evidence-2026-06-06t004000z",
+  "source_id": "demo-veldoria-tariff-nomenclature-synthetic",
+  "evidence_scope": "demo_synthetic_tariff_nomenclature_excerpts",
+  "jurisdiction_scope": "demo",
+  "language": "en",
+  "content_reference": "demo-only/local/non-authoritative: synthetic evidence excerpts embedded in metadata.embedded_evidence; not a real instrument and not ingested from any official source.",
+  "excerpt_reference": "Embedded synthetic demo excerpts excerpt-demo-001..003 (metadata.embedded_evidence.excerpts).",
+  "content_fingerprint": "sha256:7f6e924d8a26b9b730c73ab413e43a2f7788d80c53e64dd6afa54b1b9b798799",
+  "extraction_input_type": "excerpt_reference",
+  "extraction_allowed": true,
+  "extraction_status": "prepared",
+  "human_review_required": true,
+  "downstream_allowed": false,
+  "warnings": [
+    "Demo-only fixture: all embedded evidence is synthetic and non-authoritative; it is not WCO/HS text and not classifier-approved.",
+    "Embedded excerpts exist solely to exercise schema-valid extraction; they make no real regulatory claim."
+  ],
+  "limitations": [
+    "This packet embeds short synthetic excerpts for schema validation only; it is not approved intelligence.",
+    "Any extraction output from this packet remains draft/unreviewed and is never downstream-safe.",
+    "The fictional 'Veldoria Demo Tariff Nomenclature' does not exist and carries no legal meaning."
+  ],
+  "notes": [
+    "Prepared as a synthetic embedded-evidence demo input so the Qwen/LangGraph workflow can produce at least one schema-valid draft claim without live source ingestion."
+  ],
+  "metadata": {
+    "demo_only": true,
+    "non_authoritative": true,
+    "classifier_approved": false,
+    "issuing_authority": "Synthetic demo fixture (no real authority)",
+    "embedded_evidence": {
+      "evidence_set_id": "demo-evidence-set-001",
+      "disclaimer": "Synthetic, fictional demo evidence. Not derived from WCO, HS, or any real tariff instrument. For schema-valid extraction demos only; not classifier-approved and not downstream-safe.",
+      "excerpts": [
+        {
+          "excerpt_id": "excerpt-demo-001",
+          "anchor": "demo-chapter-D1/heading-D1.10",
+          "text": "Synthetic demo nomenclature (non-authoritative): Chapter D1 of the Veldoria Demo Tariff Nomenclature covers demo horticultural machinery. Heading D1.10 lists motorized demo soil tillage units.",
+          "summary": "the demo nomenclature places motorized demo soil tillage units under heading D1.10 of demo Chapter D1",
+          "content_hash": "sha256:801f0e9495e7bfc3e0c74546260b5404365de50a17adcaf811e5f2681f7f8c8e"
+        },
+        {
+          "excerpt_id": "excerpt-demo-002",
+          "anchor": "demo-chapter-D1/note-2",
+          "text": "Synthetic demo nomenclature (non-authoritative): Note 2 to demo Chapter D1 states that demo accessory parts presented separately are classified under heading D1.90 unless otherwise specified.",
+          "summary": "demo Note 2 routes separately presented demo accessory parts to heading D1.90 absent a more specific provision",
+          "content_hash": "sha256:f63645b3d7ee2b2436b416518281f2e46ab9ea42d0f8ba4d1fcd144320d2a478"
+        },
+        {
+          "excerpt_id": "excerpt-demo-003",
+          "anchor": "demo-schedule-2026/heading-D1.10",
+          "text": "Synthetic demo schedule (non-authoritative): The 2026 demo schedule records the effective demo rate for heading D1.10 as 7.5% ad valorem.",
+          "summary": "the 2026 demo schedule records a 7.5% ad valorem demo rate for heading D1.10",
+          "content_hash": "sha256:fe3b50b4aac1bd0121442730b51b7eee9ec148e908cbabcf0baed0b7f7642cb2"
+        }
+      ]
+    }
+  },
+  "created_at": "2026-06-06T01:00:00.000Z",
+  "contract_version": "1.0.0",
+  "schema_version": "1.0.0"
+}

@@ -298,7 +298,12 @@ function parseDraftClaim(
   value: unknown,
 ): { ok: true; value: AiExtractionDraftClaim } | { ok: false; error: string } {
   if (!isRecord(value)) {
-    return { ok: false, error: "claim must be an object." };
+    // Surfaced verbatim (e.g. a plain string instead of a claim object) so the
+    // diagnostic names the offending shape without dumping provider payloads.
+    return {
+      ok: false,
+      error: `claim must be a JSON object, not a plain ${describeType(value)}; plain strings are not valid extracted_claims entries.`,
+    };
   }
 
   const claimId = value["claim_id"];
@@ -307,14 +312,45 @@ function parseDraftClaim(
   const supportStatus = value["support_status"];
   const confidence = value["confidence"];
 
+  const fieldErrors: string[] = [];
+  if (typeof claimId !== "string" || claimId.trim().length === 0) {
+    fieldErrors.push(
+      `claim_id must be a non-empty string (got ${describeType(claimId)})`,
+    );
+  }
+  if (typeof claimText !== "string" || claimText.trim().length === 0) {
+    fieldErrors.push(
+      `claim_text must be a non-empty string (got ${describeType(claimText)})`,
+    );
+  }
   if (
+    typeof evidenceReference !== "string" ||
+    evidenceReference.trim().length === 0
+  ) {
+    fieldErrors.push(
+      `evidence_reference must be a non-empty string (got ${describeType(evidenceReference)})`,
+    );
+  }
+  if (!isSupportStatus(supportStatus)) {
+    fieldErrors.push(
+      `support_status must be one of supported_by_packet|unsupported|needs_human_review (got ${describeType(supportStatus)})`,
+    );
+  }
+  if (typeof confidence !== "number" || Number.isNaN(confidence)) {
+    fieldErrors.push(
+      `confidence must be a number (got ${describeType(confidence)})`,
+    );
+  }
+
+  if (
+    fieldErrors.length > 0 ||
     typeof claimId !== "string" ||
     typeof claimText !== "string" ||
     typeof evidenceReference !== "string" ||
     !isSupportStatus(supportStatus) ||
     typeof confidence !== "number"
   ) {
-    return { ok: false, error: "claim has invalid required fields." };
+    return { ok: false, error: fieldErrors.join("; ") };
   }
 
   return {
@@ -327,6 +363,18 @@ function parseDraftClaim(
       confidence: clampConfidence(confidence),
     },
   };
+}
+
+// Names a value's shape for diagnostics without echoing its content, so warnings
+// never leak prompt text, provider payloads, or credentials.
+function describeType(value: unknown): string {
+  if (value === null) {
+    return "null";
+  }
+  if (Array.isArray(value)) {
+    return "array";
+  }
+  return typeof value;
 }
 
 function emptyDraft(): AiExtractionDraft {

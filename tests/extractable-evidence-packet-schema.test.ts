@@ -41,6 +41,7 @@ const validFixtures = [
   "snapshots/pcram/extractable-evidence-packet-wco-hs-2022.json",
   "snapshots/pcram/extractable-evidence-packet-mercosur-ncm-aec.json",
   "snapshots/pcram/extractable-evidence-packet-ar-decreto-557-2023.json",
+  "snapshots/pcram/extractable-evidence-packet-demo-embedded-evidence.json",
 ];
 
 const invalidFixtures = [
