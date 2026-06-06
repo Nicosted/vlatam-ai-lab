@@ -1,0 +1,10 @@
+{
+  "extracted_claims": [
+    {
+      "claim_id": "claim-invalid-001",
+      "claim_text": "Invalid output omits required evidence and status fields.",
+      "confidence": "high"
+    }
+  ],
+  "confidence": 0.8
+}

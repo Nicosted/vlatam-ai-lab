@@ -1,0 +1,32 @@
+{
+  "extraction_result_id": "ai-extraction-result-evidence-packet-wco-hs-2022-edition-2026-06-06t002000z",
+  "extraction_job_id": "extraction-job-qwen-langgraph-spike-fixture",
+  "evidence_packet_id": "evidence-packet-wco-hs-2022-edition-2026-06-06t002000z",
+  "review_manifest_id": "review-manifest-wco-hs-2022-edition-2026-06-06t001000z",
+  "snapshot_id": "snapshot-wco-hs-2022-edition-2026-06-06t000000z",
+  "source_id": "wco-hs-2022-edition",
+  "provider_id": "fake_provider",
+  "model_id": "fake-model-for-tests",
+  "extraction_status": "draft_unreviewed",
+  "extracted_claims": [
+    {
+      "claim_id": "claim-001",
+      "claim_text": "The packet references the WCO HS 2022 Edition as locator-level evidence.",
+      "evidence_reference": "HS 2022 Edition nomenclature landing page (section/anchor reference only).",
+      "support_status": "supported_by_packet",
+      "confidence": 0.62
+    }
+  ],
+  "unsupported_claims": [],
+  "warnings": [
+    "Draft AI extraction only; confidence is not approval.",
+    "Extraction-ready evidence is not classifier-approved intelligence."
+  ],
+  "confidence": 0.62,
+  "critic_summary": "The draft claim stays within the bounded packet metadata.",
+  "human_review_required": true,
+  "downstream_allowed": false,
+  "created_at": "2026-06-06T00:30:00.000Z",
+  "contract_version": "1.0.0",
+  "schema_version": "1.0.0"
+}

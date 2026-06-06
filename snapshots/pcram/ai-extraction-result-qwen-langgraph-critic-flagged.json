@@ -1,0 +1,39 @@
+{
+  "extraction_result_id": "ai-extraction-result-evidence-packet-wco-hs-2022-edition-2026-06-06t002000z",
+  "extraction_job_id": "extraction-job-qwen-langgraph-spike-fixture",
+  "evidence_packet_id": "evidence-packet-wco-hs-2022-edition-2026-06-06t002000z",
+  "review_manifest_id": "review-manifest-wco-hs-2022-edition-2026-06-06t001000z",
+  "snapshot_id": "snapshot-wco-hs-2022-edition-2026-06-06t000000z",
+  "source_id": "wco-hs-2022-edition",
+  "provider_id": "fake_provider",
+  "model_id": "fake-model-for-tests",
+  "extraction_status": "critique_flagged",
+  "extracted_claims": [
+    {
+      "claim_id": "claim-unsupported-001",
+      "claim_text": "The packet proves a tariff classification outcome.",
+      "evidence_reference": "HS 2022 Edition nomenclature landing page (section/anchor reference only).",
+      "support_status": "needs_human_review",
+      "confidence": 0.4
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "claim_id": "claim-unsupported-001",
+      "claim_text": "The packet proves a tariff classification outcome.",
+      "reason": "The packet contains locator-level evidence only and does not provide a classifier-approved conclusion.",
+      "evidence_reference": "HS 2022 Edition nomenclature landing page (section/anchor reference only)."
+    }
+  ],
+  "warnings": [
+    "Draft AI extraction only; confidence is not approval.",
+    "Extraction-ready evidence is not classifier-approved intelligence."
+  ],
+  "confidence": 0.4,
+  "critic_summary": "The draft includes a conclusion that is not supported by the bounded evidence packet.",
+  "human_review_required": true,
+  "downstream_allowed": false,
+  "created_at": "2026-06-06T00:31:00.000Z",
+  "contract_version": "1.0.0",
+  "schema_version": "1.0.0"
+}
