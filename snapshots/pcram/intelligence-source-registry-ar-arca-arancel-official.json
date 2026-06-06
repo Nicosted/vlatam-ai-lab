@@ -1,0 +1,42 @@
+{
+  "source_id": "ar-arca-arancel-integrado",
+  "source_name": "ARCA (ex-AFIP) Arancel Integrado y Sufijos de Valor Reference",
+  "source_type": "customs_authority",
+  "authority_level": "official",
+  "reliability_level": "high",
+  "jurisdiction_scope": "national",
+  "country_code": "AR",
+  "topic_scope": [
+    "arancel_integrado",
+    "ncm_tariff",
+    "valuation_suffixes",
+    "customs_authority"
+  ],
+  "language": "es",
+  "source_locator": "https://www.arca.gob.ar/",
+  "official_url": "https://www.arca.gob.ar/",
+  "verification_status": "verified_official",
+  "expected_update_cadence": { "label": "monthly" },
+  "last_checked_at": "2026-06-06T00:00:00.000Z",
+  "freshness_status": "requires_review",
+  "human_review_required": true,
+  "downstream_allowed": false,
+  "notes": [
+    "Official Argentine customs authority portal (ARCA, successor to AFIP) recorded as the source for the Arancel Integrado y Sufijos de Valor.",
+    "Only the source reference is onboarded; arancel positions, suffixes, and explanatory resources have not been ingested."
+  ],
+  "limitations": [
+    "No arancel positions, value suffixes, or NCM explanatory content have been ingested or extracted.",
+    "The AFIP-to-ARCA institutional renaming means legacy AFIP locators may still appear in older materials and require reconciliation.",
+    "This entry records the official authority source identity only and makes no tariff or valuation claim."
+  ],
+  "metadata": {
+    "contract_version": "1.0.0",
+    "onboarding": "verified-official-source-onboarding",
+    "issuing_authority": "ARCA — Agencia de Recaudación y Control Aduanero (ex-AFIP)",
+    "legacy_official_portals": ["https://www.afip.gob.ar/"]
+  },
+  "created_at": "2026-06-06T00:00:00.000Z",
+  "updated_at": "2026-06-06T00:00:00.000Z",
+  "schema_version": "1.0.0"
+}

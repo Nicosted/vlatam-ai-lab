@@ -1,0 +1,35 @@
+{
+  "source_id": "wco-hs-2028-transition",
+  "source_name": "WCO Harmonized System 2028 Transition / Correlation Materials (Future-Facing)",
+  "source_type": "wco_hs_reference",
+  "authority_level": "official",
+  "reliability_level": "medium",
+  "jurisdiction_scope": "global",
+  "topic_scope": ["hs_nomenclature", "hs_2028_transition", "hs_correlation"],
+  "language": "en",
+  "source_locator": "https://www.wcoomd.org/en/topics/nomenclature/instrument-and-tools.aspx",
+  "official_url": "https://www.wcoomd.org/en/topics/nomenclature/instrument-and-tools.aspx",
+  "verification_status": "verified_official",
+  "expected_update_cadence": { "label": "irregular" },
+  "freshness_status": "requires_review",
+  "human_review_required": true,
+  "downstream_allowed": false,
+  "notes": [
+    "Future-facing reference to the official WCO nomenclature instruments area, recorded for forthcoming HS 2028 transition/correlation planning.",
+    "Onboarded as a placeholder for future-facing metadata only; HS 2028 materials are preliminary and subject to change."
+  ],
+  "limitations": [
+    "HS 2028 is a future edition; any transition/correlation materials are preliminary and not authoritative for current classification.",
+    "No content has been ingested or extracted; this entry records a forward-looking source reference only.",
+    "Cadence is irregular, so freshness cannot be inferred from elapsed time alone."
+  ],
+  "metadata": {
+    "contract_version": "1.0.0",
+    "onboarding": "verified-official-source-onboarding",
+    "issuing_authority": "World Customs Organization (WCO)",
+    "future_facing": true
+  },
+  "created_at": "2026-06-06T00:00:00.000Z",
+  "updated_at": "2026-06-06T00:00:00.000Z",
+  "schema_version": "1.0.0"
+}
