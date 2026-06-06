@@ -1,0 +1,210 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/intelligence-source-registry.schema.json",
+  "title": "Intelligence Source Registry Entry",
+  "description": "Schema for a registered trade/classification intelligence source. Conservative by design: sources are not downstream-safe and not assumed fresh unless explicitly reviewed and verified.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "source_id",
+    "source_name",
+    "source_type",
+    "authority_level",
+    "reliability_level",
+    "jurisdiction_scope",
+    "topic_scope",
+    "language",
+    "source_locator",
+    "verification_status",
+    "freshness_status",
+    "human_review_required",
+    "downstream_allowed",
+    "created_at",
+    "updated_at",
+    "schema_version"
+  ],
+  "properties": {
+    "source_id": {
+      "type": "string",
+      "description": "Stable identifier of the logical intelligence source.",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "source_name": {
+      "type": "string",
+      "description": "Human-readable source name.",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "source_type": {
+      "type": "string",
+      "description": "Source family used for intelligence classification.",
+      "enum": [
+        "wco_hs_reference",
+        "ncm_reference",
+        "mercosur_norm",
+        "customs_authority",
+        "sectoral_regulator",
+        "manual_source",
+        "other"
+      ]
+    },
+    "authority_level": {
+      "type": "string",
+      "description": "How authoritative the source is for the topics it covers.",
+      "enum": ["official", "semi_official", "secondary", "community", "unknown"]
+    },
+    "reliability_level": {
+      "type": "string",
+      "description": "Assessed reliability of the source content.",
+      "enum": ["high", "medium", "low", "unknown"]
+    },
+    "jurisdiction_scope": {
+      "type": "string",
+      "description": "Geographic breadth of the source's authority.",
+      "enum": ["global", "regional", "national", "subnational", "unknown"]
+    },
+    "country_code": {
+      "type": "string",
+      "description": "ISO 3166-1 alpha-2 country code when the source is national/subnational.",
+      "pattern": "^[A-Z]{2}$"
+    },
+    "regional_scope": {
+      "type": "string",
+      "description": "Named regional bloc/scope when jurisdiction_scope is regional (e.g. MERCOSUR).",
+      "minLength": 1,
+      "maxLength": 80
+    },
+    "topic_scope": {
+      "type": "array",
+      "description": "Topics/domains the source informs (e.g. hs_nomenclature, ncm_tariff).",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80
+      }
+    },
+    "language": {
+      "type": "string",
+      "description": "Primary content language as a BCP-47 / ISO 639 code (e.g. en, es, pt).",
+      "minLength": 2,
+      "maxLength": 12
+    },
+    "source_locator": {
+      "type": "string",
+      "description": "Stable locator for the source (sample/demo or verified official locator).",
+      "minLength": 1,
+      "maxLength": 400
+    },
+    "official_url": {
+      "type": "string",
+      "description": "Optional canonical official URL once a verified source is onboarded.",
+      "format": "uri"
+    },
+    "verification_status": {
+      "type": "string",
+      "description": "Whether the locator points at a verified official source or a non-authoritative sample.",
+      "enum": ["unverified_sample", "verified_official", "deprecated"]
+    },
+    "expected_update_cadence": {
+      "type": "object",
+      "description": "How often the source is expected to change. Used by freshness helpers.",
+      "additionalProperties": false,
+      "required": ["label"],
+      "properties": {
+        "label": {
+          "type": "string",
+          "enum": [
+            "daily",
+            "weekly",
+            "monthly",
+            "quarterly",
+            "annual",
+            "irregular",
+            "unknown"
+          ]
+        },
+        "interval_days": {
+          "type": "integer",
+          "description": "Optional explicit cadence in days, overriding the label mapping.",
+          "minimum": 1,
+          "maximum": 3660
+        }
+      }
+    },
+    "last_checked_at": {
+      "type": "string",
+      "description": "UTC timestamp of the last freshness check, when available.",
+      "format": "date-time"
+    },
+    "freshness_status": {
+      "type": "string",
+      "description": "Conservative freshness classification. Missing data must never read as current.",
+      "enum": ["current", "stale", "unknown", "requires_review"]
+    },
+    "human_review_required": {
+      "type": "boolean",
+      "description": "Must be true for intelligence that may affect classification/compliance."
+    },
+    "downstream_allowed": {
+      "type": "boolean",
+      "description": "Whether this source may back downstream-consumable artifacts. Defaults to false."
+    },
+    "notes": {
+      "type": "array",
+      "description": "Optional non-authoritative notes.",
+      "items": { "type": "string" }
+    },
+    "limitations": {
+      "type": "array",
+      "description": "Optional known limitations of this source.",
+      "items": { "type": "string" }
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Optional extra metadata for local traceability."
+    },
+    "created_at": {
+      "type": "string",
+      "description": "UTC timestamp when the registry entry was created.",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "description": "UTC timestamp when the registry entry was last updated.",
+      "format": "date-time"
+    },
+    "schema_version": {
+      "type": "string",
+      "description": "Semantic version of this registry entry payload.",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "downstream_allowed": { "const": true } },
+        "required": ["downstream_allowed"]
+      },
+      "then": {
+        "properties": {
+          "verification_status": { "const": "verified_official" },
+          "human_review_required": { "const": true }
+        },
+        "required": ["verification_status", "human_review_required"]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "verification_status": { "const": "unverified_sample" }
+        },
+        "required": ["verification_status"]
+      },
+      "then": {
+        "properties": { "downstream_allowed": { "const": false } }
+      }
+    }
+  ]
+}

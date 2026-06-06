@@ -1,0 +1,11 @@
+{
+  "snapshot_id": "snapshot-unreviewed-downstream",
+  "source_id": "ar-ncm-customs",
+  "captured_at": "2026-06-01T00:00:00.000Z",
+  "capture_method": "local_fixture",
+  "freshness_status": "unknown",
+  "review_status": "not_reviewed",
+  "extraction_status": "not_started",
+  "downstream_allowed": true,
+  "schema_version": "1.0.0"
+}

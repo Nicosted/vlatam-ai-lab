@@ -162,6 +162,57 @@
       "requires_human_review_semantics": true,
       "requires_traceability": true,
       "downstream_allowed_field_present": true
+    },
+    {
+      "contract_name": "intelligence_source_registry",
+      "schema_file": "schemas/intelligence-source-registry.schema.json",
+      "valid_fixture": "snapshots/pcram/intelligence-source-registry-wco-hs.json",
+      "invalid_fixtures": [
+        "snapshots/pcram/invalid-intelligence-source-registry-missing-required.json",
+        "snapshots/pcram/invalid-intelligence-source-registry-unsupported-enum.json",
+        "snapshots/pcram/invalid-intelligence-source-registry-unreviewed-downstream.json"
+      ],
+      "test_file": "tests/intelligence-source-registry-schema.test.ts",
+      "status": "implemented",
+      "purpose": "Registers trade/classification intelligence sources with conservative authority, freshness, and downstream-safety semantics.",
+      "downstream_role": "Defines which sources may eventually back reviewed artifacts; sources are not downstream-safe until verified and reviewed.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": true
+    },
+    {
+      "contract_name": "intelligence_source_snapshot",
+      "schema_file": "schemas/intelligence-source-snapshot.schema.json",
+      "valid_fixture": "snapshots/pcram/intelligence-source-snapshot-example.json",
+      "invalid_fixtures": [
+        "snapshots/pcram/invalid-intelligence-source-snapshot-missing-required.json",
+        "snapshots/pcram/invalid-intelligence-source-snapshot-unsupported-enum.json",
+        "snapshots/pcram/invalid-intelligence-source-snapshot-unreviewed-downstream.json"
+      ],
+      "test_file": "tests/intelligence-source-snapshot-schema.test.ts",
+      "status": "implemented",
+      "purpose": "Records a captured check/version of a registered source without implementing scraping or network capture.",
+      "downstream_role": "Snapshots are not downstream-safe unless reviewed and approved; they prepare future ingestion and extraction.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": true
+    },
+    {
+      "contract_name": "ai_extraction_job",
+      "schema_file": "schemas/ai-extraction-job.schema.json",
+      "valid_fixture": "snapshots/pcram/ai-extraction-job-example.json",
+      "invalid_fixtures": [
+        "snapshots/pcram/invalid-ai-extraction-job-missing-required.json",
+        "snapshots/pcram/invalid-ai-extraction-job-unsupported-enum.json",
+        "snapshots/pcram/invalid-ai-extraction-job-unreviewed-downstream.json"
+      ],
+      "test_file": "tests/ai-extraction-job-schema.test.ts",
+      "status": "implemented",
+      "purpose": "Type/schema contract for future AI-assisted extraction jobs with no provider integration or network calls.",
+      "downstream_role": "Raw or unreviewed extraction output is never downstream-safe; only reviewed_approved jobs may be downstream_allowed.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": true
     }
   ]
 }

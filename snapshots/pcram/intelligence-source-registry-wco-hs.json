@@ -1,0 +1,26 @@
+{
+  "source_id": "wco-hs-nomenclature",
+  "source_name": "WCO Harmonized System Nomenclature (Sample / Non-Authoritative)",
+  "source_type": "wco_hs_reference",
+  "authority_level": "official",
+  "reliability_level": "high",
+  "jurisdiction_scope": "global",
+  "topic_scope": ["hs_nomenclature", "tariff_classification"],
+  "language": "en",
+  "source_locator": "sample://wco/hs-nomenclature",
+  "verification_status": "unverified_sample",
+  "expected_update_cadence": { "label": "annual" },
+  "freshness_status": "unknown",
+  "human_review_required": true,
+  "downstream_allowed": false,
+  "notes": [
+    "Sample registry entry for schema validation only.",
+    "Replace source_locator with a verified official WCO source before any downstream use."
+  ],
+  "limitations": [
+    "Locator is a non-authoritative placeholder; no official source has been verified."
+  ],
+  "created_at": "2026-06-06T00:00:00.000Z",
+  "updated_at": "2026-06-06T00:00:00.000Z",
+  "schema_version": "1.0.0"
+}
