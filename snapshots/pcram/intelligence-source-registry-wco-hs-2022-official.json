@@ -1,0 +1,40 @@
+{
+  "source_id": "wco-hs-2022-edition",
+  "source_name": "WCO Harmonized System Nomenclature 2022 Edition",
+  "source_type": "wco_hs_reference",
+  "authority_level": "official",
+  "reliability_level": "high",
+  "jurisdiction_scope": "global",
+  "topic_scope": [
+    "hs_nomenclature",
+    "hs_2022_edition",
+    "tariff_classification"
+  ],
+  "language": "en",
+  "source_locator": "https://www.wcoomd.org/en/topics/nomenclature/instrument-and-tools/hs-nomenclature-2022-edition.aspx",
+  "official_url": "https://www.wcoomd.org/en/topics/nomenclature/instrument-and-tools/hs-nomenclature-2022-edition.aspx",
+  "verification_status": "verified_official",
+  "expected_update_cadence": { "label": "annual" },
+  "last_checked_at": "2026-06-06T00:00:00.000Z",
+  "freshness_status": "requires_review",
+  "human_review_required": true,
+  "downstream_allowed": false,
+  "notes": [
+    "Official World Customs Organization source reference for the HS 2022 Edition nomenclature.",
+    "Only the source reference/locator is onboarded at this stage; no content has been ingested.",
+    "Freshness is conservative: the source is verified, but derived classification intelligence still requires human review before any downstream use."
+  ],
+  "limitations": [
+    "No HS content, headings, notes, or correlations have been ingested or extracted.",
+    "This entry makes no regulatory or classification claim; it records the official source identity only.",
+    "The exact downloadable instrument behind this landing page is not captured or version-pinned here."
+  ],
+  "metadata": {
+    "contract_version": "1.0.0",
+    "onboarding": "verified-official-source-onboarding",
+    "issuing_authority": "World Customs Organization (WCO)"
+  },
+  "created_at": "2026-06-06T00:00:00.000Z",
+  "updated_at": "2026-06-06T00:00:00.000Z",
+  "schema_version": "1.0.0"
+}

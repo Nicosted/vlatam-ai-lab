@@ -1,0 +1,41 @@
+{
+  "source_id": "mercosur-ncm-aec",
+  "source_name": "MERCOSUR Common Nomenclature (NCM) and Common External Tariff (AEC) Official Reference",
+  "source_type": "mercosur_norm",
+  "authority_level": "official",
+  "reliability_level": "high",
+  "jurisdiction_scope": "regional",
+  "regional_scope": "MERCOSUR",
+  "topic_scope": [
+    "regional_nomenclature",
+    "ncm",
+    "common_external_tariff",
+    "mercosur_norms"
+  ],
+  "language": "es",
+  "source_locator": "https://www.mercosur.int/",
+  "official_url": "https://www.mercosur.int/",
+  "verification_status": "verified_official",
+  "expected_update_cadence": { "label": "quarterly" },
+  "last_checked_at": "2026-06-06T00:00:00.000Z",
+  "freshness_status": "requires_review",
+  "human_review_required": true,
+  "downstream_allowed": false,
+  "notes": [
+    "Official MERCOSUR portal recorded as the regional source of the Common Nomenclature (NCM) and Common External Tariff (AEC) and related normative references.",
+    "Only the source reference is onboarded; NCM/AEC tables and legal acts have not been ingested."
+  ],
+  "limitations": [
+    "No NCM codes, AEC rates, or MERCOSUR resolutions/decisions have been ingested or extracted.",
+    "This entry records the official regional source identity only and makes no tariff or legal claim.",
+    "National incorporation of MERCOSUR norms varies by member state and is not represented here."
+  ],
+  "metadata": {
+    "contract_version": "1.0.0",
+    "onboarding": "verified-official-source-onboarding",
+    "issuing_authority": "MERCOSUR (Southern Common Market)"
+  },
+  "created_at": "2026-06-06T00:00:00.000Z",
+  "updated_at": "2026-06-06T00:00:00.000Z",
+  "schema_version": "1.0.0"
+}
