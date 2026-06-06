@@ -1,0 +1,37 @@
+{
+  "fixture_kind": "qwen_recorded_response",
+  "origin": "replay_demo_derived",
+  "provider_id": "dashscope_qwen",
+  "model_id": "qwen-plus",
+  "source_packet": "snapshots/pcram/extractable-evidence-packet-demo-embedded-evidence.json",
+  "recorded_at": "1970-01-01T00:00:00.000Z",
+  "disclaimer": "Synthetic demo-only recorded Qwen response shape. Not approved intelligence, not classifier-approved, and not downstream-safe. Replay output remains draft/unreviewed (human_review_required=true, downstream_allowed=false).",
+  "human_review_required": true,
+  "downstream_allowed": false,
+  "responses": {
+    "extraction_draft": {
+      "choices": [
+        {
+          "index": 0,
+          "finish_reason": "stop",
+          "message": {
+            "role": "assistant",
+            "content": "{\"extracted_claims\":[{\"claim_id\":\"demo-claim-excerpt-demo-001\",\"claim_text\":\"According to embedded demo excerpt excerpt-demo-001, the demo nomenclature places motorized demo soil tillage units under heading D1.10 of demo Chapter D1.\",\"evidence_reference\":\"excerpt-demo-001 (demo-chapter-D1/heading-D1.10)\",\"support_status\":\"supported_by_packet\",\"confidence\":0.55},{\"claim_id\":\"demo-claim-excerpt-demo-002\",\"claim_text\":\"According to embedded demo excerpt excerpt-demo-002, demo Note 2 routes separately presented demo accessory parts to heading D1.90 absent a more specific provision.\",\"evidence_reference\":\"excerpt-demo-002 (demo-chapter-D1/note-2)\",\"support_status\":\"supported_by_packet\",\"confidence\":0.55},{\"claim_id\":\"demo-claim-excerpt-demo-003\",\"claim_text\":\"According to embedded demo excerpt excerpt-demo-003, the 2026 demo schedule records a 7.5% ad valorem demo rate for heading D1.10.\",\"evidence_reference\":\"excerpt-demo-003 (demo-schedule-2026/heading-D1.10)\",\"support_status\":\"supported_by_packet\",\"confidence\":0.55}],\"warnings\":[\"Demo deterministic extraction over synthetic embedded evidence; claims are non-authoritative and require human review.\"],\"confidence\":0.55}"
+          }
+        }
+      ]
+    },
+    "critique": {
+      "choices": [
+        {
+          "index": 0,
+          "finish_reason": "stop",
+          "message": {
+            "role": "assistant",
+            "content": "{\"critic_summary\":\"Reviewed 3 demo claim(s); each maps to an embedded synthetic excerpt and stays within the bounded demo packet. Synthetic demo only — not approved intelligence.\",\"unsupported_claims\":[],\"warnings\":[\"Synthetic demo critique only; human review is still required before any use.\"]}"
+          }
+        }
+      ]
+    }
+  }
+}

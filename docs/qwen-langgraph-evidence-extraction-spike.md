@@ -94,6 +94,70 @@ pnpm ai:extract:demo
 This path exists for schema validation only. Its output is still draft/unreviewed
 and is not approved intelligence; the fictional regime carries no legal meaning.
 
+## Recorded Qwen Replay Fixture (Offline)
+
+There are three distinct extraction paths in this lab; keep them separate:
+
+| Path                 | Provider                     | Network | Credentials | Command                                        |
+| -------------------- | ---------------------------- | ------- | ----------- | ---------------------------------------------- |
+| Deterministic demo   | `demo_embedded_evidence`     | none    | none        | `pnpm ai:extract:demo`                         |
+| Live Qwen dry-run    | `dashscope_qwen` (live call) | yes     | required    | `QWEN_MODEL=qwen-plus pnpm ai:extract:dry-run` |
+| Recorded Qwen replay | `dashscope_qwen` (recorded)  | none    | none        | `pnpm ai:extract:replay-qwen-demo`             |
+
+The recorded replay path proves that **real Qwen-shaped output** can be
+captured, sanitized, normalized, and re-validated against the AI extraction
+schema **without a live DashScope/Qwen call** in automated tests.
+
+### Fixture location and shape
+
+The checked-in fixture lives at
+`snapshots/qwen/recorded-responses/qwen-demo-embedded-evidence.recorded.json`.
+It carries only the minimal sanitized response shape
+(`choices[].{index,finish_reason}` plus `choices[].message.{role,content}`,
+where `content` is the model's JSON string). It never contains API keys,
+provider request ids, account ids, HTTP headers, usage/billing data, or customer
+data. The capture timestamp is normalized.
+
+The fixture's `origin` field records its provenance:
+
+- `replay_demo_derived` — derived offline from the deterministic demo provider
+  over the synthetic embedded-evidence packet. It is shaped like a Qwen response
+  but is **not** a real Qwen recording.
+- `live_recorded` — captured and sanitized from a live Qwen/DashScope call
+  against the synthetic demo packet.
+
+The fixture currently committed is `replay_demo_derived` (no live recording was
+performed), and it is demo/synthetic only — **not approved intelligence**.
+
+### Recording (optional, requires a key)
+
+```sh
+# Requires DASHSCOPE_API_KEY; QWEN_MODEL defaults to qwen-plus.
+pnpm ai:extract:record-qwen-demo
+```
+
+The recorder:
+
+- refuses to run against anything but the synthetic demo packet
+  (`metadata.demo_only=true`, `non_authoritative=true`,
+  `classifier_approved=false`, `jurisdiction_scope=demo`);
+- sanitizes responses at the provider boundary and scans the serialized output
+  for credential markers before writing;
+- never prints the API key or raw payloads;
+- fails gracefully with a clear message (and leaves the checked-in fixture
+  untouched) when `DASHSCOPE_API_KEY` is absent.
+
+### Replaying (offline, no key)
+
+```sh
+pnpm ai:extract:replay-qwen-demo
+```
+
+Replay reads the checked-in fixture, runs the LangGraph workflow with the
+`RecordedQwenResponseProvider`, and prints a draft/unreviewed result. It performs
+no network calls and requires no credentials. Output remains
+`human_review_required=true` and `downstream_allowed=false`.
+
 ## Draft-Only Doctrine
 
 Every AI extraction result remains unreviewed:
@@ -127,6 +191,20 @@ schema-focused tests:
 - the locator-only packet stays conservative (empty claims, no downstream)
 - plain strings inside `extracted_claims` are rejected with a path-specific
   warning (e.g. `extracted_claims[0]: claim must be a JSON object ...`)
+
+The offline recorded-replay path adds further tests
+(`tests/recorded-qwen-response-replay.test.ts`):
+
+- the recorded fixture loads and replays through the workflow with global
+  `fetch` disabled (proving no network access), producing a schema-valid result
+- the replayed result keeps `human_review_required=true` and
+  `downstream_allowed=false`
+- the checked-in fixture is sanitized: choices carry only the allowed keys and
+  the file trips no credential marker
+- the fixture parser rejects raw provider metadata and any fixture that weakens
+  the draft-only safety flags
+- the recorder gate fails (without any network call) when `DASHSCOPE_API_KEY` is
+  absent, and the recorder refuses non-demo evidence packets
 
 No test requires `DASHSCOPE_API_KEY`, contacts DashScope, or performs any real
 network call.
