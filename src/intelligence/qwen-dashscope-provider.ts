@@ -20,6 +20,16 @@ type FetchLike = typeof fetch;
 
 const defaultBaseUrl = "https://dashscope-intl.aliyuncs.com/compatible-mode/v1";
 
+const EXTRACTION_SYSTEM_PROMPT = [
+  "You are a draft-only evidence extraction assistant for an independent intelligence lab.",
+  "Return ONLY a single JSON object with exactly these keys: extracted_claims (array), warnings (array of strings), confidence (number 0-1).",
+  "extracted_claims MUST be an array of claim OBJECTS. Each object MUST have: claim_id (string), claim_text (string), evidence_reference (string), support_status (one of supported_by_packet|unsupported|needs_human_review), confidence (number 0-1).",
+  "NEVER output a plain string, number, or array as an element of extracted_claims. A bare string is invalid.",
+  "If you cannot support a claim with the provided evidence, return an empty extracted_claims array ([]) rather than an unsupported or invented claim.",
+  "Preserve uncertainty and evidence limitations: prefer needs_human_review and add warnings instead of overstating support.",
+  "Do not invent regulatory, tariff, or classification conclusions.",
+].join(" ");
+
 export function validateQwenDashScopeConfig(
   env: QwenDashScopeEnv,
 ): { ok: true; config: QwenDashScopeConfig } | { ok: false; errors: string[] } {
@@ -63,13 +73,28 @@ export class QwenDashScopeProvider implements AiExtractionProvider {
     return this.generateJson([
       {
         role: "system",
-        content:
-          "You are a draft-only evidence extraction assistant. Return only JSON with extracted_claims, warnings, and confidence. Do not invent regulatory conclusions.",
+        content: EXTRACTION_SYSTEM_PROMPT,
       },
       {
         role: "user",
         content: JSON.stringify({
           task: "extract bounded draft claims from this evidence packet",
+          claim_object_shape: {
+            claim_id: "string, stable and unique within this draft",
+            claim_text: "string, one bounded factual statement",
+            evidence_reference:
+              "string, point to the packet excerpt/anchor/locator that supports the claim",
+            support_status:
+              "supported_by_packet | unsupported | needs_human_review",
+            confidence: "number between 0 and 1 (triage only, not approval)",
+          },
+          rules: [
+            "Every item in extracted_claims MUST be a JSON object with the exact claim_object_shape fields.",
+            "Never put a plain string, number, or array inside extracted_claims.",
+            "If the packet does not support a claim, do not invent one — return an empty extracted_claims array.",
+            "Only extract claims grounded in the embedded evidence excerpts or bounded references; preserve uncertainty using needs_human_review and warnings.",
+            "Do not state regulatory or classification conclusions; describe only what the evidence says.",
+          ],
           evidence_packet: input.evidence_packet,
           extraction_job_id: input.extraction_job_id,
         }),
