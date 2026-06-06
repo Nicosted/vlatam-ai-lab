@@ -1,0 +1,11 @@
+{
+  "snapshot_id": "snapshot-bad-capture-method",
+  "source_id": "ar-ncm-customs",
+  "captured_at": "2026-06-01T00:00:00.000Z",
+  "capture_method": "scrape_live_site",
+  "freshness_status": "unknown",
+  "review_status": "not_reviewed",
+  "extraction_status": "not_started",
+  "downstream_allowed": false,
+  "schema_version": "1.0.0"
+}

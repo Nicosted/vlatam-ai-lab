@@ -1,0 +1,131 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/intelligence-source-snapshot.schema.json",
+  "title": "Intelligence Source Snapshot",
+  "description": "Schema for a captured check/version of a registered source. Represents a recorded capture event, not the full scraped content. No network capture is implemented in this layer.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "snapshot_id",
+    "source_id",
+    "captured_at",
+    "capture_method",
+    "freshness_status",
+    "review_status",
+    "extraction_status",
+    "downstream_allowed",
+    "schema_version"
+  ],
+  "properties": {
+    "snapshot_id": {
+      "type": "string",
+      "description": "Unique identifier for this snapshot/check.",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "source_id": {
+      "type": "string",
+      "description": "Identifier of the registered source this snapshot belongs to.",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "captured_at": {
+      "type": "string",
+      "description": "UTC timestamp when this snapshot/check was captured.",
+      "format": "date-time"
+    },
+    "capture_method": {
+      "type": "string",
+      "description": "How the snapshot was captured. No live scraping is implemented in this layer.",
+      "enum": [
+        "manual",
+        "local_fixture",
+        "approved_fetch",
+        "api_import",
+        "other"
+      ]
+    },
+    "content_hash": {
+      "type": "string",
+      "description": "Optional content hash in sha256 format (with optional 'sha256:' prefix).",
+      "pattern": "^(sha256:)?[a-fA-F0-9]{64}$"
+    },
+    "source_version_label": {
+      "type": "string",
+      "description": "Optional human-readable version label for the captured source state.",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "freshness_status": {
+      "type": "string",
+      "description": "Conservative freshness classification for this snapshot.",
+      "enum": ["current", "stale", "unknown", "requires_review"]
+    },
+    "review_status": {
+      "type": "string",
+      "description": "Human review state of this snapshot.",
+      "enum": ["not_reviewed", "in_review", "approved", "rejected", "unknown"]
+    },
+    "extraction_status": {
+      "type": "string",
+      "description": "AI extraction preparation state for this snapshot.",
+      "enum": [
+        "not_started",
+        "prepared",
+        "extracted",
+        "extraction_failed",
+        "unknown"
+      ]
+    },
+    "downstream_allowed": {
+      "type": "boolean",
+      "description": "Whether this snapshot may back downstream-consumable artifacts. Defaults to false."
+    },
+    "notes": {
+      "type": "array",
+      "description": "Optional capture notes.",
+      "items": { "type": "string" }
+    },
+    "warnings": {
+      "type": "array",
+      "description": "Optional warnings raised when the capture is incomplete.",
+      "items": { "type": "string" }
+    },
+    "errors": {
+      "type": "array",
+      "description": "Optional error metadata when the capture failed or is partial.",
+      "items": { "type": "string" }
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Optional extra metadata for local traceability."
+    },
+    "created_at": {
+      "type": "string",
+      "description": "Optional UTC timestamp when the snapshot record was created.",
+      "format": "date-time"
+    },
+    "schema_version": {
+      "type": "string",
+      "description": "Semantic version of this snapshot payload.",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "downstream_allowed": { "const": true } },
+        "required": ["downstream_allowed"]
+      },
+      "then": {
+        "properties": {
+          "review_status": { "const": "approved" },
+          "freshness_status": {
+            "enum": ["current", "stale"]
+          }
+        },
+        "required": ["review_status", "freshness_status"]
+      }
+    }
+  ]
+}

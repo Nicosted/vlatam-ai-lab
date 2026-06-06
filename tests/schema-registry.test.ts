@@ -17,6 +17,9 @@ const expectedContracts = [
   "approved_kb_snapshot",
   "classifier_approved_artifact_export_contract",
   "classifier_approved_artifact_export_catalog",
+  "intelligence_source_registry",
+  "intelligence_source_snapshot",
+  "ai_extraction_job",
 ];
 const requiredKeys = [
   "contract_name",

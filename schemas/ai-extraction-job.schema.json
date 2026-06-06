@@ -1,0 +1,143 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/ai-extraction-job.schema.json",
+  "title": "AI Extraction Job Contract",
+  "description": "Schema/type contract for a future AI-assisted extraction job. This is a contract only: no provider integration, no network calls, and no raw LLM output is treated as approved intelligence. Unreviewed output is never downstream-safe.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "job_id",
+    "source_id",
+    "extraction_goal",
+    "input_reference",
+    "output_schema_version",
+    "status",
+    "human_review_required",
+    "downstream_allowed",
+    "created_at",
+    "updated_at",
+    "schema_version"
+  ],
+  "properties": {
+    "job_id": {
+      "type": "string",
+      "description": "Unique identifier for the extraction job.",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "source_id": {
+      "type": "string",
+      "description": "Identifier of the registered source this job extracts from.",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "snapshot_id": {
+      "type": "string",
+      "description": "Optional identifier of the snapshot this job extracts from.",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "extraction_goal": {
+      "type": "string",
+      "description": "What the extraction is meant to produce (e.g. ncm_tariff_lines).",
+      "minLength": 1,
+      "maxLength": 400
+    },
+    "model_provider": {
+      "type": "string",
+      "description": "Optional placeholder for a future model provider. No provider is integrated in this layer.",
+      "minLength": 1,
+      "maxLength": 80
+    },
+    "model_name": {
+      "type": "string",
+      "description": "Optional placeholder for a future model identifier.",
+      "minLength": 1,
+      "maxLength": 120
+    },
+    "input_reference": {
+      "type": "string",
+      "description": "Local reference to the prepared input (e.g. a snapshot path or id). Not raw content.",
+      "minLength": 1,
+      "maxLength": 400
+    },
+    "output_schema_version": {
+      "type": "string",
+      "description": "Semantic version of the schema the extraction output must conform to.",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "status": {
+      "type": "string",
+      "description": "Lifecycle status of the extraction job.",
+      "enum": [
+        "draft",
+        "queued",
+        "prepared",
+        "extracted",
+        "review_pending",
+        "reviewed_approved",
+        "reviewed_rejected",
+        "failed",
+        "unknown"
+      ]
+    },
+    "confidence": {
+      "type": "number",
+      "description": "Optional self-reported confidence. Never a substitute for human review.",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "warnings": {
+      "type": "array",
+      "description": "Optional warnings raised during preparation or extraction.",
+      "items": { "type": "string" }
+    },
+    "notes": {
+      "type": "array",
+      "description": "Optional non-authoritative notes.",
+      "items": { "type": "string" }
+    },
+    "human_review_required": {
+      "type": "boolean",
+      "description": "Must be true for extraction output that may affect classification/compliance."
+    },
+    "downstream_allowed": {
+      "type": "boolean",
+      "description": "Whether extraction output may back downstream-consumable artifacts. Defaults to false."
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Optional extra metadata for local traceability."
+    },
+    "created_at": {
+      "type": "string",
+      "description": "UTC timestamp when the job record was created.",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "description": "UTC timestamp when the job record was last updated.",
+      "format": "date-time"
+    },
+    "schema_version": {
+      "type": "string",
+      "description": "Semantic version of this extraction job payload.",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "downstream_allowed": { "const": true } },
+        "required": ["downstream_allowed"]
+      },
+      "then": {
+        "properties": {
+          "status": { "const": "reviewed_approved" },
+          "human_review_required": { "const": true }
+        },
+        "required": ["status", "human_review_required"]
+      }
+    }
+  ]
+}

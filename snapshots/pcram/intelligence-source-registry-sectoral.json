@@ -1,0 +1,28 @@
+{
+  "source_id": "sectoral-regulator-sample",
+  "source_name": "Sectoral Regulatory Source (Sample / Non-Authoritative)",
+  "source_type": "sectoral_regulator",
+  "authority_level": "semi_official",
+  "reliability_level": "medium",
+  "jurisdiction_scope": "national",
+  "country_code": "AR",
+  "topic_scope": ["sectoral_requirements", "import_permits"],
+  "language": "es",
+  "source_locator": "sample://sectoral/regulator",
+  "verification_status": "unverified_sample",
+  "expected_update_cadence": { "label": "irregular" },
+  "freshness_status": "unknown",
+  "human_review_required": true,
+  "downstream_allowed": false,
+  "notes": [
+    "Sample registry entry for schema validation only.",
+    "Replace source_locator with a verified official sectoral regulator source before any downstream use."
+  ],
+  "limitations": [
+    "Locator is a non-authoritative placeholder; no official source has been verified.",
+    "Irregular cadence means freshness cannot be inferred from elapsed time alone."
+  ],
+  "created_at": "2026-06-06T00:00:00.000Z",
+  "updated_at": "2026-06-06T00:00:00.000Z",
+  "schema_version": "1.0.0"
+}
