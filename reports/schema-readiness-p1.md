@@ -8,10 +8,10 @@
 
 ## Summary
 
-- total_contracts: `10`
-- total_valid_fixtures: `10`
-- total_invalid_fixtures: `23`
-- total_test_files: `10`
+- total_contracts: `13`
+- total_valid_fixtures: `13`
+- total_invalid_fixtures: `35`
+- total_test_files: `13`
 
 ## Contract Names
 
@@ -25,6 +25,9 @@
 - `approved_kb_snapshot`
 - `classifier_approved_artifact_export_contract`
 - `classifier_approved_artifact_export_catalog`
+- `intelligence_source_registry`
+- `intelligence_source_snapshot`
+- `ai_extraction_job`
 
 ## Contract Inventory
 
@@ -40,6 +43,9 @@
 | `approved_kb_snapshot`                         | `implemented` | `schemas/approved-kb-snapshot.schema.json`                         | `snapshots/pcram/example-approved-kb-snapshot.json`                      |                3 | `tests/approved-kb-snapshot-schema.test.ts`                  | yes                    | yes          | yes                      |
 | `classifier_approved_artifact_export_contract` | `implemented` | `schemas/classifier-approved-artifact-export-contract.schema.json` | `snapshots/pcram/demo-classifier-approved-artifact-export-contract.json` |                2 | `tests/classifier-approved-artifact-export-contract.test.ts` | yes                    | yes          | yes                      |
 | `classifier_approved_artifact_export_catalog`  | `implemented` | `schemas/classifier-approved-artifact-export-catalog.schema.json`  | `snapshots/pcram/demo-classifier-approved-artifact-export-catalog.json`  |                2 | `tests/classifier-approved-artifact-export-catalog.test.ts`  | yes                    | yes          | yes                      |
+| `intelligence_source_registry`                 | `implemented` | `schemas/intelligence-source-registry.schema.json`                 | `snapshots/pcram/intelligence-source-registry-wco-hs.json`               |                3 | `tests/intelligence-source-registry-schema.test.ts`          | yes                    | yes          | yes                      |
+| `intelligence_source_snapshot`                 | `implemented` | `schemas/intelligence-source-snapshot.schema.json`                 | `snapshots/pcram/intelligence-source-snapshot-example.json`              |                6 | `tests/intelligence-source-snapshot-schema.test.ts`          | yes                    | yes          | yes                      |
+| `ai_extraction_job`                            | `implemented` | `schemas/ai-extraction-job.schema.json`                            | `snapshots/pcram/ai-extraction-job-example.json`                         |                3 | `tests/ai-extraction-job-schema.test.ts`                     | yes                    | yes          | yes                      |
 
 ## Missing Reference Summary
 

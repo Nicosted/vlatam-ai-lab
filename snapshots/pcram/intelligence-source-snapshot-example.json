@@ -3,16 +3,23 @@
   "source_id": "ar-ncm-customs",
   "captured_at": "2026-06-01T00:00:00.000Z",
   "capture_method": "local_fixture",
+  "capture_origin": "system",
+  "source_locator": "sample://ar/ncm-customs",
   "content_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
   "source_version_label": "sample-2026-06",
-  "freshness_status": "unknown",
+  "freshness_status": "requires_review",
   "review_status": "not_reviewed",
   "extraction_status": "not_started",
+  "human_review_required": true,
   "downstream_allowed": false,
   "notes": [
     "Local-only sample snapshot for schema validation.",
     "No external fetch or scraping was executed."
   ],
+  "limitations": [
+    "Sample fixture only; not tied to any verified official source state."
+  ],
   "created_at": "2026-06-01T00:05:00.000Z",
+  "contract_version": "1.0.0",
   "schema_version": "1.0.0"
 }

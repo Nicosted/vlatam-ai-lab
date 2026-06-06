@@ -44,6 +44,49 @@ export interface ExpectedUpdateCadence {
   interval_days?: number;
 }
 
+export type SnapshotCaptureMethod =
+  | "manual"
+  | "local_fixture"
+  | "approved_fetch"
+  | "api_import"
+  | "other";
+
+export type SnapshotCaptureOrigin = "human" | "system" | "mixed" | "unknown";
+
+export type ExtractionStatus =
+  | "not_started"
+  | "prepared"
+  | "extracted"
+  | "extraction_failed"
+  | "unknown";
+
+export interface SourceSnapshot {
+  snapshot_id: string;
+  source_id: string;
+  captured_at: string;
+  capture_method: SnapshotCaptureMethod;
+  capture_origin?: SnapshotCaptureOrigin;
+  capture_actor?: string;
+  source_locator?: string;
+  official_url?: string;
+  content_reference?: string;
+  content_hash?: string;
+  source_version_label?: string;
+  freshness_status: FreshnessStatus;
+  review_status: ReviewStatus;
+  extraction_status: ExtractionStatus;
+  human_review_required: boolean;
+  downstream_allowed: boolean;
+  notes?: string[];
+  warnings?: string[];
+  limitations?: string[];
+  errors?: string[];
+  metadata?: Record<string, unknown>;
+  created_at?: string;
+  contract_version?: string;
+  schema_version: string;
+}
+
 export interface SourceRegistryEntry {
   source_id: string;
   source_name: string;

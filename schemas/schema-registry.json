@@ -187,7 +187,10 @@
       "invalid_fixtures": [
         "snapshots/pcram/invalid-intelligence-source-snapshot-missing-required.json",
         "snapshots/pcram/invalid-intelligence-source-snapshot-unsupported-enum.json",
-        "snapshots/pcram/invalid-intelligence-source-snapshot-unreviewed-downstream.json"
+        "snapshots/pcram/invalid-intelligence-source-snapshot-unreviewed-downstream.json",
+        "snapshots/pcram/invalid-intelligence-source-snapshot-missing-captured-at.json",
+        "snapshots/pcram/invalid-intelligence-source-snapshot-downstream-stale-freshness.json",
+        "snapshots/pcram/invalid-intelligence-source-snapshot-missing-locator.json"
       ],
       "test_file": "tests/intelligence-source-snapshot-schema.test.ts",
       "status": "implemented",

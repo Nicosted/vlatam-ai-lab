@@ -57,7 +57,7 @@ test("schema readiness markdown includes contract, fixture, and test counts", as
 
   assert.equal(markdown.includes("- total_contracts: `13`"), true);
   assert.equal(markdown.includes("- total_valid_fixtures: `13`"), true);
-  assert.equal(markdown.includes("- total_invalid_fixtures: `32`"), true);
+  assert.equal(markdown.includes("- total_invalid_fixtures: `35`"), true);
   assert.equal(markdown.includes("- total_test_files: `13`"), true);
 });
 
