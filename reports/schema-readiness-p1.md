@@ -8,10 +8,10 @@
 
 ## Summary
 
-- total_contracts: `15`
-- total_valid_fixtures: `15`
-- total_invalid_fixtures: `43`
-- total_test_files: `15`
+- total_contracts: `17`
+- total_valid_fixtures: `17`
+- total_invalid_fixtures: `49`
+- total_test_files: `17`
 
 ## Contract Names
 
@@ -28,8 +28,10 @@
 - `intelligence_source_registry`
 - `intelligence_source_snapshot`
 - `ai_extraction_job`
+- `ai_extraction_result`
 - `snapshot_review_manifest`
 - `extractable_evidence_packet`
+- `classifier_intelligence_artifact`
 
 ## Contract Inventory
 
@@ -48,8 +50,10 @@
 | `intelligence_source_registry`                 | `implemented` | `schemas/intelligence-source-registry.schema.json`                 | `snapshots/pcram/intelligence-source-registry-wco-hs.json`               |                3 | `tests/intelligence-source-registry-schema.test.ts`          | yes                    | yes          | yes                      |
 | `intelligence_source_snapshot`                 | `implemented` | `schemas/intelligence-source-snapshot.schema.json`                 | `snapshots/pcram/intelligence-source-snapshot-example.json`              |                6 | `tests/intelligence-source-snapshot-schema.test.ts`          | yes                    | yes          | yes                      |
 | `ai_extraction_job`                            | `implemented` | `schemas/ai-extraction-job.schema.json`                            | `snapshots/pcram/ai-extraction-job-example.json`                         |                3 | `tests/ai-extraction-job-schema.test.ts`                     | yes                    | yes          | yes                      |
+| `ai_extraction_result`                         | `implemented` | `schemas/ai-extraction-result.schema.json`                         | `snapshots/pcram/ai-extraction-result-qwen-langgraph-draft-success.json` |                2 | `tests/ai-extraction-result-schema.test.ts`                  | yes                    | yes          | yes                      |
 | `snapshot_review_manifest`                     | `implemented` | `schemas/snapshot-review-manifest.schema.json`                     | `snapshots/pcram/snapshot-review-manifest-wco-hs-2022.json`              |                4 | `tests/snapshot-review-manifest-schema.test.ts`              | yes                    | yes          | yes                      |
 | `extractable_evidence_packet`                  | `implemented` | `schemas/extractable-evidence-packet.schema.json`                  | `snapshots/pcram/extractable-evidence-packet-wco-hs-2022.json`           |                4 | `tests/extractable-evidence-packet-schema.test.ts`           | yes                    | yes          | yes                      |
+| `classifier_intelligence_artifact`             | `implemented` | `schemas/classifier-intelligence-artifact.schema.json`             | `snapshots/pcram/classifier-intelligence-artifact-demo-veldoria.json`    |                4 | `tests/classifier-intelligence-artifact-schema.test.ts`      | yes                    | yes          | yes                      |
 
 ## Missing Reference Summary
 

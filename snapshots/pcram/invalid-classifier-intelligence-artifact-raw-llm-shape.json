@@ -1,0 +1,20 @@
+{
+  "id": "chatcmpl-raw-qwen-response",
+  "object": "chat.completion",
+  "model": "qwen-plus",
+  "choices": [
+    {
+      "index": 0,
+      "finish_reason": "stop",
+      "message": {
+        "role": "assistant",
+        "content": "{\"extracted_claims\":[{\"claim_id\":\"claim-001\",\"claim_text\":\"Raw model output that is NOT a reviewed classifier intelligence artifact.\",\"confidence\":1.0}]}"
+      }
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 100,
+    "completion_tokens": 50,
+    "total_tokens": 150
+  }
+}

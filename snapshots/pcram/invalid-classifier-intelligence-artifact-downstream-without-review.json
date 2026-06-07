@@ -1,0 +1,51 @@
+{
+  "artifact_id": "invalid-downstream-without-review-2026-06-06t013000z",
+  "artifact_kind": "classifier_intelligence_artifact",
+  "schema_version": "1.0.0",
+  "artifact_version": "1.0.0",
+  "created_at": "2026-06-06T01:30:00.000Z",
+  "provenance": {
+    "origin": "internal_review",
+    "source_authority": "internal_review",
+    "source_set": [
+      {
+        "source_id": "internal-review-demo-source"
+      }
+    ]
+  },
+  "jurisdiction": {
+    "jurisdiction": "demo",
+    "nomenclature_system": "demo_tariff_nomenclature",
+    "language": "en",
+    "product_scope": "Demo scope for schema validation."
+  },
+  "evidence": {
+    "evidence_items": [
+      {
+        "evidence_id": "evidence-001",
+        "evidence_reference": "internal-review-record#section-1",
+        "source_authority": "internal_review",
+        "support_status": "supported"
+      }
+    ]
+  },
+  "intelligence": {
+    "normalized_claims": [
+      {
+        "claim_id": "claim-001",
+        "claim_text": "Demo claim.",
+        "evidence_refs": ["evidence-001"]
+      }
+    ],
+    "constraints": ["Demo only."],
+    "assumptions": ["Demo only."]
+  },
+  "review": {
+    "review_status": "draft",
+    "human_review_required": true,
+    "downstream_allowed": true,
+    "downstream_eligibility_reason": "INVALID: downstream_allowed set true without reviewed_approved status, reviewer, or classifier approval reference.",
+    "limitations": ["Demo only."],
+    "disclaimer": "Artifact wrongly claims downstream eligibility without completed human review approval."
+  }
+}

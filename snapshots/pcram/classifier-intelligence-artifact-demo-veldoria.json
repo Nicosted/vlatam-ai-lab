@@ -1,0 +1,131 @@
+{
+  "artifact_id": "classifier-intelligence-artifact-demo-veldoria-2026-06-06t013000z",
+  "artifact_kind": "classifier_intelligence_artifact",
+  "schema_version": "1.0.0",
+  "artifact_version": "1.0.0",
+  "created_at": "2026-06-06T01:30:00.000Z",
+  "provenance": {
+    "origin": "ai_assisted_extraction",
+    "source_authority": "synthetic_demo",
+    "source_set": [
+      {
+        "source_id": "demo-veldoria-tariff-nomenclature-synthetic",
+        "snapshot_id": "snapshot-demo-embedded-evidence-2026-06-06t004000z",
+        "review_manifest_id": "review-manifest-demo-embedded-evidence-2026-06-06t005000z",
+        "evidence_packet_id": "evidence-packet-demo-embedded-evidence-2026-06-06t010000z",
+        "source_hash": "sha256:7f6e924d8a26b9b730c73ab413e43a2f7788d80c53e64dd6afa54b1b9b798799"
+      }
+    ],
+    "generation": {
+      "pipeline": "qwen-langgraph-evidence-extraction-spike",
+      "pipeline_version": "1.0.0",
+      "provider_id": "dashscope_qwen",
+      "model_id": "qwen-plus",
+      "extraction_result_id": "ai-extraction-result-evidence-packet-demo-embedded-evidence-2026-06-06t011500z"
+    },
+    "provenance_notes": [
+      "Derived from offline replay of a synthetic demo Qwen extraction; no live provider call backs this artifact."
+    ]
+  },
+  "jurisdiction": {
+    "jurisdiction": "demo",
+    "nomenclature_system": "demo_tariff_nomenclature",
+    "language": "en",
+    "product_scope": "Synthetic demo horticultural machinery (motorized demo soil tillage units).",
+    "applicability_notes": [
+      "The 'Veldoria Demo Tariff Nomenclature' is fictional and applies to nothing real.",
+      "Provided only to illustrate the artifact contract shape."
+    ],
+    "effective_date": "2026-01-01"
+  },
+  "evidence": {
+    "evidence_items": [
+      {
+        "evidence_id": "evidence-demo-001",
+        "evidence_reference": "evidence-packet-demo-embedded-evidence-2026-06-06t010000z#excerpt-demo-001",
+        "excerpt_reference": "demo-chapter-D1/heading-D1.10",
+        "source_authority": "synthetic_demo",
+        "support_status": "supported",
+        "confidence": 0.9
+      },
+      {
+        "evidence_id": "evidence-demo-002",
+        "evidence_reference": "evidence-packet-demo-embedded-evidence-2026-06-06t010000z#excerpt-demo-002",
+        "excerpt_reference": "demo-chapter-D1/note-2",
+        "source_authority": "synthetic_demo",
+        "support_status": "supported",
+        "confidence": 0.9
+      },
+      {
+        "evidence_id": "evidence-demo-003",
+        "evidence_reference": "evidence-packet-demo-embedded-evidence-2026-06-06t010000z#excerpt-demo-003",
+        "excerpt_reference": "demo-schedule-2026/heading-D1.10",
+        "source_authority": "synthetic_demo",
+        "support_status": "supported",
+        "confidence": 0.85
+      }
+    ]
+  },
+  "intelligence": {
+    "normalized_claims": [
+      {
+        "claim_id": "claim-001",
+        "claim_text": "In the synthetic Veldoria demo nomenclature, motorized demo soil tillage units sit under demo heading D1.10 of demo Chapter D1.",
+        "evidence_refs": ["evidence-demo-001"],
+        "implication": "A demo classifier could route motorized demo soil tillage units to demo heading D1.10.",
+        "confidence": 0.9
+      },
+      {
+        "claim_id": "claim-002",
+        "claim_text": "Demo Note 2 to demo Chapter D1 routes separately presented demo accessory parts to demo heading D1.90 absent a more specific provision.",
+        "evidence_refs": ["evidence-demo-002"],
+        "implication": "Separately presented demo accessories fall to demo heading D1.90 in the demo nomenclature.",
+        "confidence": 0.88
+      },
+      {
+        "claim_id": "claim-003",
+        "claim_text": "The 2026 demo schedule records a 7.5% ad valorem demo rate for demo heading D1.10.",
+        "evidence_refs": ["evidence-demo-003"],
+        "confidence": 0.85
+      }
+    ],
+    "classification_implications": [
+      "Illustrates how reviewed intelligence could carry heading-level implications; the values here are synthetic and carry no real classification meaning."
+    ],
+    "candidate_classification": {
+      "chapter": "demo-D1",
+      "heading": "demo-D1.10",
+      "rationale": "Synthetic demo mapping only; not a real or approved classification decision."
+    },
+    "constraints": [
+      "Use restricted to schema/contract demonstration; not for any real classification decision.",
+      "All headings, notes, and rates are fictional."
+    ],
+    "assumptions": [
+      "The synthetic embedded excerpts are internally consistent for demo purposes."
+    ],
+    "uncertainty_notes": [
+      "No real-world validation is possible because the source is fictional."
+    ],
+    "risk_flags": [
+      "Treating this synthetic artifact as authoritative would be a misuse."
+    ]
+  },
+  "review": {
+    "review_status": "draft",
+    "human_review_required": true,
+    "downstream_allowed": false,
+    "downstream_eligibility_reason": "Synthetic demo-only artifact: source authority is synthetic_demo and review has not approved downstream use. Not downstream-safe under any circumstances.",
+    "limitations": [
+      "Demo-only artifact: all evidence, claims, and classifications are synthetic and non-authoritative.",
+      "Not real legal/regulatory intelligence and not WCO/HS/NCM/PCRAM approved.",
+      "Remains draft/unreviewed; never downstream-safe.",
+      "The fictional 'Veldoria Demo Tariff Nomenclature' does not exist and carries no legal meaning."
+    ],
+    "audit_notes": [
+      "Produced from offline Qwen replay; deterministic identifiers used for reproducible tests.",
+      "No live Qwen/DashScope call and no API key were required to produce this artifact."
+    ],
+    "disclaimer": "Synthetic demo-only classifier intelligence artifact. Not approved intelligence, not classifier-approved, and not downstream-safe. Provided solely to illustrate the reviewed artifact contract shape."
+  }
+}

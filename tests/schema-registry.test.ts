@@ -23,6 +23,7 @@ const expectedContracts = [
   "ai_extraction_result",
   "snapshot_review_manifest",
   "extractable_evidence_packet",
+  "classifier_intelligence_artifact",
 ];
 const requiredKeys = [
   "contract_name",

@@ -1,0 +1,53 @@
+{
+  "artifact_id": "invalid-synthetic-downstream-2026-06-06t013000z",
+  "artifact_kind": "classifier_intelligence_artifact",
+  "schema_version": "1.0.0",
+  "artifact_version": "1.0.0",
+  "created_at": "2026-06-06T01:30:00.000Z",
+  "provenance": {
+    "origin": "synthetic_demo",
+    "source_authority": "synthetic_demo",
+    "source_set": [
+      {
+        "source_id": "demo-veldoria-tariff-nomenclature-synthetic"
+      }
+    ]
+  },
+  "jurisdiction": {
+    "jurisdiction": "demo",
+    "nomenclature_system": "demo_tariff_nomenclature",
+    "language": "en",
+    "product_scope": "Synthetic demo horticultural machinery."
+  },
+  "evidence": {
+    "evidence_items": [
+      {
+        "evidence_id": "evidence-demo-001",
+        "evidence_reference": "evidence-packet-demo#excerpt-demo-001",
+        "source_authority": "synthetic_demo",
+        "support_status": "supported"
+      }
+    ]
+  },
+  "intelligence": {
+    "normalized_claims": [
+      {
+        "claim_id": "claim-001",
+        "claim_text": "Synthetic demo claim.",
+        "evidence_refs": ["evidence-demo-001"]
+      }
+    ],
+    "constraints": ["Demo only."],
+    "assumptions": ["Demo only."]
+  },
+  "review": {
+    "review_status": "reviewed_approved",
+    "reviewer": { "reviewer_role": "demo-reviewer" },
+    "human_review_required": false,
+    "downstream_allowed": true,
+    "downstream_eligibility_reason": "INVALID: a synthetic_demo artifact can never be downstream-allowed.",
+    "classifier_approval_reference": "invalid-approval-ref",
+    "limitations": ["Demo only."],
+    "disclaimer": "Synthetic demo-only artifact that wrongly claims downstream eligibility."
+  }
+}
