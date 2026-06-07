@@ -268,6 +268,24 @@
       "requires_human_review_semantics": true,
       "requires_traceability": true,
       "downstream_allowed_field_present": true
+    },
+    {
+      "contract_name": "classifier_intelligence_artifact",
+      "schema_file": "schemas/classifier-intelligence-artifact.schema.json",
+      "valid_fixture": "snapshots/pcram/classifier-intelligence-artifact-demo-veldoria.json",
+      "invalid_fixtures": [
+        "snapshots/pcram/invalid-classifier-intelligence-artifact-synthetic-downstream.json",
+        "snapshots/pcram/invalid-classifier-intelligence-artifact-missing-evidence.json",
+        "snapshots/pcram/invalid-classifier-intelligence-artifact-downstream-without-review.json",
+        "snapshots/pcram/invalid-classifier-intelligence-artifact-raw-llm-shape.json"
+      ],
+      "test_file": "tests/classifier-intelligence-artifact-schema.test.ts",
+      "status": "implemented",
+      "purpose": "Defines the reviewed, versioned, traceable classifier intelligence artifact that AI Lab owns as the single intelligence source for future vLatamGlobal Classifier integration, wrapping evidence, provenance, jurisdiction, risk, review status, and explicit downstream eligibility.",
+      "downstream_role": "The only shape a future vLatamGlobal Classifier should consume; raw LLM output, duplicated parsers, and AI Lab runtime/database internals are never this artifact. Synthetic/demo artifacts and unreviewed material are never downstream-safe.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": true
     }
   ]
 }

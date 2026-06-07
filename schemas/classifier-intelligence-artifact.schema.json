@@ -1,0 +1,546 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/classifier-intelligence-artifact.schema.json",
+  "title": "Classifier Intelligence Artifact",
+  "description": "Stable, reviewed, versioned intelligence artifact that AI Lab owns as the single traceable source for future vLatamGlobal Classifier integration. A classifier intelligence artifact wraps reviewed classification-relevant intelligence with evidence, provenance, jurisdiction, risk, review status, and explicit downstream eligibility. It is NOT raw LLM/provider output, NOT a duplicated parser result, and NOT a database/runtime export. Raw or unreviewed AI extraction is never an artifact of this kind. Synthetic/demo artifacts are never downstream-safe. A future consumer must read approved/versioned artifacts through a contract boundary, never AI Lab internals.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "artifact_id",
+    "artifact_kind",
+    "schema_version",
+    "artifact_version",
+    "created_at",
+    "provenance",
+    "jurisdiction",
+    "evidence",
+    "intelligence",
+    "review"
+  ],
+  "properties": {
+    "artifact_id": {
+      "type": "string",
+      "description": "Deterministic, unique identifier for this artifact.",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "artifact_kind": {
+      "type": "string",
+      "description": "Discriminator that pins this record to the classifier intelligence artifact contract. Any other shape (e.g. a raw provider response) is not an artifact of this kind.",
+      "const": "classifier_intelligence_artifact"
+    },
+    "schema_version": {
+      "type": "string",
+      "description": "Semantic version of this artifact payload schema.",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "artifact_version": {
+      "type": "string",
+      "description": "Semantic version of the reviewed intelligence content carried by this artifact. Increments as reviewed intelligence is revised.",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "created_at": {
+      "type": "string",
+      "description": "UTC timestamp when this artifact record was created.",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "description": "Optional UTC timestamp when this artifact record was last updated.",
+      "format": "date-time"
+    },
+    "reviewed_at": {
+      "type": "string",
+      "description": "Optional UTC timestamp when human review was completed. Required semantics live in the review object; this is a convenience marker.",
+      "format": "date-time"
+    },
+    "provenance": {
+      "type": "object",
+      "description": "Where this artifact comes from and how it was produced. Preserves traceability back to registered sources and (when AI-assisted) the generation lineage.",
+      "additionalProperties": false,
+      "required": ["origin", "source_authority", "source_set"],
+      "properties": {
+        "origin": {
+          "type": "string",
+          "description": "How the intelligence was produced. AI-assisted extraction is allowed as an origin but is never approved by virtue of origin alone.",
+          "enum": [
+            "ai_assisted_extraction",
+            "manual_curation",
+            "official_regulation",
+            "internal_review",
+            "synthetic_demo"
+          ]
+        },
+        "source_authority": {
+          "type": "string",
+          "description": "Authority classification of the underlying source material. synthetic_demo and unverified material is never downstream-safe; only official_regulation or internal_review may back downstream-eligible artifacts.",
+          "enum": [
+            "synthetic_demo",
+            "unverified",
+            "official_regulation",
+            "internal_review"
+          ]
+        },
+        "source_set": {
+          "type": "array",
+          "description": "Bounded source/evidence lineage references. At least one is required so every artifact stays traceable to a registered source.",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/sourceReference" }
+        },
+        "generation": {
+          "$ref": "#/$defs/generationLineage"
+        },
+        "provenance_notes": {
+          "type": "array",
+          "description": "Optional non-authoritative provenance notes.",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "jurisdiction": {
+      "type": "object",
+      "description": "Jurisdiction, nomenclature system, language, and product applicability for this artifact's intelligence.",
+      "additionalProperties": false,
+      "required": [
+        "jurisdiction",
+        "nomenclature_system",
+        "language",
+        "product_scope"
+      ],
+      "properties": {
+        "jurisdiction": {
+          "type": "string",
+          "description": "Jurisdiction / country / pack scope label (e.g. demo, international, mercosur, ar). 'demo' denotes a synthetic, non-authoritative scope.",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "nomenclature_system": {
+          "type": "string",
+          "description": "Classification nomenclature context (e.g. demo_tariff_nomenclature, hs, ncm). A demo_* system is synthetic and carries no real meaning.",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "language": {
+          "type": "string",
+          "description": "Primary language of the referenced material (e.g. en, es).",
+          "minLength": 2,
+          "maxLength": 16
+        },
+        "product_scope": {
+          "type": "string",
+          "description": "What product/material scope this intelligence applies to.",
+          "minLength": 1,
+          "maxLength": 400
+        },
+        "applicability_notes": {
+          "type": "array",
+          "description": "Optional notes constraining where this intelligence applies.",
+          "items": { "type": "string" }
+        },
+        "effective_date": {
+          "type": "string",
+          "description": "Optional effective date of the underlying instrument (YYYY-MM-DD).",
+          "format": "date"
+        },
+        "validity_window": {
+          "type": "object",
+          "description": "Optional validity window for the underlying instrument.",
+          "additionalProperties": false,
+          "properties": {
+            "valid_from": { "type": "string", "format": "date" },
+            "valid_until": { "type": "string", "format": "date" }
+          }
+        }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "description": "Bounded evidence that supports the extracted intelligence. Uses references/excerpt pointers following repo safety conventions, never large copied source text.",
+      "additionalProperties": false,
+      "required": ["evidence_items"],
+      "properties": {
+        "evidence_items": {
+          "type": "array",
+          "description": "At least one evidence item is required so the artifact is never claim-only. Missing evidence fails validation.",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/evidenceItem" }
+        }
+      }
+    },
+    "intelligence": {
+      "type": "object",
+      "description": "The extracted, classification-relevant intelligence. Normalized claims must trace back to evidence items.",
+      "additionalProperties": false,
+      "required": ["normalized_claims", "constraints", "assumptions"],
+      "properties": {
+        "normalized_claims": {
+          "type": "array",
+          "description": "Normalized, classification-relevant claims. At least one is required.",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/normalizedClaim" }
+        },
+        "classification_implications": {
+          "type": "array",
+          "description": "Optional classification-relevant implications drawn from the claims.",
+          "items": { "type": "string" }
+        },
+        "candidate_classification": {
+          "$ref": "#/$defs/candidateClassification"
+        },
+        "constraints": {
+          "type": "array",
+          "description": "Constraints that bound how this intelligence may be used.",
+          "items": { "type": "string" }
+        },
+        "assumptions": {
+          "type": "array",
+          "description": "Assumptions made while producing this intelligence.",
+          "items": { "type": "string" }
+        },
+        "uncertainty_notes": {
+          "type": "array",
+          "description": "Optional explicit uncertainty notes.",
+          "items": { "type": "string" }
+        },
+        "risk_flags": {
+          "type": "array",
+          "description": "Optional risk flags raised during review.",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "review": {
+      "type": "object",
+      "description": "Review and downstream-safety envelope. Review status and downstream eligibility are always explicit, never inferred silently.",
+      "additionalProperties": false,
+      "required": [
+        "review_status",
+        "human_review_required",
+        "downstream_allowed",
+        "downstream_eligibility_reason",
+        "limitations",
+        "disclaimer"
+      ],
+      "properties": {
+        "review_status": {
+          "type": "string",
+          "description": "Explicit human review state. Only reviewed_approved artifacts may ever be downstream-eligible.",
+          "enum": [
+            "draft",
+            "in_review",
+            "reviewed_approved",
+            "reviewed_rejected"
+          ]
+        },
+        "reviewer": {
+          "$ref": "#/$defs/reviewer"
+        },
+        "human_review_required": {
+          "type": "boolean",
+          "description": "Whether the artifact still requires human review before downstream use. True for any draft/synthetic artifact. May only be false once reviewed_approved."
+        },
+        "downstream_allowed": {
+          "type": "boolean",
+          "description": "Whether a downstream consumer (e.g. the future vLatamGlobal Classifier) may use this artifact. Defaults to false; requires reviewed_approved status and an authoritative, non-synthetic source."
+        },
+        "downstream_eligibility_reason": {
+          "type": "string",
+          "description": "Explicit, human-readable reason for the downstream eligibility decision (allowed or not). Never inferred silently.",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "classifier_approval_reference": {
+          "type": "string",
+          "description": "Optional reference to a separate classifier-approval record. Required before downstream_allowed may be true.",
+          "minLength": 1,
+          "maxLength": 400
+        },
+        "limitations": {
+          "type": "array",
+          "description": "Known limitations of this artifact. At least one is required so the artifact stays honest about scope.",
+          "minItems": 1,
+          "items": { "type": "string" }
+        },
+        "audit_notes": {
+          "type": "array",
+          "description": "Optional audit / traceability notes.",
+          "items": { "type": "string" }
+        },
+        "disclaimer": {
+          "type": "string",
+          "description": "Human-readable disclaimer about authority and downstream safety.",
+          "minLength": 1,
+          "maxLength": 2000
+        }
+      }
+    }
+  },
+  "$defs": {
+    "sourceReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_id"],
+      "properties": {
+        "source_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "snapshot_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "review_manifest_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "evidence_packet_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "source_hash": {
+          "type": "string",
+          "description": "Optional content fingerprint in sha256 format (with optional 'sha256:' prefix).",
+          "pattern": "^(sha256:)?[a-fA-F0-9]{64}$"
+        }
+      }
+    },
+    "generationLineage": {
+      "type": "object",
+      "description": "Optional lineage for AI-assisted generation. Present only when this artifact was produced from AI-assisted extraction. Its presence never implies approval.",
+      "additionalProperties": false,
+      "required": ["pipeline", "pipeline_version"],
+      "properties": {
+        "pipeline": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "pipeline_version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$"
+        },
+        "provider_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "model_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "extraction_result_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        }
+      }
+    },
+    "evidenceItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evidence_id",
+        "evidence_reference",
+        "source_authority",
+        "support_status"
+      ],
+      "properties": {
+        "evidence_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "evidence_reference": {
+          "type": "string",
+          "description": "Bounded locator/pointer to the supporting material, never large copied source text.",
+          "minLength": 1,
+          "maxLength": 600
+        },
+        "excerpt_reference": {
+          "type": "string",
+          "description": "Optional bounded excerpt/anchor reference.",
+          "minLength": 1,
+          "maxLength": 600
+        },
+        "source_authority": {
+          "type": "string",
+          "description": "Authority classification of this specific evidence item.",
+          "enum": [
+            "synthetic_demo",
+            "unverified",
+            "official_regulation",
+            "internal_review"
+          ]
+        },
+        "support_status": {
+          "type": "string",
+          "enum": ["supported", "needs_human_review", "unsupported"]
+        },
+        "confidence": {
+          "type": "number",
+          "description": "Support confidence for triage only. Never implies approval.",
+          "minimum": 0,
+          "maximum": 1
+        }
+      }
+    },
+    "normalizedClaim": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["claim_id", "claim_text", "evidence_refs"],
+      "properties": {
+        "claim_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "claim_text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1200
+        },
+        "evidence_refs": {
+          "type": "array",
+          "description": "Evidence item ids that support this claim. At least one is required so claims stay traceable to evidence.",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        "implication": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1200
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      }
+    },
+    "candidateClassification": {
+      "type": "object",
+      "description": "Optional candidate classification framing. Candidate only; never an approved classification decision.",
+      "additionalProperties": false,
+      "properties": {
+        "chapter": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "heading": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "code": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "rationale": { "type": "string", "minLength": 1, "maxLength": 1200 }
+      }
+    },
+    "reviewer": {
+      "type": "object",
+      "description": "Reviewer metadata. Required for downstream-eligible artifacts.",
+      "additionalProperties": false,
+      "required": ["reviewer_role"],
+      "properties": {
+        "reviewer_role": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "reviewer_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "review_notes": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1200
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "description": "Synthetic/demo artifacts are never downstream-safe and always require human review. If the source authority is synthetic_demo or the origin is synthetic_demo, downstream_allowed must be false and human_review_required must be true.",
+      "if": {
+        "anyOf": [
+          {
+            "properties": {
+              "provenance": {
+                "properties": {
+                  "source_authority": { "const": "synthetic_demo" }
+                },
+                "required": ["source_authority"]
+              }
+            },
+            "required": ["provenance"]
+          },
+          {
+            "properties": {
+              "provenance": {
+                "properties": { "origin": { "const": "synthetic_demo" } },
+                "required": ["origin"]
+              }
+            },
+            "required": ["provenance"]
+          }
+        ]
+      },
+      "then": {
+        "properties": {
+          "review": {
+            "properties": {
+              "downstream_allowed": { "const": false },
+              "human_review_required": { "const": true }
+            },
+            "required": ["downstream_allowed", "human_review_required"]
+          }
+        },
+        "required": ["review"]
+      }
+    },
+    {
+      "description": "Downstream eligibility requires explicit human review approval and an authoritative, non-synthetic source. If downstream_allowed is true, review_status must be reviewed_approved, human_review_required must be false, a reviewer must be present, a classifier approval reference must exist, and the source authority must be official_regulation or internal_review.",
+      "if": {
+        "properties": {
+          "review": {
+            "properties": { "downstream_allowed": { "const": true } },
+            "required": ["downstream_allowed"]
+          }
+        },
+        "required": ["review"]
+      },
+      "then": {
+        "properties": {
+          "review": {
+            "properties": {
+              "review_status": { "const": "reviewed_approved" },
+              "human_review_required": { "const": false },
+              "classifier_approval_reference": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "review_status",
+              "human_review_required",
+              "reviewer",
+              "classifier_approval_reference"
+            ]
+          },
+          "provenance": {
+            "properties": {
+              "source_authority": {
+                "enum": ["official_regulation", "internal_review"]
+              }
+            },
+            "required": ["source_authority"]
+          }
+        },
+        "required": ["review", "provenance"]
+      }
+    }
+  ]
+}

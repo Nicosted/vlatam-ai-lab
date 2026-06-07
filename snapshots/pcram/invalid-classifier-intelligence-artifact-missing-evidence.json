@@ -1,0 +1,44 @@
+{
+  "artifact_id": "invalid-missing-evidence-2026-06-06t013000z",
+  "artifact_kind": "classifier_intelligence_artifact",
+  "schema_version": "1.0.0",
+  "artifact_version": "1.0.0",
+  "created_at": "2026-06-06T01:30:00.000Z",
+  "provenance": {
+    "origin": "ai_assisted_extraction",
+    "source_authority": "synthetic_demo",
+    "source_set": [
+      {
+        "source_id": "demo-veldoria-tariff-nomenclature-synthetic"
+      }
+    ]
+  },
+  "jurisdiction": {
+    "jurisdiction": "demo",
+    "nomenclature_system": "demo_tariff_nomenclature",
+    "language": "en",
+    "product_scope": "Synthetic demo horticultural machinery."
+  },
+  "evidence": {
+    "evidence_items": []
+  },
+  "intelligence": {
+    "normalized_claims": [
+      {
+        "claim_id": "claim-001",
+        "claim_text": "Synthetic demo claim with no backing evidence.",
+        "evidence_refs": ["evidence-demo-001"]
+      }
+    ],
+    "constraints": ["Demo only."],
+    "assumptions": ["Demo only."]
+  },
+  "review": {
+    "review_status": "draft",
+    "human_review_required": true,
+    "downstream_allowed": false,
+    "downstream_eligibility_reason": "Synthetic demo-only artifact; not downstream-safe.",
+    "limitations": ["Demo only; INVALID because it carries no evidence items."],
+    "disclaimer": "Synthetic demo-only artifact missing required evidence."
+  }
+}
