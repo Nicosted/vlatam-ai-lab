@@ -1,0 +1,89 @@
+# Secrets and local configuration
+.env
+.env.*
+*.env
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+*.asc
+*.gpg
+*.age
+*.kdbx
+id_rsa
+id_dsa
+id_ecdsa
+id_ed25519
+credentials.*
+secrets.*
+secret.*
+service-account*.json
+*-credentials.json
+*-secret.json
+
+# External service and machine-local state
+.supabase/
+.vercel/
+.netlify/
+.railway/
+.aws/
+.gcloud/
+.azure/
+.ssh/
+.gnupg/
+
+# Dependency folders and package-manager caches
+node_modules/
+.pnpm-store/
+.npm/
+.yarn/
+.pnp.*
+
+# Build, typecheck, bundler, and framework outputs
+dist/
+build/
+out/
+.next/
+.turbo/
+.vite/
+.cache/
+tmp/
+temp/
+.tmp/
+
+# Test, coverage, and generated diagnostics
+coverage/
+.nyc_output/
+test-results/
+playwright-report/
+*.lcov
+*.log
+logs/
+
+# Local editor, OS, and tool state
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Graphify local outputs that require review before commit
+graphify-out/
+.graphify/
+.graphify-cache/
+graphify-cost*.json
+graphify-cost*.log
+
+# Private raw source dumps or unreviewed imports
+raw/
+raw-sources/
+source-dumps/
+private-sources/
+unreviewed-sources/
+downloads/
+imports/private/
+snapshots/private/
+snapshots/raw/
