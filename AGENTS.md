@@ -69,3 +69,12 @@ All analytical output should follow this flow:
 - Antigravity audits must declare the command profile used before running validation commands.
 - Future agent work must pass `agents/pcram-contract-conformance-checklist.md` before any runtime activation proposal.
 - Until separate governance approval, these contracts are documentation-only and do not authorize runtime autonomous execution.
+
+## 8) Graphify memory layer guidance
+
+- Graphify, when locally available, is a repository/documentation memory aid for Codex and future local operators.
+- Codex should query Graphify before broad grep/file-reading when answering architecture, contract, schema, or artifact-flow questions, then verify the cited files directly.
+- Graphify output is not a regulatory source of truth, approval mechanism, production dependency, or vLatamGlobal runtime bridge.
+- Graphify must not read `.env*`, credentials, local caches, private raw dumps, or unreviewed source imports.
+- Graphify refreshes must follow `.graphifyignore` and the workflow in `docs/graphify-ai-lab-memory.md`.
+- Generated graph files require human review for secret leakage and source-of-truth boundary preservation before commit.
