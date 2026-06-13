@@ -29,6 +29,16 @@ const forbiddenBundlePatterns: RegExp[] = [
 ];
 
 const defaultOutputDir = "exports/approved-catalog";
+const argentinaCandidateMarkers = [
+  "ar-customs-tariff-authority-candidate",
+  "mercosur-ncm-source-candidate",
+  "wco-hs-source-candidate",
+  "ar-sectoral-source-placeholder-candidate",
+  "snapshot-ar-customs-tariff-authority-candidate",
+  "snapshot-mercosur-ncm-source-candidate",
+  "snapshot-wco-hs-source-candidate",
+  "snapshot-ar-sectoral-placeholder-candidate",
+];
 
 async function createFixtureRepo(): Promise<string> {
   const repoRoot = await mkdtemp(
@@ -141,6 +151,27 @@ test("approved export bundle excludes forbidden live coupling strings", async ()
 
     for (const pattern of forbiddenBundlePatterns) {
       assert.equal(pattern.test(content), false, pattern.toString());
+    }
+  } finally {
+    await rm(repoRoot, { recursive: true, force: true });
+  }
+});
+
+test("approved export bundle excludes Argentina source candidates", async () => {
+  const repoRoot = await createFixtureRepo();
+
+  try {
+    await buildApprovedExportBundle({ repoRoot });
+    const content = await readUtf8File(
+      path.join(repoRoot, defaultOutputDir, "index.json"),
+    );
+
+    for (const marker of argentinaCandidateMarkers) {
+      assert.equal(
+        content.includes(marker),
+        false,
+        `Bundle must not include candidate marker ${marker}`,
+      );
     }
   } finally {
     await rm(repoRoot, { recursive: true, force: true });

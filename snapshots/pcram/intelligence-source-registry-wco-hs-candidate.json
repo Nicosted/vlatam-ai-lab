@@ -1,0 +1,48 @@
+{
+  "source_id": "wco-hs-source-candidate",
+  "source_name": "WCO Harmonized System Source Candidate",
+  "source_type": "wco_hs_reference",
+  "authority_level": "unknown",
+  "reliability_level": "unknown",
+  "jurisdiction_scope": "global",
+  "topic_scope": [
+    "hs_nomenclature",
+    "tariff_classification",
+    "global_reference",
+    "source_candidate"
+  ],
+  "language": "en",
+  "source_locator": "https://www.wcoomd.org/en/topics/nomenclature/instrument-and-tools/hs-nomenclature-2022-edition.aspx",
+  "official_url": "https://www.wcoomd.org/en/topics/nomenclature/instrument-and-tools/hs-nomenclature-2022-edition.aspx",
+  "verification_status": "unverified_sample",
+  "expected_update_cadence": { "label": "unknown" },
+  "freshness_status": "requires_review",
+  "human_review_required": true,
+  "downstream_allowed": false,
+  "notes": [
+    "Candidate registry placeholder for the WCO/HS layer of the first Argentina curated source pack.",
+    "The locator is an official-source-style public reference copied from existing repository source metadata; it is not a reviewed source-version capture in this candidate record.",
+    "No HS headings, notes, explanatory material, correlation material, or classification content is ingested or represented here."
+  ],
+  "limitations": [
+    "Candidate only: source identity, locator scope, version scope, and capture method require human review before extraction or export eligibility.",
+    "Freshness is conservative and must not be treated as current.",
+    "This record is not production-ready intelligence and makes no HS, tariff, classification, or regulatory claim.",
+    "No downstream use is allowed."
+  ],
+  "metadata": {
+    "contract_version": "1.0.0",
+    "argentina_source_pack_pr": "PR A",
+    "candidate_status": "requires_human_review_before_source_verification",
+    "source_category": "wco_hs",
+    "issuing_authority_candidate": "World Customs Organization (WCO)",
+    "content_ingested": false,
+    "snapshot_placeholder_only": true,
+    "extraction_ready": false,
+    "export_eligible": false,
+    "production_ready": false
+  },
+  "created_at": "2026-06-12T00:00:00.000Z",
+  "updated_at": "2026-06-12T00:00:00.000Z",
+  "schema_version": "1.0.0"
+}

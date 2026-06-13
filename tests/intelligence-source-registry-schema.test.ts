@@ -45,6 +45,35 @@ const validFixtures = [
   "snapshots/pcram/intelligence-source-registry-sectoral.json",
 ];
 
+const argentinaCandidateFixtures = [
+  "snapshots/pcram/intelligence-source-registry-ar-customs-tariff-candidate.json",
+  "snapshots/pcram/intelligence-source-registry-mercosur-ncm-candidate.json",
+  "snapshots/pcram/intelligence-source-registry-wco-hs-candidate.json",
+  "snapshots/pcram/intelligence-source-registry-ar-sectoral-placeholder-candidate.json",
+];
+
+const forbiddenCandidatePatterns: RegExp[] = [
+  /process\.env/i,
+  /\$\{[^}]*\}/,
+  /\$[A-Z][A-Z0-9_]+/,
+  /\b[A-Z][A-Z0-9_]*(?:API|PROJECT|SERVICE|ANON)?_KEY\b/,
+  /(^|[/\\])\.env(?:\b|[._-])/i,
+  /\bsupabase\b/i,
+  /project[_-]?ref/i,
+  /service[_-]?role/i,
+  /anon[_-]?key/i,
+  /api[_-]?key/i,
+  /authorization/i,
+  /bearer\s+[a-z0-9._-]+/i,
+  /credential/i,
+  /provider[_-]?metadata/i,
+  /model[_-]?provider/i,
+  /raw[_-]?llm/i,
+  /\/Users\//i,
+  /\/private\//i,
+  /\/home\//i,
+];
+
 for (const fixture of validFixtures) {
   test(`valid registry fixture passes: ${fixture}`, async () => {
     const validate = await buildValidator();
@@ -103,6 +132,57 @@ test("all valid fixtures keep conservative downstream defaults", async () => {
     assert.equal(sample["downstream_allowed"], false, fixture);
     assert.equal(sample["human_review_required"], true, fixture);
     assert.notEqual(sample["freshness_status"], "current", fixture);
+  }
+});
+
+for (const fixture of argentinaCandidateFixtures) {
+  test(`Argentina candidate registry fixture passes: ${fixture}`, async () => {
+    const validate = await buildValidator();
+    const sample = await readJsonFixture(fixture);
+
+    assert.equal(validate(sample), true);
+  });
+}
+
+test("Argentina candidate registries remain unreviewed and non-downstream-safe", async () => {
+  const categories = new Set<string>();
+
+  for (const fixture of argentinaCandidateFixtures) {
+    const sample = await readJsonFixture(fixture);
+    const metadata = sample["metadata"] as Record<string, unknown>;
+
+    assert.equal(sample["verification_status"], "unverified_sample", fixture);
+    assert.equal(sample["freshness_status"], "requires_review", fixture);
+    assert.equal(sample["human_review_required"], true, fixture);
+    assert.equal(sample["downstream_allowed"], false, fixture);
+    assert.equal(metadata["candidate_status"], "requires_human_review_before_source_verification", fixture);
+    assert.equal(metadata["content_ingested"], false, fixture);
+    assert.equal(metadata["snapshot_placeholder_only"], true, fixture);
+    assert.equal(metadata["extraction_ready"], false, fixture);
+    assert.equal(metadata["export_eligible"], false, fixture);
+    assert.equal(metadata["production_ready"], false, fixture);
+    categories.add(String(metadata["source_category"]));
+  }
+
+  assert.deepEqual(
+    [...categories].sort(),
+    [
+      "argentina_customs_tariff_authority",
+      "argentina_sectoral_placeholder",
+      "mercosur_ncm",
+      "wco_hs",
+    ],
+  );
+});
+
+test("Argentina candidate registries contain no live coupling, secret, provider, raw output, or local path markers", async () => {
+  for (const fixture of argentinaCandidateFixtures) {
+    const sample = await readJsonFixture(fixture);
+    const serialized = JSON.stringify(sample);
+
+    for (const pattern of forbiddenCandidatePatterns) {
+      assert.equal(pattern.test(serialized), false, `${fixture} contains ${pattern}`);
+    }
   }
 });
 

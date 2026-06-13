@@ -1,0 +1,47 @@
+{
+  "source_id": "ar-sectoral-source-placeholder-candidate",
+  "source_name": "Argentina Sectoral Source Placeholder Candidate",
+  "source_type": "sectoral_regulator",
+  "authority_level": "unknown",
+  "reliability_level": "unknown",
+  "jurisdiction_scope": "national",
+  "country_code": "AR",
+  "topic_scope": [
+    "sectoral_requirements",
+    "import_permits",
+    "source_candidate"
+  ],
+  "language": "es",
+  "source_locator": "sample://argentina/sectoral-source-placeholder-candidate",
+  "verification_status": "unverified_sample",
+  "expected_update_cadence": { "label": "unknown" },
+  "freshness_status": "requires_review",
+  "human_review_required": true,
+  "downstream_allowed": false,
+  "notes": [
+    "Optional sectoral placeholder candidate for the first Argentina curated source pack.",
+    "No sectoral regulator, product scope, source locator, or authority chain has been selected or reviewed.",
+    "This record exists only to reserve a conservative placeholder category if a later bounded product scope requires sectoral context."
+  ],
+  "limitations": [
+    "Placeholder only: locator is non-authoritative and no official sectoral source has been identified.",
+    "Freshness is conservative and must not be treated as current.",
+    "This record is not production-ready intelligence and makes no sectoral, permit, safety, sanitary, technical, customs, or regulatory claim.",
+    "No downstream use is allowed."
+  ],
+  "metadata": {
+    "contract_version": "1.0.0",
+    "argentina_source_pack_pr": "PR A",
+    "candidate_status": "requires_human_review_before_source_verification",
+    "source_category": "argentina_sectoral_placeholder",
+    "content_ingested": false,
+    "snapshot_placeholder_only": true,
+    "extraction_ready": false,
+    "export_eligible": false,
+    "production_ready": false,
+    "placeholder": true
+  },
+  "created_at": "2026-06-12T00:00:00.000Z",
+  "updated_at": "2026-06-12T00:00:00.000Z",
+  "schema_version": "1.0.0"
+}

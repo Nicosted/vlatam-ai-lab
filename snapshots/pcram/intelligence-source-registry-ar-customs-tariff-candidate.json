@@ -1,0 +1,49 @@
+{
+  "source_id": "ar-customs-tariff-authority-candidate",
+  "source_name": "Argentina Customs/Tariff Authority Source Candidate",
+  "source_type": "customs_authority",
+  "authority_level": "unknown",
+  "reliability_level": "unknown",
+  "jurisdiction_scope": "national",
+  "country_code": "AR",
+  "topic_scope": [
+    "customs_authority",
+    "arancel_integrado",
+    "ncm_tariff",
+    "source_candidate"
+  ],
+  "language": "es",
+  "source_locator": "https://www.arca.gob.ar/",
+  "official_url": "https://www.arca.gob.ar/",
+  "verification_status": "unverified_sample",
+  "expected_update_cadence": { "label": "unknown" },
+  "freshness_status": "requires_review",
+  "human_review_required": true,
+  "downstream_allowed": false,
+  "notes": [
+    "Candidate registry placeholder for an Argentina customs/tariff authority source in the first Argentina curated source pack.",
+    "The locator is an official-source-style public portal reference copied from existing repository source metadata; it is not a reviewed source-version capture in this candidate record.",
+    "No arancel, NCM, valuation suffix, duty-rate, or legal content is ingested or represented here."
+  ],
+  "limitations": [
+    "Candidate only: source identity, locator scope, version scope, and capture method require human review before extraction or export eligibility.",
+    "Freshness is conservative and must not be treated as current.",
+    "This record is not production-ready intelligence and makes no customs, tariff, valuation, classification, or regulatory claim.",
+    "No downstream use is allowed."
+  ],
+  "metadata": {
+    "contract_version": "1.0.0",
+    "argentina_source_pack_pr": "PR A",
+    "candidate_status": "requires_human_review_before_source_verification",
+    "source_category": "argentina_customs_tariff_authority",
+    "issuing_authority_candidate": "ARCA — Agencia de Recaudación y Control Aduanero",
+    "content_ingested": false,
+    "snapshot_placeholder_only": true,
+    "extraction_ready": false,
+    "export_eligible": false,
+    "production_ready": false
+  },
+  "created_at": "2026-06-12T00:00:00.000Z",
+  "updated_at": "2026-06-12T00:00:00.000Z",
+  "schema_version": "1.0.0"
+}

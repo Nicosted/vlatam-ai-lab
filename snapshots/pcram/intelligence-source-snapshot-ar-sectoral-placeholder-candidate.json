@@ -1,0 +1,44 @@
+{
+  "snapshot_id": "snapshot-ar-sectoral-placeholder-candidate-2026-06-12t000000z",
+  "source_id": "ar-sectoral-source-placeholder-candidate",
+  "captured_at": "2026-06-12T00:00:00.000Z",
+  "capture_method": "local_fixture",
+  "capture_origin": "human",
+  "capture_actor": "ai-lab-source-curator",
+  "source_locator": "sample://argentina/sectoral-source-placeholder-candidate",
+  "content_reference": "manual/local/requires-verification: optional sectoral placeholder only; no official source selected and no source content downloaded, scraped, ingested, parsed, or hash-verified.",
+  "source_version_label": "Argentina sectoral placeholder candidate (PR A)",
+  "freshness_status": "requires_review",
+  "review_status": "not_reviewed",
+  "extraction_status": "not_started",
+  "human_review_required": true,
+  "downstream_allowed": false,
+  "notes": [
+    "Snapshot placeholder for an optional Argentina sectoral source candidate.",
+    "Only placeholder capture metadata is recorded; no sectoral source has been selected or captured."
+  ],
+  "warnings": [
+    "No verifiable content hash/checksum is tied to this snapshot; fingerprint cannot be verified.",
+    "Candidate placeholder has not passed human source review and is not extraction-ready."
+  ],
+  "limitations": [
+    "No sectoral regulator, permit source, safety source, sanitary source, technical source, legal text, or source body content is included.",
+    "This snapshot is not production-ready intelligence and makes no sectoral, permit, safety, sanitary, technical, customs, or regulatory claim.",
+    "Freshness is conservative and must not be treated as current.",
+    "No downstream use is allowed."
+  ],
+  "metadata": {
+    "argentina_source_pack_pr": "PR A",
+    "candidate_status": "requires_human_review_before_capture",
+    "source_category": "argentina_sectoral_placeholder",
+    "content_ingested": false,
+    "raw_body_included": false,
+    "extraction_ready": false,
+    "export_eligible": false,
+    "production_ready": false,
+    "placeholder": true
+  },
+  "created_at": "2026-06-12T00:05:00.000Z",
+  "contract_version": "1.0.0",
+  "schema_version": "1.0.0"
+}
