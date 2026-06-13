@@ -17,6 +17,7 @@
     "ai:extract:demo": "AI_EXTRACT_MODE=demo tsx src/pipelines/ai-extract-dry-run.ts",
     "ai:extract:record-qwen-demo": "tsx src/pipelines/ai-extract-record-qwen-demo.ts",
     "ai:extract:replay-qwen-demo": "tsx src/pipelines/ai-extract-replay-qwen-demo.ts",
+    "ai:review:check:argentina-backpack": "tsx src/pipelines/check-argentina-backpack-approval-readiness.ts",
     "ai:exports:verify": "tsx src/pipelines/verify-approved-export-catalog.ts",
     "ai:exports:bundle": "tsx src/pipelines/build-approved-export-bundle.ts",
     "pcram:delta": "tsx src/pipelines/pcram-delta.ts",

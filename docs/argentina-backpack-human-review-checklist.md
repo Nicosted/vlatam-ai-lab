@@ -126,7 +126,10 @@ The reviewer may choose only one of these outcomes:
 ## PR E Readiness Checklist
 
 PR E may start only after each item below is true or explicitly bounded in the
-review record:
+review record. The repo-local readiness gate
+`pnpm ai:review:check:argentina-backpack` must pass before any approved
+artifact is created, unless the reviewer records a bounded rejection,
+request-more-data, or request-source-update outcome that keeps the case blocked:
 
 - Evidence packet reviewed for product scope, source references, warnings,
   limitations, and non-downstream status.
