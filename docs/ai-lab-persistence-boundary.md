@@ -22,6 +22,42 @@ fixtures, reports, and deterministic tests.
 Graphify may help navigate the repository, but it must not store product data,
 replace Supabase, become regulatory truth, or decide `downstream_allowed`.
 
+## Repo-first approved catalog handoff
+
+The current approved-artifact handoff path is:
+
+`approved artifact -> review manifest -> export contract -> export catalog -> future vlatam-global consumer`
+
+This path is intentionally file-first and local:
+
+- approved artifacts are versioned repository envelopes with content hashes,
+  source references, limitations, and `review_manifest_ref`;
+- review manifests record human approval, reviewer role, approval scope,
+  downstream permission, and limitations;
+- export contracts expose only reviewed artifact references, source
+  traceability, local evidence refs, and explicit no-coupling declarations;
+- the export catalog is a read-only discovery index of reviewed export
+  contracts, not a runtime registry or API route.
+
+This does not require Supabase yet because the handoff is currently static,
+reviewable in Git, deterministic under local tests, and small enough to remain
+auditable as versioned repository files. There is no live mutable review queue,
+multi-user reviewer state, API-backed lookup, runtime audit trail, background
+job state, or dynamic vlatam-global query requirement in the current phase.
+
+Graphify is not part of this source-of-truth path. It may help Codex or future
+local operators find related contracts and docs, but every handoff decision must
+be verified against repository files, schemas, review manifests, fixtures,
+reports, and tests. Graphify output cannot approve artifacts, mark entries
+downstream eligible, replace hashes, or become a vlatam-global bridge.
+
+A future Supabase-backed handoff would need a separate reviewed implementation
+plan and PR before it is allowed. At minimum, that work would need schema
+migrations, RLS and grants, service-role boundaries, no committed `.env*`
+files, deterministic tests for allowed and forbidden access, documentation of
+which repo artifacts remain authoritative, and an explicit explanation of why
+live persistence is now required.
+
 ## Persistence layers
 
 ### A. Repository and versioned files
