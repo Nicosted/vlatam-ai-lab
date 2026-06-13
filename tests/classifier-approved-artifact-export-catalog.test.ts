@@ -22,6 +22,16 @@ const schemaPath =
   "schemas/classifier-approved-artifact-export-catalog.schema.json";
 const validFixturePath =
   "snapshots/pcram/demo-classifier-approved-artifact-export-catalog.json";
+const argentinaCandidateMarkers = [
+  "ar-customs-tariff-authority-candidate",
+  "mercosur-ncm-source-candidate",
+  "wco-hs-source-candidate",
+  "ar-sectoral-source-placeholder-candidate",
+  "snapshot-ar-customs-tariff-authority-candidate",
+  "snapshot-mercosur-ncm-source-candidate",
+  "snapshot-wco-hs-source-candidate",
+  "snapshot-ar-sectoral-placeholder-candidate",
+];
 
 async function readJsonFixture(
   relativePath: string,
@@ -196,6 +206,19 @@ test("catalog index metadata is explicit and versioned", async () => {
     "classifier_approved_artifact_export_discovery",
   );
   assert.deepEqual(catalog["consumer_scope"], ["vLatamGlobal"]);
+});
+
+test("catalog does not expose Argentina source candidates", async () => {
+  const catalog = await assertCatalogValid();
+  const serialized = JSON.stringify(catalog);
+
+  for (const marker of argentinaCandidateMarkers) {
+    assert.equal(
+      serialized.includes(marker),
+      false,
+      `Catalog must not include candidate marker ${marker}`,
+    );
+  }
 });
 
 test("every catalog entry references existing export contract and artifact files", async () => {

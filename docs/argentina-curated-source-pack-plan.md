@@ -216,6 +216,17 @@ selected Argentina use case. Keep all real content absent, all unreviewed
 records non-downstream-safe, and all placeholders explicitly labelled
 `manual/local/requires-verification` or equivalent.
 
+Status: PR A adds candidate registry fixtures and snapshot placeholders only
+for Argentina customs/tariff authority, MERCOSUR/NCM, WCO/HS, and an optional
+Argentina sectoral placeholder. These records are unreviewed, conservative,
+non-downstream-safe, not extraction-ready, and not production-ready
+intelligence. They do not contain raw source body content, hashes, approved
+artifacts, export contracts, bundle updates, runtime code, Supabase work,
+migrations, env vars, provider changes, Graphify output, or vLatamGlobal bridge
+changes. PR B is still required before bounded source snapshots can carry
+verified metadata, version-pinned capture references, and genuine hashes or
+reviewed hash limitations.
+
 ### PR B: first bounded source snapshots with hashes/metadata
 
 Add bounded snapshots for the selected source versions after human-approved

@@ -1,0 +1,44 @@
+{
+  "snapshot_id": "snapshot-wco-hs-source-candidate-2026-06-12t000000z",
+  "source_id": "wco-hs-source-candidate",
+  "captured_at": "2026-06-12T00:00:00.000Z",
+  "capture_method": "local_fixture",
+  "capture_origin": "human",
+  "capture_actor": "ai-lab-source-curator",
+  "source_locator": "https://www.wcoomd.org/en/topics/nomenclature/instrument-and-tools/hs-nomenclature-2022-edition.aspx",
+  "official_url": "https://www.wcoomd.org/en/topics/nomenclature/instrument-and-tools/hs-nomenclature-2022-edition.aspx",
+  "content_reference": "manual/local/requires-verification: candidate placeholder only; source content not downloaded, scraped, ingested, parsed, or hash-verified.",
+  "source_version_label": "WCO HS source candidate placeholder (PR A)",
+  "freshness_status": "requires_review",
+  "review_status": "not_reviewed",
+  "extraction_status": "not_started",
+  "human_review_required": true,
+  "downstream_allowed": false,
+  "notes": [
+    "Snapshot placeholder for a WCO/HS source candidate.",
+    "Only placeholder capture metadata is recorded; no live source content was fetched or stored."
+  ],
+  "warnings": [
+    "No verifiable content hash/checksum is tied to this snapshot; fingerprint cannot be verified.",
+    "Candidate placeholder has not passed human source review and is not extraction-ready."
+  ],
+  "limitations": [
+    "No HS headings, notes, explanatory material, correlation material, classification content, or source body content are included.",
+    "This snapshot is not production-ready intelligence and makes no HS, tariff, classification, legal, or regulatory claim.",
+    "Freshness is conservative and must not be treated as current.",
+    "No downstream use is allowed."
+  ],
+  "metadata": {
+    "argentina_source_pack_pr": "PR A",
+    "candidate_status": "requires_human_review_before_capture",
+    "source_category": "wco_hs",
+    "content_ingested": false,
+    "raw_body_included": false,
+    "extraction_ready": false,
+    "export_eligible": false,
+    "production_ready": false
+  },
+  "created_at": "2026-06-12T00:05:00.000Z",
+  "contract_version": "1.0.0",
+  "schema_version": "1.0.0"
+}

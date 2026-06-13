@@ -6,6 +6,12 @@ import test from "node:test";
 import type { ValidateFunction } from "ajv";
 
 import { readUtf8File } from "../src/lib/fs.js";
+import {
+  deriveSnapshotReviewGate,
+  isSnapshotDownstreamAllowed,
+  isSnapshotExtractionReady,
+} from "../src/intelligence/snapshot-capture.js";
+import type { SourceSnapshot } from "../src/intelligence/types.js";
 
 const require = createRequire(import.meta.url);
 const Ajv2020 = require("ajv/dist/2020") as new (options?: {
@@ -96,6 +102,35 @@ const officialSnapshotFixtures = [
   "snapshots/pcram/intelligence-source-snapshot-ar-arca-arancel-official.json",
 ];
 
+const argentinaCandidateSnapshotFixtures = [
+  "snapshots/pcram/intelligence-source-snapshot-ar-customs-tariff-candidate.json",
+  "snapshots/pcram/intelligence-source-snapshot-mercosur-ncm-candidate.json",
+  "snapshots/pcram/intelligence-source-snapshot-wco-hs-candidate.json",
+  "snapshots/pcram/intelligence-source-snapshot-ar-sectoral-placeholder-candidate.json",
+];
+
+const forbiddenCandidatePatterns: RegExp[] = [
+  /process\.env/i,
+  /\$\{[^}]*\}/,
+  /\$[A-Z][A-Z0-9_]+/,
+  /\b[A-Z][A-Z0-9_]*(?:API|PROJECT|SERVICE|ANON)?_KEY\b/,
+  /(^|[/\\])\.env(?:\b|[._-])/i,
+  /\bsupabase\b/i,
+  /project[_-]?ref/i,
+  /service[_-]?role/i,
+  /anon[_-]?key/i,
+  /api[_-]?key/i,
+  /authorization/i,
+  /bearer\s+[a-z0-9._-]+/i,
+  /credential/i,
+  /provider[_-]?metadata/i,
+  /model[_-]?provider/i,
+  /raw[_-]?llm/i,
+  /\/Users\//i,
+  /\/private\//i,
+  /\/home\//i,
+];
+
 for (const fixture of officialSnapshotFixtures) {
   test(`official-source snapshot fixture passes validation: ${fixture}`, async () => {
     const validate = await buildValidator();
@@ -114,6 +149,49 @@ test("official-source snapshots are conservative and not downstream-safe", async
     assert.equal(sample.review_status, "not_reviewed", fixture);
     assert.equal(sample.extraction_status, "not_started", fixture);
     assert.notEqual(sample.freshness_status, "current", fixture);
+  }
+});
+
+for (const fixture of argentinaCandidateSnapshotFixtures) {
+  test(`Argentina candidate snapshot fixture passes validation: ${fixture}`, async () => {
+    const validate = await buildValidator();
+    const sample = await readJsonFixture(fixture);
+
+    assert.equal(validate(sample), true);
+  });
+}
+
+test("Argentina candidate snapshots require review before extraction or downstream use", async () => {
+  for (const fixture of argentinaCandidateSnapshotFixtures) {
+    const sample = await readJsonFixture(fixture);
+    const snapshot = sample as unknown as SourceSnapshot;
+    const metadata = sample["metadata"] as Record<string, unknown>;
+
+    assert.equal(sample["freshness_status"], "requires_review", fixture);
+    assert.equal(sample["review_status"], "not_reviewed", fixture);
+    assert.equal(sample["extraction_status"], "not_started", fixture);
+    assert.equal(sample["human_review_required"], true, fixture);
+    assert.equal(sample["downstream_allowed"], false, fixture);
+    assert.equal(metadata["candidate_status"], "requires_human_review_before_capture", fixture);
+    assert.equal(metadata["content_ingested"], false, fixture);
+    assert.equal(metadata["raw_body_included"], false, fixture);
+    assert.equal(metadata["extraction_ready"], false, fixture);
+    assert.equal(metadata["export_eligible"], false, fixture);
+    assert.equal(metadata["production_ready"], false, fixture);
+    assert.equal(deriveSnapshotReviewGate(snapshot), "review_required", fixture);
+    assert.equal(isSnapshotExtractionReady(snapshot), false, fixture);
+    assert.equal(isSnapshotDownstreamAllowed(snapshot), false, fixture);
+  }
+});
+
+test("Argentina candidate snapshots contain no live coupling, secret, provider, raw output, or local path markers", async () => {
+  for (const fixture of argentinaCandidateSnapshotFixtures) {
+    const sample = await readJsonFixture(fixture);
+    const serialized = JSON.stringify(sample);
+
+    for (const pattern of forbiddenCandidatePatterns) {
+      assert.equal(pattern.test(serialized), false, `${fixture} contains ${pattern}`);
+    }
   }
 });
 

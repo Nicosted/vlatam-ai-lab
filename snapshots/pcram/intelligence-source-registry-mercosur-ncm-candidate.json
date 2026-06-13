@@ -1,0 +1,49 @@
+{
+  "source_id": "mercosur-ncm-source-candidate",
+  "source_name": "MERCOSUR NCM/AEC Source Candidate",
+  "source_type": "mercosur_norm",
+  "authority_level": "unknown",
+  "reliability_level": "unknown",
+  "jurisdiction_scope": "regional",
+  "regional_scope": "MERCOSUR",
+  "topic_scope": [
+    "regional_nomenclature",
+    "ncm",
+    "common_external_tariff",
+    "source_candidate"
+  ],
+  "language": "es",
+  "source_locator": "https://www.mercosur.int/",
+  "official_url": "https://www.mercosur.int/",
+  "verification_status": "unverified_sample",
+  "expected_update_cadence": { "label": "unknown" },
+  "freshness_status": "requires_review",
+  "human_review_required": true,
+  "downstream_allowed": false,
+  "notes": [
+    "Candidate registry placeholder for the MERCOSUR/NCM layer of the first Argentina curated source pack.",
+    "The locator is an official-source-style public portal reference copied from existing repository source metadata; it is not a reviewed source-version capture in this candidate record.",
+    "No NCM tables, AEC rates, resolutions, decisions, or national incorporation records are ingested or represented here."
+  ],
+  "limitations": [
+    "Candidate only: source identity, locator scope, version scope, and capture method require human review before extraction or export eligibility.",
+    "Freshness is conservative and must not be treated as current.",
+    "This record is not production-ready intelligence and makes no tariff, classification, regional-law, or national-incorporation claim.",
+    "No downstream use is allowed."
+  ],
+  "metadata": {
+    "contract_version": "1.0.0",
+    "argentina_source_pack_pr": "PR A",
+    "candidate_status": "requires_human_review_before_source_verification",
+    "source_category": "mercosur_ncm",
+    "issuing_authority_candidate": "MERCOSUR",
+    "content_ingested": false,
+    "snapshot_placeholder_only": true,
+    "extraction_ready": false,
+    "export_eligible": false,
+    "production_ready": false
+  },
+  "created_at": "2026-06-12T00:00:00.000Z",
+  "updated_at": "2026-06-12T00:00:00.000Z",
+  "schema_version": "1.0.0"
+}
