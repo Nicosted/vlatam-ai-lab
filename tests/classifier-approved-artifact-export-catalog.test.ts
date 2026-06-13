@@ -91,6 +91,92 @@ function firstIndexedArtifact(
   return artifacts[0] as Record<string, unknown>;
 }
 
+function stringArray(value: unknown, label: string): string[] {
+  assert.ok(Array.isArray(value), `${label} must be an array`);
+
+  return value.map((item) => String(item));
+}
+
+function sourceTraceability(
+  indexedArtifact: Record<string, unknown>,
+): Record<string, unknown> {
+  const traceability = indexedArtifact["source_traceability"];
+
+  assert.equal(typeof traceability, "object");
+  assert.notEqual(traceability, null);
+
+  return traceability as Record<string, unknown>;
+}
+
+function assertRepoRelativePath(value: string, label: string): void {
+  assert.equal(path.isAbsolute(value), false, `${label} must be relative`);
+  assert.equal(path.posix.isAbsolute(value), false, `${label} must be relative`);
+  assert.equal(value.startsWith("~"), false, `${label} must not use home refs`);
+  assert.equal(value.includes("\\"), false, `${label} must use POSIX paths`);
+  assert.equal(value.includes(".."), false, `${label} must not traverse`);
+  assert.equal(
+    /^[a-z][a-z0-9+.-]*:/i.test(value),
+    false,
+    `${label} must not use URL or protocol refs`,
+  );
+  assert.equal(
+    value,
+    path.posix.normalize(value),
+    `${label} must be deterministic`,
+  );
+}
+
+function assertNoRuntimeCoupling(value: unknown, label: string): void {
+  const serialized = JSON.stringify(value);
+
+  for (const forbidden of [
+    /https?:\/\//i,
+    /supabase/i,
+    /process\.env/i,
+    /\$\{[^}]*\}/,
+    /\$[A-Z][A-Z0-9_]+/,
+    /project[_-]?ref/i,
+    /service[_-]?role/i,
+    /anon[_-]?key/i,
+    /api[_-]?key/i,
+    /authorization/i,
+    /bearer\s+[a-z0-9._-]+/i,
+    /credential/i,
+    /provider[_-]?metadata/i,
+    /model[_-]?provider/i,
+  ]) {
+    assert.equal(
+      forbidden.test(serialized),
+      false,
+      `${label} must not contain ${forbidden}`,
+    );
+  }
+}
+
+function reviewManifestRefPath(indexedArtifact: Record<string, unknown>): string {
+  const traceability = sourceTraceability(indexedArtifact);
+  const evidenceRefs = stringArray(traceability["evidence_refs"], "evidence_refs");
+  const reviewManifestRefs = evidenceRefs.filter((ref) =>
+    ref.endsWith("-review-manifest.json"),
+  );
+
+  assert.equal(reviewManifestRefs.length, 1);
+  const [reviewManifestRef] = reviewManifestRefs;
+  if (reviewManifestRef === undefined) {
+    throw new Error("Expected one review manifest ref");
+  }
+
+  return reviewManifestRef;
+}
+
+async function assertExistingRepoRelativeFile(
+  relativePath: string,
+  label: string,
+): Promise<void> {
+  assertRepoRelativePath(relativePath, label);
+  await fileExists(relativePath);
+}
+
 test("export catalog fixture is schema-valid", async () => {
   await assertCatalogValid();
 });
@@ -140,6 +226,72 @@ test("every catalog entry references existing export contract and artifact files
   }
 });
 
+test("catalog handoff paths are repository-relative and deterministic", async () => {
+  const catalog = await assertCatalogValid();
+
+  for (const entry of catalogEntries(catalog)) {
+    const exportContractRef = String(entry["export_contract_ref"]);
+    const artifactRef = String(entry["artifact_ref"]);
+
+    await assertExistingRepoRelativeFile(exportContractRef, "export_contract_ref");
+    await assertExistingRepoRelativeFile(artifactRef, "artifact_ref");
+
+    const exportContract = await readJsonFixture(exportContractRef);
+    const indexedArtifact = firstIndexedArtifact(exportContract);
+    const traceability = sourceTraceability(indexedArtifact);
+    const approvedArtifact = await readJsonFixture(artifactRef);
+
+    const handoffRefs = [
+      String(traceability["content_ref"]),
+      ...stringArray(traceability["evidence_refs"], "evidence_refs"),
+      String(approvedArtifact["content_ref"]),
+      ...stringArray(approvedArtifact["evidence_refs"], "artifact evidence_refs"),
+    ];
+
+    for (const [index, handoffRef] of handoffRefs.entries()) {
+      await assertExistingRepoRelativeFile(handoffRef, `handoff ref ${index}`);
+    }
+  }
+});
+
+test("approved artifacts are backed by explicit human review manifests", async () => {
+  const catalog = await assertCatalogValid();
+
+  for (const entry of catalogEntries(catalog)) {
+    const exportContract = await readJsonFixture(
+      String(entry["export_contract_ref"]),
+    );
+    const indexedArtifact = firstIndexedArtifact(exportContract);
+    const traceability = sourceTraceability(indexedArtifact);
+    const approvedArtifact = await readJsonFixture(String(entry["artifact_ref"]));
+    const reviewManifestPath = reviewManifestRefPath(indexedArtifact);
+    const reviewManifest = await readJsonFixture(reviewManifestPath);
+
+    assert.equal(
+      traceability["review_manifest_ref"],
+      approvedArtifact["review_manifest_ref"],
+    );
+    assert.equal(
+      reviewManifest["review_manifest_id"],
+      approvedArtifact["review_manifest_ref"],
+    );
+    assert.equal(reviewManifest["review_status"], "approved");
+    assert.equal(reviewManifest["reviewed_by"], "human-review-gate");
+    assert.equal(reviewManifest["review_method"], "manual");
+    assert.equal(reviewManifest["downstream_allowed"], true);
+
+    const approvalScope = reviewManifest["approval_scope"] as Record<
+      string,
+      unknown
+    >;
+    assert.deepEqual(approvalScope["allowed_consumers"], ["vLatamGlobal"]);
+    assert.deepEqual(
+      stringArray(approvalScope["country_scope"], "review country_scope"),
+      stringArray(entry["country_scope"], "entry country_scope"),
+    );
+  }
+});
+
 test("downstream-eligible catalog entries are reviewed and approved", async () => {
   const catalog = await assertCatalogValid();
 
@@ -169,6 +321,22 @@ test("downstream-eligible catalog entries are reviewed and approved", async () =
   }
 });
 
+test("export contracts bind approved artifact content hashes", async () => {
+  const catalog = await assertCatalogValid();
+
+  for (const entry of catalogEntries(catalog)) {
+    const exportContract = await readJsonFixture(
+      String(entry["export_contract_ref"]),
+    );
+    const indexedArtifact = firstIndexedArtifact(exportContract);
+    const traceability = sourceTraceability(indexedArtifact);
+    const contentRef = String(traceability["content_ref"]);
+    const expectedHash = await sha256OfFile(contentRef);
+
+    assert.equal(traceability["content_hash"], `sha256:${expectedHash}`);
+  }
+});
+
 test("catalog hash references bind to the referenced export contract file", async () => {
   const catalog = await assertCatalogValid();
 
@@ -178,6 +346,50 @@ test("catalog hash references bind to the referenced export contract file", asyn
     );
 
     assert.equal(entry["export_contract_hash"], `sha256:${expectedHash}`);
+  }
+});
+
+test("demo export fixtures remain local and not production-ready", async () => {
+  const catalog = await assertCatalogValid();
+
+  for (const entry of catalogEntries(catalog)) {
+    const exportContract = await readJsonFixture(
+      String(entry["export_contract_ref"]),
+    );
+    const indexedArtifact = firstIndexedArtifact(exportContract);
+    const approvedArtifact = await readJsonFixture(String(entry["artifact_ref"]));
+    const reviewManifest = await readJsonFixture(
+      reviewManifestRefPath(indexedArtifact),
+    );
+
+    assert.equal(exportContract["export_scope"], "classifier_approved_artifact_demo");
+    assert.match(
+      stringArray(exportContract["limitations"], "contract limitations").join(
+        " ",
+      ),
+      /Local export contract fixture only; not a production API route or live integration\./,
+    );
+    assert.match(
+      stringArray(approvedArtifact["limitations"], "artifact limitations").join(
+        " ",
+      ),
+      /not a final legal|not a final classification|not a final legal, tariff, customs, or operational/i,
+    );
+
+    const artifactMetadata = approvedArtifact["metadata"] as Record<
+      string,
+      unknown
+    >;
+    assert.equal(artifactMetadata["environment"], "local");
+
+    const approvalScope = reviewManifest["approval_scope"] as Record<
+      string,
+      unknown
+    >;
+    assert.match(
+      String(approvalScope["validity_notes"]),
+      /demo intelligence|not approved as a final/i,
+    );
   }
 });
 
@@ -192,6 +404,44 @@ test("catalog declares a read-only, no-coupling integration boundary", async () 
   assert.equal(boundary["production_api_route"], false);
   assert.equal(boundary["runtime_writeback"], false);
   assert.equal(boundary["raw_llm_output_included"], false);
+});
+
+test("catalog and contracts do not carry runtime, env, Supabase, or provider coupling", async () => {
+  const catalog = await assertCatalogValid();
+
+  assertNoRuntimeCoupling(catalog, "export catalog");
+
+  for (const entry of catalogEntries(catalog)) {
+    assertNoRuntimeCoupling(entry, `catalog entry ${String(entry["entry_id"])}`);
+
+    const exportContract = await readJsonFixture(
+      String(entry["export_contract_ref"]),
+    );
+    const indexedArtifact = firstIndexedArtifact(exportContract);
+
+    assertNoRuntimeCoupling(
+      exportContract,
+      `export contract ${String(exportContract["contract_id"])}`,
+    );
+
+    const boundary = exportContract["integration_boundary"] as Record<
+      string,
+      unknown
+    >;
+    assert.equal(boundary["integration_mode"], "local_export_fixture");
+    assert.equal(boundary["read_only"], true);
+    assert.equal(boundary["live_integration"], false);
+    assert.equal(boundary["shared_database_coupling"], false);
+    assert.equal(boundary["production_api_route"], false);
+    assert.equal(boundary["runtime_writeback"], false);
+    assert.equal(boundary["raw_llm_output_included"], false);
+
+    const traceability = sourceTraceability(indexedArtifact);
+    assertNoRuntimeCoupling(
+      traceability,
+      `source traceability ${String(indexedArtifact["artifact_id"])}`,
+    );
+  }
 });
 
 test("unreviewed catalog entries cannot be marked downstream eligible", async () => {
