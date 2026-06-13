@@ -55,3 +55,5 @@ Initial objective: establish a minimal and safe foundation for regulatory intell
 - Persistence boundary: `docs/ai-lab-persistence-boundary.md`.
 - Approved export bundle consumer contract:
   `docs/approved-export-bundle-consumer-contract.md`.
+- Argentina curated source pack plan:
+  `docs/argentina-curated-source-pack-plan.md`.
