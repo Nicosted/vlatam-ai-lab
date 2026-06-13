@@ -40,6 +40,15 @@ const argentinaCandidateMarkers = [
   "snapshot-ar-sectoral-placeholder-candidate",
 ];
 
+const argentinaBoundedSnapshotMarkers = [
+  "snapshot-ar-customs-tariff-authority-bounded",
+  "snapshot-mercosur-ncm-source-bounded",
+  "snapshot-wco-hs-source-bounded",
+  "intelligence-source-snapshot-ar-customs-tariff-bounded",
+  "intelligence-source-snapshot-mercosur-ncm-bounded",
+  "intelligence-source-snapshot-wco-hs-bounded",
+];
+
 async function createFixtureRepo(): Promise<string> {
   const repoRoot = await mkdtemp(
     path.join(os.tmpdir(), "ai-lab-approved-export-bundle-"),
@@ -171,6 +180,27 @@ test("approved export bundle excludes Argentina source candidates", async () => 
         content.includes(marker),
         false,
         `Bundle must not include candidate marker ${marker}`,
+      );
+    }
+  } finally {
+    await rm(repoRoot, { recursive: true, force: true });
+  }
+});
+
+test("approved export bundle excludes Argentina bounded source snapshots", async () => {
+  const repoRoot = await createFixtureRepo();
+
+  try {
+    await buildApprovedExportBundle({ repoRoot });
+    const content = await readUtf8File(
+      path.join(repoRoot, defaultOutputDir, "index.json"),
+    );
+
+    for (const marker of argentinaBoundedSnapshotMarkers) {
+      assert.equal(
+        content.includes(marker),
+        false,
+        `Bundle must not include bounded snapshot marker ${marker}`,
       );
     }
   } finally {
