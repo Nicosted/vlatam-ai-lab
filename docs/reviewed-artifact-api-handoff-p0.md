@@ -15,6 +15,9 @@ Define the future API boundary for reviewed intelligence artifacts.
 
 - vLatamGlobal must not consume raw unreviewed deltas by default.
 - Only reviewed artifacts can be exposed by the future API.
+- Today, AI Lab can locally validate the reviewed export catalog with
+  `pnpm ai:exports:verify` and generate a deterministic repo-local handoff index
+  with `pnpm ai:exports:bundle`.
 - Future API handoff should expose approved artifact envelopes conforming to `approved-artifact.schema.json`.
 - Once `evidence-report-metadata.schema.json` is implemented, evidence markdown should be exposed via metadata/reference fields, not embedded as raw body in envelope payloads.
 - Internal agent state must not be exposed.
@@ -60,6 +63,12 @@ Future note: once `review-manifest.schema.json` is implemented, reviewed artifac
 - `downstream_allowed`
 
 ## API consumer contract
+
+The current generated bundle at `exports/approved-catalog/index.json` is a
+local, repo-first artifact export index only. It is not an API implementation,
+live bridge, database sync, or vLatamGlobal integration. Future vLatamGlobal
+consumption must remain read-only and contract-based until explicitly integrated
+in a reviewed runtime change.
 
 A future consumer may request:
 
