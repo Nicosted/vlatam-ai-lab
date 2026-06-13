@@ -283,6 +283,12 @@ does not claim a final NCM/HS classification or customs/legal determination.
 PR E must still create any reviewed/approved artifact after actual human
 review. No approved/exportable Argentina artifact exists yet.
 
+Before PR E can create any approved artifact, reviewers must complete the
+Argentina backpack human review checklist
+(`docs/argentina-backpack-human-review-checklist.md`). That checklist defines
+the product facts, source adequacy checks, approval blockers, allowed outcomes,
+and PR E readiness gates for the bounded demo backpack use case.
+
 ### PR E: approved artifact and export contract
 
 Create the first approved Argentina artifact only if human review approves the
