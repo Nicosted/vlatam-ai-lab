@@ -1,0 +1,502 @@
+{
+  ".claude/settings.local.json": {
+    "mtime": 1780792345.2637513,
+    "ast_hash": "0936bdfba5cdccaa28bf9c2277073ec7",
+    "semantic_hash": "0936bdfba5cdccaa28bf9c2277073ec7"
+  },
+  "eslint.config.mjs": {
+    "mtime": 1780614478.7657552,
+    "ast_hash": "f724c7509d4568ec3dda4975da51b449",
+    "semantic_hash": "f724c7509d4568ec3dda4975da51b449"
+  },
+  "exports/approved-catalog/index.json": {
+    "mtime": 1781360682.5500982,
+    "ast_hash": "d2b581fcdb255a774ad8e77c2015636a",
+    "semantic_hash": "d2b581fcdb255a774ad8e77c2015636a"
+  },
+  "exports/review-outcomes/argentina-backpack-request-more-data.json": {
+    "mtime": 1781361524.3344371,
+    "ast_hash": "2a66d49d31a4bb5b783be2ed10d46b55",
+    "semantic_hash": "2a66d49d31a4bb5b783be2ed10d46b55"
+  },
+  "package.json": {
+    "mtime": 1781361524.334653,
+    "ast_hash": "cd060f55bea1adf0f55db2b71d8b3bce",
+    "semantic_hash": "cd060f55bea1adf0f55db2b71d8b3bce"
+  },
+  "schemas/ai-extraction-job.schema.json": {
+    "mtime": 1780751420.9177854,
+    "ast_hash": "9267b49bfe2f3c53e06baf6b1bff3e26",
+    "semantic_hash": "9267b49bfe2f3c53e06baf6b1bff3e26"
+  },
+  "schemas/ai-extraction-result.schema.json": {
+    "mtime": 1780772195.9629745,
+    "ast_hash": "19b346921bdb9ec2aa753306805be632",
+    "semantic_hash": "19b346921bdb9ec2aa753306805be632"
+  },
+  "schemas/approved-artifact.schema.json": {
+    "mtime": 1780614478.7674048,
+    "ast_hash": "018cde3a39810accb26ca7a9f8695be5",
+    "semantic_hash": "018cde3a39810accb26ca7a9f8695be5"
+  },
+  "schemas/approved-kb-snapshot.schema.json": {
+    "mtime": 1780614478.7675123,
+    "ast_hash": "97b94d07e8114efcc123e455cd0299f8",
+    "semantic_hash": "97b94d07e8114efcc123e455cd0299f8"
+  },
+  "schemas/broker-profile.schema.json": {
+    "mtime": 1780614478.76765,
+    "ast_hash": "db85677eea06a40ffc8473ef2fb18c8c",
+    "semantic_hash": "db85677eea06a40ffc8473ef2fb18c8c"
+  },
+  "schemas/classifier-approved-artifact-export-catalog.schema.json": {
+    "mtime": 1780663379.4563813,
+    "ast_hash": "886bfed712363763328a12263f852156",
+    "semantic_hash": "886bfed712363763328a12263f852156"
+  },
+  "schemas/classifier-approved-artifact-export-contract.schema.json": {
+    "mtime": 1780618617.5281382,
+    "ast_hash": "390f04d04457136ecb3e2ad0f2f1805c",
+    "semantic_hash": "390f04d04457136ecb3e2ad0f2f1805c"
+  },
+  "schemas/classifier-intelligence-artifact.schema.json": {
+    "mtime": 1780793294.9526436,
+    "ast_hash": "e4d750eeb50e9726eb6a6f94a6313d8b",
+    "semantic_hash": "e4d750eeb50e9726eb6a6f94a6313d8b"
+  },
+  "schemas/evidence-report-metadata.schema.json": {
+    "mtime": 1780614478.76777,
+    "ast_hash": "67ba3e8002d00d8292f3f6d5413d2fa0",
+    "semantic_hash": "67ba3e8002d00d8292f3f6d5413d2fa0"
+  },
+  "schemas/extractable-evidence-packet.schema.json": {
+    "mtime": 1780759823.69221,
+    "ast_hash": "1547f53bb0dd69a748636aa3b4e204ab",
+    "semantic_hash": "1547f53bb0dd69a748636aa3b4e204ab"
+  },
+  "schemas/intelligence-source-registry.schema.json": {
+    "mtime": 1780751420.9179218,
+    "ast_hash": "e8b218addd03564e7548c669dbb1375a",
+    "semantic_hash": "e8b218addd03564e7548c669dbb1375a"
+  },
+  "schemas/intelligence-source-snapshot.schema.json": {
+    "mtime": 1780755795.4818878,
+    "ast_hash": "01776f4759e6825172e6a5b82fa2a7a3",
+    "semantic_hash": "01776f4759e6825172e6a5b82fa2a7a3"
+  },
+  "schemas/jurisdiction-pack.schema.json": {
+    "mtime": 1780614478.7678847,
+    "ast_hash": "fef85b8ea0d3dd602c6bbe5f84899278",
+    "semantic_hash": "fef85b8ea0d3dd602c6bbe5f84899278"
+  },
+  "schemas/pcram-delta.schema.json": {
+    "mtime": 1780614478.7679749,
+    "ast_hash": "7b4b020c9dbc5844e81ee276c60ca41a",
+    "semantic_hash": "7b4b020c9dbc5844e81ee276c60ca41a"
+  },
+  "schemas/pcram-source-snapshot.schema.json": {
+    "mtime": 1780614478.768066,
+    "ast_hash": "183b7170a8e2ec157fe830dd54f0ae11",
+    "semantic_hash": "183b7170a8e2ec157fe830dd54f0ae11"
+  },
+  "schemas/relevance-assessment.schema.json": {
+    "mtime": 1780614478.7681603,
+    "ast_hash": "adb52fb9d1bf77789cb130241c2e6365",
+    "semantic_hash": "adb52fb9d1bf77789cb130241c2e6365"
+  },
+  "schemas/review-manifest.schema.json": {
+    "mtime": 1780614478.7682471,
+    "ast_hash": "3d7b147b56964920ffc2728f62d6d77d",
+    "semantic_hash": "3d7b147b56964920ffc2728f62d6d77d"
+  },
+  "schemas/review-outcome.schema.json": {
+    "mtime": 1781360025.9251404,
+    "ast_hash": "343cd945e60bd9af8a8cca5de2a8a98f",
+    "semantic_hash": "343cd945e60bd9af8a8cca5de2a8a98f"
+  },
+  "schemas/schema-registry.json": {
+    "mtime": 1780793294.9529119,
+    "ast_hash": "8fd22b6dfdc9d097e8204dffedac2294",
+    "semantic_hash": "8fd22b6dfdc9d097e8204dffedac2294"
+  },
+  "schemas/snapshot-review-manifest.schema.json": {
+    "mtime": 1780759823.6926317,
+    "ast_hash": "72d5e55826a20951c09d73492c46a558",
+    "semantic_hash": "72d5e55826a20951c09d73492c46a558"
+  },
+  "schemas/source-version.schema.json": {
+    "mtime": 1780614478.76847,
+    "ast_hash": "81779a2d5e944d7fa56dec44aa3ab350",
+    "semantic_hash": "81779a2d5e944d7fa56dec44aa3ab350"
+  },
+  "src/intelligence/ai-extraction-provider.ts": {
+    "mtime": 1780772195.964888,
+    "ast_hash": "75cd4da5c51434abc534d60cee048cd3",
+    "semantic_hash": "75cd4da5c51434abc534d60cee048cd3"
+  },
+  "src/intelligence/ai-extraction-workflow.ts": {
+    "mtime": 1780785175.6645753,
+    "ast_hash": "a9c249744260988f1aff964e72bbd973",
+    "semantic_hash": "a9c249744260988f1aff964e72bbd973"
+  },
+  "src/intelligence/argentina-backpack-approval-readiness.ts": {
+    "mtime": 1781358463.2561853,
+    "ast_hash": "bed21d2b3dd3ae82f48d9b5193a10d1e",
+    "semantic_hash": "bed21d2b3dd3ae82f48d9b5193a10d1e"
+  },
+  "src/intelligence/embedded-evidence-demo-provider.ts": {
+    "mtime": 1780785175.6648128,
+    "ast_hash": "0cc3a9457605226ae02afb8dd63b1601",
+    "semantic_hash": "0cc3a9457605226ae02afb8dd63b1601"
+  },
+  "src/intelligence/evidence-preparation.ts": {
+    "mtime": 1780759823.6950228,
+    "ast_hash": "7472666454b0db14e927809fb22a2e4c",
+    "semantic_hash": "7472666454b0db14e927809fb22a2e4c"
+  },
+  "src/intelligence/freshness.ts": {
+    "mtime": 1780751420.920408,
+    "ast_hash": "d0fc93f7d82236f3350a968c423a45fb",
+    "semantic_hash": "d0fc93f7d82236f3350a968c423a45fb"
+  },
+  "src/intelligence/qwen-dashscope-provider.ts": {
+    "mtime": 1780786816.4641755,
+    "ast_hash": "cb2955f51cd4464b16902e6838438372",
+    "semantic_hash": "cb2955f51cd4464b16902e6838438372"
+  },
+  "src/intelligence/qwen-recorded-fixture-io.ts": {
+    "mtime": 1780786816.4643645,
+    "ast_hash": "abce157eee0164d34bb62f21c2296fc5",
+    "semantic_hash": "abce157eee0164d34bb62f21c2296fc5"
+  },
+  "src/intelligence/recorded-qwen-response-provider.ts": {
+    "mtime": 1780786816.464541,
+    "ast_hash": "c7e812d9176f7295922e64a087d9c71e",
+    "semantic_hash": "c7e812d9176f7295922e64a087d9c71e"
+  },
+  "src/intelligence/snapshot-capture.ts": {
+    "mtime": 1780755795.484239,
+    "ast_hash": "c5a39a2f10ecf12367e459df5b9a980a",
+    "semantic_hash": "c5a39a2f10ecf12367e459df5b9a980a"
+  },
+  "src/intelligence/source-onboarding.ts": {
+    "mtime": 1780754409.402898,
+    "ast_hash": "efb17e89da8e89da3cdbc1034b59e6ed",
+    "semantic_hash": "efb17e89da8e89da3cdbc1034b59e6ed"
+  },
+  "src/intelligence/source-registry.ts": {
+    "mtime": 1780751420.9205477,
+    "ast_hash": "681b37af0e8f94d0f45675678e6e8703",
+    "semantic_hash": "681b37af0e8f94d0f45675678e6e8703"
+  },
+  "src/intelligence/types.ts": {
+    "mtime": 1780759823.6952696,
+    "ast_hash": "1903d0102d615c066fe034361fab40e7",
+    "semantic_hash": "1903d0102d615c066fe034361fab40e7"
+  },
+  "src/lib/date.ts": {
+    "mtime": 1780614478.7724113,
+    "ast_hash": "16763ae65965d5f6b0c9a68b517a5142",
+    "semantic_hash": "16763ae65965d5f6b0c9a68b517a5142"
+  },
+  "src/lib/fs.ts": {
+    "mtime": 1780614478.772514,
+    "ast_hash": "75f135cbba78124bbafea6ab0b63620b",
+    "semantic_hash": "75f135cbba78124bbafea6ab0b63620b"
+  },
+  "src/pcram/generate-delta.ts": {
+    "mtime": 1780614478.772692,
+    "ast_hash": "e2738b40c6f24d74f5a20cb999683502",
+    "semantic_hash": "e2738b40c6f24d74f5a20cb999683502"
+  },
+  "src/pcram/render-evidence-report.ts": {
+    "mtime": 1780614478.7728,
+    "ast_hash": "2c1369e9c8832823d2e690536a68cd43",
+    "semantic_hash": "2c1369e9c8832823d2e690536a68cd43"
+  },
+  "src/pcram/validate-source-snapshot.ts": {
+    "mtime": 1780614478.772904,
+    "ast_hash": "197d80f37e901e24679e5eec2578ff00",
+    "semantic_hash": "197d80f37e901e24679e5eec2578ff00"
+  },
+  "src/pipelines/ai-extract-dry-run.ts": {
+    "mtime": 1780785175.665322,
+    "ast_hash": "451aa364d424c7b42afbb95c4e1149ae",
+    "semantic_hash": "451aa364d424c7b42afbb95c4e1149ae"
+  },
+  "src/pipelines/ai-extract-record-qwen-demo.ts": {
+    "mtime": 1780786816.4647267,
+    "ast_hash": "fae7d2debd50d94856c35fd9a6dce745",
+    "semantic_hash": "fae7d2debd50d94856c35fd9a6dce745"
+  },
+  "src/pipelines/ai-extract-replay-qwen-demo.ts": {
+    "mtime": 1780786816.464869,
+    "ast_hash": "46e1159899f9cca743b11438efb36a13",
+    "semantic_hash": "46e1159899f9cca743b11438efb36a13"
+  },
+  "src/pipelines/build-approved-export-bundle.ts": {
+    "mtime": 1781316887.0569386,
+    "ast_hash": "f3b432e06807b2e6a0347a0920543dd6",
+    "semantic_hash": "f3b432e06807b2e6a0347a0920543dd6"
+  },
+  "src/pipelines/build-argentina-backpack-missing-data-handoff.ts": {
+    "mtime": 1781361524.3349283,
+    "ast_hash": "98d20deeeeea25775d2c0fe4f79ad28e",
+    "semantic_hash": "98d20deeeeea25775d2c0fe4f79ad28e"
+  },
+  "src/pipelines/check-argentina-backpack-approval-readiness.ts": {
+    "mtime": 1781358463.2563725,
+    "ast_hash": "ddf02b519e983cfe61830221454bfa01",
+    "semantic_hash": "ddf02b519e983cfe61830221454bfa01"
+  },
+  "src/pipelines/generate-pcram-delta.ts": {
+    "mtime": 1780614478.7730436,
+    "ast_hash": "ed66a3824e05d02e242b4a6d99fe001d",
+    "semantic_hash": "ed66a3824e05d02e242b4a6d99fe001d"
+  },
+  "src/pipelines/generate-pcram-evidence-report.ts": {
+    "mtime": 1780614478.77312,
+    "ast_hash": "8a26e63c978184c35ea873f302c610e8",
+    "semantic_hash": "8a26e63c978184c35ea873f302c610e8"
+  },
+  "src/pipelines/pcram-delta.ts": {
+    "mtime": 1780614478.7732008,
+    "ast_hash": "63d9cc55eb1ac193f5ee6c894b8738ae",
+    "semantic_hash": "63d9cc55eb1ac193f5ee6c894b8738ae"
+  },
+  "src/pipelines/validate-pcram-source-snapshot.ts": {
+    "mtime": 1780614478.7732828,
+    "ast_hash": "79546cd6ef969042515a36cbb6edcb78",
+    "semantic_hash": "79546cd6ef969042515a36cbb6edcb78"
+  },
+  "src/pipelines/verify-approved-export-catalog.ts": {
+    "mtime": 1781316887.0571744,
+    "ast_hash": "d0599dd1c090250e4028d31e3265a644",
+    "semantic_hash": "d0599dd1c090250e4028d31e3265a644"
+  },
+  "src/reports/briefing-quality-gate.ts": {
+    "mtime": 1780614478.7734423,
+    "ast_hash": "f66fd9be5bdb381c8c8eaa83aedf43ca",
+    "semantic_hash": "f66fd9be5bdb381c8c8eaa83aedf43ca"
+  },
+  "src/reports/operational-briefing-preview.ts": {
+    "mtime": 1780614478.7735524,
+    "ast_hash": "d1a1cde530a411e26542fb5f29f6853a",
+    "semantic_hash": "d1a1cde530a411e26542fb5f29f6853a"
+  },
+  "src/reports/schema-readiness-report.ts": {
+    "mtime": 1780614478.7736561,
+    "ast_hash": "51589cdd194b42ba40afe8976f2d24a2",
+    "semantic_hash": "51589cdd194b42ba40afe8976f2d24a2"
+  },
+  "src/reports/write-markdown-report.ts": {
+    "mtime": 1780614478.7737331,
+    "ast_hash": "68482f02d38252016a62fc7fe0edb682",
+    "semantic_hash": "68482f02d38252016a62fc7fe0edb682"
+  },
+  "tests/ai-extraction-job-schema.test.ts": {
+    "mtime": 1780751420.9208493,
+    "ast_hash": "ce3f31db7cef9b828e0ff52809827342",
+    "semantic_hash": "ce3f31db7cef9b828e0ff52809827342"
+  },
+  "tests/ai-extraction-result-schema.test.ts": {
+    "mtime": 1781353900.8200588,
+    "ast_hash": "01866e75b8704077f3fdd950a9e00b0c",
+    "semantic_hash": "01866e75b8704077f3fdd950a9e00b0c"
+  },
+  "tests/ai-extraction-workflow.test.ts": {
+    "mtime": 1780772195.965854,
+    "ast_hash": "ea45eb7ee02f75d458381b2b6588868e",
+    "semantic_hash": "ea45eb7ee02f75d458381b2b6588868e"
+  },
+  "tests/approved-artifact-schema.test.ts": {
+    "mtime": 1780614478.7739985,
+    "ast_hash": "0b12af5cfba3970b768c29c4f738a749",
+    "semantic_hash": "0b12af5cfba3970b768c29c4f738a749"
+  },
+  "tests/approved-export-bundle.test.ts": {
+    "mtime": 1781360025.9255295,
+    "ast_hash": "d9b4d7f0cdde4b7efdf7d612fac52f24",
+    "semantic_hash": "d9b4d7f0cdde4b7efdf7d612fac52f24"
+  },
+  "tests/approved-export-catalog-verifier.test.ts": {
+    "mtime": 1781360025.9257722,
+    "ast_hash": "81b1374c879396684edaeb5c8e650457",
+    "semantic_hash": "81b1374c879396684edaeb5c8e650457"
+  },
+  "tests/approved-kb-snapshot-schema.test.ts": {
+    "mtime": 1780614478.7741451,
+    "ast_hash": "4be4be9cf349463fe3f18d821d92bbb7",
+    "semantic_hash": "4be4be9cf349463fe3f18d821d92bbb7"
+  },
+  "tests/argentina-backpack-approval-readiness.test.ts": {
+    "mtime": 1781358463.2565289,
+    "ast_hash": "16f3f305dd89a23530f72db2a08c0fdc",
+    "semantic_hash": "16f3f305dd89a23530f72db2a08c0fdc"
+  },
+  "tests/argentina-backpack-missing-data-handoff.test.ts": {
+    "mtime": 1781361524.3351958,
+    "ast_hash": "0240134aa6c46bc34be1168f4f6a44c9",
+    "semantic_hash": "0240134aa6c46bc34be1168f4f6a44c9"
+  },
+  "tests/argentina-backpack-request-more-data-outcome.test.ts": {
+    "mtime": 1781360025.9259744,
+    "ast_hash": "92ab58b8a6bc711aa532e5cfa4838f0c",
+    "semantic_hash": "92ab58b8a6bc711aa532e5cfa4838f0c"
+  },
+  "tests/briefing-quality-gate.test.ts": {
+    "mtime": 1780614478.774284,
+    "ast_hash": "2869c3b186c83aec8ef56a53833dc89f",
+    "semantic_hash": "2869c3b186c83aec8ef56a53833dc89f"
+  },
+  "tests/broker-profile-schema.test.ts": {
+    "mtime": 1780614478.774403,
+    "ast_hash": "ca669fef77cfa0ec9232670f837ac87e",
+    "semantic_hash": "ca669fef77cfa0ec9232670f837ac87e"
+  },
+  "tests/classifier-approved-artifact-demo-bridge.test.ts": {
+    "mtime": 1780615349.4193277,
+    "ast_hash": "f5ed04c52adc1118eb944c9e1549a6e4",
+    "semantic_hash": "f5ed04c52adc1118eb944c9e1549a6e4"
+  },
+  "tests/classifier-approved-artifact-demo-pack.test.ts": {
+    "mtime": 1780662312.730299,
+    "ast_hash": "b61a71ad8150b04971fd1699c08dbc8a",
+    "semantic_hash": "b61a71ad8150b04971fd1699c08dbc8a"
+  },
+  "tests/classifier-approved-artifact-export-catalog.test.ts": {
+    "mtime": 1781353900.8205564,
+    "ast_hash": "e8f1b0749c76fabf34247f3a8335edaa",
+    "semantic_hash": "e8f1b0749c76fabf34247f3a8335edaa"
+  },
+  "tests/classifier-approved-artifact-export-contract.test.ts": {
+    "mtime": 1780618617.52915,
+    "ast_hash": "c67cc1df6b63187fd19849b5267746c5",
+    "semantic_hash": "c67cc1df6b63187fd19849b5267746c5"
+  },
+  "tests/classifier-intelligence-artifact-schema.test.ts": {
+    "mtime": 1781353900.8207703,
+    "ast_hash": "c8ae05dced1220a1a1a2703bce5fd20c",
+    "semantic_hash": "c8ae05dced1220a1a1a2703bce5fd20c"
+  },
+  "tests/embedded-evidence-demo-extraction.test.ts": {
+    "mtime": 1780785175.665557,
+    "ast_hash": "83de3c64b338e8c282fd223dc41e424b",
+    "semantic_hash": "83de3c64b338e8c282fd223dc41e424b"
+  },
+  "tests/evidence-preparation.test.ts": {
+    "mtime": 1781353900.8210664,
+    "ast_hash": "9e2009b9b11599b8563eec8bc710d15d",
+    "semantic_hash": "9e2009b9b11599b8563eec8bc710d15d"
+  },
+  "tests/evidence-report-metadata-schema.test.ts": {
+    "mtime": 1780614478.7745202,
+    "ast_hash": "e86329870140be135a1d9325ebe1726f",
+    "semantic_hash": "e86329870140be135a1d9325ebe1726f"
+  },
+  "tests/extractable-evidence-packet-schema.test.ts": {
+    "mtime": 1781353218.0430582,
+    "ast_hash": "e1904de5c75afb15a7c3fa3e1f6f1835",
+    "semantic_hash": "e1904de5c75afb15a7c3fa3e1f6f1835"
+  },
+  "tests/intelligence-freshness.test.ts": {
+    "mtime": 1780751420.9210148,
+    "ast_hash": "a439767d659bd34dd62cc8667673fe86",
+    "semantic_hash": "a439767d659bd34dd62cc8667673fe86"
+  },
+  "tests/intelligence-source-registry-schema.test.ts": {
+    "mtime": 1781320055.9689891,
+    "ast_hash": "151073efad07c0f977155906264f8eac",
+    "semantic_hash": "151073efad07c0f977155906264f8eac"
+  },
+  "tests/intelligence-source-snapshot-schema.test.ts": {
+    "mtime": 1781320761.5770142,
+    "ast_hash": "fe646b5ade1785f7dc2ee820ae1a3685",
+    "semantic_hash": "fe646b5ade1785f7dc2ee820ae1a3685"
+  },
+  "tests/jurisdiction-pack-schema.test.ts": {
+    "mtime": 1780614478.7746215,
+    "ast_hash": "dce571c32663053978dd1c3bc8f4fe09",
+    "semantic_hash": "dce571c32663053978dd1c3bc8f4fe09"
+  },
+  "tests/operational-briefing-preview.test.ts": {
+    "mtime": 1780614478.7747264,
+    "ast_hash": "a76ec79e3436f03bb5d864f703b7ac81",
+    "semantic_hash": "a76ec79e3436f03bb5d864f703b7ac81"
+  },
+  "tests/pcram-delta-generator.test.ts": {
+    "mtime": 1780614478.7748241,
+    "ast_hash": "a5807c71927ff6475833319113b2ab34",
+    "semantic_hash": "a5807c71927ff6475833319113b2ab34"
+  },
+  "tests/pcram-evidence-report-generator.test.ts": {
+    "mtime": 1780614478.7749393,
+    "ast_hash": "9ac322ecc3ab4492fb9cb340ab158d70",
+    "semantic_hash": "9ac322ecc3ab4492fb9cb340ab158d70"
+  },
+  "tests/pcram-source-snapshot-validator.test.ts": {
+    "mtime": 1780614478.775045,
+    "ast_hash": "4f92b8905c99adafeb319b9897dc5044",
+    "semantic_hash": "4f92b8905c99adafeb319b9897dc5044"
+  },
+  "tests/qwen-dashscope-provider.test.ts": {
+    "mtime": 1780772195.9660175,
+    "ast_hash": "ac9f857f30533972d49887d99c676711",
+    "semantic_hash": "ac9f857f30533972d49887d99c676711"
+  },
+  "tests/recorded-qwen-response-replay.test.ts": {
+    "mtime": 1780786816.465047,
+    "ast_hash": "a9767ecbb323b1b4ec034585505bf51e",
+    "semantic_hash": "a9767ecbb323b1b4ec034585505bf51e"
+  },
+  "tests/relevance-assessment-schema.test.ts": {
+    "mtime": 1780614478.775156,
+    "ast_hash": "2cb9d04e901cac2c8096e0044a237d5e",
+    "semantic_hash": "2cb9d04e901cac2c8096e0044a237d5e"
+  },
+  "tests/review-manifest-schema.test.ts": {
+    "mtime": 1781353900.8213966,
+    "ast_hash": "b982f4bd2471c4d48b8695ca0060cb78",
+    "semantic_hash": "b982f4bd2471c4d48b8695ca0060cb78"
+  },
+  "tests/schema-readiness-report.test.ts": {
+    "mtime": 1780793294.9544175,
+    "ast_hash": "b8dfc0ddfa46889b00573ee257986c52",
+    "semantic_hash": "b8dfc0ddfa46889b00573ee257986c52"
+  },
+  "tests/schema-registry.test.ts": {
+    "mtime": 1780793294.9546485,
+    "ast_hash": "2c59944f77e29dbc691b5d7c21af831c",
+    "semantic_hash": "2c59944f77e29dbc691b5d7c21af831c"
+  },
+  "tests/smoke.test.ts": {
+    "mtime": 1780614478.7755413,
+    "ast_hash": "869faad4f436fad8e41c41915a0f3045",
+    "semantic_hash": "869faad4f436fad8e41c41915a0f3045"
+  },
+  "tests/snapshot-capture.test.ts": {
+    "mtime": 1780755795.4852448,
+    "ast_hash": "f8db8d28273ac433830e55ff7bc5e58b",
+    "semantic_hash": "f8db8d28273ac433830e55ff7bc5e58b"
+  },
+  "tests/snapshot-review-manifest-schema.test.ts": {
+    "mtime": 1780759823.6963048,
+    "ast_hash": "08a3a6d012f39d0a33e1362f266ec11f",
+    "semantic_hash": "08a3a6d012f39d0a33e1362f266ec11f"
+  },
+  "tests/source-version-schema.test.ts": {
+    "mtime": 1780614478.775632,
+    "ast_hash": "2278aa658dd9b80a111ed38532d2c36d",
+    "semantic_hash": "2278aa658dd9b80a111ed38532d2c36d"
+  },
+  "tests/verified-official-source-onboarding.test.ts": {
+    "mtime": 1780754409.403082,
+    "ast_hash": "a5545e5484a67993488e85b78865323c",
+    "semantic_hash": "a5545e5484a67993488e85b78865323c"
+  },
+  "tsconfig.json": {
+    "mtime": 1780614478.7757096,
+    "ast_hash": "af0b89635358c33be28993abfa67e4f0",
+    "semantic_hash": "af0b89635358c33be28993abfa67e4f0"
+  }
+}
