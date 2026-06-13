@@ -12,6 +12,12 @@ import {
 
 const defaultCatalogPath =
   "snapshots/pcram/demo-classifier-approved-artifact-export-catalog.json";
+const argentinaRequestMoreDataMarkers = [
+  "review-outcome-ar-demo-polyester-school-backpack-request-more-data",
+  "argentina-backpack-request-more-data",
+  "request_more_data",
+  "ar-demo-polyester-school-backpack",
+];
 
 async function createFixtureRepo(): Promise<string> {
   const repoRoot = await mkdtemp(
@@ -128,4 +134,18 @@ test("approved export catalog verifier summary is local-only and deterministic",
   assert.equal(summary.includes("Supabase"), false);
   assert.match(summary, /^Approved export catalog verification: PASS\n/);
   assert.match(summary, /catalog: snapshots\/pcram\//);
+});
+
+test("approved export catalog excludes Argentina request-more-data outcome", async () => {
+  const content = await readUtf8File(
+    path.resolve(process.cwd(), defaultCatalogPath),
+  );
+
+  for (const marker of argentinaRequestMoreDataMarkers) {
+    assert.equal(
+      content.includes(marker),
+      false,
+      `Catalog must not include request-more-data marker ${marker}`,
+    );
+  }
 });

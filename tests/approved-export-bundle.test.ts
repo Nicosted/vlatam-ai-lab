@@ -56,6 +56,9 @@ const argentinaDemoProductEvidencePacketMarkers = [
 const argentinaDemoProductReviewMarkers = [
   "ai-extraction-result-ar-demo-polyester-school-backpack",
   "review-manifest-ar-demo-polyester-school-backpack",
+  "review-outcome-ar-demo-polyester-school-backpack-request-more-data",
+  "argentina-backpack-request-more-data",
+  "request_more_data",
   "classifier-intelligence-artifact-ar-demo-polyester-school-backpack",
   "mochila escolar de poliester",
 ];
@@ -275,11 +278,20 @@ test("approved export bundle entries remain backed by reviewed contracts and art
       assert.equal(entry["human_review_required"], true);
       assert.equal(entry["downstream_eligible"], true);
       assert.equal(entry["downstream_allowed"], true);
-      assert.match(String(entry["export_contract_hash"]), /^sha256:[a-f0-9]{64}$/);
+      assert.match(
+        String(entry["export_contract_hash"]),
+        /^sha256:[a-f0-9]{64}$/,
+      );
       assert.match(String(entry["content_hash"]), /^sha256:[a-f0-9]{64}$/);
-      await assertRepoFileExists(repoRoot, String(entry["export_contract_ref"]));
+      await assertRepoFileExists(
+        repoRoot,
+        String(entry["export_contract_ref"]),
+      );
       await assertRepoFileExists(repoRoot, String(entry["artifact_ref"]));
-      await assertRepoFileExists(repoRoot, String(entry["review_manifest_ref"]));
+      await assertRepoFileExists(
+        repoRoot,
+        String(entry["review_manifest_ref"]),
+      );
     }
   } finally {
     await rm(repoRoot, { recursive: true, force: true });

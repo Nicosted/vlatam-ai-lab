@@ -1,0 +1,139 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/review-outcome.schema.json",
+  "title": "Review Outcome",
+  "description": "Schema for conservative human-review outcomes that do not approve an artifact or authorize downstream use.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "review_outcome_id",
+    "case_id",
+    "schema_version",
+    "outcome",
+    "recorded_by",
+    "recorded_at",
+    "artifact_refs",
+    "source_snapshot_refs",
+    "approval_ready",
+    "approved",
+    "downstream_allowed",
+    "export_eligible",
+    "final_classification_made",
+    "ncm_hs_code_approved",
+    "blocked_until",
+    "missing_data_questions",
+    "limitations",
+    "forbidden_followups"
+  ],
+  "properties": {
+    "review_outcome_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "case_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "schema_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "outcome": {
+      "type": "string",
+      "enum": [
+        "request_more_data",
+        "request_source_update",
+        "reject_insufficient_evidence",
+        "keep_demo_only"
+      ]
+    },
+    "recorded_by": {
+      "type": "string",
+      "minLength": 1
+    },
+    "recorded_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "artifact_refs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1
+    },
+    "source_snapshot_refs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1
+    },
+    "approval_ready": {
+      "const": false
+    },
+    "approved": {
+      "const": false
+    },
+    "downstream_allowed": {
+      "const": false
+    },
+    "export_eligible": {
+      "const": false
+    },
+    "final_classification_made": {
+      "const": false
+    },
+    "ncm_hs_code_approved": {
+      "const": false
+    },
+    "blocked_until": {
+      "type": "string",
+      "minLength": 1
+    },
+    "missing_data_questions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["question_id", "audience", "question"],
+        "properties": {
+          "question_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "audience": {
+            "type": "string",
+            "enum": ["client", "broker", "client_or_broker", "supplier"]
+          },
+          "question": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "minItems": 1
+    },
+    "limitations": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1
+    },
+    "forbidden_followups": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1
+    },
+    "metadata": {
+      "type": "object"
+    }
+  }
+}

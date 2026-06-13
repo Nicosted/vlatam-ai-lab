@@ -37,6 +37,12 @@ The reviewer should also inspect any client, broker, invoice, catalog, product
 specification, or sample evidence that is proposed as support for PR E. If those
 materials are unavailable, the missing facts must remain explicit limitations.
 
+Current review outcome: `request_more_data`, recorded in
+`snapshots/pcram/review-outcome-ar-demo-polyester-school-backpack-request-more-data.json`
+with the deterministic action plan in
+`reports/argentina-backpack-request-more-data.md`. This is not an approval. The
+case remains blocked until missing product facts are supplied and reviewed.
+
 ## Product Facts To Verify
 
 A human reviewer must verify and record whether the available evidence supports
@@ -130,6 +136,10 @@ review record. The repo-local readiness gate
 `pnpm ai:review:check:argentina-backpack` must pass before any approved
 artifact is created, unless the reviewer records a bounded rejection,
 request-more-data, or request-source-update outcome that keeps the case blocked:
+
+The current record is a request-more-data outcome and therefore keeps PR E
+blocked. It does not approve an artifact, NCM/HS code, export eligibility, or
+downstream use.
 
 - Evidence packet reviewed for product scope, source references, warnings,
   limitations, and non-downstream status.
