@@ -34,6 +34,12 @@ and referenced export contracts, confirms reviewed/approved downstream
 eligibility, checks deterministic repository-relative file refs, and rejects
 runtime, Supabase, env, credential, provider, or live-coupling references.
 
+Run `pnpm ai:exports:bundle` to generate the deterministic local bundle index at
+`exports/approved-catalog/index.json` after the same verification gate passes.
+The bundle is a repo-local handoff artifact for future read-only consumers; it
+is not a runtime bridge, API route, database sync, live service integration, or
+Graphify output.
+
 This verifier is local validation only. It is not a runtime bridge, API route,
 database sync, Supabase integration, Graphify output, provider change, or
 vlatam-global behavior change.
@@ -48,12 +54,21 @@ This path is intentionally file-first and local:
   traceability, local evidence refs, and explicit no-coupling declarations;
 - the export catalog is a read-only discovery index of reviewed export
   contracts, not a runtime registry or API route.
+- the approved export bundle is a deterministic repo-local index over the
+  verified catalog, contracts, approved artifacts, review manifests, traceability
+  refs, and hashes; it intentionally excludes raw LLM/provider output, secrets,
+  env vars, live URLs, local machine paths, and runtime assumptions.
 
 This does not require Supabase yet because the handoff is currently static,
 reviewable in Git, deterministic under local tests, and small enough to remain
 auditable as versioned repository files. There is no live mutable review queue,
 multi-user reviewer state, API-backed lookup, runtime audit trail, background
 job state, or dynamic vlatam-global query requirement in the current phase.
+
+vlatam-global consumption of this bundle remains future work. Any consumption
+must be read-only, contract-based, and explicitly integrated in a later reviewed
+change; this bundle alone does not authorize a live bridge or runtime behavior
+change.
 
 Graphify is not part of this source-of-truth path. It may help Codex or future
 local operators find related contracts and docs, but every handoff decision must

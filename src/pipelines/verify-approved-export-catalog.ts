@@ -26,6 +26,8 @@ const contractSchemaPath =
 
 type JsonObject = Record<string, unknown>;
 
+export const approvedExportCatalogDefaultPath = defaultCatalogPath;
+
 export type ApprovedExportCatalogVerificationOptions = {
   catalogPath?: string;
   repoRoot?: string;
@@ -38,6 +40,25 @@ export type ApprovedExportCatalogVerificationResult = {
   contractsChecked: number;
   artifactsChecked: number;
   errors: string[];
+};
+
+export type VerifiedApprovedExportCatalogEntry = {
+  entry: JsonObject;
+  exportContractRef: string;
+  artifactRef: string;
+  exportContract: JsonObject;
+  approvedArtifact: JsonObject;
+  indexedArtifact: JsonObject;
+  reviewManifestRef: string;
+  reviewManifest: JsonObject;
+  contentRef: string;
+  evidenceRefs: string[];
+};
+
+export type VerifiedApprovedExportCatalog = {
+  catalogPath: string;
+  catalog: JsonObject;
+  entries: VerifiedApprovedExportCatalogEntry[];
 };
 
 const forbiddenCouplingPatterns: Array<[RegExp, string]> = [
@@ -256,7 +277,7 @@ async function verifyCatalogEntry(input: {
   entry: JsonObject;
   entryIndex: number;
   contractValidator: ValidateFunction;
-}): Promise<{ contractsChecked: number; artifactsChecked: number }> {
+}): Promise<VerifiedApprovedExportCatalogEntry> {
   const { repoRoot, entry, entryIndex, contractValidator } = input;
   const label = `catalog entry ${entryIndex}`;
   const exportContractRef = asString(
@@ -424,13 +445,72 @@ async function verifyCatalogEntry(input: {
     );
   }
 
-  return { contractsChecked: 1, artifactsChecked: 1 };
+  return {
+    entry,
+    exportContractRef,
+    artifactRef,
+    exportContract,
+    approvedArtifact,
+    indexedArtifact,
+    reviewManifestRef,
+    reviewManifest,
+    contentRef,
+    evidenceRefs: asStringArray(
+      traceability["evidence_refs"],
+      `${exportContractRef}.evidence_refs`,
+    ),
+  };
+}
+
+export async function loadVerifiedApprovedExportCatalog(
+  options: ApprovedExportCatalogVerificationOptions = {},
+): Promise<VerifiedApprovedExportCatalog> {
+  const repoRoot = options.repoRoot ?? process.cwd();
+  const catalogPath = options.catalogPath ?? defaultCatalogPath;
+  assertRepoRelativePath(catalogPath, "catalog path");
+  const [catalogValidator, contractValidator] = await Promise.all([
+    buildValidator(repoRoot, catalogSchemaPath),
+    buildValidator(repoRoot, contractSchemaPath),
+  ]);
+  const catalog = await readJsonFile<JsonObject>(repoRoot, catalogPath);
+
+  if (!catalogValidator(catalog)) {
+    throw new Error(
+      `${catalogPath} failed export catalog schema validation: ${formatSchemaErrors(
+        catalogValidator.errors,
+      )}`,
+    );
+  }
+
+  assertNoRuntimeCoupling(catalog, "export catalog");
+  assertNoLiveBoundary(
+    catalog["integration_boundary"],
+    "export catalog.integration_boundary",
+  );
+
+  const catalogEntries = asRecordArray(
+    catalog["entries"],
+    "export catalog.entries",
+  );
+  const entries: VerifiedApprovedExportCatalogEntry[] = [];
+
+  for (const [entryIndex, entry] of catalogEntries.entries()) {
+    entries.push(
+      await verifyCatalogEntry({
+        repoRoot,
+        entry,
+        entryIndex,
+        contractValidator,
+      }),
+    );
+  }
+
+  return { catalogPath, catalog, entries };
 }
 
 export async function verifyApprovedExportCatalog(
   options: ApprovedExportCatalogVerificationOptions = {},
 ): Promise<ApprovedExportCatalogVerificationResult> {
-  const repoRoot = options.repoRoot ?? process.cwd();
   const catalogPath = options.catalogPath ?? defaultCatalogPath;
   const errors: string[] = [];
   let entriesChecked = 0;
@@ -438,40 +518,10 @@ export async function verifyApprovedExportCatalog(
   let artifactsChecked = 0;
 
   try {
-    assertRepoRelativePath(catalogPath, "catalog path");
-    const [catalogValidator, contractValidator] = await Promise.all([
-      buildValidator(repoRoot, catalogSchemaPath),
-      buildValidator(repoRoot, contractSchemaPath),
-    ]);
-    const catalog = await readJsonFile<JsonObject>(repoRoot, catalogPath);
-
-    if (!catalogValidator(catalog)) {
-      throw new Error(
-        `${catalogPath} failed export catalog schema validation: ${formatSchemaErrors(
-          catalogValidator.errors,
-        )}`,
-      );
-    }
-
-    assertNoRuntimeCoupling(catalog, "export catalog");
-    assertNoLiveBoundary(
-      catalog["integration_boundary"],
-      "export catalog.integration_boundary",
-    );
-
-    const entries = asRecordArray(catalog["entries"], "export catalog.entries");
-    entriesChecked = entries.length;
-
-    for (const [entryIndex, entry] of entries.entries()) {
-      const counts = await verifyCatalogEntry({
-        repoRoot,
-        entry,
-        entryIndex,
-        contractValidator,
-      });
-      contractsChecked += counts.contractsChecked;
-      artifactsChecked += counts.artifactsChecked;
-    }
+    const verified = await loadVerifiedApprovedExportCatalog(options);
+    entriesChecked = verified.entries.length;
+    contractsChecked = verified.entries.length;
+    artifactsChecked = verified.entries.length;
   } catch (error) {
     errors.push(error instanceof Error ? error.message : String(error));
   }

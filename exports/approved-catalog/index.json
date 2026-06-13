@@ -1,0 +1,127 @@
+{
+  "schema_name": "approved_export_bundle_index",
+  "schema_version": "1.0.0",
+  "bundle_id": "classifier-approved-artifact-export-catalog-2026-06-04-bundle",
+  "bundle_version": "1.0.0",
+  "generated_at": "2026-06-04T15:30:00.000Z",
+  "generated_at_strategy": "stable source catalog timestamp; no wall-clock timestamp is emitted by the bundle generator",
+  "source_catalog": {
+    "catalog_id": "classifier-approved-artifact-export-catalog-2026-06-04",
+    "catalog_version": "1.0.0",
+    "catalog_schema_version": "1.0.0",
+    "catalog_ref": "snapshots/pcram/demo-classifier-approved-artifact-export-catalog.json",
+    "catalog_scope": "classifier_approved_artifact_export_discovery"
+  },
+  "consumer_scope": [
+    "vLatamGlobal"
+  ],
+  "verification": {
+    "status": "passed",
+    "command": "pnpm ai:exports:verify",
+    "entries_checked": 2,
+    "contracts_checked": 2,
+    "approved_artifact_refs_checked": 2
+  },
+  "boundary": {
+    "mode": "local_repo_export_bundle",
+    "read_only": true,
+    "live_integration": false,
+    "shared_database_coupling": false,
+    "production_route": false,
+    "runtime_writeback": false,
+    "raw_model_output_included": false,
+    "local_machine_paths_included": false
+  },
+  "contents": {
+    "includes": "reviewed export catalog metadata, contract refs, artifact refs, review refs, traceability refs, and hashes",
+    "excludes": "raw model output, secrets, local machine paths, live service URLs, database project refs, runtime assumptions, and writeback behavior"
+  },
+  "entries": [
+    {
+      "entry_id": "catalog-entry-classifier-support-ar-textiles-2026-05-21",
+      "artifact_id": "approved-artifact-classifier-support-ar-textiles-2026-05-21",
+      "artifact_version": "1.0.0",
+      "artifact_type": "relevance_assessment",
+      "contract_id": "classifier-approved-artifact-export-contract-ar-textiles-2026-05-21",
+      "contract_schema_version": "1.0.0",
+      "export_version": "1.0.0",
+      "exported_at": "2026-05-21T12:00:00.000Z",
+      "country_scope": [
+        "AR",
+        "MERCOSUR"
+      ],
+      "jurisdiction_scope": [
+        "Argentina",
+        "MERCOSUR"
+      ],
+      "product_summary": "Argentina/MERCOSUR textile and apparel classifier support: reviewed NCM relevance assessment candidate for despachante decision context.",
+      "review_status": "approved",
+      "approval_state": "approved",
+      "human_review_required": true,
+      "downstream_eligible": true,
+      "downstream_allowed": true,
+      "risk_posture": "medium",
+      "export_contract_ref": "snapshots/pcram/demo-classifier-approved-artifact-export-contract.json",
+      "export_contract_hash": "sha256:81289d27f54720673bde82a95da62ea70e7fbf8bf769f905722ed9d484034ab4",
+      "artifact_ref": "snapshots/pcram/demo-classifier-support-approved-artifact.json",
+      "review_manifest_ref": "snapshots/pcram/demo-classifier-support-review-manifest.json",
+      "content_ref": "snapshots/pcram/demo-classifier-support-relevance-assessment.json",
+      "content_hash": "sha256:a422a6698fe9bed6c4b86e9341e767e65ab7e9f8152baa0819912efb7d6a6a56",
+      "evidence_refs": [
+        "reports/classifier-approved-artifact-demo-bridge-p1.md",
+        "snapshots/pcram/demo-classifier-support-relevance-assessment.json",
+        "snapshots/pcram/demo-classifier-support-review-manifest.json"
+      ],
+      "repository_refs": [
+        "reports/classifier-approved-artifact-demo-bridge-p1.md",
+        "snapshots/pcram/demo-classifier-approved-artifact-export-contract.json",
+        "snapshots/pcram/demo-classifier-support-approved-artifact.json",
+        "snapshots/pcram/demo-classifier-support-relevance-assessment.json",
+        "snapshots/pcram/demo-classifier-support-review-manifest.json"
+      ]
+    },
+    {
+      "entry_id": "catalog-entry-classifier-decision-br-liion-2026-06-04",
+      "artifact_id": "approved-artifact-classifier-decision-br-liion-2026-06-04",
+      "artifact_version": "1.0.0",
+      "artifact_type": "relevance_assessment",
+      "contract_id": "classifier-approved-artifact-export-contract-br-liion-2026-06-04",
+      "contract_schema_version": "1.0.0",
+      "export_version": "1.0.0",
+      "exported_at": "2026-06-04T15:00:00.000Z",
+      "country_scope": [
+        "BR",
+        "MERCOSUR"
+      ],
+      "jurisdiction_scope": [
+        "Brazil",
+        "MERCOSUR"
+      ],
+      "product_summary": "Portable lithium-ion power bank imported into Brazil: reviewed NCM classification candidate (8507.60.00 primary; 8504.40.90 alternative) for a future classifier decision workspace.",
+      "review_status": "approved",
+      "approval_state": "approved",
+      "human_review_required": true,
+      "downstream_eligible": true,
+      "downstream_allowed": true,
+      "risk_posture": "high",
+      "export_contract_ref": "snapshots/pcram/demo-classifier-decision-export-contract.json",
+      "export_contract_hash": "sha256:143ea0e10dd7fd0272eb927e3064658134219a41d6ca143f7e4383fa56217a38",
+      "artifact_ref": "snapshots/pcram/demo-classifier-decision-approved-artifact.json",
+      "review_manifest_ref": "snapshots/pcram/demo-classifier-decision-review-manifest.json",
+      "content_ref": "snapshots/pcram/demo-classifier-decision-relevance-assessment.json",
+      "content_hash": "sha256:5a7e1e87fc8d51a7213da83348f8482adcbf879db7d9e47cb342f5bd267c09ea",
+      "evidence_refs": [
+        "reports/classifier-approved-artifact-demo-pack-p1.md",
+        "snapshots/pcram/demo-classifier-decision-relevance-assessment.json",
+        "snapshots/pcram/demo-classifier-decision-review-manifest.json"
+      ],
+      "repository_refs": [
+        "reports/classifier-approved-artifact-demo-pack-p1.md",
+        "snapshots/pcram/demo-classifier-decision-approved-artifact.json",
+        "snapshots/pcram/demo-classifier-decision-export-contract.json",
+        "snapshots/pcram/demo-classifier-decision-relevance-assessment.json",
+        "snapshots/pcram/demo-classifier-decision-review-manifest.json"
+      ]
+    }
+  ]
+}

@@ -77,6 +77,14 @@ PCRAM / ARCA / Mercosur / HS / NCM / regulations
 → vLatamGlobal Classifier Runtime
 → operational classification, evidence, broker/client workflow
 
+The current local artifact export path is validated with
+`pnpm ai:exports:verify` and bundled with `pnpm ai:exports:bundle`, which writes
+`exports/approved-catalog/index.json`. That bundle is a deterministic
+repo-first handoff artifact only; it does not create a runtime bridge, database
+coupling, production API, Graphify output, provider behavior change, or
+vLatamGlobal behavior change. Runtime consumption remains future read-only,
+contract-based integration work.
+
 ## Human review and approval
 
 - Unreviewed deltas/candidates must not enter vLatamGlobal runtime by default.
