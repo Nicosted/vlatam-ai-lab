@@ -32,6 +32,11 @@ const argentinaCandidateMarkers = [
   "snapshot-wco-hs-source-candidate",
   "snapshot-ar-sectoral-placeholder-candidate",
 ];
+const argentinaDemoProductEvidencePacketMarkers = [
+  "evidence-packet-ar-demo-polyester-school-backpack",
+  "extractable-evidence-packet-ar-demo-polyester-school-backpack",
+  "mochila escolar de poliéster",
+];
 
 async function readJsonFixture(
   relativePath: string,
@@ -217,6 +222,19 @@ test("catalog does not expose Argentina source candidates", async () => {
       serialized.includes(marker),
       false,
       `Catalog must not include candidate marker ${marker}`,
+    );
+  }
+});
+
+test("catalog does not expose Argentina demo product evidence packet", async () => {
+  const catalog = await assertCatalogValid();
+  const serialized = JSON.stringify(catalog);
+
+  for (const marker of argentinaDemoProductEvidencePacketMarkers) {
+    assert.equal(
+      serialized.includes(marker),
+      false,
+      `Catalog must not include demo product evidence packet marker ${marker}`,
     );
   }
 });

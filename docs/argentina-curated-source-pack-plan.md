@@ -253,6 +253,17 @@ classifier-support use case. The packet should include only bounded references
 and reviewed scope metadata. It may be extraction-ready only if the governing
 review manifest allows extraction; it must remain `downstream_allowed: false`.
 
+Status: PR C adds the first bounded demo product evidence packet for `school
+backpack made primarily of polyester` / `mochila escolar de poliéster`. It
+references only repo-local Argentina customs/tariff authority, MERCOSUR/NCM,
+and WCO/HS registry and bounded snapshot fixtures from PR A and PR B. The packet
+is conservative, non-downstream-safe, not extraction-ready, and explicitly does
+not claim any final NCM/HS classification, legal determination, tariff
+treatment, approved artifact status, export eligibility, runtime integration, or
+production readiness. PR D must still create the extraction draft and human
+review manifest before any review or approval step can proceed. No approved
+artifact exists yet.
+
 ### PR D: extraction draft and review manifest
 
 Create the extraction draft and human review manifest for the selected use case.
