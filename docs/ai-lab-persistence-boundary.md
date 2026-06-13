@@ -28,6 +28,16 @@ The current approved-artifact handoff path is:
 
 `approved artifact -> review manifest -> export contract -> export catalog -> future vlatam-global consumer`
 
+Run `pnpm ai:exports:verify` to locally validate the repo fixture export
+catalog before proposing any handoff change. The command validates the catalog
+and referenced export contracts, confirms reviewed/approved downstream
+eligibility, checks deterministic repository-relative file refs, and rejects
+runtime, Supabase, env, credential, provider, or live-coupling references.
+
+This verifier is local validation only. It is not a runtime bridge, API route,
+database sync, Supabase integration, Graphify output, provider change, or
+vlatam-global behavior change.
+
 This path is intentionally file-first and local:
 
 - approved artifacts are versioned repository envelopes with content hashes,

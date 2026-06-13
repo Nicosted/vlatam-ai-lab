@@ -17,6 +17,7 @@
     "ai:extract:demo": "AI_EXTRACT_MODE=demo tsx src/pipelines/ai-extract-dry-run.ts",
     "ai:extract:record-qwen-demo": "tsx src/pipelines/ai-extract-record-qwen-demo.ts",
     "ai:extract:replay-qwen-demo": "tsx src/pipelines/ai-extract-replay-qwen-demo.ts",
+    "ai:exports:verify": "tsx src/pipelines/verify-approved-export-catalog.ts",
     "pcram:delta": "tsx src/pipelines/pcram-delta.ts",
     "pcram:validate-snapshot": "tsx src/pipelines/validate-pcram-source-snapshot.ts snapshots/pcram/example-source-snapshot.json",
     "pcram:generate-delta": "tsx src/pipelines/generate-pcram-delta.ts snapshots/pcram/example-source-snapshot-previous.json snapshots/pcram/example-source-snapshot-current.json snapshots/pcram/example-delta.json",
