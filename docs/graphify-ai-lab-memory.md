@@ -98,6 +98,104 @@ graphify query "show the approved artifact export flow"
 If the installed CLI uses different command names or flags, prefer `graphify
 --help` and keep the workflow local-only.
 
+## Graphify baseline generation policy
+
+A Graphify baseline is the generated `graphify-out/` artifact set from a
+successful, reviewed Graphify run. It may include `graph.json`,
+`GRAPH_REPORT.md`, wiki or navigation files, visual graph outputs such as HTML,
+SVG, or GraphML files, and other generated files that are intentionally kept for
+repository navigation.
+
+Graphify baselines are allowed only in these modes:
+
+- Code-only baseline: allowed when the installed Graphify CLI supports a
+  deterministic source/code extraction path without an LLM backend. The PR must
+  state that no semantic backend or API key was used.
+- Full semantic baseline: allowed only when a human intentionally configures an
+  approved backend/API key for the run. Do not ask for keys during routine agent
+  work, and do not infer that a key is approved merely because one exists on a
+  machine.
+
+Graphify baseline generation must not:
+
+- fabricate `graphify-out/` files or hand-write generated graph artifacts;
+- commit partial outputs from failed, interrupted, or empty runs;
+- commit secrets, `.env*` values, provider metadata, raw private dumps, local
+  caches, cost logs, or machine-specific paths;
+- treat Graphify output as reviewed regulatory intelligence;
+- use Graphify output to decide downstream eligibility, tariff, customs, legal,
+  operational classifier, API handoff, or vLatamGlobal runtime outcomes.
+
+Before any PR commits `graphify-out/`, the operator must inspect the generated
+baseline locally:
+
+1. Record a file inventory for the generated `graphify-out/` tree.
+2. Grep for secrets, provider names, environment values, private dumps, and
+   local machine paths.
+3. Manually review `graphify-out/GRAPH_REPORT.md` and
+   `graphify-out/graph.json` for source-of-truth boundary issues.
+4. Confirm that `.graphifyignore` was applied and that no `.env*`, credential,
+   cache, cost, raw dump, or machine-local file is included.
+5. Run the repository validation suite and `git diff --check`.
+
+Any future PR that commits `graphify-out/` must include these PR body fields:
+
+- Graphify version.
+- Command used.
+- Backend used, or an explicit code-only/no-backend statement.
+- Files committed.
+- Validation results.
+- Secret/path inspection results.
+- Confirmation that Graphify is navigation memory only, not approved regulatory
+  intelligence.
+
+Safe command snippets for a future operator:
+
+```sh
+# Check the installed Graphify CLI version.
+graphify --version
+
+# If the CLI is unavailable but the project-scoped Codex skill is installed,
+# record the skill version as local operator context.
+cat .codex/skills/graphify/.graphify_version
+```
+
+```sh
+# Attempt local generation without visual export. Use only after confirming the
+# intended mode, backend approval status, and .graphifyignore coverage.
+graphify . --no-viz
+
+# If wiki/navigation output is intentionally desired for the baseline PR:
+graphify . --no-viz --wiki
+```
+
+```sh
+# Inventory generated files before considering a commit.
+find graphify-out -maxdepth 4 -type f | sort
+
+# Inspect the top-level generated directory shape.
+find graphify-out -maxdepth 2 -print | sort
+```
+
+```sh
+# Search for secret-like terms, provider metadata, and external-service markers.
+rg -n -i "token|secret|password|credential|api[_-]?key|supabase|vercel|provider|private[_-]?key" graphify-out
+
+# Search for common machine-specific absolute paths.
+rg -n "/Users/|/home/|/private/|/var/folders/|[A-Za-z]:\\\\" graphify-out
+
+# Confirm no generated env, credential, cache, cost, or raw dump files are present.
+find graphify-out -type f \( -name ".env" -o -name ".env.*" -o -name "*.env" -o -name "*credential*" -o -name "*secret*" -o -name "cost.json" -o -path "*/raw/*" -o -path "*/.graphify-cache/*" \) -print
+```
+
+```sh
+# Repository validation required before a baseline PR.
+pnpm typecheck
+pnpm lint
+pnpm test
+git diff --check
+```
+
 ## Safety Before Committing Generated Graph Files
 
 Before committing any generated `graphify-out/` files:
