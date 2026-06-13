@@ -292,6 +292,14 @@ proceed unless the local Argentina backpack approval readiness check passes, or
 the reviewer explicitly records a bounded rejection, request-more-data, or
 request-source-update outcome that keeps the case blocked.
 
+Status: the current human-review outcome for the Argentina polyester school
+backpack case is `request_more_data`, recorded in
+`snapshots/pcram/review-outcome-ar-demo-polyester-school-backpack-request-more-data.json`
+with action plan `reports/argentina-backpack-request-more-data.md`. This outcome
+is not approval-ready, approves no NCM/HS code, keeps `downstream_allowed: false`,
+keeps export eligibility false, and keeps PR E blocked until the missing facts
+are supplied and reviewed.
+
 ### PR E: approved artifact and export contract
 
 Create the first approved Argentina artifact only if human review approves the

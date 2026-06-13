@@ -1,0 +1,94 @@
+{
+  "review_outcome_id": "review-outcome-ar-demo-polyester-school-backpack-request-more-data-2026-06-13",
+  "case_id": "ar-demo-polyester-school-backpack",
+  "schema_version": "1.0.0",
+  "outcome": "request_more_data",
+  "recorded_by": "argentina-classifier-support-reviewer",
+  "recorded_at": "2026-06-13T12:00:00.000Z",
+  "artifact_refs": [
+    "snapshots/pcram/extractable-evidence-packet-ar-demo-polyester-school-backpack.json",
+    "snapshots/pcram/ai-extraction-result-ar-demo-polyester-school-backpack-draft.json",
+    "snapshots/pcram/review-manifest-ar-demo-polyester-school-backpack.json",
+    "snapshots/pcram/classifier-intelligence-artifact-ar-demo-polyester-school-backpack-draft.json",
+    "reports/argentina-backpack-request-more-data.md"
+  ],
+  "source_snapshot_refs": [
+    "snapshots/pcram/intelligence-source-snapshot-ar-customs-tariff-bounded-2026-06-13.json",
+    "snapshots/pcram/intelligence-source-snapshot-mercosur-ncm-bounded-2026-06-13.json",
+    "snapshots/pcram/intelligence-source-snapshot-wco-hs-bounded-2026-06-13.json"
+  ],
+  "approval_ready": false,
+  "approved": false,
+  "downstream_allowed": false,
+  "export_eligible": false,
+  "final_classification_made": false,
+  "ncm_hs_code_approved": false,
+  "blocked_until": "The missing product facts are supplied by the client, broker, or supplier and then reviewed in a human approval record.",
+  "missing_data_questions": [
+    {
+      "question_id": "exact-material-composition-percentages",
+      "audience": "client_or_broker",
+      "question": "What is the exact material composition by percentage for the outer shell, lining, straps, padding, reinforcements, trim, zippers, coatings, films, panels, and any other material components?"
+    },
+    {
+      "question_id": "polyester-construction-status",
+      "audience": "client_or_broker",
+      "question": "Is the polyester woven textile fabric, knit textile fabric, coated textile, plastic sheet or layer, laminate, or mixed construction?"
+    },
+    {
+      "question_id": "coating-layer-plastic-shell-status",
+      "audience": "client_or_broker",
+      "question": "Does the backpack have a visible coating, laminated layer, PVC layer, PU layer, plastic shell, or other plastic-facing construction?"
+    },
+    {
+      "question_id": "dimensions-and-capacity",
+      "audience": "client_or_broker",
+      "question": "What are the dimensions, approximate capacity or volume, weight, number of compartments, and carrying configuration?"
+    },
+    {
+      "question_id": "included-accessories-components",
+      "audience": "client_or_broker",
+      "question": "What accessories or components are included, such as pouches, straps, wheels, handles, organizers, electronics sleeves, rain covers, charms, lunch components, or other included parts?"
+    },
+    {
+      "question_id": "country-of-origin",
+      "audience": "client_or_broker",
+      "question": "What is the country of origin and is the article a sample, retail good, promotional item, or another import context?"
+    },
+    {
+      "question_id": "commercial-description-consistency",
+      "audience": "client_or_broker",
+      "question": "Does the invoice, catalog, specification sheet, packaging, label, product page, or supplier description describe the item as a school backpack, travel bag, textile article, plastic article, or another commercial description?"
+    },
+    {
+      "question_id": "supporting-documents",
+      "audience": "client_or_broker",
+      "question": "Are product photos, a technical sheet, invoice, catalog page, supplier description, packaging image, and label information available for review?"
+    }
+  ],
+  "limitations": [
+    "The case is not approval-ready.",
+    "No final classification is made.",
+    "No NCM or HS code is approved.",
+    "Downstream use remains blocked.",
+    "Export eligibility remains false.",
+    "The artifact remains blocked until missing data is resolved and reviewed."
+  ],
+  "forbidden_followups": [
+    "Do not add approved artifacts for this case.",
+    "Do not approve review manifests for this case.",
+    "Do not add export contracts for this case.",
+    "Do not update the approved export catalog for this case.",
+    "Do not update the approved export bundle for this case.",
+    "Do not mark downstream_allowed true for this case.",
+    "Do not add runtime code for this case.",
+    "Do not claim a final NCM or HS classification for this case."
+  ],
+  "metadata": {
+    "product_label_en": "school backpack made primarily of polyester",
+    "product_label_es": "mochila escolar de poliester",
+    "review_manifest_ref": "snapshots/pcram/review-manifest-ar-demo-polyester-school-backpack.json",
+    "action_plan_ref": "reports/argentina-backpack-request-more-data.md",
+    "evidence_flow": "local_review_only"
+  }
+}
