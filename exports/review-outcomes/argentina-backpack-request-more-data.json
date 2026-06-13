@@ -1,0 +1,117 @@
+{
+  "handoff_id": "argentina-backpack-request-more-data-handoff",
+  "schema_version": "1.0.0",
+  "case_id": "ar-demo-polyester-school-backpack",
+  "case_label": "Argentina polyester school backpack missing-data handoff",
+  "product_label": {
+    "en": "school backpack made primarily of polyester",
+    "es": "mochila escolar de poliester"
+  },
+  "outcome": "request_more_data",
+  "approval_readiness": "blocked_not_approval_ready",
+  "downstream_allowed": false,
+  "export_eligible": false,
+  "final_classification_statement": "No final classification is made by this handoff.",
+  "regulatory_intelligence_statement": "This handoff is not approved regulatory intelligence.",
+  "boundary": {
+    "human_review_required": true,
+    "operational_use_only": true,
+    "approved_artifact": false,
+    "approved_export_catalog_member": false,
+    "approved_export_bundle_member": false,
+    "final_customs_or_legal_determination": false,
+    "provider_or_llm_raw_output_included": false
+  },
+  "source_refs": {
+    "review_outcome_ref": "snapshots/pcram/review-outcome-ar-demo-polyester-school-backpack-request-more-data.json",
+    "action_plan_ref": "reports/argentina-backpack-request-more-data.md",
+    "review_checklist_ref": "docs/argentina-backpack-human-review-checklist.md",
+    "source_pack_plan_ref": "docs/argentina-curated-source-pack-plan.md",
+    "evidence_refs": [
+      "snapshots/pcram/extractable-evidence-packet-ar-demo-polyester-school-backpack.json",
+      "snapshots/pcram/ai-extraction-result-ar-demo-polyester-school-backpack-draft.json",
+      "snapshots/pcram/review-manifest-ar-demo-polyester-school-backpack.json",
+      "snapshots/pcram/classifier-intelligence-artifact-ar-demo-polyester-school-backpack-draft.json",
+      "reports/argentina-backpack-request-more-data.md"
+    ],
+    "source_snapshot_refs": [
+      "snapshots/pcram/intelligence-source-snapshot-ar-customs-tariff-bounded-2026-06-13.json",
+      "snapshots/pcram/intelligence-source-snapshot-mercosur-ncm-bounded-2026-06-13.json",
+      "snapshots/pcram/intelligence-source-snapshot-wco-hs-bounded-2026-06-13.json"
+    ]
+  },
+  "missing_data": {
+    "audience": "client_or_broker",
+    "grouped_questions": [
+      {
+        "group_id": "materials_and_construction",
+        "label": "Materials and construction",
+        "audience": "client_or_broker",
+        "questions": [
+          {
+            "question_id": "exact-material-composition-percentages",
+            "question": "What is the exact material composition by percentage for the outer shell, lining, straps, padding, reinforcements, trim, zippers, coatings, films, panels, and any other material components?"
+          },
+          {
+            "question_id": "polyester-construction-status",
+            "question": "Is the polyester woven textile fabric, knit textile fabric, coated textile, plastic sheet or layer, laminate, or mixed construction?"
+          },
+          {
+            "question_id": "coating-layer-plastic-shell-status",
+            "question": "Does the backpack have a visible coating, laminated layer, PVC layer, PU layer, plastic shell, or other plastic-facing construction?"
+          }
+        ]
+      },
+      {
+        "group_id": "product_configuration",
+        "label": "Product configuration",
+        "audience": "client_or_broker",
+        "questions": [
+          {
+            "question_id": "dimensions-and-capacity",
+            "question": "What are the dimensions, approximate capacity or volume, weight, number of compartments, and carrying configuration?"
+          },
+          {
+            "question_id": "included-accessories-components",
+            "question": "What accessories or components are included, such as pouches, straps, wheels, handles, organizers, electronics sleeves, rain covers, charms, lunch components, or other included parts?"
+          }
+        ]
+      },
+      {
+        "group_id": "commercial_and_import_context",
+        "label": "Commercial and import context",
+        "audience": "client_or_broker",
+        "questions": [
+          {
+            "question_id": "country-of-origin",
+            "question": "What is the country of origin and is the article a sample, retail good, promotional item, or another import context?"
+          },
+          {
+            "question_id": "commercial-description-consistency",
+            "question": "Does the invoice, catalog, specification sheet, packaging, label, product page, or supplier description describe the item as a school backpack, travel bag, textile article, plastic article, or another commercial description?"
+          },
+          {
+            "question_id": "supporting-documents",
+            "question": "Are product photos, a technical sheet, invoice, catalog page, supplier description, packaging image, and label information available for review?"
+          }
+        ]
+      }
+    ]
+  },
+  "blocked_until": "The missing product facts are supplied by the client, broker, or supplier and then reviewed in a human approval record.",
+  "limitations": [
+    "The case is not approval-ready.",
+    "No final classification is made.",
+    "No NCM or HS code is approved.",
+    "Downstream use remains blocked.",
+    "Export eligibility remains false.",
+    "The artifact remains blocked until missing data is resolved and reviewed."
+  ],
+  "generation_metadata": {
+    "generated_by": "src/pipelines/build-argentina-backpack-missing-data-handoff.ts",
+    "generation_strategy": "deterministic local build from committed request-more-data review outcome; no wall-clock timestamp",
+    "source_review_outcome_id": "review-outcome-ar-demo-polyester-school-backpack-request-more-data-2026-06-13",
+    "source_recorded_at": "2026-06-13T12:00:00.000Z",
+    "command": "pnpm ai:review:handoff:argentina-backpack"
+  }
+}

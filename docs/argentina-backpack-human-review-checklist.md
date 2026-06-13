@@ -43,6 +43,14 @@ with the deterministic action plan in
 `reports/argentina-backpack-request-more-data.md`. This is not an approval. The
 case remains blocked until missing product facts are supplied and reviewed.
 
+The blocked outcome can be converted into a local operational handoff with
+`pnpm ai:review:handoff:argentina-backpack`, which writes
+`exports/review-outcomes/argentina-backpack-request-more-data.json`. The handoff
+is only a missing-data request surface for client or broker follow-up. It is
+separate from `exports/approved-catalog/`, is not approved regulatory
+intelligence, does not make a final classification, is not export-eligible, and
+must not be treated as downstream-safe.
+
 ## Product Facts To Verify
 
 A human reviewer must verify and record whether the available evidence supports
