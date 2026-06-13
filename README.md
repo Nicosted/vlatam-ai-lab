@@ -53,3 +53,5 @@ Initial objective: establish a minimal and safe foundation for regulatory intell
 - Do not run destructive commands.
 - Keep changes minimal, explicit, and reviewable.
 - Persistence boundary: `docs/ai-lab-persistence-boundary.md`.
+- Approved export bundle consumer contract:
+  `docs/approved-export-bundle-consumer-contract.md`.
