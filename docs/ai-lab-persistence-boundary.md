@@ -39,6 +39,8 @@ Run `pnpm ai:exports:bundle` to generate the deterministic local bundle index at
 The bundle is a repo-local handoff artifact for future read-only consumers; it
 is not a runtime bridge, API route, database sync, live service integration, or
 Graphify output.
+The consumer contract for this bundle is defined in
+`docs/approved-export-bundle-consumer-contract.md`.
 
 This verifier is local validation only. It is not a runtime bridge, API route,
 database sync, Supabase integration, Graphify output, provider change, or
