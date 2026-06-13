@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { createRequire } from "node:module";
 import path from "node:path";
 import test from "node:test";
@@ -8,8 +9,10 @@ import type { ValidateFunction } from "ajv";
 import { readUtf8File } from "../src/lib/fs.js";
 import {
   deriveSnapshotReviewGate,
+  hasVerifiableSnapshotFingerprint,
   isSnapshotDownstreamAllowed,
   isSnapshotExtractionReady,
+  snapshotCaptureWarnings,
 } from "../src/intelligence/snapshot-capture.js";
 import type { SourceSnapshot } from "../src/intelligence/types.js";
 
@@ -109,6 +112,21 @@ const argentinaCandidateSnapshotFixtures = [
   "snapshots/pcram/intelligence-source-snapshot-ar-sectoral-placeholder-candidate.json",
 ];
 
+const argentinaBoundedSnapshotFixtures = [
+  "snapshots/pcram/intelligence-source-snapshot-ar-customs-tariff-bounded-2026-06-13.json",
+  "snapshots/pcram/intelligence-source-snapshot-mercosur-ncm-bounded-2026-06-13.json",
+  "snapshots/pcram/intelligence-source-snapshot-wco-hs-bounded-2026-06-13.json",
+];
+
+const argentinaBoundedSnapshotFingerprintInputs: Record<string, string> = {
+  "snapshots/pcram/intelligence-source-snapshot-ar-customs-tariff-bounded-2026-06-13.json":
+    "bounded-source-snapshot|source_id=ar-customs-tariff-authority-candidate|category=argentina_customs_tariff_authority|locator=https://www.arca.gob.ar/|captured_at=2026-06-13T00:00:00.000Z|content_ingested=false|official_content_verified=false|downstream_allowed=false",
+  "snapshots/pcram/intelligence-source-snapshot-mercosur-ncm-bounded-2026-06-13.json":
+    "bounded-source-snapshot|source_id=mercosur-ncm-source-candidate|category=mercosur_ncm|locator=https://www.mercosur.int/|captured_at=2026-06-13T00:00:00.000Z|content_ingested=false|official_content_verified=false|downstream_allowed=false",
+  "snapshots/pcram/intelligence-source-snapshot-wco-hs-bounded-2026-06-13.json":
+    "bounded-source-snapshot|source_id=wco-hs-source-candidate|category=wco_hs|locator=https://www.wcoomd.org/en/topics/nomenclature/instrument-and-tools/hs-nomenclature-2022-edition.aspx|captured_at=2026-06-13T00:00:00.000Z|content_ingested=false|official_content_verified=false|downstream_allowed=false",
+};
+
 const forbiddenCandidatePatterns: RegExp[] = [
   /process\.env/i,
   /\$\{[^}]*\}/,
@@ -161,6 +179,15 @@ for (const fixture of argentinaCandidateSnapshotFixtures) {
   });
 }
 
+for (const fixture of argentinaBoundedSnapshotFixtures) {
+  test(`Argentina bounded snapshot fixture passes validation: ${fixture}`, async () => {
+    const validate = await buildValidator();
+    const sample = await readJsonFixture(fixture);
+
+    assert.equal(validate(sample), true);
+  });
+}
+
 test("Argentina candidate snapshots require review before extraction or downstream use", async () => {
   for (const fixture of argentinaCandidateSnapshotFixtures) {
     const sample = await readJsonFixture(fixture);
@@ -184,8 +211,74 @@ test("Argentina candidate snapshots require review before extraction or downstre
   }
 });
 
+test("Argentina bounded snapshots remain blocked from extraction, export, and classifier approval", async () => {
+  const categories = new Set<string>();
+
+  for (const fixture of argentinaBoundedSnapshotFixtures) {
+    const sample = await readJsonFixture(fixture);
+    const snapshot = sample as unknown as SourceSnapshot;
+    const metadata = sample["metadata"] as Record<string, unknown>;
+
+    assert.equal(sample["freshness_status"], "requires_review", fixture);
+    assert.equal(sample["review_status"], "not_reviewed", fixture);
+    assert.equal(sample["extraction_status"], "not_started", fixture);
+    assert.equal(sample["human_review_required"], true, fixture);
+    assert.equal(sample["downstream_allowed"], false, fixture);
+    assert.equal(metadata["bounded_snapshot_status"], "requires_human_review_before_extraction", fixture);
+    assert.equal(metadata["fingerprint_scope"], "deterministic_local_bounded_metadata_representation", fixture);
+    assert.equal(metadata["official_content_hash_verified"], false, fixture);
+    assert.equal(metadata["content_ingested"], false, fixture);
+    assert.equal(metadata["raw_body_included"], false, fixture);
+    assert.equal(metadata["approved_classifier_artifact"], false, fixture);
+    assert.equal(metadata["extraction_ready"], false, fixture);
+    assert.equal(metadata["export_eligible"], false, fixture);
+    assert.equal(metadata["production_ready"], false, fixture);
+    assert.equal(deriveSnapshotReviewGate(snapshot), "review_required", fixture);
+    assert.equal(isSnapshotExtractionReady(snapshot), false, fixture);
+    assert.equal(isSnapshotDownstreamAllowed(snapshot), false, fixture);
+    assert.equal(hasVerifiableSnapshotFingerprint(snapshot), true, fixture);
+    assert.deepEqual(snapshotCaptureWarnings(snapshot), [], fixture);
+    categories.add(String(metadata["source_category"]));
+  }
+
+  assert.deepEqual(
+    [...categories].sort(),
+    [
+      "argentina_customs_tariff_authority",
+      "mercosur_ncm",
+      "wco_hs",
+    ],
+  );
+});
+
+test("Argentina bounded snapshot fingerprints match deterministic local representations", async () => {
+  for (const fixture of argentinaBoundedSnapshotFixtures) {
+    const sample = await readJsonFixture(fixture);
+    const fingerprintInput = argentinaBoundedSnapshotFingerprintInputs[fixture];
+
+    assert.ok(fingerprintInput, `Missing fingerprint input for ${fixture}`);
+
+    const expectedHash = createHash("sha256")
+      .update(fingerprintInput, "utf8")
+      .digest("hex");
+
+    assert.equal(sample["content_hash"], `sha256:${expectedHash}`, fixture);
+  }
+});
+
 test("Argentina candidate snapshots contain no live coupling, secret, provider, raw output, or local path markers", async () => {
   for (const fixture of argentinaCandidateSnapshotFixtures) {
+    const sample = await readJsonFixture(fixture);
+    const serialized = JSON.stringify(sample);
+
+    for (const pattern of forbiddenCandidatePatterns) {
+      assert.equal(pattern.test(serialized), false, `${fixture} contains ${pattern}`);
+    }
+  }
+});
+
+test("Argentina bounded snapshots contain no live coupling, secret, provider, raw output, or local path markers", async () => {
+  for (const fixture of argentinaBoundedSnapshotFixtures) {
     const sample = await readJsonFixture(fixture);
     const serialized = JSON.stringify(sample);
 

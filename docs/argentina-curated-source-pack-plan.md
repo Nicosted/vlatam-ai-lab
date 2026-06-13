@@ -234,6 +234,18 @@ capture. Include genuine `content_hash` or `content_fingerprint` when available;
 otherwise record warnings and limitations. Do not extract legal or tariff facts
 in this PR.
 
+Status: PR B adds bounded source snapshot fixtures for Argentina customs/tariff
+authority, MERCOSUR/NCM, and WCO/HS. These fixtures carry conservative
+metadata, deterministic local bounded-representation fingerprints, explicit
+warnings that official source body content and official-content hashes remain
+unverified, and review gates that block extraction, export, downstream use, and
+classifier approval. PR A remains the candidate/source-placeholder layer, and
+the optional Argentina sectoral source remains a conservative placeholder until
+a safe official source pattern is reviewed. No approved artifact exists yet.
+PR C must still create the first evidence packet for one narrow demo/pilot
+product or use case before any extraction draft or review manifest work can
+proceed.
+
 ### PR C: first evidence packet for one demo product/use case
 
 Create the first extractable evidence packet for one narrow Argentina
