@@ -287,7 +287,10 @@ Before PR E can create any approved artifact, reviewers must complete the
 Argentina backpack human review checklist
 (`docs/argentina-backpack-human-review-checklist.md`). That checklist defines
 the product facts, source adequacy checks, approval blockers, allowed outcomes,
-and PR E readiness gates for the bounded demo backpack use case.
+and PR E readiness gates for the bounded demo backpack use case. PR E cannot
+proceed unless the local Argentina backpack approval readiness check passes, or
+the reviewer explicitly records a bounded rejection, request-more-data, or
+request-source-update outcome that keeps the case blocked.
 
 ### PR E: approved artifact and export contract
 
