@@ -53,6 +53,12 @@ const argentinaDemoProductEvidencePacketMarkers = [
   "extractable-evidence-packet-ar-demo-polyester-school-backpack",
   "mochila escolar de poliéster",
 ];
+const argentinaDemoProductReviewMarkers = [
+  "ai-extraction-result-ar-demo-polyester-school-backpack",
+  "review-manifest-ar-demo-polyester-school-backpack",
+  "classifier-intelligence-artifact-ar-demo-polyester-school-backpack",
+  "mochila escolar de poliester",
+];
 
 async function createFixtureRepo(): Promise<string> {
   const repoRoot = await mkdtemp(
@@ -222,11 +228,14 @@ test("approved export bundle excludes Argentina demo product evidence packet", a
       path.join(repoRoot, defaultOutputDir, "index.json"),
     );
 
-    for (const marker of argentinaDemoProductEvidencePacketMarkers) {
+    for (const marker of [
+      ...argentinaDemoProductEvidencePacketMarkers,
+      ...argentinaDemoProductReviewMarkers,
+    ]) {
       assert.equal(
         content.includes(marker),
         false,
-        `Bundle must not include demo product evidence packet marker ${marker}`,
+        `Bundle must not include demo product review marker ${marker}`,
       );
     }
   } finally {

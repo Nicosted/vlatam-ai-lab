@@ -37,6 +37,12 @@ const argentinaDemoProductEvidencePacketMarkers = [
   "extractable-evidence-packet-ar-demo-polyester-school-backpack",
   "mochila escolar de poliéster",
 ];
+const argentinaDemoProductReviewMarkers = [
+  "ai-extraction-result-ar-demo-polyester-school-backpack",
+  "review-manifest-ar-demo-polyester-school-backpack",
+  "classifier-intelligence-artifact-ar-demo-polyester-school-backpack",
+  "mochila escolar de poliester",
+];
 
 async function readJsonFixture(
   relativePath: string,
@@ -230,11 +236,14 @@ test("catalog does not expose Argentina demo product evidence packet", async () 
   const catalog = await assertCatalogValid();
   const serialized = JSON.stringify(catalog);
 
-  for (const marker of argentinaDemoProductEvidencePacketMarkers) {
+  for (const marker of [
+    ...argentinaDemoProductEvidencePacketMarkers,
+    ...argentinaDemoProductReviewMarkers,
+  ]) {
     assert.equal(
       serialized.includes(marker),
       false,
-      `Catalog must not include demo product evidence packet marker ${marker}`,
+      `Catalog must not include demo product review marker ${marker}`,
     );
   }
 });

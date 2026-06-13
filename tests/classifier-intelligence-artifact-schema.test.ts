@@ -39,6 +39,10 @@ async function buildValidator(): Promise<ValidateFunction> {
 
 const validFixture =
   "snapshots/pcram/classifier-intelligence-artifact-demo-veldoria.json";
+const validFixtures = [
+  validFixture,
+  "snapshots/pcram/classifier-intelligence-artifact-ar-demo-polyester-school-backpack-draft.json",
+];
 
 const invalidFixtures = [
   "snapshots/pcram/invalid-classifier-intelligence-artifact-synthetic-downstream.json",
@@ -57,8 +61,11 @@ function provenance(sample: Record<string, unknown>): Record<string, unknown> {
 
 test("valid classifier intelligence artifact fixture passes", async () => {
   const validate = await buildValidator();
-  const sample = await readJsonFixture(validFixture);
-  assert.equal(validate(sample), true, JSON.stringify(validate.errors));
+
+  for (const fixture of validFixtures) {
+    const sample = await readJsonFixture(fixture);
+    assert.equal(validate(sample), true, `${fixture}: ${JSON.stringify(validate.errors)}`);
+  }
 });
 
 test("invalid classifier intelligence artifact fixtures fail", async () => {
@@ -210,4 +217,59 @@ test("demo fixture stays honest and remains deterministic", async () => {
     "classifier-intelligence-artifact-demo-veldoria-2026-06-06t013000z",
   );
   assert.equal(sample["created_at"], "2026-06-06T01:30:00.000Z");
+});
+
+test("argentina classifier-support draft is not approved or export eligible", async () => {
+  const sample = await readJsonFixture(
+    "snapshots/pcram/classifier-intelligence-artifact-ar-demo-polyester-school-backpack-draft.json",
+  );
+  const sampleReview = review(sample);
+  const sampleProvenance = provenance(sample);
+  const intelligence = sample["intelligence"] as Record<string, unknown>;
+
+  assert.equal(sampleProvenance["source_authority"], "unverified");
+  assert.equal(sampleReview["review_status"], "draft");
+  assert.equal(sampleReview["human_review_required"], true);
+  assert.equal(sampleReview["downstream_allowed"], false);
+  assert.equal(
+    Object.hasOwn(intelligence, "candidate_classification"),
+    false,
+  );
+
+  const implications = intelligence["classification_implications"] as string[];
+  assert.ok(
+    implications.some((value) => /No final or candidate NCM\/HS code/i.test(value)),
+  );
+});
+
+test("argentina classifier-support draft has no live, secret, provider-metadata, raw-output, or path coupling", async () => {
+  const sample = await readJsonFixture(
+    "snapshots/pcram/classifier-intelligence-artifact-ar-demo-polyester-school-backpack-draft.json",
+  );
+  const serialized = JSON.stringify(sample);
+
+  for (const forbidden of [
+    /https?:\/\//i,
+    /\bsupabase\b/i,
+    /\bprocess\.env\b/i,
+    /\$\{[^}]*\}/,
+    /\$[A-Z][A-Z0-9_]+/,
+    /\b[A-Z][A-Z0-9_]*(?:API|PROJECT|SERVICE|ANON)?_KEY\b/,
+    /\b\.env(?:\b|[._-])/i,
+    /\bproject[_-]?ref\b/i,
+    /\bservice[_-]?role\b/i,
+    /\banon[_-]?key\b/i,
+    /\bapi[_-]?key\b/i,
+    /\bauthorization\b/i,
+    /\bbearer\s+[a-z0-9._-]+/i,
+    /\bcredential/i,
+    /\bprovider[_-]?metadata\b/i,
+    /\braw\s+(?:llm|provider)\s+output\b/i,
+    /\bmodel[_-]?provider\b/i,
+    /\/Users\//,
+    /\/private\//,
+    /\bgraphify-out\b/i,
+  ]) {
+    assert.equal(forbidden.test(serialized), false, forbidden.toString());
+  }
 });

@@ -1,0 +1,84 @@
+{
+  "review_manifest_id": "review-manifest-ar-demo-polyester-school-backpack-2026-06-13t003500z",
+  "artifact_id": "ai-extraction-result-ar-demo-polyester-school-backpack-draft-2026-06-13t003000z",
+  "artifact_type": "evidence_report",
+  "schema_version": "1.0.0",
+  "review_status": "pending",
+  "reviewed_by": "pending-human-review-gate",
+  "reviewed_at": "2026-06-13T00:35:00.000Z",
+  "approval_scope": {
+    "allowed_consumers": ["none_until_human_review"],
+    "allowed_use_cases": ["none_until_human_review"],
+    "country_scope": ["AR"],
+    "validity_notes": "Pending manifest only. It does not approve extraction output, classifier use, export eligibility, legal determinations, customs decisions, or production readiness."
+  },
+  "jurisdiction_scope": [
+    "AR",
+    "MERCOSUR_NCM_CONTEXT",
+    "WCO_HS_CONTEXT"
+  ],
+  "source_version_refs": [
+    "ar-customs-tariff-authority-candidate",
+    "mercosur-ncm-source-candidate",
+    "wco-hs-source-candidate",
+    "snapshot-ar-customs-tariff-authority-bounded-2026-06-13t000000z",
+    "snapshot-mercosur-ncm-source-bounded-2026-06-13t000000z",
+    "snapshot-wco-hs-source-bounded-2026-06-13t000000z"
+  ],
+  "evidence_refs": [
+    "snapshots/pcram/extractable-evidence-packet-ar-demo-polyester-school-backpack.json",
+    "snapshots/pcram/ai-extraction-result-ar-demo-polyester-school-backpack-draft.json",
+    "snapshots/pcram/intelligence-source-snapshot-ar-customs-tariff-bounded-2026-06-13.json",
+    "snapshots/pcram/intelligence-source-snapshot-mercosur-ncm-bounded-2026-06-13.json",
+    "snapshots/pcram/intelligence-source-snapshot-wco-hs-bounded-2026-06-13.json"
+  ],
+  "limitations": [
+    "This manifest is pending and not approved.",
+    "The extraction draft is not a reviewed classifier intelligence artifact.",
+    "No approved artifact, export contract, catalog entry, bundle entry, runtime integration, or production handoff is created by this manifest.",
+    "Final NCM/HS classification, tariff treatment, customs/legal determination, import clearance outcome, and sectoral requirements remain deferred.",
+    "The evidence packet contains bounded metadata references only and no reviewed official source body content.",
+    "Downstream use remains blocked because human review and PR E approved-artifact work have not occurred."
+  ],
+  "downstream_allowed": false,
+  "review_notes": [
+    "Reviewer checklist: confirm exact material percentages.",
+    "Reviewer checklist: confirm coating, plastic layers, reinforcements, or other outer materials.",
+    "Reviewer checklist: confirm dimensions, compartments, closures, straps, and accessories/components.",
+    "Reviewer checklist: confirm country of origin.",
+    "Reviewer checklist: confirm invoice and commercial description, including brand, model, SKU, and declared use.",
+    "Reviewer checklist: confirm intended school-use scope and whether any non-school or travel/luggage use changes analysis.",
+    "Reviewer checklist: verify source identity, locator scope, source version scope, content-reference boundaries, and whether official-content hash limitations are acceptable.",
+    "Reviewer checklist: reject any unsupported final NCM/HS code, tariff, customs/legal, export eligibility, or downstream-safe claim."
+  ],
+  "risk_level": "unknown",
+  "review_method": "manual",
+  "metadata": {
+    "argentina_source_pack_pr": "PR D",
+    "artifact_under_review_type": "ai_extraction_result",
+    "artifact_ref": "snapshots/pcram/ai-extraction-result-ar-demo-polyester-school-backpack-draft.json",
+    "evidence_packet_id": "evidence-packet-ar-demo-polyester-school-backpack-2026-06-13t001000z",
+    "evidence_packet_ref": "snapshots/pcram/extractable-evidence-packet-ar-demo-polyester-school-backpack.json",
+    "product_label_en": "school backpack made primarily of polyester",
+    "product_label_es": "mochila escolar de poliester",
+    "human_review_required": true,
+    "approved": false,
+    "export_eligible": false,
+    "missing_product_facts_to_confirm": [
+      "exact material percentages",
+      "coating or plastic layers",
+      "dimensions",
+      "accessories/components",
+      "country of origin",
+      "invoice/commercial description",
+      "intended use confirmation"
+    ],
+    "deferred_determinations": [
+      "final NCM/HS classification",
+      "customs/legal determination",
+      "tariff treatment",
+      "sectoral requirements",
+      "downstream/export eligibility"
+    ]
+  }
+}

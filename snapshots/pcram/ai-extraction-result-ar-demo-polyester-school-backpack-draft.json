@@ -1,0 +1,74 @@
+{
+  "extraction_result_id": "ai-extraction-result-ar-demo-polyester-school-backpack-draft-2026-06-13t003000z",
+  "extraction_job_id": "manual-local-draft-ar-demo-polyester-school-backpack-2026-06-13t003000z",
+  "evidence_packet_id": "evidence-packet-ar-demo-polyester-school-backpack-2026-06-13t001000z",
+  "review_manifest_id": "review-manifest-ar-demo-polyester-school-backpack-2026-06-13t003500z",
+  "snapshot_id": "snapshot-ar-customs-tariff-authority-bounded-2026-06-13t000000z",
+  "source_id": "ar-customs-tariff-authority-candidate",
+  "provider_id": "local_manual_draft",
+  "model_id": "manual-schema-draft-no-model",
+  "extraction_status": "draft_unreviewed",
+  "extracted_claims": [
+    {
+      "claim_id": "claim-ar-backpack-001",
+      "claim_text": "The evidence packet identifies the bounded demo product as a school backpack made primarily of polyester, with Spanish label mochila escolar de poliester.",
+      "evidence_reference": "snapshots/pcram/extractable-evidence-packet-ar-demo-polyester-school-backpack.json#metadata.product_context",
+      "support_status": "supported_by_packet",
+      "confidence": 0.54
+    },
+    {
+      "claim_id": "claim-ar-backpack-002",
+      "claim_text": "The packet preserves repo-local references to Argentina customs/tariff authority, MERCOSUR/NCM, and WCO/HS source snapshot fixtures for future human review.",
+      "evidence_reference": "snapshots/pcram/extractable-evidence-packet-ar-demo-polyester-school-backpack.json#metadata.source_references",
+      "support_status": "supported_by_packet",
+      "confidence": 0.52
+    },
+    {
+      "claim_id": "claim-ar-backpack-003",
+      "claim_text": "The packet records that exact material percentages, coating or plastic layers, dimensions, accessories, country of origin, import regime specifics, brand, and commercial invoice details remain unknown.",
+      "evidence_reference": "snapshots/pcram/extractable-evidence-packet-ar-demo-polyester-school-backpack.json#metadata.product_context.known_unknowns",
+      "support_status": "supported_by_packet",
+      "confidence": 0.58
+    },
+    {
+      "claim_id": "claim-ar-backpack-004",
+      "claim_text": "The packet is not extraction-ready, not export-eligible, and not downstream-safe until separate human review and later approval gates are completed.",
+      "evidence_reference": "snapshots/pcram/extractable-evidence-packet-ar-demo-polyester-school-backpack.json#metadata.review_gates",
+      "support_status": "supported_by_packet",
+      "confidence": 0.6
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "claim_id": "unsupported-ar-backpack-001",
+      "claim_text": "The product has a final NCM or HS classification.",
+      "reason": "The bounded evidence packet expressly avoids final NCM/HS code claims and lacks the reviewed source text and product facts required for classification.",
+      "evidence_reference": "snapshots/pcram/extractable-evidence-packet-ar-demo-polyester-school-backpack.json#limitations"
+    },
+    {
+      "claim_id": "unsupported-ar-backpack-002",
+      "claim_text": "The product is approved for downstream classifier, export catalog, bundle, or production use.",
+      "reason": "The evidence packet and this extraction result keep downstream_allowed false and require human review before any approval or export step.",
+      "evidence_reference": "snapshots/pcram/extractable-evidence-packet-ar-demo-polyester-school-backpack.json#metadata.review_gates"
+    },
+    {
+      "claim_id": "unsupported-ar-backpack-003",
+      "claim_text": "Any tariff rate, customs treatment, legal determination, import clearance outcome, or sectoral requirement applies to this product.",
+      "reason": "The packet contains bounded metadata references only and does not include reviewed official source body content or product-specific legal analysis."
+    }
+  ],
+  "warnings": [
+    "Draft-only extraction result for human review; confidence values are triage signals only.",
+    "The governing evidence packet is not extraction-ready and remains non-downstream-safe.",
+    "No final NCM code, HS code, tariff treatment, customs/legal determination, or import clearance conclusion is claimed.",
+    "Official source body text was not copied, downloaded, ingested, parsed, or classified in this draft.",
+    "Human review must confirm product facts, source scope, evidence scope, and whether any later reviewed artifact may be prepared."
+  ],
+  "confidence": 0.4,
+  "critic_summary": "The draft is limited to packet identity, source-reference lineage, missing product facts, and blocked review/export gates. Substantive classification, tariff, customs, legal, and downstream eligibility claims are unsupported and deferred.",
+  "human_review_required": true,
+  "downstream_allowed": false,
+  "created_at": "2026-06-13T00:30:00.000Z",
+  "contract_version": "1.0.0",
+  "schema_version": "1.0.0"
+}

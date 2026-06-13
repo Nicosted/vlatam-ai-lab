@@ -185,3 +185,29 @@ test("argentina demo product packet remains review-gated", async () => {
   assert.equal(isEvidencePacketDownstreamAllowed(packet), false);
   assert.equal(evidencePacketReadinessLabel(packet), "not_extraction_ready");
 });
+
+test("argentina PR D draft and manifest do not create export eligibility", async () => {
+  const packet = await readJson<ExtractableEvidencePacket>(
+    "snapshots/pcram/extractable-evidence-packet-ar-demo-polyester-school-backpack.json",
+  );
+  const extraction = await readJson<Record<string, unknown>>(
+    "snapshots/pcram/ai-extraction-result-ar-demo-polyester-school-backpack-draft.json",
+  );
+  const manifest = await readJson<Record<string, unknown>>(
+    "snapshots/pcram/review-manifest-ar-demo-polyester-school-backpack.json",
+  );
+  const classifierDraft = await readJson<Record<string, unknown>>(
+    "snapshots/pcram/classifier-intelligence-artifact-ar-demo-polyester-school-backpack-draft.json",
+  );
+  const classifierReview = classifierDraft["review"] as Record<string, unknown>;
+
+  assert.equal(isEvidencePacketExtractionReady(packet), false);
+  assert.equal(isEvidencePacketDownstreamAllowed(packet), false);
+  assert.equal(extraction["downstream_allowed"], false);
+  assert.equal(extraction["human_review_required"], true);
+  assert.equal(manifest["review_status"], "pending");
+  assert.equal(manifest["downstream_allowed"], false);
+  assert.equal(classifierReview["review_status"], "draft");
+  assert.equal(classifierReview["human_review_required"], true);
+  assert.equal(classifierReview["downstream_allowed"], false);
+});
