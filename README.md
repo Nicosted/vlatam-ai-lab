@@ -52,3 +52,4 @@ Initial objective: establish a minimal and safe foundation for regulatory intell
 - Do not connect this lab to Supabase, Vercel, or production databases.
 - Do not run destructive commands.
 - Keep changes minimal, explicit, and reviewable.
+- Persistence boundary: `docs/ai-lab-persistence-boundary.md`.
