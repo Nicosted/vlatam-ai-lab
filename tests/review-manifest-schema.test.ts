@@ -53,13 +53,16 @@ async function buildReviewManifestValidator(): Promise<ValidateFunction> {
 
 test("valid review manifest example passes", async () => {
   const validate = await buildReviewManifestValidator();
-  const sample = await readJsonFixture(
+
+  for (const fixture of [
     "snapshots/pcram/example-review-manifest.json",
-  );
+    "snapshots/pcram/review-manifest-ar-demo-polyester-school-backpack.json",
+  ]) {
+    const sample = await readJsonFixture(fixture);
+    const isValid = validate(sample);
 
-  const isValid = validate(sample);
-
-  assert.equal(isValid, true);
+    assert.equal(isValid, true, fixture);
+  }
 });
 
 test("missing required field fails", async () => {
@@ -194,5 +197,68 @@ test("credential-like unknown fields are rejected", async () => {
       true,
       `Expected additionalProperties error for ${credentialLikeField}`,
     );
+  }
+});
+
+test("argentina demo product review manifest remains pending and review-gated", async () => {
+  const sample = await readJsonFixture(
+    "snapshots/pcram/review-manifest-ar-demo-polyester-school-backpack.json",
+  );
+  const metadata = sample["metadata"] as Record<string, unknown>;
+
+  assert.equal(sample["review_status"], "pending");
+  assert.equal(sample["downstream_allowed"], false);
+  assert.equal(metadata["artifact_under_review_type"], "ai_extraction_result");
+  assert.equal(metadata["human_review_required"], true);
+  assert.equal(metadata["approved"], false);
+  assert.equal(metadata["export_eligible"], false);
+
+  const missingFacts = metadata["missing_product_facts_to_confirm"] as string[];
+  for (const requiredFact of [
+    "exact material percentages",
+    "coating or plastic layers",
+    "dimensions",
+    "accessories/components",
+    "country of origin",
+    "invoice/commercial description",
+    "intended use confirmation",
+  ]) {
+    assert.ok(missingFacts.includes(requiredFact), requiredFact);
+  }
+
+  const deferred = metadata["deferred_determinations"] as string[];
+  assert.ok(deferred.includes("final NCM/HS classification"));
+  assert.ok(deferred.includes("customs/legal determination"));
+});
+
+test("argentina demo product review manifest has no live, secret, provider-metadata, raw-output, or path coupling", async () => {
+  const sample = await readJsonFixture(
+    "snapshots/pcram/review-manifest-ar-demo-polyester-school-backpack.json",
+  );
+  const serialized = JSON.stringify(sample);
+
+  for (const forbidden of [
+    /https?:\/\//i,
+    /\bsupabase\b/i,
+    /\bprocess\.env\b/i,
+    /\$\{[^}]*\}/,
+    /\$[A-Z][A-Z0-9_]+/,
+    /\b[A-Z][A-Z0-9_]*(?:API|PROJECT|SERVICE|ANON)?_KEY\b/,
+    /\b\.env(?:\b|[._-])/i,
+    /\bproject[_-]?ref\b/i,
+    /\bservice[_-]?role\b/i,
+    /\banon[_-]?key\b/i,
+    /\bapi[_-]?key\b/i,
+    /\bauthorization\b/i,
+    /\bbearer\s+[a-z0-9._-]+/i,
+    /\bcredential/i,
+    /\bprovider[_-]?metadata\b/i,
+    /\braw\s+(?:llm|provider)\s+output\b/i,
+    /\bmodel[_-]?provider\b/i,
+    /\/Users\//,
+    /\/private\//,
+    /\bgraphify-out\b/i,
+  ]) {
+    assert.equal(forbidden.test(serialized), false, forbidden.toString());
   }
 });

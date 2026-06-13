@@ -1,0 +1,136 @@
+{
+  "artifact_id": "classifier-intelligence-artifact-ar-demo-polyester-school-backpack-draft-2026-06-13t004000z",
+  "artifact_kind": "classifier_intelligence_artifact",
+  "schema_version": "1.0.0",
+  "artifact_version": "0.1.0",
+  "created_at": "2026-06-13T00:40:00.000Z",
+  "provenance": {
+    "origin": "ai_assisted_extraction",
+    "source_authority": "unverified",
+    "source_set": [
+      {
+        "source_id": "ar-customs-tariff-authority-candidate",
+        "snapshot_id": "snapshot-ar-customs-tariff-authority-bounded-2026-06-13t000000z",
+        "review_manifest_id": "review-manifest-ar-demo-polyester-school-backpack-2026-06-13t003500z",
+        "evidence_packet_id": "evidence-packet-ar-demo-polyester-school-backpack-2026-06-13t001000z"
+      },
+      {
+        "source_id": "mercosur-ncm-source-candidate",
+        "snapshot_id": "snapshot-mercosur-ncm-source-bounded-2026-06-13t000000z",
+        "review_manifest_id": "review-manifest-ar-demo-polyester-school-backpack-2026-06-13t003500z",
+        "evidence_packet_id": "evidence-packet-ar-demo-polyester-school-backpack-2026-06-13t001000z"
+      },
+      {
+        "source_id": "wco-hs-source-candidate",
+        "snapshot_id": "snapshot-wco-hs-source-bounded-2026-06-13t000000z",
+        "review_manifest_id": "review-manifest-ar-demo-polyester-school-backpack-2026-06-13t003500z",
+        "evidence_packet_id": "evidence-packet-ar-demo-polyester-school-backpack-2026-06-13t001000z"
+      }
+    ],
+    "generation": {
+      "pipeline": "argentina-curated-source-pack-pr-d-local-draft",
+      "pipeline_version": "1.0.0",
+      "provider_id": "local_manual_draft",
+      "model_id": "manual-schema-draft-no-model",
+      "extraction_result_id": "ai-extraction-result-ar-demo-polyester-school-backpack-draft-2026-06-13t003000z"
+    },
+    "provenance_notes": [
+      "Classifier-support draft only; prepared from the PR C bounded evidence packet and PR D extraction draft.",
+      "No reviewed official source body content or final classification analysis backs this draft."
+    ]
+  },
+  "jurisdiction": {
+    "jurisdiction": "AR",
+    "nomenclature_system": "ncm_with_hs_context",
+    "language": "es",
+    "product_scope": "school backpack made primarily of polyester / mochila escolar de poliester",
+    "applicability_notes": [
+      "Applies only to the bounded demo product review packet.",
+      "Actual classification applicability depends on missing product facts and later human review."
+    ]
+  },
+  "evidence": {
+    "evidence_items": [
+      {
+        "evidence_id": "evidence-ar-backpack-001",
+        "evidence_reference": "snapshots/pcram/extractable-evidence-packet-ar-demo-polyester-school-backpack.json#metadata.product_context",
+        "source_authority": "unverified",
+        "support_status": "needs_human_review",
+        "confidence": 0.54
+      },
+      {
+        "evidence_id": "evidence-ar-backpack-002",
+        "evidence_reference": "snapshots/pcram/extractable-evidence-packet-ar-demo-polyester-school-backpack.json#metadata.source_references",
+        "source_authority": "unverified",
+        "support_status": "needs_human_review",
+        "confidence": 0.52
+      },
+      {
+        "evidence_id": "evidence-ar-backpack-003",
+        "evidence_reference": "snapshots/pcram/ai-extraction-result-ar-demo-polyester-school-backpack-draft.json#unsupported_claims",
+        "source_authority": "unverified",
+        "support_status": "needs_human_review",
+        "confidence": 0.4
+      }
+    ]
+  },
+  "intelligence": {
+    "normalized_claims": [
+      {
+        "claim_id": "claim-ar-backpack-artifact-001",
+        "claim_text": "The draft evidence chain is limited to a bounded Argentina demo product packet for a polyester school backpack and related source-reference metadata.",
+        "evidence_refs": ["evidence-ar-backpack-001", "evidence-ar-backpack-002"],
+        "implication": "The artifact can support human review planning only; it cannot drive classifier decisions.",
+        "confidence": 0.45
+      },
+      {
+        "claim_id": "claim-ar-backpack-artifact-002",
+        "claim_text": "Final NCM/HS classification, tariff treatment, customs/legal determination, and downstream/export eligibility are unsupported by the current draft.",
+        "evidence_refs": ["evidence-ar-backpack-003"],
+        "implication": "Any final classification or exportable artifact must wait for PR E after actual human review.",
+        "confidence": 0.5
+      }
+    ],
+    "classification_implications": [
+      "No final or candidate NCM/HS code is asserted.",
+      "Human review must decide whether the evidence can support a later approved classifier artifact."
+    ],
+    "constraints": [
+      "Draft-only classifier-support artifact.",
+      "Not approved, not export-eligible, and not downstream-safe.",
+      "Do not use for customs clearance, tariff calculation, legal advice, or runtime classifier behavior."
+    ],
+    "assumptions": [
+      "The product description remains bounded to a school backpack made primarily of polyester.",
+      "The PR C packet source references remain the only evidence inputs for this draft."
+    ],
+    "uncertainty_notes": [
+      "Exact material percentages are unknown.",
+      "Coating or plastic layers are unknown.",
+      "Dimensions and components are unknown.",
+      "Country of origin and invoice/commercial description are unknown.",
+      "Source version scope and official-content hash limitations require human review."
+    ],
+    "risk_flags": [
+      "Mistaken downstream use before approval would bypass required human review.",
+      "Inferring a code from the product label alone would be unsupported."
+    ]
+  },
+  "review": {
+    "review_status": "draft",
+    "human_review_required": true,
+    "downstream_allowed": false,
+    "downstream_eligibility_reason": "Draft classifier-support artifact only. It is not approved, not export-eligible, and does not claim a final NCM/HS or customs/legal determination.",
+    "limitations": [
+      "No final NCM/HS code or candidate code is asserted.",
+      "No approved artifact, export contract, catalog update, bundle update, runtime code, database integration, or production handoff is created.",
+      "Requires actual human review before PR E can prepare any approved artifact.",
+      "Evidence is limited to bounded repo-local references and metadata."
+    ],
+    "audit_notes": [
+      "Added as optional PR D draft classifier-support artifact because the schema supports a blocked draft state.",
+      "Review manifest remains pending and downstream_allowed remains false."
+    ],
+    "disclaimer": "Draft, unapproved classifier-support artifact for local human review planning only. Not legal advice, not customs advice, not a final classification, not exportable intelligence, and not downstream-safe."
+  }
+}

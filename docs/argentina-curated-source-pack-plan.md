@@ -270,6 +270,19 @@ Create the extraction draft and human review manifest for the selected use case.
 Unsupported or uncertain claims must be explicit. Review scope and limitations
 must be recorded before any approval step.
 
+Status: PR D adds a conservative extraction draft and pending human review
+manifest for the bounded demo product evidence packet from PR C (`school
+backpack made primarily of polyester` / `mochila escolar de poliéster`). It
+also adds an optional draft classifier-support artifact because the classifier
+artifact schema supports a non-approved, review-gated, non-downstream-safe draft
+state. PR D does not approve the extraction, does not create an approved
+artifact, does not add export contracts, does not update the approved export
+catalog or bundle, does not add runtime code, Supabase work, migrations, env
+vars, provider behavior, Graphify output, or vLatamGlobal bridge behavior, and
+does not claim a final NCM/HS classification or customs/legal determination.
+PR E must still create any reviewed/approved artifact after actual human
+review. No approved/exportable Argentina artifact exists yet.
+
 ### PR E: approved artifact and export contract
 
 Create the first approved Argentina artifact only if human review approves the
