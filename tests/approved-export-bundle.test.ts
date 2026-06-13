@@ -48,6 +48,11 @@ const argentinaBoundedSnapshotMarkers = [
   "intelligence-source-snapshot-mercosur-ncm-bounded",
   "intelligence-source-snapshot-wco-hs-bounded",
 ];
+const argentinaDemoProductEvidencePacketMarkers = [
+  "evidence-packet-ar-demo-polyester-school-backpack",
+  "extractable-evidence-packet-ar-demo-polyester-school-backpack",
+  "mochila escolar de poliéster",
+];
 
 async function createFixtureRepo(): Promise<string> {
   const repoRoot = await mkdtemp(
@@ -201,6 +206,27 @@ test("approved export bundle excludes Argentina bounded source snapshots", async
         content.includes(marker),
         false,
         `Bundle must not include bounded snapshot marker ${marker}`,
+      );
+    }
+  } finally {
+    await rm(repoRoot, { recursive: true, force: true });
+  }
+});
+
+test("approved export bundle excludes Argentina demo product evidence packet", async () => {
+  const repoRoot = await createFixtureRepo();
+
+  try {
+    await buildApprovedExportBundle({ repoRoot });
+    const content = await readUtf8File(
+      path.join(repoRoot, defaultOutputDir, "index.json"),
+    );
+
+    for (const marker of argentinaDemoProductEvidencePacketMarkers) {
+      assert.equal(
+        content.includes(marker),
+        false,
+        `Bundle must not include demo product evidence packet marker ${marker}`,
       );
     }
   } finally {

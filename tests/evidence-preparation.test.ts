@@ -175,3 +175,13 @@ test("packet fixtures load and stay non-downstream", async () => {
   assert.equal(isEvidencePacketDownstreamAllowed(packet), false);
   assert.equal(evidencePacketReadinessLabel(packet), "extraction_ready");
 });
+
+test("argentina demo product packet remains review-gated", async () => {
+  const packet = await readJson<ExtractableEvidencePacket>(
+    "snapshots/pcram/extractable-evidence-packet-ar-demo-polyester-school-backpack.json",
+  );
+
+  assert.equal(isEvidencePacketExtractionReady(packet), false);
+  assert.equal(isEvidencePacketDownstreamAllowed(packet), false);
+  assert.equal(evidencePacketReadinessLabel(packet), "not_extraction_ready");
+});

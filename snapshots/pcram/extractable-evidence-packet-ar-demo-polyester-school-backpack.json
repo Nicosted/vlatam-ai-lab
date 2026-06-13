@@ -1,0 +1,106 @@
+{
+  "evidence_packet_id": "evidence-packet-ar-demo-polyester-school-backpack-2026-06-13t001000z",
+  "review_manifest_id": "pending-pr-d-review-manifest-ar-demo-polyester-school-backpack",
+  "snapshot_id": "snapshot-ar-customs-tariff-authority-bounded-2026-06-13t000000z",
+  "source_id": "ar-customs-tariff-authority-candidate",
+  "evidence_scope": "argentina_import_classification_support_demo_polyester_school_backpack",
+  "jurisdiction_scope": "ar_import_classification_support_with_mercosur_ncm_and_wco_hs_context",
+  "language": "es",
+  "content_reference": "repo-local/bounded-source-references-only: PR C demo product evidence packet references existing PR A registries and PR B bounded metadata snapshots; no official source body text is copied, downloaded, ingested, parsed, or classified.",
+  "extraction_input_type": "manual_metadata",
+  "extraction_allowed": false,
+  "extraction_status": "not_started",
+  "human_review_required": true,
+  "downstream_allowed": false,
+  "warnings": [
+    "PR D review manifest does not exist yet; extraction remains blocked.",
+    "The referenced PR B source snapshots are bounded metadata snapshots, not verified official-content captures.",
+    "The packet is prepared for classifier-support demo planning only and must not be used as a legal, customs, tariff, or operational determination."
+  ],
+  "limitations": [
+    "No raw legal, tariff, nomenclature, explanatory, or customs source body text is included.",
+    "No final NCM code, HS code, tariff treatment, import duty, sectoral requirement, or customs/legal classification is asserted.",
+    "Product details are intentionally incomplete: exact composition percentages, coating or plastic layers, dimensions, accessories, country of origin, import regime specifics, brand, and commercial invoice details are unknown.",
+    "Source identity, locator scope, source version scope, official-content fingerprints, extraction scope, and product applicability still require human review.",
+    "This packet is not extraction-ready, not production-ready, not export-eligible, and not downstream-safe."
+  ],
+  "notes": [
+    "Spanish product label: mochila escolar de poliéster.",
+    "Prepared as the first bounded PR C demo product evidence packet for the Argentina curated source pack.",
+    "PR D must create the extraction draft and human review manifest before any extraction or approval step can proceed."
+  ],
+  "metadata": {
+    "argentina_source_pack_pr": "PR C",
+    "packet_status": "bounded_demo_product_evidence_packet_requires_pr_d_review",
+    "product_context": {
+      "product_name": "school backpack made primarily of polyester",
+      "spanish_label": "mochila escolar de poliéster",
+      "material_composition": "primarily polyester",
+      "intended_use": "school backpack",
+      "form_function": "textile/polyester bag or backpack for carrying school items",
+      "jurisdiction_use_case": "Argentina import classification support with MERCOSUR/NCM and WCO/HS context",
+      "known_unknowns": [
+        "exact composition percentages",
+        "coating or plastic layers, if any",
+        "dimensions",
+        "accessories",
+        "country of origin",
+        "import regime specifics",
+        "brand and commercial invoice details"
+      ],
+      "recommended_follow_up_questions": [
+        "What are the exact fiber and non-fiber material percentages?",
+        "Does the backpack have any coating, plastic sheeting, reinforcement, or outer layer that changes the essential character?",
+        "What are the dimensions, compartments, closures, straps, and accessories?",
+        "What is the declared country of origin and import regime?",
+        "What commercial invoice, brand, model, and SKU details are available?"
+      ]
+    },
+    "source_references": [
+      {
+        "category": "argentina_customs_tariff_authority",
+        "registry_ref": "snapshots/pcram/intelligence-source-registry-ar-customs-tariff-candidate.json",
+        "snapshot_ref": "snapshots/pcram/intelligence-source-snapshot-ar-customs-tariff-bounded-2026-06-13.json",
+        "source_id": "ar-customs-tariff-authority-candidate",
+        "snapshot_id": "snapshot-ar-customs-tariff-authority-bounded-2026-06-13t000000z",
+        "bounded_reference_only": true
+      },
+      {
+        "category": "mercosur_ncm",
+        "registry_ref": "snapshots/pcram/intelligence-source-registry-mercosur-ncm-candidate.json",
+        "snapshot_ref": "snapshots/pcram/intelligence-source-snapshot-mercosur-ncm-bounded-2026-06-13.json",
+        "source_id": "mercosur-ncm-source-candidate",
+        "snapshot_id": "snapshot-mercosur-ncm-source-bounded-2026-06-13t000000z",
+        "bounded_reference_only": true
+      },
+      {
+        "category": "wco_hs",
+        "registry_ref": "snapshots/pcram/intelligence-source-registry-wco-hs-candidate.json",
+        "snapshot_ref": "snapshots/pcram/intelligence-source-snapshot-wco-hs-bounded-2026-06-13.json",
+        "source_id": "wco-hs-source-candidate",
+        "snapshot_id": "snapshot-wco-hs-source-bounded-2026-06-13t000000z",
+        "bounded_reference_only": true
+      }
+    ],
+    "review_gates": {
+      "requires_human_review": true,
+      "requires_pr_d_review_manifest": true,
+      "extraction_ready": false,
+      "approved_classifier_artifact": false,
+      "export_eligible": false,
+      "production_ready": false,
+      "downstream_safe": false
+    },
+    "content_controls": {
+      "raw_body_included": false,
+      "official_content_ingested": false,
+      "official_content_hash_verified": false,
+      "classification_claim_included": false,
+      "final_ncm_or_hs_code_claimed": false,
+      "runtime_coupling": false
+    }
+  },
+  "created_at": "2026-06-13T00:10:00.000Z",
+  "contract_version": "1.0.0",
+  "schema_version": "1.0.0"
+}
