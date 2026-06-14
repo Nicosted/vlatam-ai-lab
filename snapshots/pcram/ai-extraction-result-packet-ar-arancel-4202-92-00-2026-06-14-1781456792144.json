@@ -1,0 +1,81 @@
+{
+  "extraction_result_id": "ai-extraction-result-packet-ar-arancel-4202-92-00-2026-06-14-20260614T163727Z",
+  "extraction_job_id": "extraction-job-packet-ar-arancel-4202-92-00-2026-06-14-20260614T163727Z",
+  "evidence_packet_id": "packet-ar-arancel-4202-92-00-2026-06-14",
+  "review_manifest_id": "review-manifest-packet-ar-arancel-4202-92-00-2026-06-14",
+  "snapshot_id": "snap-arca-arancel-2026-06-09",
+  "source_id": "ar-arca-arancel-integrado",
+  "provider_id": "deepseek-chat",
+  "model_id": "deepseek-chat",
+  "extraction_status": "draft_unreviewed",
+  "extracted_claims": [
+    {
+      "claim_id": "claim-1",
+      "claim_text": "NCM 4202.92.00 covers articles with outer surface of plastics or textile materials, including school bags.",
+      "evidence_reference": "wco-hs-2022:snap-wco-hs-2022-edition:Heading 42.02 - Harmonized System 2022",
+      "support_status": "supported_by_packet",
+      "confidence": 0.95
+    },
+    {
+      "claim_id": "claim-2",
+      "claim_text": "The MERCOSUR AEC for NCM 4202.92.00 is 16%.",
+      "evidence_reference": "mercosur-ncm-aec:snap-mercosur-ncm-aec-2026-v1:NCM 4202.92.00 - Arancel Externo Común",
+      "support_status": "supported_by_packet",
+      "confidence": 0.95
+    },
+    {
+      "claim_id": "claim-3",
+      "claim_text": "Argentina's extra-zone import duty for NCM 4202.92.00 is 16%.",
+      "evidence_reference": "ar-arca-arancel-integrado:snap-arca-arancel-2026-06-09:NCM 4202.92.00 - Arancel Integrado",
+      "support_status": "supported_by_packet",
+      "confidence": 0.95
+    },
+    {
+      "claim_id": "claim-4",
+      "claim_text": "Argentina's statistical rate for NCM 4202.92.00 is 0.5%.",
+      "evidence_reference": "ar-arca-arancel-integrado:snap-arca-arancel-2026-06-09:NCM 4202.92.00 - Arancel Integrado",
+      "support_status": "supported_by_packet",
+      "confidence": 0.95
+    },
+    {
+      "claim_id": "claim-5",
+      "claim_text": "Argentina's VAT for NCM 4202.92.00 is 21% (Ley 23.857).",
+      "evidence_reference": "ar-arca-arancel-integrado:snap-arca-arancel-2026-06-09:NCM 4202.92.00 - Arancel Integrado",
+      "support_status": "supported_by_packet",
+      "confidence": 0.95
+    },
+    {
+      "claim_id": "claim-6",
+      "claim_text": "Argentina adopted NCM adjusted to HS 2022 (VII Enmienda) via Decreto 557/2023.",
+      "evidence_reference": "ar-infoleg-decreto-557-2023:snap-infoleg-557-2023:Artículo 1 - Aprobación NCM VII Enmienda",
+      "support_status": "supported_by_packet",
+      "confidence": 0.95
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "claim_id": "unsupported-1",
+      "claim_text": "The product described (polyester school backpack with zipper closure, textile outer surface) is definitively classified under NCM 4202.92.00.",
+      "reason": "The evidence supports that subheading 4202.92 covers school bags with textile outer surface, but final classification requires verification of all product details and application of GIRs, which is beyond the scope of this extraction.",
+      "evidence_reference": "wco-hs-2022:snap-wco-hs-2022-edition"
+    },
+    {
+      "claim_id": "unsupported-2",
+      "claim_text": "The total import duties and taxes for this product are exactly 16% + 0.5% + 21% = 37.5%.",
+      "reason": "The evidence provides individual rates, but the calculation of total landed cost may involve additional factors (e.g., VAT base, exemptions) not covered in the evidence.",
+      "evidence_reference": "ar-arca-arancel-integrado:snap-arca-arancel-2026-06-09"
+    }
+  ],
+  "warnings": [
+    "This extraction is based on limited excerpts and does not constitute a binding classification or legal advice.",
+    "The evidence does not include information on potential preferential tariff treatments, exemptions, or additional regulatory requirements (e.g., import licenses, quality controls).",
+    "The product description in the excerpt reference is generic; a full product specification is needed for definitive classification."
+  ],
+  "confidence": 0.85,
+  "critic_summary": "Extraction successfully identified key normative data for NCM 4202.92.00 from official sources (ARCA, MERCOSUR, WCO, InfoLEG). Claims are supported by evidence. However, final classification and duty calculation require human review and additional product details. No conflicting sources found.",
+  "human_review_required": true,
+  "downstream_allowed": false,
+  "created_at": "2026-06-14T17:06:32.111Z",
+  "contract_version": "1.0.0",
+  "schema_version": "1.0.0"
+}

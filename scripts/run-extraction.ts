@@ -6,8 +6,7 @@ import { APIError } from 'openai';
 import { NormativeEvidenceAgent } from '../src/agents/normative-evidence-agent.js';
 
 interface Packet {
-  packet_id: string;
-  product_description: string;
+  evidence_packet_id: string;
   evidence_refs?: unknown[];
   [key: string]: unknown;
 }
@@ -83,13 +82,8 @@ function loadPacket(path: string): Packet {
 
   const packet = parsed as Record<string, unknown>;
 
-  if (typeof packet.packet_id !== 'string') {
-    console.error('❌ Missing required field: packet_id');
-    process.exit(1);
-  }
-
-  if (typeof packet.product_description !== 'string') {
-    console.error('❌ Missing required field: product_description');
+  if (typeof packet.evidence_packet_id !== 'string') {
+    console.error('❌ Missing required field: evidence_packet_id');
     process.exit(1);
   }
 
@@ -107,7 +101,7 @@ function printSummary(result: ExtractionResult, outputPath: string): void {
   console.log('');
   console.log('✅ Extraction completed');
   console.log(`   extraction_id:              ${result.extraction_id ?? 'N/A'}`);
-  console.log(`   packet_id:                  ${result.packet_id ?? 'N/A'}`);
+  console.log(`   evidence_packet_id:         ${result.evidence_packet_id ?? 'N/A'}`);
   console.log(`   status:                     ${result.status ?? 'N/A'}`);
   console.log(`   insufficient_evidence:      ${result.insufficient_evidence ?? false}`);
   console.log(`   human_review_required:      ${result.human_review_required}`);
@@ -157,7 +151,7 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  const sanitizedId = sanitizeFilename(packet.packet_id);
+  const sanitizedId = sanitizeFilename(packet.evidence_packet_id);
   const timestamp = Date.now();
   const filename = `ai-extraction-result-${sanitizedId}-${timestamp}.json`;
   const outputPath = join(SNAPSHOTS_DIR, filename);

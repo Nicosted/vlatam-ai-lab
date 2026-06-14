@@ -1,6 +1,4 @@
 {
-  "packet_id": "extractable-evidence-packet-test-minimal-2026-06-14",
-  "product_description": "[SYNTHETIC TEST DATA] Minimal test product for agent validation",
   "evidence_refs": [
     {
       "source_id": "intelligence-source-registry-test-minimal",
