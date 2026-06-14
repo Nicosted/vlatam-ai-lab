@@ -1,0 +1,36 @@
+{
+  "extraction_result_id": "ai-extraction-result-extractable-evidence-packet-test-minimal-2026-06-14-20260614T163727Z",
+  "extraction_job_id": "extraction-job-extractable-evidence-packet-test-minimal-2026-06-14-20260614T163727Z",
+  "evidence_packet_id": "extractable-evidence-packet-test-minimal-2026-06-14",
+  "review_manifest_id": "review-manifest-extractable-evidence-packet-test-minimal-2026-06-14-20260614T163727Z",
+  "snapshot_id": "intelligence-source-snapshot-test-minimal-2026-06-14",
+  "source_id": "intelligence-source-registry-test-minimal",
+  "provider_id": "deepseek-chat",
+  "model_id": "deepseek-chat",
+  "extraction_status": "validation_failed",
+  "extracted_claims": [],
+  "unsupported_claims": [
+    {
+      "claim_id": "unsupported-1",
+      "claim_text": "The product description corresponds to any specific HS, NCM, or regulatory classification.",
+      "reason": "The evidence packet contains only synthetic test data with no official regulatory content. The excerpt explicitly states it is not official and cannot be used for actual compliance.",
+      "evidence_reference": "intelligence-source-registry-test-minimal:intelligence-source-snapshot-test-minimal-2026-06-14:test-section"
+    }
+  ],
+  "warnings": [
+    "Evidence packet contains synthetic test data only; no official normative evidence provided.",
+    "All evidence excerpts are marked as [SYNTHETIC TEST DATA - NOT OFFICIAL] and cannot be used for extraction.",
+    "No international HS, MERCOSUR NCM/AEC, or Argentina domestic evidence is present."
+  ],
+  "confidence": 0,
+  "critic_summary": "Extraction failed because the evidence packet contains only synthetic test data with no official regulatory content. No normative claims can be extracted. Human review is required to confirm that this is a test scenario.",
+  "human_review_required": true,
+  "downstream_allowed": false,
+  "created_at": "2026-06-14T16:42:01.040Z",
+  "contract_version": "1.0.0",
+  "schema_version": "1.0.0",
+  "model": "deepseek-chat",
+  "status": "draft",
+  "extraction_id": "extraction-1781455321044",
+  "packet_id": "extractable-evidence-packet-test-minimal-2026-06-14"
+}

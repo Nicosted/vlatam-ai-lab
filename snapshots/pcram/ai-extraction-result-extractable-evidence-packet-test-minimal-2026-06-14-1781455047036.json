@@ -1,0 +1,49 @@
+{
+  "human_review_required": true,
+  "downstream_allowed": false,
+  "insufficient_evidence": true,
+  "evidence_used": [
+    {
+      "source_id": "intelligence-source-registry-test-minimal",
+      "snapshot_id": "intelligence-source-snapshot-test-minimal-2026-06-14",
+      "section_label": "test-section",
+      "article_number": "TEST-001",
+      "excerpt": "[SYNTHETIC TEST DATA - NOT OFFICIAL] This is synthetic excerpt content for testing purposes only."
+    }
+  ],
+  "normative_statements": [],
+  "conflicts": [],
+  "notes": [
+    "Evidence packet contains only synthetic test data, not official regulatory content.",
+    "No actual legal, customs, tariff, sanitary, technical, or classification requirements can be extracted.",
+    "Insufficient evidence to provide any normative statements."
+  ],
+  "status": "failed",
+  "validation_errors": [
+    "root: must have required property 'extraction_result_id'",
+    "root: must have required property 'evidence_packet_id'",
+    "root: must have required property 'review_manifest_id'",
+    "root: must have required property 'snapshot_id'",
+    "root: must have required property 'source_id'",
+    "root: must have required property 'provider_id'",
+    "root: must have required property 'model_id'",
+    "root: must have required property 'extraction_status'",
+    "root: must have required property 'extracted_claims'",
+    "root: must have required property 'unsupported_claims'",
+    "root: must have required property 'warnings'",
+    "root: must have required property 'confidence'",
+    "root: must have required property 'critic_summary'",
+    "root: must have required property 'created_at'",
+    "root: must have required property 'contract_version'",
+    "root: must have required property 'schema_version'",
+    "root: must NOT have additional properties",
+    "root: must NOT have additional properties",
+    "root: must NOT have additional properties",
+    "root: must NOT have additional properties",
+    "root: must NOT have additional properties"
+  ],
+  "model": "deepseek-chat",
+  "created_at": "2026-06-14T16:37:27.032Z",
+  "extraction_id": "extraction-1781455047036",
+  "packet_id": "extractable-evidence-packet-test-minimal-2026-06-14"
+}
