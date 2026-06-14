@@ -11,6 +11,8 @@
     "ai:extract": "tsx scripts/run-extraction.ts",
     "ai:validate-packet": "tsx scripts/validate-packet.ts",
     "ai:validate-extraction": "tsx scripts/validate-extraction.ts",
+    "crawler:arca": "tsx src/crawlers/arca-crawler.ts",
+    "crawler:packet": "tsx src/crawlers/generate-packet-from-arca.ts",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test tests/**/*.test.ts",
     "lint": "eslint .",
@@ -47,6 +49,7 @@
     "ajv": "^8.20.0",
     "ajv-formats": "^3.0.1",
     "dotenv": "^17.4.2",
-    "openai": "^6.42.0"
+    "openai": "^6.42.0",
+    "xlsx": "^0.18.5"
   }
 }

@@ -1,0 +1,87 @@
+{
+  "extraction_result_id": "ai-extraction-result-evidence-packet-ar-arancel-8452-10-00-2026-06-14-2026-06-14T16:37:27.032Z",
+  "extraction_job_id": "extraction-job-evidence-packet-ar-arancel-8452-10-00-2026-06-14-2026-06-14T16:37:27.032Z",
+  "evidence_packet_id": "evidence-packet-ar-arancel-8452-10-00-2026-06-14",
+  "review_manifest_id": "review-manifest-8452-10-00-2026-06-14T17-32-28-463Z",
+  "snapshot_id": "snap-arca-arancel-2026-06-14",
+  "source_id": "ar-arca-arancel-integrado",
+  "provider_id": "deepseek-chat",
+  "model_id": "deepseek-chat",
+  "extraction_status": "draft_unreviewed",
+  "extracted_claims": [
+    {
+      "claim_id": "claim-1",
+      "claim_text": "NCM 8452.10.00 covers 'Máquinas de coser del tipo doméstico' (domestic sewing machines).",
+      "evidence_reference": "ar-arca-arancel-integrado:snap-arca-arancel-2026-06-14:NCM 8452.10.00 - Arancel Integrado",
+      "support_status": "supported_by_packet",
+      "confidence": 1
+    },
+    {
+      "claim_id": "claim-2",
+      "claim_text": "The AEC (Arancel Externo Común) for NCM 8452.10.00 is 14%.",
+      "evidence_reference": "ar-arca-arancel-integrado:snap-arca-arancel-2026-06-14:NCM 8452.10.00 - Arancel Integrado",
+      "support_status": "supported_by_packet",
+      "confidence": 1
+    },
+    {
+      "claim_id": "claim-3",
+      "claim_text": "The derecho extra-zona (extra-zone duty) for NCM 8452.10.00 is 14%.",
+      "evidence_reference": "ar-arca-arancel-integrado:snap-arca-arancel-2026-06-14:NCM 8452.10.00 - Arancel Integrado",
+      "support_status": "supported_by_packet",
+      "confidence": 1
+    },
+    {
+      "claim_id": "claim-4",
+      "claim_text": "The tasa de estadística (statistical fee) for NCM 8452.10.00 is 0.5%.",
+      "evidence_reference": "ar-arca-arancel-integrado:snap-arca-arancel-2026-06-14:NCM 8452.10.00 - Arancel Integrado",
+      "support_status": "supported_by_packet",
+      "confidence": 1
+    },
+    {
+      "claim_id": "claim-5",
+      "claim_text": "The IVA (VAT) for NCM 8452.10.00 is 21% under Ley 23.857.",
+      "evidence_reference": "ar-arca-arancel-integrado:snap-arca-arancel-2026-06-14:NCM 8452.10.00 - Arancel Integrado",
+      "support_status": "supported_by_packet",
+      "confidence": 1
+    },
+    {
+      "claim_id": "claim-6",
+      "claim_text": "The tariff information is effective from 2026-06-14.",
+      "evidence_reference": "ar-arca-arancel-integrado:snap-arca-arancel-2026-06-14:NCM 8452.10.00 - Arancel Integrado",
+      "support_status": "supported_by_packet",
+      "confidence": 1
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "claim_id": "unsupported-1",
+      "claim_text": "The product is classified under HS6 8452.10.",
+      "reason": "The evidence only provides the NCM 8452.10.00 description; HS6 classification is not explicitly confirmed in the excerpt.",
+      "evidence_reference": "ar-arca-arancel-integrado:snap-arca-arancel-2026-06-14"
+    },
+    {
+      "claim_id": "unsupported-2",
+      "claim_text": "The origin country (CN) affects the applicable duty rate.",
+      "reason": "The evidence does not provide any preferential or special tariff treatment based on origin; only general AEC and extra-zone rates are given.",
+      "evidence_reference": "ar-arca-arancel-integrado:snap-arca-arancel-2026-06-14"
+    },
+    {
+      "claim_id": "unsupported-3",
+      "claim_text": "Additional taxes or fees beyond those listed apply.",
+      "reason": "The evidence only lists AEC, extra-zone duty, statistical fee, and IVA; no other charges are mentioned.",
+      "evidence_reference": "ar-arca-arancel-integrado:snap-arca-arancel-2026-06-14"
+    }
+  ],
+  "warnings": [
+    "The evidence packet does not include international HS classification notes or MERCOSUR NCM legal texts; only Argentina domestic tariff data is provided.",
+    "The evidence does not specify whether the product qualifies for any preferential tariff treatment (e.g., with China).",
+    "The evidence does not include regulatory or non-tariff requirements (e.g., technical standards, sanitary measures)."
+  ],
+  "confidence": 0.9,
+  "critic_summary": "Extraction based solely on ARCA Arancel Integrado excerpt for NCM 8452.10.00. All claims are directly supported by the evidence. However, the evidence is limited to tariff rates and does not cover classification rules, origin-specific preferences, or non-tariff measures. Human review is required for completeness.",
+  "human_review_required": true,
+  "downstream_allowed": false,
+  "created_at": "2026-06-14T17:32:55.756Z",
+  "contract_version": "1.0.0",
+  "schema_version": "1.0.0"
+}
