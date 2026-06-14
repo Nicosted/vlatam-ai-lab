@@ -10,6 +10,7 @@
   "scripts": {
     "ai:extract": "tsx scripts/run-extraction.ts",
     "ai:validate-packet": "tsx scripts/validate-packet.ts",
+    "ai:validate-extraction": "tsx scripts/validate-extraction.ts",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test tests/**/*.test.ts",
     "lint": "eslint .",
