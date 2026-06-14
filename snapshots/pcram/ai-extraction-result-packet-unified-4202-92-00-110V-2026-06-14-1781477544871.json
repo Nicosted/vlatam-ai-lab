@@ -1,0 +1,46 @@
+{
+  "extraction_result_id": "ai-extraction-result-packet-unified-4202-92-00-110V-2026-06-14-20260614T223756Z",
+  "extraction_job_id": "extraction-job-packet-unified-4202-92-00-110V-2026-06-14-20260614T223756Z",
+  "evidence_packet_id": "packet-unified-4202-92-00-110V-2026-06-14",
+  "review_manifest_id": "review-manifest-unified-4202-92-00-110V-2026-06-14T22-51-56-350Z",
+  "snapshot_id": "snap-unified-4202-92-00-110V-2026-06-14",
+  "source_id": "vlatam-ai-lab-unified",
+  "provider_id": "deepseek-chat",
+  "model_id": "deepseek-chat",
+  "extraction_status": "validation_failed",
+  "extracted_claims": [],
+  "unsupported_claims": [
+    {
+      "claim_id": "unsupported-1",
+      "claim_text": "The NCM 4202.92.00.110V corresponds to a camping backpack with outer surface of textile material.",
+      "reason": "The evidence packet only provides a description 'De campamento' and does not include the full product description or HS classification notes to confirm the product characteristics.",
+      "evidence_reference": "ar-arca-arancel-integrado:snap-arca-arancel-latest:Arancel y Tasas"
+    },
+    {
+      "claim_id": "unsupported-2",
+      "claim_text": "The applicable AEC is 0%, Derecho Extra-zona is 7%, Tasa Estadística is 20%, and IVA is N/A.",
+      "reason": "The evidence from ARCA shows these values, but the excerpt is incomplete (IVA: N/A%) and lacks context on whether these are the only applicable duties or if there are additional taxes or restrictions. Also, the evidence does not specify the effective date or validity period.",
+      "evidence_reference": "ar-arca-arancel-integrado:snap-arca-arancel-latest:Arancel y Tasas"
+    },
+    {
+      "claim_id": "unsupported-3",
+      "claim_text": "The classification is based on Decreto 557/2023 which adopts the NCM adjusted to the 7th Amendment of the Harmonized System.",
+      "reason": "The evidence from InfoLEG only states that Decreto 557/2023 approves the NCM adjusted to the VII Enmienda, but does not link it specifically to NCM 4202.92.00.110V or provide the full legal framework for classification.",
+      "evidence_reference": "ar-infoleg:snap-infoleg-customs-latest:Base Legal General"
+    }
+  ],
+  "warnings": [
+    "Evidence packet contains only two sources: ARCA tariff data and InfoLEG decree reference. Missing official HS explanatory notes, NCM classification criteria, and specific product definition for 'mochila de campamento'.",
+    "The ARCA excerpt does not include the full description of the NCM, only 'De campamento'. The product characteristics (surface material, type of backpack) are not confirmed by the evidence.",
+    "IVA is listed as 'N/A%', which is ambiguous; it may indicate not applicable or missing data.",
+    "No evidence of MERCOSUR or Argentina-specific regulations regarding camping backpacks, such as technical standards or import restrictions.",
+    "The evidence does not include effective dates or validity periods for the tariff rates."
+  ],
+  "confidence": 0.3,
+  "critic_summary": "The evidence packet is insufficient to fully validate the classification and tariff treatment of NCM 4202.92.00.110V. The ARCA excerpt provides basic tariff rates but lacks the full product description and legal basis. The InfoLEG reference is generic. Missing critical evidence such as HS explanatory notes, NCM classification criteria, and official product definitions. Therefore, extraction_status is set to validation_failed with no extracted claims.",
+  "human_review_required": true,
+  "downstream_allowed": false,
+  "created_at": "2026-06-14T22:52:24.845Z",
+  "contract_version": "1.0.0",
+  "schema_version": "1.0.0"
+}

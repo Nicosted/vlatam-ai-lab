@@ -1,6 +1,6 @@
 {
   "evidence_packet_id": "packet-unified-4202-92-00-110V-2026-06-14",
-  "review_manifest_id": "review-manifest-unified-4202-92-00-110V-2026-06-14T22-41-45-114Z",
+  "review_manifest_id": "review-manifest-unified-4202-92-00-110V-2026-06-14T22-51-56-350Z",
   "snapshot_id": "snap-unified-4202-92-00-110V-2026-06-14",
   "source_id": "vlatam-ai-lab-unified",
   "evidence_scope": "NCM 4202.92.00.110V - Análisis aduanero unificado (ARCA + VUCE + InfoLEG)",
@@ -8,18 +8,25 @@
   "extraction_input_type": "excerpt_reference",
   "extraction_allowed": true,
   "extraction_status": "prepared",
-  "excerpt_reference": "NCM 4202.92.00.110V | Mochila de campamento | Unified analysis",
+  "excerpt_reference": "NCM 4202.92.00.110V | Mochila de campamento con superficie exterior de materia textil | Unified analysis",
   "human_review_required": true,
   "downstream_allowed": false,
   "schema_version": "1.0.0",
-  "created_at": "2026-06-14T22:41:45.115Z",
+  "created_at": "2026-06-14T22:51:56.352Z",
   "evidence_refs": [
     {
       "source_id": "ar-arca-arancel-integrado",
-      "snapshot_id": "snap-arca-arancel-2026-06-14",
-      "section_label": "NCM 4202.92.00.110V - Arancel Integrado",
+      "snapshot_id": "snap-arca-arancel-latest",
+      "section_label": "Arancel y Tasas",
       "article_number": "NCM 4202.92.00.110V",
-      "excerpt": "[OFFICIAL - ARCA] NCM: 4202.92.00.110V\nDescripción: De campamento\nAEC: 0%\nDerecho Extra-zona: 7%\nTasa Estadística: 20%\nIVA: null%"
+      "excerpt": "[ARANCEL OFICIAL - ARCA]\nNCM: 4202.92.00.110V\nDescripción: De campamento\nAEC: 0%\nDerecho Extra-zona: 7%\nTasa Estadística: 20%\nIVA: N/A%"
+    },
+    {
+      "source_id": "ar-infoleg",
+      "snapshot_id": "snap-infoleg-customs-latest",
+      "section_label": "Base Legal General",
+      "article_number": "Decreto 557/2023",
+      "excerpt": "[INFOLEG]\nDecreto 557/2023: Aprueba la Nomenclatura Común del MERCOSUR (NCM) ajustada a la VII Enmienda del Sistema Armonizado."
     }
   ]
 }
