@@ -12,6 +12,7 @@
     "ai:validate-packet": "tsx scripts/validate-packet.ts",
     "ai:validate-extraction": "tsx scripts/validate-extraction.ts",
     "crawler:arca": "tsx src/crawlers/arca-crawler.ts",
+    "crawler:arca:real": "tsx src/crawlers/arca-real-crawler.ts",
     "crawler:packet": "tsx src/crawlers/generate-packet-from-arca.ts",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test tests/**/*.test.ts",

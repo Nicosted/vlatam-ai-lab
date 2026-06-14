@@ -1,0 +1,5 @@
+# posiciones para consultar en CIVUCE
+# formato: posicion | familia | producto_demo | observaciones
+4202.92.00.900 | mochilas_bolsos | mochila textil escolar | busqueda CIVUCE general; devuelve subposiciones SIM 4202.92.00.110V y 4202.92.00.120Y
+4202.92.00.110V | mochilas_bolsos | mochila de campamento | subposicion detectada en CIVUCE; revisar detalle
+4202.92.00.120Y | mochilas_bolsos | mochila alcanzada por Res. 163/2005 SCT | subposicion detectada en CIVUCE; revisar detalle

@@ -1,6 +1,6 @@
 {
   "evidence_packet_id": "evidence-packet-ar-arancel-4202-92-00-2026-06-14",
-  "review_manifest_id": "review-manifest-4202-92-00-2026-06-14T17-31-53-492Z",
+  "review_manifest_id": "review-manifest-4202-92-00-2026-06-14T21-49-13-549Z",
   "snapshot_id": "snap-arca-arancel-2026-06-14",
   "source_id": "ar-arca-arancel-integrado",
   "evidence_scope": "NCM 4202.92.00 - Arancel Integrado ARCA",
@@ -8,20 +8,20 @@
   "extraction_input_type": "excerpt_reference",
   "extraction_allowed": true,
   "extraction_status": "prepared",
-  "excerpt_reference": "NCM 4202.92.00 | Mochila escolar de poliéster | HS6: 4202.92",
+  "excerpt_reference": "NCM 4202.92.00.110V | Mochila escolar de poliéster | HS6: 4202.92",
   "evidence_refs": [
     {
       "source_id": "ar-arca-arancel-integrado",
       "snapshot_id": "snap-arca-arancel-2026-06-14",
-      "section_label": "NCM 4202.92.00 - Arancel Integrado",
-      "article_number": "NCM 4202.92.00",
-      "excerpt": "[OFFICIAL - ARCA Arancel Integrado - 2026-06-14]\nNCM: 4202.92.00\nDescripción: Los demás artículos con superficie exterior de materia textil\nAEC: 16%\nDerecho extra-zona: 16%\nTasa de estadística: 0.5%\nIVA: 21% (Ley 23.857)\nFuente: ARCA Arancel Integrado\nURL: https://www.afip.gob.ar/aduana/arancelintegrado/\nVigencia: desde 2026-06-14"
+      "section_label": "NCM 4202.92.00.110V - Arancel Integrado",
+      "article_number": "NCM 4202.92.00.110V",
+      "excerpt": "[OFFICIAL - ARCA Arancel Integrado - 2026-06-14]\nNCM: 4202.92.00.110V\nDescripción: De campamento\nAEC: 0%\nDerecho extra-zona: 7%\nTasa de estadística: 20%\nFuente: ARCA Arancel Integrado\nURL: https://www.afip.gob.ar/aduana/arancelintegrado/\nVigencia: desde 2026-06-14"
     }
   ],
   "human_review_required": true,
   "downstream_allowed": false,
   "schema_version": "1.0.0",
-  "created_at": "2026-06-14T17:31:53.492Z",
+  "created_at": "2026-06-14T21:49:13.549Z",
   "metadata": {
     "product_description": "Mochila escolar de poliéster",
     "candidate_hs6": "4202.92",

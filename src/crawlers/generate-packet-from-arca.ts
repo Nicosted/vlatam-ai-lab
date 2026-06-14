@@ -58,13 +58,35 @@ function findLatestArcaSnapshot(): ArcaSnapshot {
   return JSON.parse(readFileSync(join(PARSED_DIR, firstFile), 'utf-8'));
 }
 
-function findTariffLine(snapshot: ArcaSnapshot, ncmCode: string): TariffLine {
+function findTariffLines(snapshot: ArcaSnapshot, ncmCode: string): TariffLine[] {
   const ncmClean = ncmCode.replace(/\./g, '');
-  const line = snapshot.tariff_lines.find(l => l.ncm_code_clean === ncmClean);
-  if (!line) {
+  // Find all lines that start with this NCM (base NCM8 or any child position)
+  return snapshot.tariff_lines.filter(l => 
+    l.ncm_code_clean.startsWith(ncmClean) || 
+    l.ncm_code.startsWith(ncmCode)
+  );
+}
+
+function findBestTariffLine(snapshot: ArcaSnapshot, ncmCode: string): TariffLine {
+  const lines = findTariffLines(snapshot, ncmCode);
+  
+  if (lines.length === 0) {
     throw new Error(`NCM ${ncmCode} not found in ARCA snapshot`);
   }
-  return line;
+  
+  // Prefer lines with actual rates over placeholder lines
+  const withRates = lines.filter(l => 
+    l.aec_rate !== null || 
+    l.derecho_extra_zona !== null || 
+    l.tasa_estadistica !== null
+  );
+  
+  // Return the first line with rates, or the first line if none have rates
+  const result = withRates.length > 0 ? withRates[0] : lines[0];
+  if (!result) {
+    throw new Error(`NCM ${ncmCode} not found in ARCA snapshot`);
+  }
+  return result;
 }
 
 function buildExcerpt(line: TariffLine, snapshotDate: string): string {
@@ -88,7 +110,7 @@ function buildExcerpt(line: TariffLine, snapshotDate: string): string {
 
 function generatePacket(ncmCode: string, productDescription: string): any {
   const snapshot = findLatestArcaSnapshot();
-  const line = findTariffLine(snapshot, ncmCode);
+  const line = findBestTariffLine(snapshot, ncmCode);
   
   const today = new Date().toISOString().split('T')[0];
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');

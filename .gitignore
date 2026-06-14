@@ -9,3 +9,20 @@ coverage/
 
 # Raw crawler data (too large for GitHub)
 data/raw/
+
+# ============================================
+# DATA MANAGEMENT - vLatam AI Lab
+# ============================================
+
+# Large source files (official downloads) - gitignored
+# Keep only manifests and parsed JSON in Git
+data/sources/arca/*.zip
+data/sources/arca/*.xls
+data/sources/arca/*.xlsx
+data/sources/infoleg/*.csv
+data/sources/vuce/**/*.pdf
+data/sources/boletin_oficial/**/*.pdf
+data/sources/organismos_sectoriales/**/*.pdf
+
+# Original download folder (after migration)
+vlatam_normativa_ar_2026_06_14/
