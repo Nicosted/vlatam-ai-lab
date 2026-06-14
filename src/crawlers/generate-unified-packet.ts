@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 /**
- * Generates a comprehensive evidence packet combining ARCA, InfoLEG, and VUCE data.
+ * Generates enriched unified evidence packet using ARCA + InfoLEG + VUCE Manual Notes.
  * Usage: pnpm crawler:unified-packet <ncm_code> <product_description>
  */
 
@@ -34,113 +34,94 @@ function getArcaData(ncmCode: string): any {
 function getInfoLegData(normNumbers: string[]): any[] {
   if (!existsSync(INFOLEG_PARSED)) return [];
   const infoleg = JSON.parse(readFileSync(INFOLEG_PARSED, 'utf-8'));
+  const cleanNums = normNumbers.map(n => n.toLowerCase().replace(/\s/g, '').replace('/20', '/'));
   return infoleg.norms.filter((n: any) => 
-    normNumbers.some(num => n.numero.toLowerCase().replace(/\s/g, '').includes(num.toLowerCase().replace(/\s/g, '').replace('/20', '/')))
-  ).slice(0, 5); // Limit to top 5 most relevant to avoid context overflow
+    cleanNums.some(num => `${n.tipo_norma} ${n.numero}`.toLowerCase().replace(/\s/g, '').includes(num))
+  ).slice(0, 3);
 }
 
-function getVuceData(ncmCode: string): any[] {
+function getVuceNotes(ncmCode: string): any[] {
   if (!existsSync(VUCE_PARSED)) return [];
-  const files = readdirSync(VUCE_PARSED).filter(f => f.endsWith('.json'));
-  const vuceData: any[] = [];
-  for (const file of files) {
-    const data = JSON.parse(readFileSync(join(VUCE_PARSED, file), 'utf-8'));
-    if (data.raw_text.toLowerCase().includes(ncmCode.replace(/\./g, ''))) {
-      vuceData.push(data);
-    }
-  }
-  return vuceData;
+  const files = readdirSync(VUCE_PARSED).filter(f => f.startsWith('vuce-notes-') && f.endsWith('.json'));
+  const ncmClean = ncmCode.replace(/\./g, '');
+  return files
+    .map(f => JSON.parse(readFileSync(join(VUCE_PARSED, f), 'utf-8')))
+    .filter(n => n.position.replace(/\./g, '').includes(ncmClean) || n.position.startsWith(ncmClean.substring(0, 8)));
 }
 
-function generateUnifiedPacket(ncmCode: string, productDesc: string) {
+function generateEnrichedPacket(ncmCode: string, productDesc: string) {
   const arca = getArcaData(ncmCode);
+  const vuceNotes = getVuceNotes(ncmCode);
   const today = new Date().toISOString().split('T')[0];
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
   const ncmSlug = ncmCode.replace(/\./g, '-');
 
-  // Extract norms mentioned in VUCE to cross-reference with InfoLEG
-  const vuceData = getVuceData(ncmCode);
-  const mentionedNorms = [...new Set(vuceData.flatMap((v: any) => v.norms_mentioned || []))];
-  const infolegNorms = getInfoLegData(mentionedNorms);
+  const allNorms = [...new Set(vuceNotes.flatMap((n: any) => n.norms_cited || []))];
+  const infolegMatches = getInfoLegData(allNorms);
 
-  // Build evidence refs
   const evidenceRefs: any[] = [];
 
-  // 1. ARCA Ref (Clear and concise)
+  // 1. ARCA
   evidenceRefs.push({
     source_id: 'ar-arca-arancel-integrado',
-    snapshot_id: 'snap-arca-arancel-latest',
+    snapshot_id: 'snap-arca-latest',
     section_label: 'Arancel y Tasas',
     article_number: `NCM ${arca.ncm_code}`,
     excerpt: `[ARANCEL OFICIAL - ARCA]\nNCM: ${arca.ncm_code}\nDescripción: ${arca.description}\nAEC: ${arca.aec_rate ?? 'N/A'}%\nDerecho Extra-zona: ${arca.derecho_extra_zona ?? 'N/A'}%\nTasa Estadística: ${arca.tasa_estadistica ?? 'N/A'}%\nIVA: ${arca.iva_rate ?? 'N/A'}%` 
   });
 
-  // 2. VUCE Refs (Interventions)
-  if (vuceData.length > 0) {
-    vuceData.forEach((v: any, idx: number) => {
-      evidenceRefs.push({
-        source_id: 'ar-vuce-civuce',
-        snapshot_id: `snap-vuce-${ncmSlug}-${idx}`,
-        section_label: 'Intervenciones y Requisitos',
-        article_number: ncmCode,
-        excerpt: `[REQUISITOS VUCE]\nOrganismos/Intervenciones detectados en texto.\nNormas citadas en VUCE: ${v.norms_mentioned.join(', ') || 'Ninguna explícita'}\nExtracto: ${v.raw_text.substring(0, 400)}...` 
-      });
+  // 2. VUCE Notes (Interventions & Requirements)
+  vuceNotes.forEach((v: any, idx: number) => {
+    evidenceRefs.push({
+      source_id: 'ar-vuce-civuce',
+      snapshot_id: `snap-vuce-notes-${idx}`,
+      section_label: 'Intervenciones y Requisitos (Notas Manuales)',
+      article_number: v.position,
+      excerpt: `[VUCE INTERVENCIONES]\nOrganismos/Requisitos: ${(v.interventions || []).join(' | ')}\nTarifas observadas: ${(v.tariffs_noted || []).join(' | ')}\nNotas: ${(v.observations || '').substring(0, 300)}` 
     });
-  }
+  });
 
-  // 3. InfoLEG Refs (Legal Basis for the norms cited in VUCE or general customs)
-  if (infolegNorms.length > 0) {
-    infolegNorms.forEach((n: any, idx: number) => {
-      evidenceRefs.push({
-        source_id: 'ar-infoleg',
-        snapshot_id: 'snap-infoleg-customs-latest',
-        section_label: 'Base Legal',
-        article_number: `${n.tipo_norma} ${n.numero}`,
-        excerpt: `[TEXTO LEGAL - INFOLEG]\n${n.tipo_norma} ${n.numero} (${n.fecha})\nTítulo: ${n.titulo}\nExtracto relevante: ${n.texto.substring(0, 350)}...` 
-      });
-    });
-  } else {
-    // Fallback: add a general customs norm if no specific match
+  // 3. InfoLEG (Legal Text for cited norms)
+  infolegMatches.forEach((n: any, idx: number) => {
     evidenceRefs.push({
       source_id: 'ar-infoleg',
-      snapshot_id: 'snap-infoleg-customs-latest',
-      section_label: 'Base Legal General',
-      article_number: 'Decreto 557/2023',
-      excerpt: `[INFOLEG]\nDecreto 557/2023: Aprueba la Nomenclatura Común del MERCOSUR (NCM) ajustada a la VII Enmienda del Sistema Armonizado.` 
+      snapshot_id: 'snap-infoleg-latest',
+      section_label: `Base Legal - ${n.tipo_norma} ${n.numero}`,
+      article_number: n.numero,
+      excerpt: `[TEXTO LEGAL - INFOLEG]\n${n.tipo_norma} ${n.numero} (${n.fecha})\nTítulo: ${n.titulo}\nExtracto: ${n.texto.substring(0, 400)}...` 
     });
-  }
+  });
 
   const packet = {
-    evidence_packet_id: `packet-unified-${ncmSlug}-${today}`,
+    evidence_packet_id: `packet-unified-enriched-${ncmSlug}-${today}`,
     review_manifest_id: `review-manifest-unified-${ncmSlug}-${timestamp}`,
     snapshot_id: `snap-unified-${ncmSlug}-${today}`,
     source_id: 'vlatam-ai-lab-unified',
-    evidence_scope: `NCM ${ncmCode} - Análisis aduanero unificado (ARCA + VUCE + InfoLEG)`,
-    jurisdiction_scope: 'argentina',
+    evidence_scope: `NCM ${ncmCode} - Análisis aduanero unificado (ARCA + VUCE Notas + InfoLEG)`,
+    evidence_refs: evidenceRefs,
     extraction_input_type: 'excerpt_reference',
     extraction_allowed: true,
     extraction_status: 'prepared',
-    excerpt_reference: `NCM ${arca.ncm_code} | ${productDesc} | Unified analysis`,
+    excerpt_reference: `NCM ${arca.ncm_code} | ${productDesc} | Enriched unified analysis`,
     human_review_required: true,
     downstream_allowed: false,
     schema_version: '1.0.0',
-    created_at: new Date().toISOString(),
-    evidence_refs: evidenceRefs
+    created_at: new Date().toISOString()
   };
 
   const outputPath = join(SNAPSHOTS_DIR, `${packet.evidence_packet_id}.json`);
   writeFileSync(outputPath, JSON.stringify(packet, null, 2));
-  console.log(`✅ Unified packet generated: ${outputPath}`);
-  console.log(`   Evidence refs: ${evidenceRefs.length} (ARCA: 1, VUCE: ${vuceData.length}, InfoLEG: ${infolegNorms.length})`);
+  console.log(`✅ Enriched unified packet generated: ${outputPath}`);
+  console.log(`   Evidence refs: ${evidenceRefs.length} (ARCA: 1, VUCE Notes: ${vuceNotes.length}, InfoLEG: ${infolegMatches.length})`);
   return outputPath;
 }
 
 const args = process.argv.slice(2);
 const ncm = args[0] || '4202.92.00.110V';
-const desc = args.slice(1).join(' ') || 'Mochila de campamento';
+const desc = args.slice(1).join(' ') || 'Mochila de campamento con superficie exterior de materia textil, importada desde China';
 
 try {
-  const path = generateUnifiedPacket(ncm, desc);
+  const path = generateEnrichedPacket(ncm, desc);
   console.log(`\nNext: pnpm ai:extract ${path}`);
 } catch (e: any) {
   console.error('❌ Error:', e.message);

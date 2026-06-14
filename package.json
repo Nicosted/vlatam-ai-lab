@@ -16,6 +16,7 @@
     "crawler:packet": "tsx src/crawlers/generate-packet-from-arca.ts",
     "crawler:infoleg": "tsx src/crawlers/infoleg-crawler.ts",
     "crawler:vuce-extract": "tsx src/crawlers/vuce-extractor.ts",
+    "crawler:vuce-notes": "tsx src/crawlers/vuce-notes-parser.ts",
     "crawler:unified-packet": "tsx src/crawlers/generate-unified-packet.ts",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test tests/**/*.test.ts",

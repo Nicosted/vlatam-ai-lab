@@ -1,0 +1,26 @@
+{
+  "position": "4202.92.00.110V",
+  "operation": "import",
+  "origin": "China",
+  "interventions": [
+    "organismo: Servicio Nacional de Sanidad y Calidad Agroalimentaria (SENASA)",
+    "- expandir secciones: Que tramites debo realizar",
+    "- expandir secciones: Resumen del regimen",
+    "- expandir secciones: Este regimen se aplica cuando se cumplan las siguientes condiciones",
+    "- expandir secciones: Para que debo realizar la intervencion",
+    "- expandir secciones: Normativa",
+    "observaciones:",
+    "- No usar como confirmacion de ausencia de otras intervenciones hasta revisar secciones expandibles.",
+    "- downstream_allowed: false"
+  ],
+  "norms_cited": [
+    "Ninguna explícita en notas"
+  ],
+  "tariffs_noted": [
+    "- DII 0%",
+    "- AEC 35%",
+    "- DIE 20%",
+    "pendiente_de_capturar:"
+  ],
+  "observations": "fuente: CIVUCE / VUCE fecha_consulta: 2026-06-14 operacion: importacion pais_origen_consulta: China pais_codigo: 156 posicion: 4202.92.00.110V producto_detectado: Mochilas de campamento nomenclatura: NCM/SIM unidad: 01 - KILOGRAMO ramo: I - Carne y cueros codigo_afip_tram: 0042.00.00.000V informacion_actualizada_al: 2026-06-14 tabs_visibles: - Descripcion - Texto de partida - Sufijo de valor - Resoluciones clasificatorias - Historial de cambios de posiciones SIM - Intervenciones Comex - Tributacion - Preferencias arancelarias descripcion_arbol_visible: - VIII Pieles, cueros, peleteria y manufacturas de estas materias - 42 Manufacturas de cuero; articulos de talabarteria o guarnicioneria; articulos de viaje, bolsos de mano y continentes similares - 42.02 Baules, maletas, mochilas, bolsos y continentes similares - 4202.9 Los demas - 4202.92.00 Con la superficie exterior de hojas de plastico o materia textil - 4202.92.00.1 Mochilas - 4202.92.00.110V De campamento tributos_visibles_en_busqueda_general: intervenciones_detectadas: - Embalajes de Madera de Importacion estado: Validada tipo: Intervencion Obligatoria tramites_optativos_detectados: - Solicitud Resolucion Anticipada de Origen licencias_detectadas: - no visibles en el PDF capturado certificaciones_detectadas: - no visibles en el PDF capturado - Fuente capturada como evidencia oficial de CIVUCE. - No usar como decision aduanera final. - human_review_required: true"
+}

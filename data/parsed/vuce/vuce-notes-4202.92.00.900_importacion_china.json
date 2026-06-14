@@ -1,0 +1,23 @@
+{
+  "position": "4202.92.00.900",
+  "operation": "import",
+  "origin": "China",
+  "interventions": [
+    "resultado: se encontro 1 resultado",
+    "observaciones:",
+    "- Para dataset LLM no usar esta consulta como determinacion final.",
+    "- downstream_allowed: false"
+  ],
+  "norms_cited": [
+    "Ninguna explícita en notas"
+  ],
+  "tariffs_noted": [
+    "- 4202.92.00.110V | De campamento | DII 0% | AEC 35% | DIE 20%",
+    "- 4202.92.00.120Y | Productos alcanzados por la Res. 163/2005 SCT | DII 0% | AEC 35% | DIE 20%",
+    "normativa_citada_visible:",
+    "- pendiente: abrir detalle de cada posicion SIM",
+    "- pendiente: abrir detalle de cada posicion SIM",
+    "- pendiente: abrir detalle de cada posicion SIM"
+  ],
+  "observations": "fuente: CIVUCE / VUCE fecha_consulta: 2026-06-14 url_consulta: https://www.vuce.gob.ar/busquedaPosicion?posicion=4202.92.00.900&operacion=importacion&pais=156 operacion: importacion pais_origen_consulta: China pais_codigo: 156 posicion_buscada: 4202.92.00.900 informacion_actualizada_al: 2026-06-14 arbol_detectado: - 42 - 42.02 - 4202.9 - 4202.92.00 - 4202.92.00.1 Mochilas posiciones_sim_detectadas: - Res. 163/2005 SCT intervenciones_detectadas: licencias_detectadas: certificaciones_detectadas: - La busqueda por 4202.92.00.900 devuelve el arbol de mochilas, pero CIVUCE muestra subposiciones SIM especificas. - Falta revisar detalle de 4202.92.00.110V y 4202.92.00.120Y. - human_review_required: true"
+}
