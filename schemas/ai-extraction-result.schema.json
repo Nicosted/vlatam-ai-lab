@@ -117,6 +117,33 @@
     "schema_version": {
       "type": "string",
       "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "evidence_packet_ref": {
+      "type": "string",
+      "description": "Optional reference to the extractable-evidence-packet that fed this extraction job.",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "model_used": {
+      "type": "string",
+      "description": "Optional AI Gateway model identifier actually used for extraction (may differ from model_id if fallback occurred).",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "fallback_used": {
+      "type": "boolean",
+      "description": "Optional flag indicating whether the AI Gateway fallback chain was activated during extraction."
+    },
+    "cost_usd": {
+      "type": "number",
+      "description": "Optional extraction cost in USD as reported by AI Gateway. For audit and cost-tracking only.",
+      "minimum": 0
+    },
+    "ai_gateway_trace_id": {
+      "type": "string",
+      "description": "Optional AI Gateway trace ID for request-level observability.",
+      "minLength": 1,
+      "maxLength": 160
     }
   },
   "$defs": {

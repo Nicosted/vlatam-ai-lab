@@ -11,6 +11,7 @@ preview_id = "0dd29a9bcfcd4bf9b3e6dce6fb5fe5e9"
 
 [vars]
 ENVIRONMENT = "production"
+CLOUDFLARE_PIPELINE_V1_ENABLED = "false"
 
 # API auth token will be set as secret
 # pnpm wrangler secret put API_AUTH_TOKEN
@@ -29,3 +30,26 @@ index_name = "vuce-embeddings"
 
 [ai]
 binding = "AI"
+
+[[r2_buckets]]
+binding = "REGULATORY_DOCS"
+bucket_name = "regulatory-documents"
+preview_bucket_name = "regulatory-documents-preview"
+
+[[queues.producers]]
+binding = "EMBEDDING_QUEUE"
+queue = "embedding-queue"
+
+[[queues.producers]]
+binding = "PARSING_QUEUE"
+queue = "parsing-queue"
+
+[[queues.consumers]]
+queue = "embedding-queue"
+max_batch_size = 20
+max_batch_timeout = 5
+
+[[workflows]]
+binding = "PCRAM_WORKFLOW"
+name = "pcram-pipeline"
+class_name = "PCRAMPipeline"

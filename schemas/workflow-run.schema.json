@@ -1,0 +1,138 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/workflow-run.schema.json",
+  "title": "Workflow Run",
+  "description": "Schema for a Cloudflare Workflows execution record. Tracks the durable execution of the PCRAM regulatory intelligence pipeline. A workflow run is an operational record — it does not constitute regulatory approval. All downstream use still requires human review gates.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "workflowRunId",
+    "workflowName",
+    "status",
+    "steps",
+    "startedAt"
+  ],
+  "properties": {
+    "workflowRunId": {
+      "type": "string",
+      "description": "Unique identifier for this workflow run instance.",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "workflowName": {
+      "type": "string",
+      "description": "Name of the workflow that was executed.",
+      "enum": ["pcram-pipeline"]
+    },
+    "status": {
+      "type": "string",
+      "description": "Current execution status of the workflow run.",
+      "enum": ["running", "paused", "completed", "failed"]
+    },
+    "sourceId": {
+      "type": "string",
+      "description": "Optional regulatory source ID this run was triggered for.",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "triggerReason": {
+      "type": "string",
+      "description": "Optional reason that triggered this workflow run.",
+      "enum": ["manual", "scheduled", "webhook"]
+    },
+    "triggeredBy": {
+      "type": "string",
+      "description": "Optional non-PII actor label that triggered the run (role or service name).",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "steps": {
+      "type": "array",
+      "description": "Ordered list of step execution records for this workflow run.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["stepName", "status", "startedAt"],
+        "properties": {
+          "stepName": {
+            "type": "string",
+            "description": "Name of the pipeline step.",
+            "enum": [
+              "sourceMonitorStep",
+              "snapshotWriterStep",
+              "deltaAnalyzerStep",
+              "evidenceWriterStep",
+              "humanReviewGateStep"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "description": "Execution status of this step.",
+            "enum": ["pending", "running", "completed", "failed", "skipped"]
+          },
+          "startedAt": {
+            "type": "string",
+            "description": "UTC timestamp when this step started.",
+            "format": "date-time"
+          },
+          "completedAt": {
+            "type": "string",
+            "description": "Optional UTC timestamp when this step completed.",
+            "format": "date-time"
+          },
+          "error": {
+            "type": "string",
+            "description": "Optional error message if the step failed.",
+            "minLength": 1,
+            "maxLength": 1000
+          },
+          "output": {
+            "type": "object",
+            "description": "Optional step output data (non-regulatory, operational only)."
+          }
+        }
+      }
+    },
+    "startedAt": {
+      "type": "string",
+      "description": "UTC timestamp when this workflow run started.",
+      "format": "date-time"
+    },
+    "completedAt": {
+      "type": "string",
+      "description": "Optional UTC timestamp when this workflow run completed or failed.",
+      "format": "date-time"
+    },
+    "snapshotId": {
+      "type": "string",
+      "description": "Optional snapshot ID produced by this run (if snapshotWriterStep completed).",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "evidencePacketId": {
+      "type": "string",
+      "description": "Optional evidence packet ID produced by this run (if evidenceWriterStep completed).",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "reviewManifestId": {
+      "type": "string",
+      "description": "Optional review manifest ID associated with this run (if humanReviewGateStep completed).",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "humanReviewGateStatus": {
+      "type": "string",
+      "description": "Status of the human review gate step for this run.",
+      "enum": ["pending", "approved", "rejected"]
+    },
+    "input": {
+      "type": "object",
+      "description": "Optional workflow input parameters (non-sensitive operational data only)."
+    },
+    "output": {
+      "type": "object",
+      "description": "Optional workflow output summary (non-sensitive operational data only)."
+    }
+  }
+}

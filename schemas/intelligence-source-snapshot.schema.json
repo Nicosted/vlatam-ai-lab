@@ -152,6 +152,28 @@
       "type": "string",
       "description": "Semantic version of this snapshot payload.",
       "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "storage_location": {
+      "type": "object",
+      "description": "Optional R2 storage location for the captured document. Only present when CLOUDFLARE_PIPELINE_V1_ENABLED is active.",
+      "additionalProperties": false,
+      "required": ["type", "bucket", "key"],
+      "properties": {
+        "type": { "type": "string", "const": "r2" },
+        "bucket": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "key": { "type": "string", "minLength": 1, "maxLength": 400 }
+      }
+    },
+    "processing_status": {
+      "type": "string",
+      "description": "Optional pipeline processing state. Only present when CLOUDFLARE_PIPELINE_V1_ENABLED is active.",
+      "enum": ["pending", "queued", "processing", "completed", "failed"]
+    },
+    "workflow_run_id": {
+      "type": "string",
+      "description": "Optional Cloudflare Workflows execution ID that produced this snapshot. Links to workflow-run artifact.",
+      "minLength": 1,
+      "maxLength": 160
     }
   },
   "allOf": [

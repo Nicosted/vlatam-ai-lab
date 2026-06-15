@@ -166,6 +166,24 @@
       "type": "string",
       "description": "Semantic version of this evidence packet payload.",
       "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "source_snapshot_ref": {
+      "type": "string",
+      "description": "Optional reference to the intelligence-source-snapshot this packet was derived from. Links back to snapshot artifact.",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "queue_job_id": {
+      "type": "string",
+      "description": "Optional Cloudflare Queue job ID that triggered evidence preparation. Only present when CLOUDFLARE_PIPELINE_V1_ENABLED is active.",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "ai_gateway_trace_id": {
+      "type": "string",
+      "description": "Optional AI Gateway trace ID for observability. Links extraction calls to gateway logs.",
+      "minLength": 1,
+      "maxLength": 160
     }
   },
   "allOf": [

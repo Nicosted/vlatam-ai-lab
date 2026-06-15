@@ -12,6 +12,10 @@ const app = new Hono<{
     ARCA_EMBEDDINGS: VectorizeIndex;
     INFOLEG_EMBEDDINGS: VectorizeIndex;
     VUCE_EMBEDDINGS: VectorizeIndex;
+    REGULATORY_DOCS: R2Bucket;
+    EMBEDDING_QUEUE: Queue;
+    PARSING_QUEUE: Queue;
+    CLOUDFLARE_PIPELINE_V1_ENABLED: string;
   };
 }>();
 
