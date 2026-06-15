@@ -83,66 +83,49 @@ function parseNomencladorFile(filePath: string): TariffLine[] {
     const hs6Code = `${hs6Clean.substring(0, 4)}.${hs6Clean.substring(4, 6)}`;
     
     // Parse numeric fields (derechos)
-    // Format: @000.00@007.00@020.00@007.00@000.00@
-    const parseRate = (field: string): number | null => {
-      if (!field || field.trim() === '') return null;
-      const val = parseFloat(field.trim());
+    // File structure:
+    // Field 3 (fields[2]): AEC rate
+    // Field 4 (fields[3]): Derecho Extra-zona
+    // Field 5 (fields[4]): Tasa estadística
+    // Field 6 (fields[5]): DIE (Derecho Importación Específico)
+    const parseRate = (field: string | undefined): number | null => {
+      if (!field) return null;
+      const trimmed = field.trim();
+      if (trimmed === '') return null;
+      // Handle '000.00' as 0, not null
+      if (trimmed === '000.00' || trimmed === '000.00@') return 0;
+      const val = parseFloat(trimmed);
       return isNaN(val) ? null : val;
     };
     
-    const aecRate = parseRate(fields[2]);           // Derecho AEC
-    const derechoEZ = parseRate(fields[3]);         // Derecho extra-zona
-    const tasaEst = parseRate(fields[4]);           // Tasa estadística
-    const tasa4 = parseRate(fields[5]);             // Could be IVA
-    const tasa5 = parseRate(fields[6]);             // Could be IVA
-    const tasa6 = parseRate(fields[7]);           // Could be IVA
+    const aecRate = parseRate(fields[2]);           // Field 3: Derecho AEC
+    const derechoEZ = parseRate(fields[3]);         // Field 4: Derecho extra-zona
+    const tasaEst = parseRate(fields[4]);           // Field 5: Tasa estadística
+    const dieRate = parseRate(fields[5]);           // Field 6: DIE
     
-    // Unidad estadística (field after empty space)
-    const unidadEst = fields[9]?.trim() || '';
+    // Field 9: Unidad estadística
+    const unidadEst = fields[8]?.trim() || '';
     
-    // Description (last non-empty field)
-    let description = '';
-    for (let i = fields.length - 1; i >= 0; i--) {
-      if (fields[i]?.trim()) {
-        description = fields[i].trim();
-        break;
-      }
-    }
+    // Field 11: Description (with leading spaces, needs trim)
+    const description = fields[10]?.trim() || '';
     
     /**
      * IVA extraction strategy:
      * 
-     * ARCA file structure (observed from data):
-     * - fields[2] = AEC rate
-     * - fields[3] = Derecho Extra-zona
-     * - fields[4] = Tasa estadística
-     * - fields[5-7] = Additional rates (some may be IVA indicators)
-     * 
-     * Note: The official ARCA nomenclature file does NOT contain explicit IVA rates.
-     * IVA (Impuesto al Valor Agregado) is a separate tax applied at import.
+     * IMPORTANT: The ARCA nomenclature file does NOT contain explicit IVA rates.
+     * IVA (Impuesto al Valor Agregado) is a separate tax applied at import time.
      * Standard IVA rates in Argentina:
      * - 21% for most products (general rate)
      * - 10.5% for reduced-rate products (e.g., certain food, medical)
      * - 27% for luxury items
      * 
-     * Detection strategy:
-     * 1. Check if any field contains standard IVA rate indicators
-     * 2. Default to 21% for products with valid tariff data
+     * We apply default 21% when we have tariff data (AEC or EZ present).
      */
     let ivaRate: number | null = null;
     
-    // Strategy 1: Look for explicit IVA indicators in fields[5-7]
-    if (tasa4 !== null && (tasa4 === 21.0 || tasa4 === 10.5 || tasa4 === 27.0)) {
-      ivaRate = tasa4;
-    } else if (tasa5 !== null && (tasa5 === 21.0 || tasa5 === 10.5 || tasa5 === 27.0)) {
-      ivaRate = tasa5;
-    } else if (tasa6 !== null && (tasa6 === 21.0 || tasa6 === 10.5 || tasa6 === 27.0)) {
-      ivaRate = tasa6;
-    }
-    
-    // Strategy 2: Default to 21% for products with valid tariff data
+    // Apply default 21% IVA if we have tariff data
     // This is the standard general IVA rate for most imports in Argentina
-    if (ivaRate === null && (aecRate !== null || derechoEZ !== null)) {
+    if (aecRate !== null || derechoEZ !== null) {
       ivaRate = 21.0;
     }
     
