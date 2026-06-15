@@ -180,6 +180,28 @@
     "metadata": {
       "type": "object",
       "description": "Optional local metadata for audit traceability."
+    },
+    "workflow_run_id": {
+      "type": "string",
+      "description": "Optional Cloudflare Workflows execution ID that produced or paused at this review manifest.",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "human_review_gate_status": {
+      "type": "string",
+      "description": "Optional PCRAM pipeline human review gate state. Only present when workflow was involved.",
+      "enum": ["pending", "approved", "rejected"]
+    },
+    "reviewer_id": {
+      "type": "string",
+      "description": "Optional non-PII reviewer identifier (role or handle). Complements reviewed_by for pipeline-generated manifests.",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "review_timestamp": {
+      "type": "string",
+      "description": "Optional ISO 8601 timestamp of the review decision. Alias of reviewed_at for pipeline-generated manifests.",
+      "format": "date-time"
     }
   }
 }
