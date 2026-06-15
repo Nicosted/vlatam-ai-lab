@@ -15,6 +15,51 @@ import { VuceAgent } from './vuce-agent.js';
 import { InfolegAgent } from './infoleg-agent.js';
 import { CriticAgent } from './critic-agent.js';
 import { AgentContext, AgentResult, FinalResponse } from './types.js';
+import { EmbeddingService } from '../utils/embedding-service.js';
+
+const NCM_PATTERN = /^(\d{4}\.?\d{2}\.?\d{2}(\.\d{3}[A-Z]?)?|\d{8}(\d{3}[A-Z]?)?)$/i;
+
+function normalizeNcm(ncm: string): string | null {
+  const trimmed = ncm.trim().toUpperCase();
+  if (!NCM_PATTERN.test(trimmed)) return null;
+  return trimmed.replace(/\./g, '');
+}
+
+function formatArcaLine(line: any): string {
+  const ivaAssumption = line.iva_is_inferred ? ' (inferido, tasa general por defecto)' : '';
+  return `[ARANCEL OFICIAL - ARCA]
+NCM: ${line.ncm_code}
+Descripción: ${line.description}
+AEC: ${line.aec_rate ?? 'N/A'}%
+Derecho Extra-zona: ${line.derecho_extra_zona ?? 'N/A'}%
+Tasa Estadística: ${line.tasa_estadistica ?? 'N/A'}%
+IVA: ${line.iva_rate ?? 'N/A'}%${ivaAssumption}`;
+}
+
+function normContainsNcm(norm: any, ncmClean: string): boolean {
+  const ncm8 = ncmClean.substring(0, 8);
+  const hs6 = ncmClean.substring(0, 6);
+  const hs4 = ncmClean.substring(0, 4);
+  const ncmDotted = `${ncm8.substring(0, 4)}.${ncm8.substring(4, 6)}.${ncm8.substring(6, 8)}`;
+  const hs6Dotted = `${hs6.substring(0, 4)}.${hs6.substring(4, 6)}`;
+  const searchable = [
+    norm.numero,
+    norm.titulo,
+    norm.texto,
+    norm.relevance_reason,
+  ].filter(Boolean).join(' ').toUpperCase();
+
+  return [
+    ncmClean,
+    ncm8,
+    ncmDotted,
+    hs6,
+    hs6Dotted,
+    `NCM ${hs4}`,
+    `POSICION ${hs4}`,
+    `POSICIÓN ${hs4}`,
+  ].some(term => searchable.includes(term.toUpperCase()));
+}
 
 export class RouterAgent {
   private arcaAgent: ArcaAgent;
@@ -22,21 +67,34 @@ export class RouterAgent {
   private infolegAgent: InfolegAgent;
   private criticAgent: CriticAgent;
   private kv: KVNamespace;
+  private embeddingService: EmbeddingService;
+  private vectorize: { arca?: VectorizeIndex; infoleg?: VectorizeIndex; vuce?: VectorizeIndex } | undefined;
 
-  constructor(apiKey: string, kv: KVNamespace) {
+  constructor(
+    apiKey: string,
+    kv: KVNamespace,
+    vectorize?: { arca?: VectorizeIndex; infoleg?: VectorizeIndex; vuce?: VectorizeIndex },
+    aiBinding?: Ai
+  ) {
     this.arcaAgent = new ArcaAgent(apiKey);
     this.vuceAgent = new VuceAgent(apiKey);
     this.infolegAgent = new InfolegAgent(apiKey);
     this.criticAgent = new CriticAgent(apiKey);
     this.kv = kv;
+    this.vectorize = vectorize;
+    this.embeddingService = new EmbeddingService({
+      accountId: '',
+      apiToken: '',
+      aiBinding,
+    });
   }
 
   async route(context: AgentContext): Promise<FinalResponse> {
-    // 1. Fetch data from KV (in parallel)
+    // 1. Fetch data from KV with optional RAG fallback
     const [arcaEvidence, vuceEvidence, infolegEvidence] = await Promise.all([
-      this.fetchArcaEvidence(context.candidate_ncm8),
-      this.fetchVuceEvidence(context.candidate_ncm8),
-      this.fetchInfolegEvidence(context.candidate_ncm8),
+      this.fetchArcaEvidenceWithRAG(context.candidate_ncm8, context.product_description),
+      this.fetchVuceEvidenceWithRAG(context.candidate_ncm8, context.product_description),
+      this.fetchInfolegEvidenceWithRAG(context.candidate_ncm8, context.product_description),
     ]);
 
     // 2. Invoke specialized agents in parallel
@@ -84,15 +142,81 @@ export class RouterAgent {
     };
   }
 
+  private async fetchArcaEvidenceWithRAG(ncm: string, productDescription: string): Promise<string> {
+    const exactMatch = await this.fetchArcaEvidence(ncm);
+    if (exactMatch && !exactMatch.startsWith('NO HAY') && !exactMatch.startsWith('ERROR')) {
+      return exactMatch;
+    }
+    if (!this.vectorize?.arca || !this.embeddingService) return exactMatch;
+    try {
+      const { embedding } = await this.embeddingService.embed(`NCM ${ncm}. ${productDescription}`);
+      const results = await this.vectorize.arca.query(embedding, { topK: 5, returnMetadata: 'all' });
+      if (!results.matches?.length) return exactMatch;
+      return results.matches.map((m: VectorizeMatch) => {
+        const meta = m.metadata as any;
+        return `[ARANCEL OFICIAL - ARCA] (Relevancia: ${((m.score ?? 0) * 100).toFixed(1)}%)
+NCM: ${meta?.ncm_code ?? m.id}
+AEC: ${meta?.aec_rate ?? 'N/A'}%
+Derecho Extra-zona: ${meta?.derecho_extra_zona ?? 'N/A'}%
+Tasa Estadística: ${meta?.tasa_estadistica ?? 'N/A'}%
+IVA: ${meta?.iva_rate ?? 'N/A'}%`;
+      }).join('\n\n');
+    } catch {
+      return exactMatch;
+    }
+  }
+
+  private async fetchVuceEvidenceWithRAG(ncm: string, productDescription: string): Promise<string> {
+    const exactMatch = await this.fetchVuceEvidence(ncm);
+    if (exactMatch && exactMatch.trim() !== '' && !exactMatch.startsWith('ERROR')) return exactMatch;
+    if (!this.vectorize?.vuce) return exactMatch;
+    try {
+      const { embedding } = await this.embeddingService.embed(`NCM ${ncm}. ${productDescription}`);
+      const results = await this.vectorize.vuce.query(embedding, { topK: 5, returnMetadata: 'all' });
+      if (!results.matches?.length) return exactMatch;
+      return results.matches.map((m: VectorizeMatch) => {
+        const meta = m.metadata as any;
+        return `[VUCE - Posición ${meta?.position ?? m.id}] (Relevancia: ${((m.score ?? 0) * 100).toFixed(1)}%)
+Intervenciones: ${meta?.interventions?.join(', ') || 'No listadas'}
+Normas citadas: ${meta?.norms_cited?.join(', ') || 'Ninguna'}`;
+      }).join('\n\n');
+    } catch {
+      return exactMatch;
+    }
+  }
+
+  private async fetchInfolegEvidenceWithRAG(ncm: string, productDescription: string): Promise<string> {
+    const exactMatch = await this.fetchInfolegEvidence(ncm);
+    if (exactMatch && exactMatch.trim() !== '' && !exactMatch.startsWith('ERROR') && !exactMatch.startsWith('NO SE')) return exactMatch;
+    if (!this.vectorize?.infoleg) return exactMatch;
+    try {
+      const { embedding } = await this.embeddingService.embed(`NCM ${ncm}. ${productDescription}`);
+      const results = await this.vectorize.infoleg.query(embedding, { topK: 5, returnMetadata: 'all' });
+      if (!results.matches?.length) return exactMatch;
+      return results.matches.map((m: VectorizeMatch) => {
+        const meta = m.metadata as any;
+        return `[INFOLEG - ${meta?.tipo_norma ?? ''} ${meta?.numero ?? m.id}] (Relevancia: ${((m.score ?? 0) * 100).toFixed(1)}%)
+Fecha: ${meta?.fecha ?? 'N/A'}
+Título: ${meta?.titulo ?? 'N/A'}`;
+      }).join('\n\n');
+    } catch {
+      return exactMatch;
+    }
+  }
+
   private async fetchArcaEvidence(ncm: string): Promise<string> {
     try {
-      const ncmClean = ncm.replace(/\./g, '');
+      const ncmClean = normalizeNcm(ncm);
+      if (!ncmClean) return 'NO HAY DATOS ARCA PARA ESTA NCM';
+
       const chapter = ncmClean.substring(0, 2);
+      const heading = ncmClean.substring(0, 4);
       const chapterRaw = await this.kv.get(`arca:chapter:${chapter}`);
+      const arcaRaw = chapterRaw ?? await this.kv.get(`arca:heading:${heading}`);
       
-      if (!chapterRaw) return 'NO HAY DATOS ARCA PARA ESTA NCM';
+      if (!arcaRaw) return 'NO HAY DATOS ARCA PARA ESTA NCM';
       
-      const chapterData = JSON.parse(chapterRaw);
+      const chapterData = JSON.parse(arcaRaw);
       
       // Try multiple matching strategies for NCMs with long suffixes
       let line = chapterData.lines.find((l: any) => 
@@ -128,29 +252,26 @@ export class RouterAgent {
         return `[ARANCEL OFICIAL - ARCA - Capítulo ${chapter}]
 NCMs relacionados encontrados:
 ${matches.slice(0, 5).map((l: any) => 
-  `- ${l.ncm_code}: ${l.description}\n  AEC: ${l.aec_rate ?? 'N/A'}% | EZ: ${l.derecho_extra_zona ?? 'N/A'}% | Estad: ${l.tasa_estadistica ?? 'N/A'}% | IVA: ${l.iva_rate ?? 'N/A'}%` 
+  `- ${l.ncm_code}: ${l.description}\n  AEC: ${l.aec_rate ?? 'N/A'}% | EZ: ${l.derecho_extra_zona ?? 'N/A'}% | Estad: ${l.tasa_estadistica ?? 'N/A'}% | IVA: ${l.iva_rate ?? 'N/A'}%${l.iva_is_inferred ? ' (inferido)' : ''}` 
 ).join('\n')}`;
       }
       
-      return `[ARANCEL OFICIAL - ARCA]
-NCM: ${line.ncm_code}
-Descripción: ${line.description}
-AEC: ${line.aec_rate ?? 'N/A'}%
-Derecho Extra-zona: ${line.derecho_extra_zona ?? 'N/A'}%
-Tasa Estadística: ${line.tasa_estadistica ?? 'N/A'}%
-IVA: ${line.iva_rate ?? 'N/A'}%`;
+      return formatArcaLine(line);
     } catch (error) {
-      return 'ERROR AL RECUPERAR DATOS ARCA';
+      console.error('RouterAgent: ARCA source retrieval failed', error);
+      return 'ERROR: Source retrieval failed for ARCA';
     }
   }
 
   private async fetchVuceEvidence(ncm: string): Promise<string> {
     try {
+      const ncmClean = normalizeNcm(ncm);
+      if (!ncmClean) return '';
+
       const indexRaw = await this.kv.get('vuce:index');
       if (!indexRaw) return '';
       
       const index = JSON.parse(indexRaw);
-      const ncmClean = ncm.replace(/\./g, '');
       
       const matchingPositions = index.positions.filter((pos: string) => 
         pos.replace(/\./g, '').includes(ncmClean) || 
@@ -178,36 +299,49 @@ Tarifas observadas: ${n.tariffs_noted?.join(', ') || 'N/A'}
 Observaciones: ${n.observations || 'N/A'}`
       ).join('\n\n');
     } catch (error) {
-      return '';
+      console.error('RouterAgent: VUCE source retrieval failed', error);
+      return 'ERROR: Source retrieval failed for VUCE';
     }
   }
 
   private async fetchInfolegEvidence(ncm: string): Promise<string> {
     try {
+      const ncmClean = normalizeNcm(ncm);
+      if (!ncmClean) return 'NO HAY DATOS INFOLEG PARA ESTA NCM';
+
       const indexRaw = await this.kv.get('infoleg:index');
       if (!indexRaw) return '';
       
       const index = JSON.parse(indexRaw);
       const norms: any[] = [];
       
-      for (const type of index.types.slice(0, 3)) {
+      for (const type of index.types) {
         const typeRaw = await this.kv.get(`infoleg:type:${type}`);
         if (typeRaw) {
           const typeData = JSON.parse(typeRaw);
-          norms.push(...typeData.norms.slice(0, 2));
+          norms.push(...(typeData.norms || []));
         }
       }
       
-      if (norms.length === 0) return '';
+      if (norms.length === 0) return 'NO HAY DATOS INFOLEG PARA ESTA NCM';
+
+      const matchingNorms = norms
+        .filter(norm => normContainsNcm(norm, ncmClean))
+        .slice(0, 6);
+
+      if (matchingNorms.length === 0) {
+        return `NO SE ENCONTRARON NORMAS INFOLEG ESPECÍFICAS PARA LA NCM ${ncm}`;
+      }
       
-      return norms.map((n: any) => 
+      return matchingNorms.map((n: any) => 
         `[INFOLEG - ${n.tipo_norma} ${n.numero}]
 Fecha: ${n.fecha}
 Título: ${n.titulo}
 Extracto: ${n.texto?.substring(0, 300) || 'N/A'}...`
       ).join('\n\n');
     } catch (error) {
-      return '';
+      console.error('RouterAgent: InfoLEG source retrieval failed', error);
+      return 'ERROR: Source retrieval failed for InfoLEG';
     }
   }
 }

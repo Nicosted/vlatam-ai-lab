@@ -21,6 +21,16 @@ interface VuceNoteData {
   observations: string;
 }
 
+const INTERVENTION_KEYWORDS = [
+  'intervención',
+  'intervencion',
+  'organismo',
+  'senasa',
+  'anmat',
+  'requisito',
+  'reglamento',
+];
+
 function parseNoteFile(content: string, position: string): VuceNoteData {
   const lines = content.split('\n').map(l => l.trim()).filter(Boolean);
   const interventions: string[] = [];
@@ -32,7 +42,7 @@ function parseNoteFile(content: string, position: string): VuceNoteData {
 
   for (const line of lines) {
     const lower = line.toLowerCase();
-    if (lower.includes('intervención') || lower.includes('organismo') || lower.includes('se') || lower.includes('senasa') || lower.includes('reglamento')) {
+    if (INTERVENTION_KEYWORDS.some(keyword => lower.includes(keyword))) {
       interventions.push(line);
     } else if (/(decreto|resolución|disposición|ley)\s+\d+[\d\/\.]*/i.test(line)) {
       norms.push(line);

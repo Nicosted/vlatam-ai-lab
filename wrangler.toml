@@ -14,3 +14,18 @@ ENVIRONMENT = "production"
 
 # API auth token will be set as secret
 # pnpm wrangler secret put API_AUTH_TOKEN
+
+[[vectorize]]
+binding = "ARCA_EMBEDDINGS"
+index_name = "arca-embeddings"
+
+[[vectorize]]
+binding = "INFOLEG_EMBEDDINGS"
+index_name = "infoleg-embeddings"
+
+[[vectorize]]
+binding = "VUCE_EMBEDDINGS"
+index_name = "vuce-embeddings"
+
+[ai]
+binding = "AI"

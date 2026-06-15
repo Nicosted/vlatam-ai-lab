@@ -1,12 +1,17 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { RouterAgent } from '../agents/router-agent.js';
+import { APP_VERSION } from '../config.js';
 
 const app = new Hono<{
   Bindings: {
     DEEPSEEK_API_KEY: string;
     NORMATIVE_KV: KVNamespace;
     API_AUTH_TOKEN?: string;
+    AI: Ai;
+    ARCA_EMBEDDINGS: VectorizeIndex;
+    INFOLEG_EMBEDDINGS: VectorizeIndex;
+    VUCE_EMBEDDINGS: VectorizeIndex;
   };
 }>();
 
@@ -28,7 +33,7 @@ app.use('/*', cors({
 app.get('/api/health', (c) => c.json({ 
   status: 'ok', 
   service: 'vlatam-ai-lab-api',
-  version: '0.5.3',
+  version: APP_VERSION,
   architecture: 'specialized-agents-v1',
   timestamp: new Date().toISOString()
 }));
@@ -191,7 +196,16 @@ app.post('/api/v1/norms/query', async (c) => {
       timestamp: new Date().toISOString(),
     };
     
-    const router = new RouterAgent(c.env.DEEPSEEK_API_KEY, c.env.NORMATIVE_KV);
+    const router = new RouterAgent(
+      c.env.DEEPSEEK_API_KEY,
+      c.env.NORMATIVE_KV,
+      {
+        arca: c.env.ARCA_EMBEDDINGS,
+        infoleg: c.env.INFOLEG_EMBEDDINGS,
+        vuce: c.env.VUCE_EMBEDDINGS,
+      },
+      c.env.AI
+    );
     const result = await router.route(context);
     
     return c.json(result, 200);

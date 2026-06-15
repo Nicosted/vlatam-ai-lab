@@ -165,7 +165,7 @@ Generate an ai-extraction-result JSON with:
     } catch (parseError) {
       const error = parseError as Error;
       console.error('❌ Error parseando respuesta de DeepSeek:', error.message);
-      return this.createErrorResult(packet.packet_id, error.message);
+      return this.createErrorResult(packet.packet_id);
     }
 
     // 5. Forzar campos de salida según schema (override cualquier valor de DeepSeek)
@@ -206,7 +206,7 @@ Generate an ai-extraction-result JSON with:
     return result;
   }
 
-  private createErrorResult(packetId: string, errorMessage: string): Record<string, unknown> {
+  private createErrorResult(packetId: string): Record<string, unknown> {
     const timestamp = Date.now();
     return {
       extraction_result_id: `ai-extraction-result-${packetId}-${timestamp}`,
@@ -223,7 +223,7 @@ Generate an ai-extraction-result JSON with:
         {
           claim_id: 'unsupported-parsing-001',
           claim_text: 'Failed to parse DeepSeek JSON response',
-          reason: errorMessage,
+          reason: 'Provider response could not be processed',
           evidence_reference: 'N/A'
         }
       ],

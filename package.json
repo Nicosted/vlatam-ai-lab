@@ -25,7 +25,11 @@
     "test": "tsx --test tests/**/*.test.ts",
     "lint": "eslint .",
     "format": "prettier --check .",
-    "format:write": "prettier --write ."
+    "format:write": "prettier --write .",
+    "embed:arca": "tsx scripts/generate-arca-embeddings.ts",
+    "embed:infoleg": "tsx scripts/generate-infoleg-embeddings.ts",
+    "embed:vuce": "tsx scripts/generate-vuce-embeddings.ts",
+    "embed:all": "pnpm embed:arca && pnpm embed:infoleg && pnpm embed:vuce"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260613.1",

@@ -135,6 +135,7 @@ Responde SOLO con JSON válido.`;
       try {
         content = JSON.parse(data.choices[0].message.content);
       } catch (e) {
+        console.error('VuceAgent: Invalid JSON response from provider', e);
         return {
           agent_name: 'vuce',
           status: 'failed',
@@ -197,6 +198,7 @@ Responde SOLO con JSON válido.`;
     } catch (error: any) {
       // H-01 & H-02 fixes: Handle timeout and redact error
       const isTimeout = error.name === 'AbortError';
+      console.error(`VuceAgent: ${isTimeout ? 'Provider timeout' : 'Provider error'}`, error);
       return {
         agent_name: 'vuce',
         status: 'failed',

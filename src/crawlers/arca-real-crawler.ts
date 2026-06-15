@@ -25,6 +25,7 @@ interface TariffLine {
   derecho_extra_zona: number | null;
   tasa_estadistica: number | null;
   iva_rate: number | null;
+  iva_is_inferred: boolean;
   unidad_estadistica: string;
   source: string;
   source_url: string;
@@ -120,13 +121,15 @@ function parseNomencladorFile(filePath: string): TariffLine[] {
      * - 27% for luxury items
      * 
      * We apply default 21% when we have tariff data (AEC or EZ present).
-     */
+    */
     let ivaRate: number | null = null;
+    let ivaIsInferred = false;
     
     // Apply default 21% IVA if we have tariff data
     // This is the standard general IVA rate for most imports in Argentina
     if (aecRate !== null || derechoEZ !== null) {
       ivaRate = 21.0;
+      ivaIsInferred = true;
     }
     
     tariffLines.push({
@@ -138,6 +141,7 @@ function parseNomencladorFile(filePath: string): TariffLine[] {
       derecho_extra_zona: derechoEZ,
       tasa_estadistica: tasaEst,
       iva_rate: ivaRate,
+      iva_is_inferred: ivaIsInferred,
       unidad_estadistica: unidadEst,
       source: 'ARCA Arancel Integrado',
       source_url: 'https://www.afip.gob.ar/aduana/arancelintegrado/',
@@ -154,7 +158,7 @@ function findLatestNomencladorFile(): string | null {
     .sort()
     .reverse();
   
-  return files.length > 0 ? join(SOURCES_DIR, files[0]) : null;
+  return files[0] ? join(SOURCES_DIR, files[0]) : null;
 }
 
 function loadPreviousSnapshot(): ArcaSnapshot | null {
@@ -165,9 +169,10 @@ function loadPreviousSnapshot(): ArcaSnapshot | null {
     .sort()
     .reverse();
   
-  if (files.length === 0) return null;
+  const latestFile = files[0];
+  if (!latestFile) return null;
   
-  const content = readFileSync(join(PARSED_DIR, files[0]), 'utf-8');
+  const content = readFileSync(join(PARSED_DIR, latestFile), 'utf-8');
   return JSON.parse(content);
 }
 

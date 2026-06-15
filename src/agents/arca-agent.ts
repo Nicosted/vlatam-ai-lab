@@ -133,6 +133,7 @@ Responde SOLO con JSON válido.`;
       try {
         content = JSON.parse(data.choices[0].message.content);
       } catch (e) {
+        console.error('ArcaAgent: Invalid JSON response from provider', e);
         return {
           agent_name: 'arca',
           status: 'failed',
@@ -186,6 +187,7 @@ Responde SOLO con JSON válido.`;
     } catch (error: any) {
       // H-01 & H-02 fixes: Handle timeout and redact error
       const isTimeout = error.name === 'AbortError';
+      console.error(`ArcaAgent: ${isTimeout ? 'Provider timeout' : 'Provider error'}`, error);
       return {
         agent_name: 'arca',
         status: 'failed',
