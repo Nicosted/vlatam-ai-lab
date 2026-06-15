@@ -93,11 +93,12 @@ function parseNomencladorFile(filePath: string): TariffLine[] {
     const aecRate = parseRate(fields[2]);           // Derecho AEC
     const derechoEZ = parseRate(fields[3]);         // Derecho extra-zona
     const tasaEst = parseRate(fields[4]);           // Tasa estadística
-    const tasa4 = parseRate(fields[5]);             // Could be IVA or other
-    const tasa5 = parseRate(fields[6]);             // Another rate
+    const tasa4 = parseRate(fields[5]);             // Could be IVA
+    const tasa5 = parseRate(fields[6]);             // Could be IVA
+    const tasa6 = parseRate(fields[7]);           // Could be IVA
     
     // Unidad estadística (field after empty space)
-    const unidadEst = fields[8]?.trim() || '';
+    const unidadEst = fields[9]?.trim() || '';
     
     // Description (last non-empty field)
     let description = '';
@@ -108,10 +109,26 @@ function parseNomencladorFile(filePath: string): TariffLine[] {
       }
     }
     
-    // IVA rate is typically 21% or 10.5% - infer from tasa4 or use default
-    // In ARCA format, IVA is often in a separate field or needs cross-reference
-    // For now, use null (will be enriched later from IVA file)
-    const ivaRate = null;
+    // IVA extraction: try fields[7], then infer from tasa4/tasa5 if they contain 21.00 or 10.50
+    // Standard IVA rates in Argentina: 21% (general), 10.5% (reduced for some goods)
+    let ivaRate: number | null = null;
+    
+    // First try: field 7 (IVA column)
+    if (tasa6 !== null && (tasa6 === 21.0 || tasa6 === 10.5 || tasa6 === 27.0)) {
+      ivaRate = tasa6;
+    }
+    // Second try: check if tasa4 or tasa5 match standard IVA rates
+    else if (tasa4 !== null && (tasa4 === 21.0 || tasa4 === 10.5)) {
+      ivaRate = tasa4;
+    }
+    else if (tasa5 !== null && (tasa5 === 21.0 || tasa5 === 10.5)) {
+      ivaRate = tasa5;
+    }
+    // Default: 21% is the standard rate for most imports
+    // But we only set default if we have other tariff data (not for all products)
+    // else if (aecRate !== null || derechoEZ !== null) {
+    //   ivaRate = 21.0;  // Commented out - don't assume, let it be null if not explicit
+    // }
     
     tariffLines.push({
       ncm_code: ncmFull,
