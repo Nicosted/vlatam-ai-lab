@@ -1,0 +1,29 @@
+VUCE - Consulta por posición arancelaria
+NCM: 8443.31.11.000F
+Descripción: A chorro de tinta líquida, con ancho de impresión inferior o igual a 420 mm
+Operación: Importación
+País origen: China
+Fecha consulta: 2026-06-14
+
+TRIBUTACIÓN:
+DII: 0%
+AEC: 10.8%
+DIE: 0%
+
+INTERVENCIONES OBLIGATORIAS:
+- RT - Seguridad del equipamiento eléctrico (Reglamentos Técnicos)
+- Embalajes de Madera de Importación (SENASA)
+- Autorización de exportación/importación de productos químicos y artículos comprendidos en el Convenio de Estocolmo
+
+TRÁMITES OPTATIVOS:
+- Solicitud Resolución Anticipada de Origen
+
+NORMAS CITADAS:
+- Decreto 772/15 (autorizaciones de importación)
+- Convenio de Estocolmo (productos químicos)
+- Normativa SENASA embalajes madera
+
+OBSERVACIONES:
+- AEC 10.8% (NO 0% como reporta ARCA - DISCREPANCIA)
+- Requiere certificación de seguridad eléctrica
+- Aplica Convenio Estocolmo para productos químicos
