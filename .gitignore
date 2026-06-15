@@ -26,3 +26,4 @@ data/sources/organismos_sectoriales/**/*.pdf
 
 # Original download folder (after migration)
 vlatam_normativa_ar_2026_06_14/
+.wrangler/
