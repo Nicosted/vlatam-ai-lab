@@ -109,26 +109,42 @@ function parseNomencladorFile(filePath: string): TariffLine[] {
       }
     }
     
-    // IVA extraction: try fields[7], then infer from tasa4/tasa5 if they contain 21.00 or 10.50
-    // Standard IVA rates in Argentina: 21% (general), 10.5% (reduced for some goods)
+    /**
+     * IVA extraction strategy:
+     * 
+     * ARCA file structure (observed from data):
+     * - fields[2] = AEC rate
+     * - fields[3] = Derecho Extra-zona
+     * - fields[4] = Tasa estadística
+     * - fields[5-7] = Additional rates (some may be IVA indicators)
+     * 
+     * Note: The official ARCA nomenclature file does NOT contain explicit IVA rates.
+     * IVA (Impuesto al Valor Agregado) is a separate tax applied at import.
+     * Standard IVA rates in Argentina:
+     * - 21% for most products (general rate)
+     * - 10.5% for reduced-rate products (e.g., certain food, medical)
+     * - 27% for luxury items
+     * 
+     * Detection strategy:
+     * 1. Check if any field contains standard IVA rate indicators
+     * 2. Default to 21% for products with valid tariff data
+     */
     let ivaRate: number | null = null;
     
-    // First try: field 7 (IVA column)
-    if (tasa6 !== null && (tasa6 === 21.0 || tasa6 === 10.5 || tasa6 === 27.0)) {
+    // Strategy 1: Look for explicit IVA indicators in fields[5-7]
+    if (tasa4 !== null && (tasa4 === 21.0 || tasa4 === 10.5 || tasa4 === 27.0)) {
+      ivaRate = tasa4;
+    } else if (tasa5 !== null && (tasa5 === 21.0 || tasa5 === 10.5 || tasa5 === 27.0)) {
+      ivaRate = tasa5;
+    } else if (tasa6 !== null && (tasa6 === 21.0 || tasa6 === 10.5 || tasa6 === 27.0)) {
       ivaRate = tasa6;
     }
-    // Second try: check if tasa4 or tasa5 match standard IVA rates
-    else if (tasa4 !== null && (tasa4 === 21.0 || tasa4 === 10.5)) {
-      ivaRate = tasa4;
+    
+    // Strategy 2: Default to 21% for products with valid tariff data
+    // This is the standard general IVA rate for most imports in Argentina
+    if (ivaRate === null && (aecRate !== null || derechoEZ !== null)) {
+      ivaRate = 21.0;
     }
-    else if (tasa5 !== null && (tasa5 === 21.0 || tasa5 === 10.5)) {
-      ivaRate = tasa5;
-    }
-    // Default: 21% is the standard rate for most imports
-    // But we only set default if we have other tariff data (not for all products)
-    // else if (aecRate !== null || derechoEZ !== null) {
-    //   ivaRate = 21.0;  // Commented out - don't assume, let it be null if not explicit
-    // }
     
     tariffLines.push({
       ncm_code: ncmFull,
