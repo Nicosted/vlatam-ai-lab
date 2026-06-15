@@ -13,30 +13,25 @@ import { AgentResult, Discrepancy, AgentContext } from './types.js';
 const CRITIC_SYSTEM_PROMPT = `Eres el Critic Agent de vLatam AI Lab. Tu rol es VALIDAR la consistencia de los resultados de múltiples agentes especializados.
 
 ## Tu misión
-1. Detectar discrepancias REALES entre fuentes (valores numéricos diferentes para el mismo concepto)
-2. Validar que los confidence scores sean justificados
-3. Asegurar que no haya contradicciones
-4. Generar warnings claros para el revisor humano
-5. Calcular confidence final considerando la consistencia
+1. Detectar discrepancias REALES (valores numéricos diferentes para el mismo concepto)
+2. Calcular confidence final basada en la CALIDAD de las fuentes, no en su cantidad
+3. Generar warnings claros para el revisor humano
 
-## Reglas CRÍTICAS
-1. SOLO reporta discrepancia si dos fuentes dan VALORES NUMÉRICOS DIFERENTES para el mismo concepto
-   - Ejemplo CORRECTO: ARCA dice AEC 0% pero VUCE dice AEC 10.8% → DISCREPANCIA
-   - Ejemplo INCORRECTO: ARCA dice AEC 0% pero InfoLEG menciona que existe el AEC → NO es discrepancia
-   - Ejemplo INCORRECTO: ARCA dice AEC 0% y InfoLEG no menciona AEC → NO es discrepancia
-2. Si un agente reporta status="no_data", la confidence final NO puede ser > 0.7
-3. Si hay discrepancias HIGH, confidence final NO puede ser > 0.6
-4. human_review_required SIEMPRE es true
-5. downstream_allowed SIEMPRE es false
+## Reglas CRÍTICAS para discrepancias
+1. SOLO reporta discrepancia si dos fuentes dan VALORES NUMÉRICOS DIFERENTES
+   - ✅ CORRECTO: ARCA dice AEC 0% pero VUCE dice AEC 10.8% → DISCREPANCIA HIGH
+   - ❌ INCORRECTO: ARCA dice AEC 0% pero InfoLEG menciona "AEC" sin valor → NO es discrepancia
+   - ❌ INCORRECTO: ARCA dice AEC 0% pero InfoLEG dice "sujeto al AEC" → NO es discrepancia
+2. Una MENCION de un concepto NO es lo mismo que un VALOR de ese concepto
+3. Si InfoLEG solo menciona que existe el AEC pero no da valor, NO hay discrepancia con ARCA
 
-## Qué NO es discrepancia
-- Un agente menciona un concepto y otro no lo menciona
-- Un agente da un valor numérico y otro solo dice que "existe" sin valor
-- Un agente tiene más detalles que otro
-
-## Qué SÍ es discrepancia
-- Dos agentes dan valores numéricos diferentes (ej: AEC 0% vs AEC 10.8%)
-- Dos agentes contradicen explícitamente (ej: "no requiere SENASA" vs "requiere SENASA")
+## Reglas CRÍTICAS para confidence
+1. Si ARCA tiene datos sólidos (3+ claims con valores numéricos), confidence base = 0.8+
+2. Si VUCE tiene datos de intervenciones, suma +0.1 a confidence
+3. Si InfoLEG tiene normas relevantes, suma +0.05 a confidence
+4. Si algún agente tiene status="no_data", NO penalices fuertemente - solo agrega warning
+5. Confidence final NUNCA debe ser < 0.5 si ARCA tiene datos sólidos
+6. Confidence final NUNCA debe ser > 0.95 (siempre requiere revisión humana)
 
 ## Formato de respuesta
 {
@@ -129,26 +124,63 @@ Responde SOLO con JSON válido.`;
   }
 
   private fallbackValidation(agentResults: AgentResult[]): { discrepancies: Discrepancy[]; final_confidence: number; warnings: string[] } {
-    // Simple rule-based fallback if Critic API fails
     const warnings: string[] = [];
     const discrepancies: Discrepancy[] = [];
-    let finalConfidence = 1.0;
-
-    const hasNoData = agentResults.some(r => r.status === 'no_data');
-    if (hasNoData) {
-      finalConfidence = Math.min(finalConfidence, 0.7);
-      warnings.push('Al menos un agente no tiene datos para esta NCM');
+    
+    // Find individual agent results
+    const arcaResult = agentResults.find(r => r.agent_name === 'arca');
+    const vuceResult = agentResults.find(r => r.agent_name === 'vuce');
+    const infolegResult = agentResults.find(r => r.agent_name === 'infoleg');
+    
+    // Calculate weighted confidence based on source quality
+    let finalConfidence = 0.0;
+    let totalWeight = 0.0;
+    
+    // ARCA contributes 60% to confidence (tariffs are most critical)
+    if (arcaResult && arcaResult.status === 'success' && arcaResult.claims.length >= 3) {
+      // ARCA has solid tariff data
+      finalConfidence += arcaResult.confidence * 0.6;
+      totalWeight += 0.6;
+    } else if (arcaResult?.status === 'no_data') {
+      warnings.push('ARCA: No hay datos de tarifas para esta NCM');
+      totalWeight += 0.6; // Still count the weight but with 0 contribution
+    } else {
+      warnings.push('ARCA: Datos de tarifas incompletos');
+      totalWeight += 0.3; // Partial weight
     }
-
-    const failedAgents = agentResults.filter(r => r.status === 'failed');
-    if (failedAgents.length > 0) {
-      finalConfidence = Math.min(finalConfidence, 0.5);
-      warnings.push(`${failedAgents.length} agente(s) fallaron`);
+    
+    // VUCE contributes 25% to confidence
+    if (vuceResult && vuceResult.status === 'success' && vuceResult.claims.length > 0) {
+      finalConfidence += vuceResult.confidence * 0.25;
+      totalWeight += 0.25;
+    } else if (vuceResult?.status === 'no_data') {
+      warnings.push('VUCE: No hay datos de intervenciones para esta NCM');
+      totalWeight += 0.25;
     }
-
-    const avgConfidence = agentResults.reduce((sum, r) => sum + r.confidence, 0) / agentResults.length;
-    finalConfidence = Math.min(finalConfidence, avgConfidence);
-
+    
+    // InfoLEG contributes 15% to confidence
+    if (infolegResult && infolegResult.status === 'success' && infolegResult.claims.length > 0) {
+      finalConfidence += infolegResult.confidence * 0.15;
+      totalWeight += 0.15;
+    } else if (infolegResult?.status === 'no_data') {
+      warnings.push('InfoLEG: No hay normas relevantes para esta NCM');
+      totalWeight += 0.15;
+    }
+    
+    // Normalize confidence based on available weights
+    if (totalWeight > 0) {
+      finalConfidence = finalConfidence / totalWeight;
+    }
+    
+    // Ensure minimum confidence if ARCA has solid data
+    const arcaHasSolidData = arcaResult && arcaResult.status === 'success' && arcaResult.claims.length >= 3;
+    if (arcaHasSolidData && finalConfidence < 0.5) {
+      finalConfidence = 0.5; // Floor at 0.5 if ARCA has solid data
+    }
+    
+    // Cap at 0.95 max (never claim 100% certainty)
+    finalConfidence = Math.min(finalConfidence, 0.95);
+    
     return { discrepancies, final_confidence: finalConfidence, warnings };
   }
 }
