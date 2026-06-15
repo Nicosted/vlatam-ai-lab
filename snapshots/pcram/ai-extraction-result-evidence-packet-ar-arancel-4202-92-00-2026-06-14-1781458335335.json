@@ -1,0 +1,46 @@
+{
+  "extraction_result_id": "ai-extraction-result-evidence-packet-ar-arancel-4202-92-00-2026-06-14-20260614T163727Z",
+  "extraction_job_id": "extraction-job-evidence-packet-ar-arancel-4202-92-00-2026-06-14-20260614T163727Z",
+  "evidence_packet_id": "evidence-packet-ar-arancel-4202-92-00-2026-06-14",
+  "review_manifest_id": "review-manifest-4202-92-00-2026-06-14T17-31-53-492Z",
+  "snapshot_id": "snap-arca-arancel-2026-06-14",
+  "source_id": "ar-arca-arancel-integrado",
+  "provider_id": "deepseek-chat",
+  "model_id": "deepseek-chat",
+  "extraction_status": "draft_unreviewed",
+  "extracted_claims": [
+    {
+      "claim_id": "claim-1",
+      "claim_text": "NCM 4202.92.00 applies to articles with outer surface of textile material, with AEC 16%, extra-zone duty 16%, statistical rate 0.5%, and VAT 21% as per ARCA Arancel Integrado effective 2026-06-14.",
+      "evidence_reference": "ar-arca-arancel-integrado:snap-arca-arancel-2026-06-14:NCM 4202.92.00 - Arancel Integrado",
+      "support_status": "supported_by_packet",
+      "confidence": 1
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "claim_id": "unsupported-1",
+      "claim_text": "The product 'mochila escolar de poliéster' is classified under NCM 4202.92.00.",
+      "reason": "The evidence provides the NCM description but does not confirm that a polyester school backpack falls under that subheading; classification requires additional analysis of HS notes and product characteristics.",
+      "evidence_reference": "ar-arca-arancel-integrado:snap-arca-arancel-2026-06-14"
+    },
+    {
+      "claim_id": "unsupported-2",
+      "claim_text": "The total import duty for this product is the sum of AEC, statistical rate, and VAT.",
+      "reason": "The evidence lists separate rates but does not specify how they combine (e.g., whether VAT is calculated on CIF value plus duties).",
+      "evidence_reference": "ar-arca-arancel-integrado:snap-arca-arancel-2026-06-14"
+    }
+  ],
+  "warnings": [
+    "Evidence only covers NCM 4202.92.00; no HS or MERCOSUR notes provided to confirm classification of polyester school backpack.",
+    "No evidence regarding origin-specific preferences (e.g., for China) or other applicable regulations.",
+    "VAT rate is cited from Ley 23.857 but no excerpt of that law is provided."
+  ],
+  "confidence": 0.9,
+  "critic_summary": "Extraction based on single official ARCA source. Rates are clearly stated, but classification of the specific product and combination of duties require further evidence. Human review needed for classification and total duty calculation.",
+  "human_review_required": true,
+  "downstream_allowed": false,
+  "created_at": "2026-06-14T17:32:15.306Z",
+  "contract_version": "1.0.0",
+  "schema_version": "1.0.0"
+}

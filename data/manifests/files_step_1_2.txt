@@ -1,0 +1,9 @@
+01_arca/arancel.zip
+01_arca/capitulo_14062026.txt
+01_arca/nomenclador_14062026.txt
+01_arca/sha256_arca_manifest.txt
+01_arca/sufijos_14062026.txt
+02_infoleg/infoleg_normas_modificadas_full_2026-06-14.csv
+02_infoleg/infoleg_normas_modificatorias_full_2026-06-14.csv
+02_infoleg/infoleg_normativa_nacional_full_2026-06-14.csv
+02_infoleg/sha256_infoleg_manifest.txt

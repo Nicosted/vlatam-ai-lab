@@ -1,0 +1,53 @@
+{
+  "extraction_result_id": "ai-extraction-result-packet-ar-arancel-4202-92-00-2026-06-14-20260614T163727Z",
+  "extraction_job_id": "extraction-job-packet-ar-arancel-4202-92-00-2026-06-14-20260614T163727Z",
+  "evidence_packet_id": "packet-ar-arancel-4202-92-00-2026-06-14",
+  "review_manifest_id": "review-manifest-packet-ar-arancel-4202-92-00-2026-06-14-20260614T163727Z",
+  "snapshot_id": "snap-arca-arancel-2026-06-14",
+  "source_id": "ar-arca-arancel-integrado",
+  "provider_id": "deepseek-chat",
+  "model_id": "deepseek-chat",
+  "extraction_status": "draft_unreviewed",
+  "extracted_claims": [
+    {
+      "claim_id": "claim-1",
+      "claim_text": "Para el NCM 4202.92.00 (mochila escolar de poliéster) importado desde China a Argentina, el AEC y el derecho extra-zona aplicable es del 16%.",
+      "evidence_reference": "ar-arca-arancel-integrado:snap-arca-arancel-2026-06-14:NCM 4202.92.00 - Arancel Integrado",
+      "support_status": "supported_by_packet",
+      "confidence": 1
+    },
+    {
+      "claim_id": "claim-2",
+      "claim_text": "La tasa de estadística aplicable es del 0.5%.",
+      "evidence_reference": "ar-arca-arancel-integrado:snap-arca-arancel-2026-06-14:NCM 4202.92.00 - Arancel Integrado",
+      "support_status": "supported_by_packet",
+      "confidence": 1
+    },
+    {
+      "claim_id": "claim-3",
+      "claim_text": "El IVA aplicable es del 21% según Ley 23.857.",
+      "evidence_reference": "ar-arca-arancel-integrado:snap-arca-arancel-2026-06-14:NCM 4202.92.00 - Arancel Integrado",
+      "support_status": "supported_by_packet",
+      "confidence": 1
+    },
+    {
+      "claim_id": "claim-4",
+      "claim_text": "La base legal vigente es el Arancel Integrado de ARCA (ex AFIP), con vigencia desde 2026-06-14.",
+      "evidence_reference": "ar-arca-arancel-integrado:snap-arca-arancel-2026-06-14:NCM 4202.92.00 - Arancel Integrado",
+      "support_status": "supported_by_packet",
+      "confidence": 1
+    }
+  ],
+  "unsupported_claims": [],
+  "warnings": [
+    "No se proporciona evidencia sobre percepciones adicionales (p.ej., Impuesto PAIS, percepción de IVA o Ganancias) que pudieran aplicar.",
+    "La evidencia proviene de una única fuente oficial (ARCA) y no se contrasta con otras fuentes."
+  ],
+  "confidence": 0.95,
+  "critic_summary": "La evidencia proporcionada es suficiente para determinar el arancel AEC, derecho extra-zona, tasa de estadística e IVA para el NCM 4202.92.00. No se encontraron conflictos ni omisiones en los datos presentados. Sin embargo, no se incluyen otras tasas o percepciones que podrían ser aplicables. Se requiere revisión humana para confirmar la completitud normativa.",
+  "human_review_required": true,
+  "downstream_allowed": false,
+  "created_at": "2026-06-14T17:28:41.731Z",
+  "contract_version": "1.0.0",
+  "schema_version": "1.0.0"
+}

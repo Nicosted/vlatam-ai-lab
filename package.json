@@ -8,6 +8,19 @@
     "node": ">=20"
   },
   "scripts": {
+    "ai:extract": "tsx scripts/run-extraction.ts",
+    "ai:validate-packet": "tsx scripts/validate-packet.ts",
+    "ai:validate-extraction": "tsx scripts/validate-extraction.ts",
+    "crawler:arca": "tsx src/crawlers/arca-crawler.ts",
+    "crawler:arca:real": "tsx src/crawlers/arca-real-crawler.ts",
+    "crawler:packet": "tsx src/crawlers/generate-packet-from-arca.ts",
+    "crawler:infoleg": "tsx src/crawlers/infoleg-crawler.ts",
+    "crawler:vuce-extract": "tsx src/crawlers/vuce-extractor.ts",
+    "crawler:vuce-notes": "tsx src/crawlers/vuce-notes-parser.ts",
+    "crawler:unified-packet": "tsx src/crawlers/generate-unified-packet.ts",
+    "sync:kv": "tsx scripts/sync-kv.ts",
+    "dev:worker": "wrangler dev",
+    "deploy:worker": "wrangler deploy",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test tests/**/*.test.ts",
     "lint": "eslint .",
@@ -30,16 +43,27 @@
     "intelligence:quality-gate": "pnpm intelligence:briefing && tsx src/reports/briefing-quality-gate.ts reports/operational-briefing-preview-p1.md reports/briefing-quality-gate-p1.md && prettier --write reports/briefing-quality-gate-p1.md"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260613.1",
     "@eslint/js": "^9.18.0",
+    "@types/ajv": "^1.0.4",
     "@types/node": "^22.10.2",
+    "@types/pdf-parse": "^1.1.5",
     "eslint": "^9.18.0",
     "prettier": "^3.4.2",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2",
-    "typescript-eslint": "^8.19.0"
+    "typescript-eslint": "^8.19.0",
+    "wrangler": "^4.100.0"
   },
   "dependencies": {
     "@langchain/langgraph": "^1.3.6",
-    "ajv": "^8.20.0"
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1",
+    "csv-parser": "^3.2.1",
+    "dotenv": "^17.4.2",
+    "hono": "^4.12.25",
+    "openai": "^6.42.0",
+    "pdf-parse": "^2.4.5",
+    "xlsx": "^0.18.5"
   }
 }

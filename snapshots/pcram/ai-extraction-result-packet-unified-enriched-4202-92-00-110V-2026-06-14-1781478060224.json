@@ -1,0 +1,96 @@
+{
+  "extraction_result_id": "ai-extraction-result-packet-unified-enriched-4202-92-00-110V-2026-06-14-2026-06-14T23:00:08.836Z",
+  "extraction_job_id": "extraction-job-packet-unified-enriched-4202-92-00-110V-2026-06-14-2026-06-14T23:00:08.836Z",
+  "evidence_packet_id": "packet-unified-enriched-4202-92-00-110V-2026-06-14",
+  "review_manifest_id": "review-manifest-unified-4202-92-00-110V-2026-06-14T23-00-08-833Z",
+  "snapshot_id": "snap-unified-4202-92-00-110V-2026-06-14",
+  "source_id": "vlatam-ai-lab-unified",
+  "provider_id": "deepseek-chat",
+  "model_id": "deepseek-chat",
+  "extraction_status": "draft_unreviewed",
+  "extracted_claims": [
+    {
+      "claim_id": "claim-1",
+      "claim_text": "El NCM 4202.92.00.110V corresponde a 'De campamento' (mochilas de campamento) con superficie exterior de materia textil.",
+      "evidence_reference": "ar-arca-arancel-integrado:snap-arca-latest:Arancel y Tasas",
+      "support_status": "supported_by_packet",
+      "confidence": 0.95
+    },
+    {
+      "claim_id": "claim-2",
+      "claim_text": "El Arancel Externo Común (AEC) para el NCM 4202.92.00.110V es 0%.",
+      "evidence_reference": "ar-arca-arancel-integrado:snap-arca-latest:Arancel y Tasas",
+      "support_status": "supported_by_packet",
+      "confidence": 0.95
+    },
+    {
+      "claim_id": "claim-3",
+      "claim_text": "El Derecho Extra-zona para el NCM 4202.92.00.110V es 7%.",
+      "evidence_reference": "ar-arca-arancel-integrado:snap-arca-latest:Arancel y Tasas",
+      "support_status": "supported_by_packet",
+      "confidence": 0.95
+    },
+    {
+      "claim_id": "claim-4",
+      "claim_text": "La Tasa Estadística para el NCM 4202.92.00.110V es 20%.",
+      "evidence_reference": "ar-arca-arancel-integrado:snap-arca-latest:Arancel y Tasas",
+      "support_status": "supported_by_packet",
+      "confidence": 0.95
+    },
+    {
+      "claim_id": "claim-5",
+      "claim_text": "El IVA para el NCM 4202.92.00.110V no está disponible (N/A%) en la fuente ARCA.",
+      "evidence_reference": "ar-arca-arancel-integrado:snap-arca-latest:Arancel y Tasas",
+      "support_status": "supported_by_packet",
+      "confidence": 0.95
+    },
+    {
+      "claim_id": "claim-6",
+      "claim_text": "El organismo interviniente para la importación del NCM 4202.92.00.110V es el Servicio Nacional de Sanidad y Calidad Agroalimentaria (SENASA).",
+      "evidence_reference": "ar-vuce-civuce:snap-vuce-notes-0:Intervenciones y Requisitos (Notas Manuales)",
+      "support_status": "supported_by_packet",
+      "confidence": 0.9
+    },
+    {
+      "claim_id": "claim-7",
+      "claim_text": "Se observan tarifas en VUCE: DII 0%, AEC 35%, DIE 20%, pero estas están pendientes de capturar y pueden no ser definitivas.",
+      "evidence_reference": "ar-vuce-civuce:snap-vuce-notes-0:Intervenciones y Requisitos (Notas Manuales)",
+      "support_status": "supported_by_packet",
+      "confidence": 0.7
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "claim_id": "unsupported-1",
+      "claim_text": "El AEC es 35% según VUCE.",
+      "reason": "La evidencia de VUCE muestra AEC 35% como 'pendiente_de_capturar' y no es oficial; la fuente ARCA indica AEC 0%. Hay conflicto y la información de VUCE no es definitiva.",
+      "evidence_reference": "ar-vuce-civuce:snap-vuce-notes-0"
+    },
+    {
+      "claim_id": "unsupported-2",
+      "claim_text": "No se requieren otras intervenciones además de SENASA.",
+      "reason": "La evidencia de VUCE advierte explícitamente 'No usar como confirmacion de ausencia de otras intervenciones hasta revisar secciones expandibles'.",
+      "evidence_reference": "ar-vuce-civuce:snap-vuce-notes-0"
+    },
+    {
+      "claim_id": "unsupported-3",
+      "claim_text": "El IVA aplicable es 0% o algún valor específico.",
+      "reason": "La fuente ARCA indica IVA: N/A%, lo que significa que no se proporciona el dato. No se puede concluir ningún valor.",
+      "evidence_reference": "ar-arca-arancel-integrado:snap-arca-latest"
+    }
+  ],
+  "warnings": [
+    "Conflicto entre AEC de ARCA (0%) y VUCE (35% pendiente de capturar). Se requiere verificación oficial.",
+    "La información de VUCE sobre tarifas está marcada como 'pendiente_de_capturar' y no es definitiva.",
+    "No se dispone de información completa sobre IVA, derechos antidumping, medidas de defensa comercial, ni requisitos técnicos específicos.",
+    "La evidencia de VUCE indica que pueden existir otras intervenciones no listadas; se requiere revisar secciones expandibles.",
+    "El evidence_packet no incluye normativa completa (ej. Decretos, Resoluciones) ni notas de NCM o reglas de origen."
+  ],
+  "confidence": 0.6,
+  "critic_summary": "La extracción se basa en dos fuentes: ARCA (arancel oficial) y VUCE (intervenciones). Se identificaron valores arancelarios (AEC 0%, DEX 7%, TE 20%) y la intervención de SENASA. Sin embargo, hay conflicto en el AEC reportado por VUCE (35% pendiente) y falta información sobre IVA, otros derechos, y requisitos completos. La evidencia es insuficiente para una determinación normativa completa. Se requiere revisión humana.",
+  "human_review_required": true,
+  "downstream_allowed": false,
+  "created_at": "2026-06-14T23:01:00.197Z",
+  "contract_version": "1.0.0",
+  "schema_version": "1.0.0"
+}

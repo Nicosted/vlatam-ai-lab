@@ -1,0 +1,32 @@
+{
+  "extraction_result_id": "ai-extraction-result-packet-unified-4202-92-00-110V-2026-06-14-20260614T223745Z",
+  "extraction_job_id": "extraction-job-packet-unified-4202-92-00-110V-2026-06-14-20260614T223745Z",
+  "evidence_packet_id": "packet-unified-4202-92-00-110V-2026-06-14",
+  "review_manifest_id": "review-manifest-unified-4202-92-00-110V-2026-06-14T22-41-45-114Z",
+  "snapshot_id": "snap-unified-4202-92-00-110V-2026-06-14",
+  "source_id": "vlatam-ai-lab-unified",
+  "provider_id": "deepseek-chat",
+  "model_id": "deepseek-chat",
+  "extraction_status": "validation_failed",
+  "extracted_claims": [],
+  "unsupported_claims": [
+    {
+      "claim_id": "unsupported-1",
+      "claim_text": "The NCM 4202.92.00.110V has a specific AEC, Extra-zone duty, Statistical rate, and IVA.",
+      "reason": "The evidence provides only one source (ARCA) with incomplete data (IVA null). Missing MERCOSUR NCM/AEC evidence and Argentina domestic evidence (e.g., VUCE, InfoLEG) to confirm all rates. The evidence packet is insufficient for a complete extraction.",
+      "evidence_reference": "ar-arca-arancel-integrado:snap-arca-arancel-2026-06-14:NCM 4202.92.00.110V - Arancel Integrado"
+    }
+  ],
+  "warnings": [
+    "Evidence packet contains only one source (ARCA) with incomplete data (IVA null).",
+    "Missing MERCOSUR NCM/AEC evidence and Argentina domestic evidence (VUCE, InfoLEG).",
+    "Cannot confirm all applicable duties and taxes from provided evidence."
+  ],
+  "confidence": 0.3,
+  "critic_summary": "Evidence packet is incomplete. Only one source (ARCA) provided with partial data. IVA is null, and no MERCOSUR or other domestic evidence is present. Extraction cannot be completed reliably.",
+  "human_review_required": true,
+  "downstream_allowed": false,
+  "created_at": "2026-06-14T22:42:07.144Z",
+  "contract_version": "1.0.0",
+  "schema_version": "1.0.0"
+}

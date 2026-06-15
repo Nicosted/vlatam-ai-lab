@@ -133,6 +133,21 @@
       "description": "Optional non-authoritative preparation notes.",
       "items": { "type": "string" }
     },
+    "evidence_refs": {
+      "type": "array",
+      "description": "Array of evidence references used by the extraction agent to build context.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "source_id": { "type": "string", "minLength": 1, "maxLength": 160 },
+          "snapshot_id": { "type": "string", "minLength": 1, "maxLength": 160 },
+          "section_label": { "type": "string", "minLength": 1, "maxLength": 160 },
+          "article_number": { "type": "string", "minLength": 1, "maxLength": 160 },
+          "excerpt": { "type": "string", "minLength": 1, "maxLength": 2000 }
+        },
+        "required": ["source_id", "snapshot_id", "excerpt"]
+      }
+    },
     "metadata": {
       "type": "object",
       "description": "Optional extra metadata for local traceability."

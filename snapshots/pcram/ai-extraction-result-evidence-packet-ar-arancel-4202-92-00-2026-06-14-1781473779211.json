@@ -1,0 +1,44 @@
+{
+  "extraction_result_id": "ai-extraction-result-evidence-packet-ar-arancel-4202-92-00-2026-06-14-20260614T213713Z",
+  "extraction_job_id": "extraction-job-evidence-packet-ar-arancel-4202-92-00-2026-06-14-20260614T213713Z",
+  "evidence_packet_id": "evidence-packet-ar-arancel-4202-92-00-2026-06-14",
+  "review_manifest_id": "review-manifest-4202-92-00-2026-06-14T21-49-13-549Z",
+  "snapshot_id": "snap-arca-arancel-2026-06-14",
+  "source_id": "ar-arca-arancel-integrado",
+  "provider_id": "deepseek-chat",
+  "model_id": "deepseek-chat",
+  "extraction_status": "validation_failed",
+  "extracted_claims": [],
+  "unsupported_claims": [
+    {
+      "claim_id": "unsupported-1",
+      "claim_text": "The product 'Mochila escolar de poliéster' is classified under NCM 4202.92.00.110V.",
+      "reason": "The evidence shows NCM 4202.92.00.110V with description 'De campamento' (camping), not 'mochila escolar' (school backpack). The product description does not match the official NCM description. No evidence supports that a school backpack falls under this subheading.",
+      "evidence_reference": "ar-arca-arancel-integrado:snap-arca-arancel-2026-06-14:NCM 4202.92.00.110V - Arancel Integrado"
+    },
+    {
+      "claim_id": "unsupported-2",
+      "claim_text": "The applicable AEC is 0% for this product.",
+      "reason": "The AEC of 0% applies to NCM 4202.92.00.110V (camping items). Since the product is a school backpack, it may not be classified under that NCM. No evidence for the correct NCM or AEC for school backpacks.",
+      "evidence_reference": "ar-arca-arancel-integrado:snap-arca-arancel-2026-06-14:NCM 4202.92.00.110V - Arancel Integrado"
+    },
+    {
+      "claim_id": "unsupported-3",
+      "claim_text": "The derecho extra-zona is 7% and tasa de estadística is 20%.",
+      "reason": "These rates are specific to NCM 4202.92.00.110V. Without confirmation that the product is correctly classified under that NCM, these rates cannot be applied.",
+      "evidence_reference": "ar-arca-arancel-integrado:snap-arca-arancel-2026-06-14:NCM 4202.92.00.110V - Arancel Integrado"
+    }
+  ],
+  "warnings": [
+    "The evidence packet contains only one NCM code (4202.92.00.110V) with description 'De campamento' (camping), but the product is described as 'Mochila escolar de poliéster' (school backpack). The classification is likely incorrect or requires further verification.",
+    "No evidence is provided for the correct classification of school backpacks under the HS/NCM system. Additional sources (e.g., HS Explanatory Notes, ARCA classification rulings) are needed.",
+    "The evidence does not include any international HS classification criteria, MERCOSUR NCM rules, or Argentina domestic classification guidelines."
+  ],
+  "confidence": 0.1,
+  "critic_summary": "The evidence packet contains a single NCM entry (4202.92.00.110V) described as 'De campamento' (camping), which does not match the product 'Mochila escolar de poliéster' (school backpack). No evidence supports the classification of school backpacks under this NCM. Therefore, no normative claims can be reliably extracted. The extraction is flagged as validation_failed due to insufficient and mismatched evidence.",
+  "human_review_required": true,
+  "downstream_allowed": false,
+  "created_at": "2026-06-14T21:49:39.182Z",
+  "contract_version": "1.0.0",
+  "schema_version": "1.0.0"
+}

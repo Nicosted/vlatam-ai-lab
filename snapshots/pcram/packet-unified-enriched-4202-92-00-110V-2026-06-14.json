@@ -1,0 +1,31 @@
+{
+  "evidence_packet_id": "packet-unified-enriched-4202-92-00-110V-2026-06-14",
+  "review_manifest_id": "review-manifest-unified-4202-92-00-110V-2026-06-14T23-00-08-833Z",
+  "snapshot_id": "snap-unified-4202-92-00-110V-2026-06-14",
+  "source_id": "vlatam-ai-lab-unified",
+  "evidence_scope": "NCM 4202.92.00.110V - Análisis aduanero unificado (ARCA + VUCE Notas + InfoLEG)",
+  "evidence_refs": [
+    {
+      "source_id": "ar-arca-arancel-integrado",
+      "snapshot_id": "snap-arca-latest",
+      "section_label": "Arancel y Tasas",
+      "article_number": "NCM 4202.92.00.110V",
+      "excerpt": "[ARANCEL OFICIAL - ARCA]\nNCM: 4202.92.00.110V\nDescripción: De campamento\nAEC: 0%\nDerecho Extra-zona: 7%\nTasa Estadística: 20%\nIVA: N/A%"
+    },
+    {
+      "source_id": "ar-vuce-civuce",
+      "snapshot_id": "snap-vuce-notes-0",
+      "section_label": "Intervenciones y Requisitos (Notas Manuales)",
+      "article_number": "4202.92.00.110V",
+      "excerpt": "[VUCE INTERVENCIONES]\nOrganismos/Requisitos: organismo: Servicio Nacional de Sanidad y Calidad Agroalimentaria (SENASA) | - expandir secciones: Que tramites debo realizar | - expandir secciones: Resumen del regimen | - expandir secciones: Este regimen se aplica cuando se cumplan las siguientes condiciones | - expandir secciones: Para que debo realizar la intervencion | - expandir secciones: Normativa | observaciones: | - No usar como confirmacion de ausencia de otras intervenciones hasta revisar secciones expandibles. | - downstream_allowed: false\nTarifas observadas: - DII 0% | - AEC 35% | - DIE 20% | pendiente_de_capturar:\nNotas: fuente: CIVUCE / VUCE fecha_consulta: 2026-06-14 operacion: importacion pais_origen_consulta: China pais_codigo: 156 posicion: 4202.92.00.110V producto_detectado: Mochilas de campamento nomenclatura: NCM/SIM unidad: 01 - KILOGRAMO ramo: I - Carne y cueros codigo_afip_tram: 0042.00.00.000V informacio"
+    }
+  ],
+  "extraction_input_type": "excerpt_reference",
+  "extraction_allowed": true,
+  "extraction_status": "prepared",
+  "excerpt_reference": "NCM 4202.92.00.110V | Mochila de campamento con superficie exterior de materia textil | Enriched unified analysis",
+  "human_review_required": true,
+  "downstream_allowed": false,
+  "schema_version": "1.0.0",
+  "created_at": "2026-06-14T23:00:08.836Z"
+}
