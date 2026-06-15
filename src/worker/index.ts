@@ -50,7 +50,15 @@ async function authenticate(c: any): Promise<boolean> {
   const authHeader = c.req.header('Authorization');
   const expectedToken = c.env.API_AUTH_TOKEN;
   
-  // If no token configured, allow (backward compatibility during transition)
+  // In production, require auth token (fail-closed)
+  const isProduction = c.env.ENVIRONMENT === 'production';
+  
+  if (isProduction && !expectedToken) {
+    // Fail closed: if no token configured in production, reject all requests
+    return false;
+  }
+  
+  // If no token configured (development), allow (backward compatibility)
   if (!expectedToken) return true;
   
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
