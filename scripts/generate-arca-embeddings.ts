@@ -7,6 +7,7 @@
 import { readFileSync, readdirSync } from 'fs';
 import { join } from 'path';
 import { EmbeddingService } from '../src/utils/embedding-service.js';
+import { fetchWithRetry } from './fetch-with-retry.js';
 import 'dotenv/config';
 
 const PARSED_DIR = join(process.cwd(), 'data', 'parsed', 'arca');
@@ -58,7 +59,7 @@ async function main() {
 
   console.log(`📝 Prepared ${chunks.length} chunks for embedding\n`);
 
-  const batchSize = 50;
+  const batchSize = 20; // Reduced to avoid rate limiting
   const totalBatches = Math.ceil(chunks.length / batchSize);
 
   for (let i = 0; i < chunks.length; i += batchSize) {
@@ -75,7 +76,7 @@ async function main() {
       metadata: chunk.metadata,
     }));
 
-    const response = await fetch(
+    const response = await fetchWithRetry(
       `https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID!}/vectorize/v2/indexes/arca-embeddings/upsert`,
       {
         method: 'POST',
@@ -84,7 +85,8 @@ async function main() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ vectors }),
-      }
+      },
+      5
     );
 
     if (!response.ok) {
@@ -92,10 +94,10 @@ async function main() {
       throw new Error(`Vectorize upload failed: ${error}`);
     }
 
-    console.log(`✅ Batch ${batchNum} uploaded\n`);
+    console.log(`✅ Batch ${batchNum} uploaded (${(batchNum / totalBatches * 100).toFixed(1)}% complete)\n`);
 
     if (i + batchSize < chunks.length) {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 3000)); // Increased to 3s
     }
   }
 
