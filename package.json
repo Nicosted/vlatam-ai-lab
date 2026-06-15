@@ -1,6 +1,6 @@
 {
   "name": "vlatam-ai-lab",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "private": true,
   "description": "Experimental AI operations and regulatory intelligence lab for vLatamGlobal (production-isolated sandbox).",
   "type": "module",
