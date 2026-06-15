@@ -8,3 +8,9 @@ compatibility_flags = ["nodejs_compat"]
 binding = "NORMATIVE_KV"
 id = "0dd29a9bcfcd4bf9b3e6dce6fb5fe5e9"
 preview_id = "0dd29a9bcfcd4bf9b3e6dce6fb5fe5e9"
+
+[vars]
+ENVIRONMENT = "production"
+
+# API auth token will be set as secret
+# pnpm wrangler secret put API_AUTH_TOKEN

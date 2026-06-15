@@ -81,6 +81,10 @@ INSTRUCCIONES:
 Responde SOLO con JSON válido.`;
 
     try {
+      // H-01 fix: Add 30s timeout
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 30000);
+      
       const response = await fetch(`${this.baseUrl}/chat/completions`, {
         method: 'POST',
         headers: {
@@ -96,7 +100,10 @@ Responde SOLO con JSON válido.`;
           response_format: { type: 'json_object' },
           temperature: 0.1,
         }),
+        signal: controller.signal,
       });
+      
+      clearTimeout(timeout);
 
       if (!response.ok) {
         return {
@@ -104,32 +111,77 @@ Responde SOLO con JSON válido.`;
           status: 'failed',
           claims: [],
           unsupported_claims: [],
-          warnings: [`ARCA API error: ${response.status}`],
+          warnings: ['Provider API error'], // H-02: Redacted message
           confidence: 0,
           evidence_used: [],
         };
       }
 
       const data = await response.json() as any;
-      const content = JSON.parse(data.choices[0].message.content);
+      let content: any;
+      
+      try {
+        content = JSON.parse(data.choices[0].message.content);
+      } catch (e) {
+        return {
+          agent_name: 'arca',
+          status: 'failed',
+          claims: [],
+          unsupported_claims: [],
+          warnings: ['Invalid JSON response from provider'],
+          confidence: 0,
+          evidence_used: [],
+        };
+      }
+
+      // C-03 fix: Validate and clamp output
+      const validatedClaims = (content.claims || [])
+        .filter((c: any) => c && typeof c === 'object')
+        .map((c: any) => ({
+          claim_id: String(c.claim_id || `arca-${Math.random().toString(36).substring(7)}`),
+          claim_type: ['tariff', 'intervention', 'legal', 'classification'].includes(c.claim_type) ? c.claim_type : 'tariff',
+          claim_text: String(c.claim_text || '').substring(0, 500),
+          evidence_reference: String(c.evidence_reference || '').substring(0, 200),
+          confidence: Math.max(0, Math.min(1, Number(c.confidence) || 0.5)), // Clamp 0-1
+          source: 'arca' as const,
+        }))
+        .slice(0, 20); // Limit claims count
+      
+      const validatedUnsupported = (content.unsupported_claims || [])
+        .filter((c: any) => c && typeof c === 'object')
+        .map((c: any) => ({
+          claim_text: String(c.claim_text || '').substring(0, 500),
+          reason: String(c.reason || '').substring(0, 500),
+        }))
+        .slice(0, 10);
+      
+      const warnings = (content.warnings || [])
+        .filter((w: any) => typeof w === 'string')
+        .map((w: string) => w.substring(0, 500))
+        .slice(0, 10);
+      
+      // Clamp confidence
+      const confidence = Math.max(0, Math.min(1, Number(content.confidence) || 0.5));
 
       return {
         agent_name: 'arca',
-        status: content.status || 'success',
-        claims: (content.claims || []).map((c: any) => ({ ...c, source: 'arca' })),
-        unsupported_claims: content.unsupported_claims || [],
-        warnings: content.warnings || [],
-        confidence: content.confidence || 0.5,
+        status: ['success', 'partial', 'no_data', 'failed'].includes(content.status) ? content.status : 'partial',
+        claims: validatedClaims,
+        unsupported_claims: validatedUnsupported,
+        warnings,
+        confidence,
         evidence_used: ['ARCA Arancel Integrado'],
-        raw_context: arcaEvidence,
+        raw_context: sanitizedEvidence,
       };
     } catch (error: any) {
+      // H-01 & H-02 fixes: Handle timeout and redact error
+      const isTimeout = error.name === 'AbortError';
       return {
         agent_name: 'arca',
         status: 'failed',
         claims: [],
         unsupported_claims: [],
-        warnings: [`ARCA agent error: ${error.message}`],
+        warnings: [isTimeout ? 'Provider timeout' : 'Provider error'],
         confidence: 0,
         evidence_used: [],
       };
