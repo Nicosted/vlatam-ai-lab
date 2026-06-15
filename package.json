@@ -25,22 +25,7 @@
     "test": "tsx --test tests/**/*.test.ts",
     "lint": "eslint .",
     "format": "prettier --check .",
-    "format:write": "prettier --write .",
-    "ai:extract:dry-run": "tsx src/pipelines/ai-extract-dry-run.ts",
-    "ai:extract:demo": "AI_EXTRACT_MODE=demo tsx src/pipelines/ai-extract-dry-run.ts",
-    "ai:extract:record-qwen-demo": "tsx src/pipelines/ai-extract-record-qwen-demo.ts",
-    "ai:extract:replay-qwen-demo": "tsx src/pipelines/ai-extract-replay-qwen-demo.ts",
-    "ai:review:check:argentina-backpack": "tsx src/pipelines/check-argentina-backpack-approval-readiness.ts",
-    "ai:review:handoff:argentina-backpack": "tsx src/pipelines/build-argentina-backpack-missing-data-handoff.ts",
-    "ai:exports:verify": "tsx src/pipelines/verify-approved-export-catalog.ts",
-    "ai:exports:bundle": "tsx src/pipelines/build-approved-export-bundle.ts",
-    "pcram:delta": "tsx src/pipelines/pcram-delta.ts",
-    "pcram:validate-snapshot": "tsx src/pipelines/validate-pcram-source-snapshot.ts snapshots/pcram/example-source-snapshot.json",
-    "pcram:generate-delta": "tsx src/pipelines/generate-pcram-delta.ts snapshots/pcram/example-source-snapshot-previous.json snapshots/pcram/example-source-snapshot-current.json snapshots/pcram/example-delta.json",
-    "pcram:generate-evidence": "tsx src/pipelines/generate-pcram-evidence-report.ts snapshots/pcram/example-source-snapshot-previous.json snapshots/pcram/example-source-snapshot-current.json snapshots/pcram/example-delta.json reports/example-pcram-generated-evidence-report.md",
-    "schema:readiness": "tsx src/reports/schema-readiness-report.ts reports/schema-readiness-p1.md && prettier --write reports/schema-readiness-p1.md",
-    "intelligence:briefing": "tsx src/reports/operational-briefing-preview.ts reports/operational-briefing-preview-p1.md && prettier --write reports/operational-briefing-preview-p1.md",
-    "intelligence:quality-gate": "pnpm intelligence:briefing && tsx src/reports/briefing-quality-gate.ts reports/operational-briefing-preview-p1.md reports/briefing-quality-gate-p1.md && prettier --write reports/briefing-quality-gate-p1.md"
+    "format:write": "prettier --write ."
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260613.1",
