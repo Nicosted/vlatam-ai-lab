@@ -1,4 +1,5 @@
 {
+  "_comment": "Reference fixture for testing. Not operational output.",
   "packet_id": "infoleg--2026-06-10_to_2026-06-17--evidence-001",
   "source_delta_id": "delta--infoleg--2026-06-10--to--2026-06-17",
   "source_id": "infoleg",
@@ -57,12 +58,14 @@
       "claim_id": "claim-005",
       "claim_type": "classification",
       "description": "Change detected at /regulations/1/ncm_positions/2 (added)",
-      "affected_ncm": [],
+      "affected_ncm": [
+        "63079000"
+      ],
       "new_value": {
         "ncm8": "63079000",
         "descripcion": "Los demás artículos confeccionados de materia textil"
       },
-      "confidence": 0.7,
+      "confidence": 0.8,
       "requires_human_review": true
     },
     {

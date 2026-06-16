@@ -8,6 +8,9 @@
 
 import { analyzeDelta } from '../agents/delta-analyzer.js';
 
+const SOURCE_ID_REGEX = /^[a-z0-9_-]+$/;
+const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
+
 function usage(): string {
   return `
 Delta Analyzer CLI — PCRAM Chain Step 3/5
@@ -33,6 +36,19 @@ async function main(): Promise<void> {
 
   if (!sourceId || !fromDate || !toDate) {
     console.error(usage());
+    process.exit(1);
+  }
+
+  if (!SOURCE_ID_REGEX.test(sourceId)) {
+    console.error(`[delta-analyzer] ✗ Error: Invalid source_id: ${sourceId}`);
+    process.exit(1);
+  }
+  if (!DATE_REGEX.test(fromDate)) {
+    console.error(`[delta-analyzer] ✗ Error: Invalid from_date: ${fromDate}`);
+    process.exit(1);
+  }
+  if (!DATE_REGEX.test(toDate)) {
+    console.error(`[delta-analyzer] ✗ Error: Invalid to_date: ${toDate}`);
     process.exit(1);
   }
 

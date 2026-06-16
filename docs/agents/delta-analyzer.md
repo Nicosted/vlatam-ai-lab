@@ -88,7 +88,10 @@ const result = await analyzeDelta({
 console.log(result.packet.summary);
 ```
 
-Tests may pass `extracted_at` explicitly for deterministic assertions:
+By default, `extracted_at` uses the source delta's `generated_at` timestamp for
+reproducibility. If a legacy delta has no `generated_at`, the agent falls back
+to `new Date().toISOString()`. Tests and controlled operations may pass
+`extracted_at` explicitly:
 
 ```typescript
 await analyzeDelta({
@@ -126,6 +129,14 @@ The confidence score is deterministic:
 - Cap at `1.0`
 
 Confidence is not approval. All outputs remain review-only.
+
+## NCM Extraction
+
+NCM values are extracted recursively from the change path, `old_value`, and
+`new_value`. The agent recognizes dotted 11-digit forms such as
+`4202.92.00.110V`, compact 11/12-digit forms, and compact NCM8 values such as
+`63079000` when they appear in NCM/classification context. Stored values are
+normalized by removing dots, so `4202.92.00.110V` becomes `42029200110V`.
 
 ## Example Packet Snippet
 

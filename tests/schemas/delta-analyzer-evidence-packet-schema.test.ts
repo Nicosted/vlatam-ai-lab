@@ -31,7 +31,7 @@ describe('delta-analyzer-evidence-packet schema', () => {
           claim_id: 'claim-0',
           claim_type: 'classification',
           description: 'modified change detected at /regulations/0/ncm/0101.21.00.000',
-          affected_ncm: ['0101.21.00.000'],
+          affected_ncm: ['01012100000'],
           old_value: 'old',
           new_value: 'new',
           confidence: 0.9,

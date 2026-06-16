@@ -36,6 +36,9 @@ export interface DeltaAnalyzerInput {
   extracted_at?: string;
 }
 
+const SOURCE_ID_REGEX = /^[a-z0-9_-]+$/;
+const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
+
 interface SourceMonitorDeltaChange {
   readonly type: 'added' | 'removed' | 'modified';
   readonly path: string;
@@ -47,6 +50,7 @@ interface SourceMonitorDelta {
   readonly delta_id: string;
   readonly source_id: string;
   readonly changes: SourceMonitorDeltaChange[];
+  readonly generated_at?: string;
 }
 
 export interface DeltaAnalyzerEvidenceClaim {
@@ -63,6 +67,7 @@ export interface DeltaAnalyzerEvidenceClaim {
 export type ClaimTypeCounts = Record<ClaimType, number>;
 
 export interface DeltaAnalyzerEvidencePacket {
+  readonly _comment?: string;
   readonly packet_id: string;
   readonly source_delta_id: string;
   readonly source_id: string;
@@ -80,6 +85,35 @@ export interface DeltaAnalyzerEvidencePacket {
 export interface DeltaAnalyzerOutput {
   packet: DeltaAnalyzerEvidencePacket;
   outputPath: string;
+}
+
+function assertContainedPath(candidatePath: string, expectedRoot: string, errorMessage: string): void {
+  const resolvedRoot = path.resolve(expectedRoot);
+  const resolvedCandidate = path.resolve(candidatePath);
+  if (resolvedCandidate !== resolvedRoot && !resolvedCandidate.startsWith(resolvedRoot + path.sep)) {
+    throw new Error(errorMessage);
+  }
+}
+
+function validateInputs(input: DeltaAnalyzerInput): void {
+  if (!SOURCE_ID_REGEX.test(input.source_id)) {
+    throw new Error(`Invalid source_id: ${input.source_id}`);
+  }
+  if (!DATE_REGEX.test(input.from_date)) {
+    throw new Error(`Invalid from_date: ${input.from_date}`);
+  }
+  if (!DATE_REGEX.test(input.to_date)) {
+    throw new Error(`Invalid to_date: ${input.to_date}`);
+  }
+
+  const dataRoot = path.resolve(process.cwd(), 'data');
+  const deltaRoot = path.resolve(dataRoot, 'deltas');
+  const evidenceRoot = path.resolve(dataRoot, 'evidence');
+  const deltaPath = path.resolve(deltaRoot, input.source_id, `${input.from_date}_to_${input.to_date}.json`);
+  const evidencePath = path.resolve(evidenceRoot, input.source_id);
+
+  assertContainedPath(deltaPath, deltaRoot, 'Delta path escapes data/deltas directory');
+  assertContainedPath(evidencePath, evidenceRoot, 'Evidence path escapes data/evidence directory');
 }
 
 function formatAjvErrors(errors: typeof validateDelta.errors): string {
@@ -136,15 +170,66 @@ function validateContractClaimType(claimType: string): ClaimType {
   return claimType;
 }
 
-function extractAffectedNcm(change: SourceMonitorDeltaChange): string[] {
-  const ncmPattern = /\d{4}\.\d{2}\.\d{2}\.\d{3}[A-Z]?/g;
-  const candidates = [change.path];
+function normalizeNcm(code: string): string {
+  return code.replace(/\./g, '');
+}
 
-  if (typeof change.new_value === 'string') {
-    candidates.push(change.new_value);
+function isNcmContext(context: string, value: string): boolean {
+  const normalizedContext = context.toLowerCase();
+  const normalizedValue = value.toLowerCase();
+  return (
+    normalizedContext.includes('ncm') ||
+    normalizedContext.includes('hs_code') ||
+    normalizedContext.includes('sh_code') ||
+    normalizedContext.includes('classification') ||
+    normalizedValue.includes('ncm')
+  );
+}
+
+function extractAffectedNcm(change: SourceMonitorDeltaChange): string[] {
+  const ncmSet = new Set<string>();
+  const ncm11Dotted = /\d{4}\.\d{2}\.\d{2}\.\d{3}[A-Z]?/g;
+  const ncm11Compact = /\b\d{11,12}[A-Z]?\b/g;
+  const ncm8Compact = /\b\d{8}\b/g;
+
+  function extractFromValue(value: unknown, context: string): void {
+    if (typeof value === 'string') {
+      const dottedMatches = value.match(ncm11Dotted);
+      if (dottedMatches !== null) {
+        for (const match of dottedMatches) ncmSet.add(normalizeNcm(match));
+      }
+
+      if (isNcmContext(context, value)) {
+        const compact11Matches = value.match(ncm11Compact);
+        if (compact11Matches !== null) {
+          for (const match of compact11Matches) ncmSet.add(normalizeNcm(match));
+        }
+
+        const compact8Matches = value.match(ncm8Compact);
+        if (compact8Matches !== null) {
+          for (const match of compact8Matches) ncmSet.add(normalizeNcm(match));
+        }
+      }
+      return;
+    }
+
+    if (Array.isArray(value)) {
+      value.forEach((item, index) => extractFromValue(item, `${context}/${index}`));
+      return;
+    }
+
+    if (typeof value === 'object' && value !== null) {
+      for (const [key, nestedValue] of Object.entries(value)) {
+        extractFromValue(nestedValue, `${context}/${key}`);
+      }
+    }
   }
 
-  return [...new Set(candidates.flatMap(candidate => candidate.match(ncmPattern) ?? []))];
+  extractFromValue(change.path, 'path');
+  extractFromValue(change.old_value, `${change.path}/old_value`);
+  extractFromValue(change.new_value, `${change.path}/new_value`);
+
+  return Array.from(ncmSet);
 }
 
 function calculateConfidence(change: SourceMonitorDeltaChange, affectedNcm: string[]): number {
@@ -152,7 +237,7 @@ function calculateConfidence(change: SourceMonitorDeltaChange, affectedNcm: stri
   if (change.path.split('/').length > 4) confidence += 0.2;
   if (affectedNcm.length > 0) confidence += 0.1;
   if (change.type === 'modified') confidence += 0.1;
-  return Math.min(confidence, 1.0);
+  return Number(Math.min(confidence, 1.0).toFixed(2));
 }
 
 function buildTypeCounts(claims: DeltaAnalyzerEvidenceClaim[]): ClaimTypeCounts {
@@ -164,13 +249,10 @@ function buildTypeCounts(claims: DeltaAnalyzerEvidenceClaim[]): ClaimTypeCounts 
 }
 
 export async function analyzeDelta(input: DeltaAnalyzerInput): Promise<DeltaAnalyzerOutput> {
-  const deltaPath = path.join(
-    process.cwd(),
-    'data',
-    'deltas',
-    input.source_id,
-    `${input.from_date}_to_${input.to_date}.json`
-  );
+  validateInputs(input);
+
+  const dataRoot = path.resolve(process.cwd(), 'data');
+  const deltaPath = path.resolve(dataRoot, 'deltas', input.source_id, `${input.from_date}_to_${input.to_date}.json`);
 
   const delta = readDelta(deltaPath);
   const claims: DeltaAnalyzerEvidenceClaim[] = [];
@@ -198,7 +280,7 @@ export async function analyzeDelta(input: DeltaAnalyzerInput): Promise<DeltaAnal
     packet_id: `${input.source_id}--${input.from_date}_to_${input.to_date}--evidence-001`,
     source_delta_id: delta.delta_id,
     source_id: input.source_id,
-    extracted_at: input.extracted_at ?? new Date().toISOString(),
+    extracted_at: input.extracted_at ?? delta.generated_at ?? new Date().toISOString(),
     claims,
     summary: {
       total_claims: claims.length,
@@ -213,8 +295,8 @@ export async function analyzeDelta(input: DeltaAnalyzerInput): Promise<DeltaAnal
     throw new Error(`OUTPUT_SCHEMA_ERROR: ${formatAjvErrors(validateEvidencePacket.errors)}`);
   }
 
-  const outputDir = path.join(process.cwd(), 'data', 'evidence', input.source_id);
-  const outputPath = path.join(outputDir, `${input.from_date}_to_${input.to_date}--evidence-001.json`);
+  const outputDir = path.resolve(dataRoot, 'evidence', input.source_id);
+  const outputPath = path.resolve(outputDir, `${input.from_date}_to_${input.to_date}--evidence-001.json`);
 
   try {
     mkdirSync(outputDir, { recursive: true });
