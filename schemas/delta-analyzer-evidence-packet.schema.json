@@ -1,0 +1,194 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/delta-analyzer-evidence-packet.schema.json",
+  "title": "Delta Analyzer Evidence Packet",
+  "description": "Output schema for the Delta Analyzer agent (PCRAM 3/5). Converts Source Monitor delta changes into review-only extractable claims aligned with the vlatam-global fail-closed claim type contract.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "packet_id",
+    "source_delta_id",
+    "source_id",
+    "extracted_at",
+    "claims",
+    "summary",
+    "governance",
+    "schema_version"
+  ],
+  "properties": {
+    "_comment": {
+      "type": "string",
+      "description": "Optional fixture note for committed reference artifacts. Operational output does not require this field.",
+      "minLength": 1,
+      "maxLength": 400
+    },
+    "packet_id": {
+      "type": "string",
+      "description": "Unique packet identifier, formatted as <source_id>--<delta_id>--evidence-<seq>.",
+      "minLength": 1,
+      "maxLength": 260
+    },
+    "source_delta_id": {
+      "type": "string",
+      "description": "Identifier or local path of the Source Monitor delta artifact this packet was derived from.",
+      "minLength": 1,
+      "maxLength": 400
+    },
+    "source_id": {
+      "type": "string",
+      "description": "Identifier of the source analyzed.",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "extracted_at": {
+      "type": "string",
+      "description": "UTC timestamp when the evidence packet was generated.",
+      "format": "date-time"
+    },
+    "claims": {
+      "type": "array",
+      "description": "Review-only claims derived deterministically from delta changes.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "claim_id",
+          "claim_type",
+          "description",
+          "affected_ncm",
+          "confidence",
+          "requires_human_review"
+        ],
+        "properties": {
+          "claim_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "claim_type": {
+            "type": "string",
+            "enum": [
+              "tariff",
+              "intervention",
+              "norm",
+              "legal",
+              "classification"
+            ]
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          },
+          "affected_ncm": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^(?:\\d{8}|\\d{11,12}[A-Z]?)$"
+            },
+            "uniqueItems": true
+          },
+          "old_value": {
+            "description": "Value before the delta change. Optional and may be any JSON value."
+          },
+          "new_value": {
+            "description": "Value after the delta change. Optional and may be any JSON value."
+          },
+          "confidence": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "requires_human_review": {
+            "type": "boolean",
+            "const": true
+          }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "total_claims",
+        "by_type",
+        "requires_review_count"
+      ],
+      "properties": {
+        "total_claims": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "by_type": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "tariff",
+            "intervention",
+            "norm",
+            "legal",
+            "classification"
+          ],
+          "properties": {
+            "tariff": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "intervention": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "norm": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "legal": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "classification": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "requires_review_count": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "governance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "human_review_required",
+        "downstream_allowed",
+        "review_only",
+        "not_final_classification"
+      ],
+      "properties": {
+        "human_review_required": {
+          "type": "boolean",
+          "const": true
+        },
+        "downstream_allowed": {
+          "type": "boolean",
+          "const": false
+        },
+        "review_only": {
+          "type": "boolean",
+          "const": true
+        },
+        "not_final_classification": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    },
+    "schema_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    }
+  }
+}
