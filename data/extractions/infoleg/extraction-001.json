@@ -1,0 +1,36 @@
+{
+  "extraction_result_id": "extraction-001",
+  "evidence_packet_id": "infoleg--2026-06-10_to_2026-06-17--evidence-001",
+  "review_manifest_id": "review-manifest--infoleg--2026-06-17",
+  "snapshot_id": "snapshot--infoleg--2026-06-17",
+  "source_id": "infoleg",
+  "provider_id": "local-fixture",
+  "model_id": "fixture-only",
+  "extraction_status": "draft_unreviewed",
+  "extracted_claims": [
+    {
+      "claim_id": "claim-001",
+      "claim_text": "NCM 4202.92.00.110V appears in the source material as a classification-relevant candidate.",
+      "evidence_reference": "data/evidence/infoleg/2026-06-10_to_2026-06-17--evidence-001.json#/claims/0",
+      "support_status": "supported_by_packet",
+      "confidence": 0.82
+    },
+    {
+      "claim_id": "claim-002",
+      "claim_text": "The source material requires human review before any downstream classifier use.",
+      "evidence_reference": "data/evidence/infoleg/2026-06-10_to_2026-06-17--evidence-001.json#/governance",
+      "support_status": "needs_human_review",
+      "confidence": 0.7
+    }
+  ],
+  "unsupported_claims": [],
+  "warnings": [],
+  "confidence": 0.76,
+  "critic_summary": "Reference local fixture for Evidence Writer validation only.",
+  "human_review_required": true,
+  "downstream_allowed": false,
+  "created_at": "2026-06-16T00:00:00Z",
+  "extracted_at": "2026-06-16T00:00:00Z",
+  "contract_version": "1.0.0",
+  "schema_version": "1.0.0"
+}

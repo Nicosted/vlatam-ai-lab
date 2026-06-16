@@ -110,6 +110,11 @@
       "type": "string",
       "format": "date-time"
     },
+    "extracted_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Optional deterministic source timestamp used by downstream evidence-writing workflows. If absent, downstream workflows must receive an explicit generated_at override rather than falling back to wall-clock time."
+    },
     "contract_version": {
       "type": "string",
       "pattern": "^\\d+\\.\\d+\\.\\d+$"
