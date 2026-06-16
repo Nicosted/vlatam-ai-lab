@@ -1,0 +1,68 @@
+{
+  "snapshot_id": "infoleg--2026-06-17",
+  "source_id": "infoleg",
+  "captured_at": "2026-06-17T00:00:00.000Z",
+  "capture_method": "local_fixture",
+  "freshness_status": "current",
+  "review_status": "not_reviewed",
+  "extraction_status": "not_started",
+  "human_review_required": true,
+  "downstream_allowed": false,
+  "schema_version": "1.0.0",
+  "content_hash": "sha256:5586412f25d06cbc8002c8e36be79237e0f18b26977336ebd5658257803bb687",
+  "content": {
+    "source": "InfoLEG - Base de datos de legislación nacional",
+    "source_url": "https://servicios.infoleg.gob.ar/infolegInternet/",
+    "extraction_note": "Manual fixture v2 — updated snapshot for Source Monitor tests. Known changes vs v1: one regulation removed, one added, one modified field.",
+    "regulations": [
+      {
+        "norma_tipo": "Decreto",
+        "norma_numero": "509/2007",
+        "titulo": "Nomenclatura Común del MERCOSUR (NCM) - Nomenclatura arancelaria integrada",
+        "fecha_publicacion": "2007-05-14",
+        "jurisdiccion": "Nacional",
+        "organismo": "MINISTERIO DE ECONOMIA Y PRODUCCION",
+        "vigente": true,
+        "ncm_chapters_covered": [
+          "42",
+          "61",
+          "62",
+          "63"
+        ]
+      },
+      {
+        "norma_tipo": "Resolución General",
+        "norma_numero": "5089/2022",
+        "titulo": "Actualización de intervenciones previas — capítulos 42 y 63",
+        "fecha_publicacion": "2022-03-15",
+        "jurisdiccion": "Nacional",
+        "organismo": "ADMINISTRACION FEDERAL DE INGRESOS PUBLICOS",
+        "vigente": true,
+        "ncm_positions": [
+          {
+            "ncm8": "42021100",
+            "descripcion": "Baúles y maletas con superficie exterior de cuero natural"
+          },
+          {
+            "ncm8": "42021200",
+            "descripcion": "Baúles y maletas con superficie exterior de plástico o materia textil"
+          },
+          {
+            "ncm8": "63079000",
+            "descripcion": "Los demás artículos confeccionados de materia textil"
+          }
+        ]
+      }
+    ],
+    "metadata": {
+      "fixture_version": "2.0.0",
+      "created_by": "vlatam-ai-lab",
+      "purpose": "source-monitor-test-v2"
+    }
+  },
+  "provenance": {
+    "retrieval_method": "manual_fixture",
+    "fixture_path": "data/fixtures/infoleg-sample-ncm-v2.json"
+  },
+  "source_locator": "data/fixtures/infoleg-sample-ncm-v2.json"
+}

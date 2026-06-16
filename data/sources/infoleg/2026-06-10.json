@@ -1,0 +1,63 @@
+{
+  "snapshot_id": "infoleg--2026-06-10",
+  "source_id": "infoleg",
+  "captured_at": "2026-06-10T00:00:00.000Z",
+  "capture_method": "local_fixture",
+  "freshness_status": "current",
+  "review_status": "not_reviewed",
+  "extraction_status": "not_started",
+  "human_review_required": true,
+  "downstream_allowed": false,
+  "schema_version": "1.0.0",
+  "content_hash": "sha256:baa6e597e3160cddcaafea846c810fb0f5af3d10e9f68fe3515baa7b23bdeec3",
+  "content": {
+    "source": "InfoLEG - Base de datos de legislación nacional",
+    "source_url": "https://servicios.infoleg.gob.ar/infolegInternet/",
+    "extraction_note": "Manual fixture v1 — baseline snapshot for Source Monitor tests.",
+    "regulations": [
+      {
+        "norma_tipo": "Decreto",
+        "norma_numero": "509/2007",
+        "titulo": "Nomenclatura Común del MERCOSUR (NCM) - Nomenclatura arancelaria integrada",
+        "fecha_publicacion": "2007-05-14",
+        "jurisdiccion": "Nacional",
+        "organismo": "MINISTERIO DE ECONOMIA Y PRODUCCION",
+        "vigente": true,
+        "ncm_chapters_covered": [
+          "42",
+          "61",
+          "62"
+        ]
+      },
+      {
+        "norma_tipo": "Resolución General",
+        "norma_numero": "5017/2021",
+        "titulo": "Intervenciones previas a la importación — Posiciones NCM capítulo 42",
+        "fecha_publicacion": "2021-09-01",
+        "jurisdiccion": "Nacional",
+        "organismo": "ADMINISTRACION FEDERAL DE INGRESOS PUBLICOS",
+        "vigente": true,
+        "ncm_positions": [
+          {
+            "ncm8": "42021100",
+            "descripcion": "Baúles y maletas con superficie exterior de cuero natural"
+          },
+          {
+            "ncm8": "42021200",
+            "descripcion": "Baúles y maletas con superficie exterior de plástico o materia textil"
+          }
+        ]
+      }
+    ],
+    "metadata": {
+      "fixture_version": "1.0.0",
+      "created_by": "vlatam-ai-lab",
+      "purpose": "source-monitor-test-v1"
+    }
+  },
+  "provenance": {
+    "retrieval_method": "manual_fixture",
+    "fixture_path": "data/fixtures/infoleg-sample-ncm-v1.json"
+  },
+  "source_locator": "data/fixtures/infoleg-sample-ncm-v1.json"
+}
