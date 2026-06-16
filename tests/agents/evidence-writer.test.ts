@@ -104,6 +104,7 @@ describe('writeEvidenceArtifact — happy path', () => {
     assert.equal(artifact.source_id, 'infoleg');
     assert.equal(artifact.generated_at, FIXED_EXTRACTED_AT);
     assert.deepEqual(artifact.governance, GOVERNANCE_FLAGS);
+    assert.ok(artifact.extracted_evidence !== undefined, 'extracted_evidence must be present');
     assert.equal(artifact.extracted_evidence.length, 1);
     assert.equal(artifact.extracted_evidence[0]?.requires_review, true);
     assert.equal(artifact.classification_candidate?.status, 'candidate');

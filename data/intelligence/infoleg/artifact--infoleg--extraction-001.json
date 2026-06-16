@@ -1,0 +1,45 @@
+{
+  "artifact_id": "artifact--infoleg--extraction-001",
+  "extraction_result_id": "extraction-001",
+  "source_id": "infoleg",
+  "generated_at": "2026-06-16T00:00:00Z",
+  "classification_candidate": {
+    "ncm_code": "42029200110V",
+    "description": "NCM 4202.92.00.110V appears in the source material as a classification-relevant candidate.",
+    "confidence": 0.82,
+    "status": "candidate"
+  },
+  "extracted_evidence": [
+    {
+      "claim_id": "claim-001",
+      "claim_type": "classification",
+      "text": "NCM 4202.92.00.110V appears in the source material as a classification-relevant candidate.",
+      "source_ref": "data/evidence/infoleg/2026-06-10_to_2026-06-17--evidence-001.json#/claims/0",
+      "confidence": 0.82,
+      "affected_ncm": [
+        "42029200110V"
+      ],
+      "requires_review": true
+    },
+    {
+      "claim_id": "claim-002",
+      "claim_type": "norm",
+      "text": "The source material requires human review before any downstream classifier use.",
+      "source_ref": "data/evidence/infoleg/2026-06-10_to_2026-06-17--evidence-001.json#/governance",
+      "confidence": 0.7,
+      "requires_review": true
+    }
+  ],
+  "governance": {
+    "human_review_required": false,
+    "downstream_allowed": true,
+    "review_only": false,
+    "not_final_classification": false
+  },
+  "schema_version": "1.0.0",
+  "review_status": "reviewed_approved",
+  "reviewer": "nicolas",
+  "reviewed_at": "2026-06-16T20:00:00Z",
+  "classifier_approval_reference": "approval-ref--001",
+  "downstream_eligibility_reason": "Verified"
+}

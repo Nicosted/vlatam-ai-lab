@@ -26,6 +26,7 @@
     "agents:source-monitor": "tsx src/cli/source-monitor.ts",
     "agents:delta-analyzer": "tsx src/cli/delta-analyzer.ts",
     "agents:evidence-writer": "tsx src/cli/evidence-writer.ts",
+    "agents:human-review": "tsx src/cli/human-review-gate.ts",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test 'tests/**/*.test.ts'",
     "lint": "eslint .",
