@@ -1,0 +1,130 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/source-monitor-delta.schema.json",
+  "title": "Source Monitor Delta",
+  "description": "Output of the Source Monitor agent (PCRAM 2/5). Records the structural diff between two intelligence-source-snapshot artifacts of the same source. All inputs are local files — no live network requests. Downstream use blocked until human review.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "delta_id",
+    "source_id",
+    "from_snapshot",
+    "to_snapshot",
+    "from_date",
+    "to_date",
+    "content_hash_changed",
+    "diff_mode",
+    "changes",
+    "summary",
+    "human_review_required",
+    "downstream_allowed",
+    "schema_version"
+  ],
+  "properties": {
+    "delta_id": {
+      "type": "string",
+      "description": "Unique identifier for this delta record.",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "source_id": {
+      "type": "string",
+      "description": "Identifier of the source both snapshots belong to.",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "from_snapshot": {
+      "type": "string",
+      "description": "Repo-relative path to the older (from) snapshot file.",
+      "minLength": 1,
+      "maxLength": 400
+    },
+    "to_snapshot": {
+      "type": "string",
+      "description": "Repo-relative path to the newer (to) snapshot file.",
+      "minLength": 1,
+      "maxLength": 400
+    },
+    "from_date": {
+      "type": "string",
+      "description": "ISO 8601 date of the older snapshot.",
+      "format": "date"
+    },
+    "to_date": {
+      "type": "string",
+      "description": "ISO 8601 date of the newer snapshot.",
+      "format": "date"
+    },
+    "content_hash_changed": {
+      "type": "boolean",
+      "description": "True if the content_hash field differs between the two snapshots."
+    },
+    "diff_mode": {
+      "type": "string",
+      "description": "Which part of the snapshots was diffed. 'content' means both snapshots had a content field and only that was diffed. 'full_object' means content was absent from at least one snapshot and the full object was diffed.",
+      "enum": ["content", "full_object"]
+    },
+    "changes": {
+      "type": "array",
+      "description": "Ordered list of detected changes between the two snapshots.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["type", "path"],
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Kind of change detected.",
+            "enum": ["added", "removed", "modified"]
+          },
+          "path": {
+            "type": "string",
+            "description": "RFC 6901 JSON Pointer to the changed location within the diffed object.",
+            "minLength": 1
+          },
+          "old_value": {
+            "description": "Value in the from snapshot. Omitted for 'added' changes."
+          },
+          "new_value": {
+            "description": "Value in the to snapshot. Omitted for 'removed' changes."
+          }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "description": "Aggregate counts of change types.",
+      "additionalProperties": false,
+      "required": ["added", "removed", "modified", "total"],
+      "properties": {
+        "added":    { "type": "integer", "minimum": 0 },
+        "removed":  { "type": "integer", "minimum": 0 },
+        "modified": { "type": "integer", "minimum": 0 },
+        "total":    { "type": "integer", "minimum": 0 }
+      }
+    },
+    "human_review_required": {
+      "type": "boolean",
+      "description": "Always true. Delta reports may back classification decisions and must be reviewed."
+    },
+    "downstream_allowed": {
+      "type": "boolean",
+      "description": "Always false at generation time. Set by human review gate."
+    },
+    "schema_version": {
+      "type": "string",
+      "description": "Semantic version of this delta payload.",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "generated_at": {
+      "type": "string",
+      "description": "Optional UTC timestamp when this delta was generated.",
+      "format": "date-time"
+    },
+    "notes": {
+      "type": "array",
+      "description": "Optional agent notes (e.g. legacy snapshot warnings).",
+      "items": { "type": "string" }
+    }
+  }
+}

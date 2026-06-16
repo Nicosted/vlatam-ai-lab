@@ -23,6 +23,7 @@
     "deploy:worker": "wrangler deploy",
     "build": "tsc --noEmit",
     "agents:snapshot-writer": "tsx src/cli/snapshot-writer.ts",
+    "agents:source-monitor": "tsx src/cli/source-monitor.ts",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test tests/**/*.test.ts",
     "lint": "eslint .",
