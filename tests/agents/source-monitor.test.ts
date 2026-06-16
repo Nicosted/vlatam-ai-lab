@@ -73,10 +73,6 @@ before(() => {
 after(() => {
   rmSync(TEST_SNAP_DIR, { recursive: true, force: true });
   rmSync(TEST_DELTA_DIR, { recursive: true, force: true });
-  // Clean up the infoleg delta produced by the happy-path test
-  if (existsSync(DELTA_OUTPUT_PATH)) {
-    rmSync(DELTA_OUTPUT_PATH, { force: true });
-  }
 });
 
 // ---------------------------------------------------------------------------
