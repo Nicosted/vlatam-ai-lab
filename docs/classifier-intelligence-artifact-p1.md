@@ -37,6 +37,20 @@ The schema lives at `schemas/classifier-intelligence-artifact.schema.json` and i
 registered in `schemas/schema-registry.json` as
 `classifier_intelligence_artifact`.
 
+## Phase 6 Implementation Shape
+
+Phase 6 makes the Evidence Writer agent the canonical implementation of this P1
+contract. The schema now represents a deterministic, extraction-derived,
+review-only artifact with root-level `artifact_id`, `extraction_result_id`,
+`source_id`, `generated_at`, optional `classification_candidate`,
+`extracted_evidence`, mandatory governance flags, and `schema_version`.
+
+The demo fixture at
+`snapshots/pcram/classifier-intelligence-artifact-demo-veldoria.json` has been
+updated to this reviewed, extraction-derived Phase 6 shape. It is a reference
+fixture for testing the Evidence Writer contract only; it is not operational
+output, not a final classification, and not downstream-safe.
+
 ## Why AI Lab owns this contract
 
 vLatamGlobal must eventually consume **approved, versioned artifacts or API

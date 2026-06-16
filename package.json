@@ -25,6 +25,7 @@
     "agents:snapshot-writer": "tsx src/cli/snapshot-writer.ts",
     "agents:source-monitor": "tsx src/cli/source-monitor.ts",
     "agents:delta-analyzer": "tsx src/cli/delta-analyzer.ts",
+    "agents:evidence-writer": "tsx src/cli/evidence-writer.ts",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test 'tests/**/*.test.ts'",
     "lint": "eslint .",
