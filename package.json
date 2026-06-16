@@ -21,6 +21,8 @@
     "sync:kv": "tsx scripts/sync-kv.ts",
     "dev:worker": "wrangler dev",
     "deploy:worker": "wrangler deploy",
+    "build": "tsc --noEmit",
+    "agents:snapshot-writer": "tsx src/cli/snapshot-writer.ts",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test tests/**/*.test.ts",
     "lint": "eslint .",

@@ -1,0 +1,40 @@
+{
+  "source": "InfoLEG - Base de datos de legislación nacional",
+  "source_url": "https://servicios.infoleg.gob.ar/infolegInternet/",
+  "extraction_note": "Manual fixture — representative extract only. Not a live regulatory fetch.",
+  "regulations": [
+    {
+      "norma_tipo": "Decreto",
+      "norma_numero": "509/2007",
+      "titulo": "Nomenclatura Común del MERCOSUR (NCM) - Nomenclatura arancelaria integrada",
+      "fecha_publicacion": "2007-05-14",
+      "jurisdiccion": "Nacional",
+      "organismo": "MINISTERIO DE ECONOMIA Y PRODUCCION",
+      "texto_resumen": "Apruébase la Nomenclatura Común del MERCOSUR (NCM) y su correspondiente Arancel Externo Común (AEC).",
+      "ncm_chapters_covered": ["42", "61", "62", "63", "64"],
+      "url_texto": "https://servicios.infoleg.gob.ar/infolegInternet/verNorma.do?id=131501"
+    },
+    {
+      "norma_tipo": "Resolución General",
+      "norma_numero": "5017/2021",
+      "titulo": "Intervenciones previas a la importación — Posiciones NCM capítulo 42",
+      "fecha_publicacion": "2021-09-01",
+      "jurisdiccion": "Nacional",
+      "organismo": "ADMINISTRACION FEDERAL DE INGRESOS PUBLICOS",
+      "texto_resumen": "Modifícase el Anexo I de la Resolución General N° 4.532 incorporando posiciones NCM del capítulo 42 sujetas a intervención previa de VUCE.",
+      "ncm_positions": [
+        { "ncm8": "42021100", "descripcion": "Baúles y maletas con superficie exterior de cuero natural" },
+        { "ncm8": "42021200", "descripcion": "Baúles y maletas con superficie exterior de plástico o materia textil" },
+        { "ncm8": "42029200", "descripcion": "Bolsos y artículos similares con superficie exterior de materia textil" }
+      ],
+      "url_texto": "https://servicios.infoleg.gob.ar/infolegInternet/verNorma.do?id=351234"
+    }
+  ],
+  "metadata": {
+    "fixture_version": "1.0.0",
+    "created_by": "vlatam-ai-lab",
+    "purpose": "deterministic-test-fixture",
+    "human_review_required": true,
+    "downstream_allowed": false
+  }
+}
