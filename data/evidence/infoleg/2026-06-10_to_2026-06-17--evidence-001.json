@@ -1,0 +1,107 @@
+{
+  "packet_id": "infoleg--2026-06-10_to_2026-06-17--evidence-001",
+  "source_delta_id": "delta--infoleg--2026-06-10--to--2026-06-17",
+  "source_id": "infoleg",
+  "extracted_at": "2026-06-16T00:00:00Z",
+  "claims": [
+    {
+      "claim_id": "claim-000",
+      "claim_type": "norm",
+      "description": "Change detected at /extraction_note (modified)",
+      "affected_ncm": [],
+      "old_value": "Manual fixture v1 — baseline snapshot for Source Monitor tests.",
+      "new_value": "Manual fixture v2 — updated snapshot for Source Monitor tests. Known changes vs v1: one regulation removed, one added, one modified field.",
+      "confidence": 0.6,
+      "requires_human_review": true
+    },
+    {
+      "claim_id": "claim-001",
+      "claim_type": "classification",
+      "description": "Change detected at /regulations/0/ncm_chapters_covered/3 (added)",
+      "affected_ncm": [],
+      "new_value": "63",
+      "confidence": 0.7,
+      "requires_human_review": true
+    },
+    {
+      "claim_id": "claim-002",
+      "claim_type": "norm",
+      "description": "Change detected at /regulations/1/norma_numero (modified)",
+      "affected_ncm": [],
+      "old_value": "5017/2021",
+      "new_value": "5089/2022",
+      "confidence": 0.6,
+      "requires_human_review": true
+    },
+    {
+      "claim_id": "claim-003",
+      "claim_type": "norm",
+      "description": "Change detected at /regulations/1/titulo (modified)",
+      "affected_ncm": [],
+      "old_value": "Intervenciones previas a la importación — Posiciones NCM capítulo 42",
+      "new_value": "Actualización de intervenciones previas — capítulos 42 y 63",
+      "confidence": 0.6,
+      "requires_human_review": true
+    },
+    {
+      "claim_id": "claim-004",
+      "claim_type": "norm",
+      "description": "Change detected at /regulations/1/fecha_publicacion (modified)",
+      "affected_ncm": [],
+      "old_value": "2021-09-01",
+      "new_value": "2022-03-15",
+      "confidence": 0.6,
+      "requires_human_review": true
+    },
+    {
+      "claim_id": "claim-005",
+      "claim_type": "classification",
+      "description": "Change detected at /regulations/1/ncm_positions/2 (added)",
+      "affected_ncm": [],
+      "new_value": {
+        "ncm8": "63079000",
+        "descripcion": "Los demás artículos confeccionados de materia textil"
+      },
+      "confidence": 0.7,
+      "requires_human_review": true
+    },
+    {
+      "claim_id": "claim-006",
+      "claim_type": "norm",
+      "description": "Change detected at /metadata/fixture_version (modified)",
+      "affected_ncm": [],
+      "old_value": "1.0.0",
+      "new_value": "2.0.0",
+      "confidence": 0.6,
+      "requires_human_review": true
+    },
+    {
+      "claim_id": "claim-007",
+      "claim_type": "norm",
+      "description": "Change detected at /metadata/purpose (modified)",
+      "affected_ncm": [],
+      "old_value": "source-monitor-test-v1",
+      "new_value": "source-monitor-test-v2",
+      "confidence": 0.6,
+      "requires_human_review": true
+    }
+  ],
+  "summary": {
+    "total_claims": 8,
+    "by_type": {
+      "tariff": 0,
+      "intervention": 0,
+      "norm": 6,
+      "legal": 0,
+      "classification": 2
+    },
+    "requires_review_count": 8
+  },
+  "governance": {
+    "human_review_required": true,
+    "downstream_allowed": false,
+    "review_only": true,
+    "not_final_classification": true
+  },
+  "schema_version": "1.0.0"
+}
