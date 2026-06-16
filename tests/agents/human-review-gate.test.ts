@@ -25,8 +25,10 @@ function artifactPath(sourceId = SOURCE_ID, artifactId = ARTIFACT_ID): string {
 function baseArtifact(overrides: Record<string, unknown> = {}): Record<string, unknown> {
   return {
     artifact_id: ARTIFACT_ID,
+    extraction_result_id: 'extraction-001',
     source_id: SOURCE_ID,
     generated_at: '2026-06-16T00:00:00Z',
+    extracted_evidence: [],
     source_authority: 'official_regulation',
     origin: 'ai_assisted_extraction',
     governance: {
@@ -237,7 +239,7 @@ describe('applyHumanReview — edge cases and security', () => {
           },
           { data_root: testRoot }
         ),
-      /Existing artifact invalid: governance is required/
+      /Existing artifact invalid: .*governance is required/
     );
 
     assert.equal(readFileSync(artifactPath(), 'utf-8'), before);

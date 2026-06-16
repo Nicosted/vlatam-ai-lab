@@ -35,6 +35,7 @@ export const GOVERNANCE_FLAGS = {
 export type GovernanceFlags = typeof GOVERNANCE_FLAGS;
 
 export type ReviewStatus = 'draft' | 'reviewed_approved' | 'reviewed_rejected';
+export type SourceAuthority = 'official_regulation' | 'internal_review' | 'synthetic_demo';
 
 export interface GovernanceState {
   readonly human_review_required: boolean;
@@ -45,21 +46,20 @@ export interface GovernanceState {
 
 export interface ClassifierIntelligenceArtifact {
   readonly artifact_id: string;
-  readonly extraction_result_id?: string;
-  readonly source_id?: string;
-  readonly generated_at?: string;
+  readonly extraction_result_id: string;
+  readonly source_id: string;
+  readonly generated_at: string;
   readonly classification_candidate?: ClassificationCandidate;
-  readonly extracted_evidence?: EvidenceClaim[];
+  readonly extracted_evidence: EvidenceClaim[];
   readonly governance: GovernanceState;
-  readonly schema_version?: string;
-  readonly source_authority?: string;
+  readonly schema_version: string;
+  readonly source_authority?: SourceAuthority;
   readonly origin?: string;
   readonly review_status?: ReviewStatus;
   readonly reviewer?: string;
   readonly reviewed_at?: string;
   readonly classifier_approval_reference?: string;
   readonly downstream_eligibility_reason?: string;
-  readonly [key: string]: unknown;
 }
 
 export interface ContractValidationResult<T> {
@@ -142,6 +142,10 @@ function isReviewStatus(value: unknown): value is ReviewStatus {
   return value === 'draft' || value === 'reviewed_approved' || value === 'reviewed_rejected';
 }
 
+function isSourceAuthority(value: unknown): value is SourceAuthority {
+  return value === 'official_regulation' || value === 'internal_review' || value === 'synthetic_demo';
+}
+
 function validateOptionalString(
   artifact: Record<string, unknown>,
   key: string,
@@ -163,6 +167,25 @@ export function validateClassifierIntelligenceArtifact(
 
   if (typeof artifact['artifact_id'] !== 'string' || artifact['artifact_id'].length === 0) {
     errors.push('artifact_id is required');
+  }
+  if (typeof artifact['extraction_result_id'] !== 'string' || artifact['extraction_result_id'].length === 0) {
+    errors.push('extraction_result_id is required');
+  }
+  if (typeof artifact['source_id'] !== 'string' || artifact['source_id'].length === 0) {
+    errors.push('source_id is required');
+  }
+  if (typeof artifact['generated_at'] !== 'string' || artifact['generated_at'].length === 0) {
+    errors.push('generated_at is required');
+  }
+  if (!Array.isArray(artifact['extracted_evidence'])) {
+    errors.push('extracted_evidence must be array');
+  } else {
+    artifact['extracted_evidence'].forEach((claim: unknown, index: number) => {
+      errors.push(...validateEvidenceClaim(claim, index));
+    });
+  }
+  if (typeof artifact['schema_version'] !== 'string' || artifact['schema_version'].length === 0) {
+    errors.push('schema_version is required');
   }
 
   if (!isRecord(artifact['governance'])) {
@@ -196,6 +219,9 @@ export function validateClassifierIntelligenceArtifact(
       if (typeof artifact['reviewer'] !== 'string' || artifact['reviewer'].length === 0) {
         errors.push('downstream_allowed=true requires reviewer');
       }
+      if (typeof artifact['reviewed_at'] !== 'string' || artifact['reviewed_at'].length === 0) {
+        errors.push('downstream_allowed=true requires reviewed_at');
+      }
       if (
         typeof artifact['classifier_approval_reference'] !== 'string' ||
         artifact['classifier_approval_reference'].length === 0
@@ -210,16 +236,9 @@ export function validateClassifierIntelligenceArtifact(
       if (governance['downstream_allowed'] === true) {
         errors.push('synthetic_demo cannot be downstream_allowed');
       }
-    }
-  }
-
-  if (artifact['extracted_evidence'] !== undefined) {
-    if (!Array.isArray(artifact['extracted_evidence'])) {
-      errors.push('extracted_evidence must be array');
-    } else {
-      artifact['extracted_evidence'].forEach((claim: unknown, index: number) => {
-        errors.push(...validateEvidenceClaim(claim, index));
-      });
+      if (governance['human_review_required'] !== true) {
+        errors.push('synthetic_demo requires human_review_required=true');
+      }
     }
   }
 
@@ -231,8 +250,9 @@ export function validateClassifierIntelligenceArtifact(
     errors.push('review_status must be draft, reviewed_approved, or reviewed_rejected');
   }
 
-  validateOptionalString(artifact, 'source_id', errors);
-  validateOptionalString(artifact, 'source_authority', errors);
+  if ('source_authority' in artifact && !isSourceAuthority(artifact['source_authority'])) {
+    errors.push('source_authority must be official_regulation, internal_review, or synthetic_demo');
+  }
   validateOptionalString(artifact, 'origin', errors);
   validateOptionalString(artifact, 'reviewer', errors);
   validateOptionalString(artifact, 'reviewed_at', errors);
@@ -246,7 +266,6 @@ export function validateClassifierIntelligenceArtifact(
   ) {
     errors.push('reviewed_at must be a valid ISO 8601 timestamp');
   }
-
   if (errors.length > 0) {
     return { ok: false, errors };
   }

@@ -76,14 +76,6 @@ describe('classifier-intelligence-artifact schema', () => {
     assert.equal(validate(artifact), false);
   });
 
-  it('fails when human_review_required is false', () => {
-    const validate = buildValidator();
-    const artifact = validArtifact();
-    artifact.governance.human_review_required = false;
-
-    assert.equal(validate(artifact), false);
-  });
-
   it('fails when additional properties are present', () => {
     const validate = buildValidator();
     const artifact = { ...validArtifact(), classification: { status: 'final' } };
@@ -105,5 +97,99 @@ describe('classifier-intelligence-artifact schema', () => {
     artifact.extracted_evidence[0]!.requires_review = false;
 
     assert.equal(validate(artifact), false);
+  });
+
+  it('rejects downstream_allowed=true without review fields', () => {
+    const validate = buildValidator();
+    const artifact = {
+      artifact_id: 'artifact--infoleg--extraction-001',
+      extraction_result_id: 'extraction-001',
+      source_id: 'infoleg',
+      generated_at: '2026-06-16T00:00:00Z',
+      extracted_evidence: [],
+      governance: {
+        human_review_required: false,
+        downstream_allowed: true,
+        review_only: false,
+        not_final_classification: false,
+      },
+      schema_version: '1.0.0',
+    };
+
+    assert.equal(validate(artifact), false, 'Should reject downstream without review fields');
+  });
+
+  it('rejects synthetic_demo with downstream_allowed=true', () => {
+    const validate = buildValidator();
+    const artifact = {
+      artifact_id: 'artifact--veldoria--demo-001',
+      extraction_result_id: 'demo-001',
+      source_id: 'veldoria',
+      generated_at: '2026-06-16T00:00:00Z',
+      extracted_evidence: [],
+      source_authority: 'synthetic_demo',
+      governance: {
+        human_review_required: true,
+        downstream_allowed: true,
+        review_only: true,
+        not_final_classification: true,
+      },
+      schema_version: '1.0.0',
+    };
+
+    assert.equal(validate(artifact), false, 'Should reject synthetic_demo downstream');
+  });
+
+  it('accepts reviewed_approved with all P1 fields', () => {
+    const validate = buildValidator();
+    const artifact = {
+      artifact_id: 'artifact--infoleg--extraction-001',
+      extraction_result_id: 'extraction-001',
+      source_id: 'infoleg',
+      generated_at: '2026-06-16T00:00:00Z',
+      extracted_evidence: [
+        {
+          claim_id: 'claim-001',
+          claim_type: 'classification',
+          text: 'NCM 42029200110V',
+          requires_review: true,
+        },
+      ],
+      review_status: 'reviewed_approved',
+      reviewer: 'nicolas',
+      reviewed_at: '2026-06-16T20:00:00Z',
+      classifier_approval_reference: 'approval-ref--001',
+      downstream_eligibility_reason: 'Verified against official regulation',
+      source_authority: 'official_regulation',
+      governance: {
+        human_review_required: false,
+        downstream_allowed: true,
+        review_only: false,
+        not_final_classification: false,
+      },
+      schema_version: '1.0.0',
+    };
+
+    assert.equal(validate(artifact), true, JSON.stringify(validate.errors, null, 2));
+  });
+
+  it('accepts draft artifact without review fields', () => {
+    const validate = buildValidator();
+    const artifact = {
+      artifact_id: 'artifact--infoleg--extraction-001',
+      extraction_result_id: 'extraction-001',
+      source_id: 'infoleg',
+      generated_at: '2026-06-16T00:00:00Z',
+      extracted_evidence: [],
+      governance: {
+        human_review_required: true,
+        downstream_allowed: false,
+        review_only: true,
+        not_final_classification: true,
+      },
+      schema_version: '1.0.0',
+    };
+
+    assert.equal(validate(artifact), true, JSON.stringify(validate.errors, null, 2));
   });
 });
