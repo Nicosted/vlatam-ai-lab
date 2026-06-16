@@ -79,6 +79,42 @@
       "description": "Optional content hash in sha256 format (with optional 'sha256:' prefix). Only present when genuinely tied to captured content.",
       "pattern": "^(sha256:)?[a-fA-F0-9]{64}$"
     },
+    "content": {
+      "description": "Optional captured payload written by the Snapshot Writer agent. May be a raw string or a structured JSON object. Never contains live-scraped data; always sourced from a local fixture or approved manual capture.",
+      "oneOf": [
+        { "type": "string" },
+        { "type": "object" }
+      ]
+    },
+    "provenance": {
+      "type": "object",
+      "description": "Optional provenance metadata for the captured content. Required when content is present.",
+      "additionalProperties": false,
+      "required": ["retrieval_method"],
+      "properties": {
+        "official_url": {
+          "type": "string",
+          "description": "Canonical official URL the content refers to (not fetched at runtime).",
+          "format": "uri"
+        },
+        "publication_date": {
+          "type": "string",
+          "description": "ISO 8601 date the source material was originally published.",
+          "format": "date"
+        },
+        "retrieval_method": {
+          "type": "string",
+          "description": "How the content was obtained. Must be 'manual_fixture' for repo-first captures.",
+          "enum": ["manual_fixture", "manual", "api_import", "approved_fetch", "other"]
+        },
+        "fixture_path": {
+          "type": "string",
+          "description": "Relative path of the local fixture file used as input.",
+          "minLength": 1,
+          "maxLength": 400
+        }
+      }
+    },
     "source_version_label": {
       "type": "string",
       "description": "Optional human-readable version label for the captured source state.",

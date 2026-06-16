@@ -1,0 +1,73 @@
+{
+  "snapshot_id": "infoleg--2026-06-16",
+  "source_id": "infoleg",
+  "captured_at": "2026-06-16T00:00:00.000Z",
+  "capture_method": "local_fixture",
+  "freshness_status": "current",
+  "review_status": "not_reviewed",
+  "extraction_status": "not_started",
+  "human_review_required": true,
+  "downstream_allowed": false,
+  "schema_version": "1.0.0",
+  "content_hash": "sha256:94cc318c2e157fc9f2af510f0e74650056105867903861aa6f84666c0e25958b",
+  "content": {
+    "source": "InfoLEG - Base de datos de legislación nacional",
+    "source_url": "https://servicios.infoleg.gob.ar/infolegInternet/",
+    "extraction_note": "Manual fixture — representative extract only. Not a live regulatory fetch.",
+    "regulations": [
+      {
+        "norma_tipo": "Decreto",
+        "norma_numero": "509/2007",
+        "titulo": "Nomenclatura Común del MERCOSUR (NCM) - Nomenclatura arancelaria integrada",
+        "fecha_publicacion": "2007-05-14",
+        "jurisdiccion": "Nacional",
+        "organismo": "MINISTERIO DE ECONOMIA Y PRODUCCION",
+        "texto_resumen": "Apruébase la Nomenclatura Común del MERCOSUR (NCM) y su correspondiente Arancel Externo Común (AEC).",
+        "ncm_chapters_covered": [
+          "42",
+          "61",
+          "62",
+          "63",
+          "64"
+        ],
+        "url_texto": "https://servicios.infoleg.gob.ar/infolegInternet/verNorma.do?id=131501"
+      },
+      {
+        "norma_tipo": "Resolución General",
+        "norma_numero": "5017/2021",
+        "titulo": "Intervenciones previas a la importación — Posiciones NCM capítulo 42",
+        "fecha_publicacion": "2021-09-01",
+        "jurisdiccion": "Nacional",
+        "organismo": "ADMINISTRACION FEDERAL DE INGRESOS PUBLICOS",
+        "texto_resumen": "Modifícase el Anexo I de la Resolución General N° 4.532 incorporando posiciones NCM del capítulo 42 sujetas a intervención previa de VUCE.",
+        "ncm_positions": [
+          {
+            "ncm8": "42021100",
+            "descripcion": "Baúles y maletas con superficie exterior de cuero natural"
+          },
+          {
+            "ncm8": "42021200",
+            "descripcion": "Baúles y maletas con superficie exterior de plástico o materia textil"
+          },
+          {
+            "ncm8": "42029200",
+            "descripcion": "Bolsos y artículos similares con superficie exterior de materia textil"
+          }
+        ],
+        "url_texto": "https://servicios.infoleg.gob.ar/infolegInternet/verNorma.do?id=351234"
+      }
+    ],
+    "metadata": {
+      "fixture_version": "1.0.0",
+      "created_by": "vlatam-ai-lab",
+      "purpose": "deterministic-test-fixture",
+      "human_review_required": true,
+      "downstream_allowed": false
+    }
+  },
+  "provenance": {
+    "retrieval_method": "manual_fixture",
+    "fixture_path": "data/fixtures/infoleg-sample-ncm.json"
+  },
+  "source_locator": "data/fixtures/infoleg-sample-ncm.json"
+}
