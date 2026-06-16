@@ -25,21 +25,6 @@ export interface ClassificationCandidate {
   readonly status: 'candidate';
 }
 
-export interface ClassifierIntelligenceArtifact {
-  readonly artifact_id: string;
-  readonly extraction_result_id: string;
-  readonly source_id: string;
-  readonly generated_at: string;
-  readonly classification_candidate?: ClassificationCandidate;
-  readonly extracted_evidence: EvidenceClaim[];
-  readonly governance: GovernanceFlags;
-  readonly schema_version: string;
-}
-
-export type ContractValidationResult<T> =
-  | { readonly ok: true; readonly artifact: T }
-  | { readonly ok: false; readonly errors: string[] };
-
 export const GOVERNANCE_FLAGS = {
   human_review_required: true,
   downstream_allowed: false,
@@ -48,6 +33,40 @@ export const GOVERNANCE_FLAGS = {
 } as const;
 
 export type GovernanceFlags = typeof GOVERNANCE_FLAGS;
+
+export type ReviewStatus = 'draft' | 'reviewed_approved' | 'reviewed_rejected';
+export type SourceAuthority = 'official_regulation' | 'internal_review' | 'synthetic_demo';
+
+export interface GovernanceState {
+  readonly human_review_required: boolean;
+  readonly downstream_allowed: boolean;
+  readonly review_only: boolean;
+  readonly not_final_classification: boolean;
+}
+
+export interface ClassifierIntelligenceArtifact {
+  readonly artifact_id: string;
+  readonly extraction_result_id: string;
+  readonly source_id: string;
+  readonly generated_at: string;
+  readonly classification_candidate?: ClassificationCandidate;
+  readonly extracted_evidence: EvidenceClaim[];
+  readonly governance: GovernanceState;
+  readonly schema_version: string;
+  readonly source_authority?: SourceAuthority;
+  readonly origin?: string;
+  readonly review_status?: ReviewStatus;
+  readonly reviewer?: string;
+  readonly reviewed_at?: string;
+  readonly classifier_approval_reference?: string;
+  readonly downstream_eligibility_reason?: string;
+}
+
+export interface ContractValidationResult<T> {
+  readonly ok: boolean;
+  readonly artifact?: T;
+  readonly errors: readonly string[];
+}
 
 export function isValidClaimType(type: string): type is ClaimType {
   return (ALLOWED_CLAIM_TYPES as readonly string[]).includes(type);
@@ -71,14 +90,14 @@ function validateClassificationCandidate(value: unknown): string[] {
     return ['classification_candidate must be an object'];
   }
 
-  if (value.status !== 'candidate') errors.push('classification_candidate.status must be candidate');
-  if (value.ncm_code !== undefined && typeof value.ncm_code !== 'string') {
+  if (value['status'] !== 'candidate') errors.push('classification_candidate.status must be candidate');
+  if (value['ncm_code'] !== undefined && typeof value['ncm_code'] !== 'string') {
     errors.push('classification_candidate.ncm_code must be string');
   }
-  if (value.description !== undefined && typeof value.description !== 'string') {
+  if (value['description'] !== undefined && typeof value['description'] !== 'string') {
     errors.push('classification_candidate.description must be string');
   }
-  if (!hasOptionalNumberInRange(value.confidence)) {
+  if (!hasOptionalNumberInRange(value['confidence'])) {
     errors.push('classification_candidate.confidence must be between 0 and 1');
   }
 
@@ -91,32 +110,50 @@ function validateEvidenceClaim(value: unknown, index: number): string[] {
     return [`extracted_evidence[${index}] must be an object`];
   }
 
-  if (typeof value.claim_id !== 'string' || value.claim_id.length === 0) {
+  if (typeof value['claim_id'] !== 'string' || value['claim_id'].length === 0) {
     errors.push(`extracted_evidence[${index}].claim_id must be string`);
   }
-  if (typeof value.claim_type !== 'string' || !isValidClaimType(value.claim_type)) {
+  if (typeof value['claim_type'] !== 'string' || !isValidClaimType(value['claim_type'])) {
     errors.push(`extracted_evidence[${index}].claim_type must be allowlisted`);
   }
-  if (typeof value.text !== 'string' || value.text.length === 0) {
+  if (typeof value['text'] !== 'string' || value['text'].length === 0) {
     errors.push(`extracted_evidence[${index}].text must be string`);
   }
-  if (value.source_ref !== undefined && typeof value.source_ref !== 'string') {
+  if (value['source_ref'] !== undefined && typeof value['source_ref'] !== 'string') {
     errors.push(`extracted_evidence[${index}].source_ref must be string`);
   }
-  if (!hasOptionalNumberInRange(value.confidence)) {
+  if (!hasOptionalNumberInRange(value['confidence'])) {
     errors.push(`extracted_evidence[${index}].confidence must be between 0 and 1`);
   }
   if (
-    value.affected_ncm !== undefined &&
-    (!Array.isArray(value.affected_ncm) || value.affected_ncm.some(item => typeof item !== 'string'))
+    value['affected_ncm'] !== undefined &&
+    (!Array.isArray(value['affected_ncm']) || value['affected_ncm'].some((item: unknown) => typeof item !== 'string'))
   ) {
     errors.push(`extracted_evidence[${index}].affected_ncm must be string array`);
   }
-  if (value.requires_review !== true) {
+  if (value['requires_review'] !== true) {
     errors.push(`extracted_evidence[${index}].requires_review must be true`);
   }
 
   return errors;
+}
+
+function isReviewStatus(value: unknown): value is ReviewStatus {
+  return value === 'draft' || value === 'reviewed_approved' || value === 'reviewed_rejected';
+}
+
+function isSourceAuthority(value: unknown): value is SourceAuthority {
+  return value === 'official_regulation' || value === 'internal_review' || value === 'synthetic_demo';
+}
+
+function validateOptionalString(
+  artifact: Record<string, unknown>,
+  key: string,
+  errors: string[]
+): void {
+  if (key in artifact && typeof artifact[key] !== 'string') {
+    errors.push(`${key} must be a string when present`);
+  }
 }
 
 export function validateClassifierIntelligenceArtifact(
@@ -125,49 +162,113 @@ export function validateClassifierIntelligenceArtifact(
   const errors: string[] = [];
 
   if (!isRecord(artifact)) {
-    return { ok: false, errors: ['Artifact must be an object'] };
+    return { ok: false, errors: ['artifact must be an object'] };
   }
 
-  if (typeof artifact.artifact_id !== 'string' || artifact.artifact_id.length === 0) {
-    errors.push('Missing artifact_id');
+  if (typeof artifact['artifact_id'] !== 'string' || artifact['artifact_id'].length === 0) {
+    errors.push('artifact_id is required');
   }
-  if (typeof artifact.extraction_result_id !== 'string' || artifact.extraction_result_id.length === 0) {
-    errors.push('Missing extraction_result_id');
+  if (typeof artifact['extraction_result_id'] !== 'string' || artifact['extraction_result_id'].length === 0) {
+    errors.push('extraction_result_id is required');
   }
-  if (typeof artifact.source_id !== 'string' || artifact.source_id.length === 0) {
-    errors.push('Missing source_id');
+  if (typeof artifact['source_id'] !== 'string' || artifact['source_id'].length === 0) {
+    errors.push('source_id is required');
   }
-  if (typeof artifact.generated_at !== 'string' || artifact.generated_at.length === 0) {
-    errors.push('Missing generated_at');
+  if (typeof artifact['generated_at'] !== 'string' || artifact['generated_at'].length === 0) {
+    errors.push('generated_at is required');
   }
-  if (typeof artifact.schema_version !== 'string' || artifact.schema_version.length === 0) {
-    errors.push('Missing schema_version');
-  }
-
-  if (!isRecord(artifact.governance)) {
-    errors.push('Missing governance');
-  } else {
-    if (artifact.governance.human_review_required !== true) errors.push('human_review_required must be true');
-    if (artifact.governance.downstream_allowed !== false) errors.push('downstream_allowed must be false');
-    if (artifact.governance.review_only !== true) errors.push('review_only must be true');
-    if (artifact.governance.not_final_classification !== true) errors.push('not_final_classification must be true');
-  }
-
-  if (!Array.isArray(artifact.extracted_evidence)) {
+  if (!Array.isArray(artifact['extracted_evidence'])) {
     errors.push('extracted_evidence must be array');
   } else {
-    artifact.extracted_evidence.forEach((claim, index) => {
+    artifact['extracted_evidence'].forEach((claim: unknown, index: number) => {
       errors.push(...validateEvidenceClaim(claim, index));
     });
   }
-
-  if (artifact.classification_candidate !== undefined) {
-    errors.push(...validateClassificationCandidate(artifact.classification_candidate));
+  if (typeof artifact['schema_version'] !== 'string' || artifact['schema_version'].length === 0) {
+    errors.push('schema_version is required');
   }
 
+  if (!isRecord(artifact['governance'])) {
+    errors.push('governance is required');
+  } else {
+    const governance = artifact['governance'];
+    for (const field of [
+      'human_review_required',
+      'downstream_allowed',
+      'review_only',
+      'not_final_classification',
+    ] as const) {
+      if (typeof governance[field] !== 'boolean') {
+        errors.push(`governance.${field} must be boolean`);
+      }
+    }
+
+    if (governance['downstream_allowed'] === true) {
+      if (artifact['review_status'] !== 'reviewed_approved') {
+        errors.push('downstream_allowed=true requires review_status=reviewed_approved');
+      }
+      if (governance['human_review_required'] !== false) {
+        errors.push('downstream_allowed=true requires human_review_required=false');
+      }
+      if (governance['review_only'] !== false) {
+        errors.push('downstream_allowed=true requires review_only=false');
+      }
+      if (governance['not_final_classification'] !== false) {
+        errors.push('downstream_allowed=true requires not_final_classification=false');
+      }
+      if (typeof artifact['reviewer'] !== 'string' || artifact['reviewer'].length === 0) {
+        errors.push('downstream_allowed=true requires reviewer');
+      }
+      if (typeof artifact['reviewed_at'] !== 'string' || artifact['reviewed_at'].length === 0) {
+        errors.push('downstream_allowed=true requires reviewed_at');
+      }
+      if (
+        typeof artifact['classifier_approval_reference'] !== 'string' ||
+        artifact['classifier_approval_reference'].length === 0
+      ) {
+        errors.push('downstream_allowed=true requires classifier_approval_reference');
+      }
+    }
+
+    const sourceAuthority = artifact['source_authority'];
+    const origin = artifact['origin'];
+    if (sourceAuthority === 'synthetic_demo' || origin === 'synthetic_demo') {
+      if (governance['downstream_allowed'] === true) {
+        errors.push('synthetic_demo cannot be downstream_allowed');
+      }
+      if (governance['human_review_required'] !== true) {
+        errors.push('synthetic_demo requires human_review_required=true');
+      }
+    }
+  }
+
+  if (artifact['classification_candidate'] !== undefined) {
+    errors.push(...validateClassificationCandidate(artifact['classification_candidate']));
+  }
+
+  if ('review_status' in artifact && !isReviewStatus(artifact['review_status'])) {
+    errors.push('review_status must be draft, reviewed_approved, or reviewed_rejected');
+  }
+
+  if ('source_authority' in artifact && !isSourceAuthority(artifact['source_authority'])) {
+    errors.push('source_authority must be official_regulation, internal_review, or synthetic_demo');
+  }
+  validateOptionalString(artifact, 'origin', errors);
+  validateOptionalString(artifact, 'reviewer', errors);
+  validateOptionalString(artifact, 'reviewed_at', errors);
+  validateOptionalString(artifact, 'classifier_approval_reference', errors);
+  validateOptionalString(artifact, 'downstream_eligibility_reason', errors);
+
+  if (
+    'reviewed_at' in artifact &&
+    typeof artifact['reviewed_at'] === 'string' &&
+    Number.isNaN(Date.parse(artifact['reviewed_at']))
+  ) {
+    errors.push('reviewed_at must be a valid ISO 8601 timestamp');
+  }
   if (errors.length > 0) {
     return { ok: false, errors };
   }
 
-  return { ok: true, artifact: artifact as unknown as ClassifierIntelligenceArtifact };
+  return { ok: true, artifact: artifact as unknown as ClassifierIntelligenceArtifact, errors: [] };
 }

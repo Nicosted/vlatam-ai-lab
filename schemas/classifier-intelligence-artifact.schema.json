@@ -73,17 +73,132 @@
         "not_final_classification"
       ],
       "properties": {
-        "human_review_required": { "type": "boolean", "const": true },
-        "downstream_allowed": { "type": "boolean", "const": false },
-        "review_only": { "type": "boolean", "const": true },
-        "not_final_classification": { "type": "boolean", "const": true }
+        "human_review_required": { "type": "boolean" },
+        "downstream_allowed": { "type": "boolean" },
+        "review_only": { "type": "boolean" },
+        "not_final_classification": { "type": "boolean" }
       },
       "additionalProperties": false
+    },
+    "review_status": {
+      "type": "string",
+      "enum": ["draft", "reviewed_approved", "reviewed_rejected"]
+    },
+    "reviewer": {
+      "type": "string",
+      "minLength": 1
+    },
+    "reviewed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "classifier_approval_reference": {
+      "type": "string",
+      "minLength": 1
+    },
+    "downstream_eligibility_reason": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_authority": {
+      "type": "string",
+      "enum": ["official_regulation", "internal_review", "synthetic_demo"]
+    },
+    "origin": {
+      "type": "string"
     },
     "schema_version": {
       "type": "string",
       "pattern": "^\\d+\\.\\d+\\.\\d+$"
     }
   },
+  "allOf": [
+    {
+      "if": {
+        "type": "object",
+        "required": ["governance"],
+        "properties": {
+          "governance": {
+            "type": "object",
+            "required": ["downstream_allowed"],
+            "properties": {
+              "downstream_allowed": { "type": "boolean", "const": true }
+            }
+          }
+        }
+      },
+      "then": {
+        "type": "object",
+        "required": ["review_status", "reviewer", "reviewed_at", "classifier_approval_reference"],
+        "properties": {
+          "review_status": { "const": "reviewed_approved" },
+          "reviewer": {
+            "type": "string",
+            "minLength": 1
+          },
+          "reviewed_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "classifier_approval_reference": {
+            "type": "string",
+            "minLength": 1
+          },
+          "governance": {
+            "type": "object",
+            "properties": {
+              "human_review_required": { "type": "boolean", "const": false },
+              "review_only": { "type": "boolean", "const": false },
+              "not_final_classification": { "type": "boolean", "const": false }
+            }
+          },
+          "source_authority": {
+            "type": "string",
+            "enum": ["official_regulation", "internal_review"]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "type": "object",
+        "required": ["source_authority"],
+        "properties": {
+          "source_authority": { "type": "string", "const": "synthetic_demo" }
+        }
+      },
+      "then": {
+        "properties": {
+          "governance": {
+            "type": "object",
+            "properties": {
+              "downstream_allowed": { "type": "boolean", "const": false },
+              "human_review_required": { "type": "boolean", "const": true }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "type": "object",
+        "required": ["origin"],
+        "properties": {
+          "origin": { "type": "string", "const": "synthetic_demo" }
+        }
+      },
+      "then": {
+        "properties": {
+          "governance": {
+            "type": "object",
+            "properties": {
+              "downstream_allowed": { "type": "boolean", "const": false },
+              "human_review_required": { "type": "boolean", "const": true }
+            }
+          }
+        }
+      }
+    }
+  ],
   "additionalProperties": false
 }
