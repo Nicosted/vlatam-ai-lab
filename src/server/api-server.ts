@@ -24,11 +24,25 @@ export interface ApiServerOptions {
   data_root?: string;
 }
 
+interface RateLimitEntry {
+  count: number;
+  resetAt: number;
+}
+
+interface RateLimitResult {
+  allowed: boolean;
+  retryAfter?: number;
+}
+
 const SOURCE_ID_REGEX = /^[a-z0-9_-]+$/;
 const ARTIFACT_ID_REGEX = /^artifact--[a-z0-9_-]+--[a-z0-9_-]+$/;
+const DEFAULT_RATE_LIMIT_WINDOW_MS = 60_000;
+const DEFAULT_RATE_LIMIT_MAX = 100;
+const CLEANUP_INTERVAL_MS = 60_000;
+const rateLimitStore = new Map<string, RateLimitEntry>();
 
-function sendJson(res: ServerResponse, statusCode: number, body: unknown): void {
-  res.writeHead(statusCode, { 'Content-Type': 'application/json' });
+function sendJson(res: ServerResponse, statusCode: number, body: unknown, headers: Record<string, string> = {}): void {
+  res.writeHead(statusCode, { 'Content-Type': 'application/json', ...headers });
   res.end(JSON.stringify(body));
 }
 
@@ -36,11 +50,93 @@ function sendInternalError(res: ServerResponse, message: string): void {
   sendJson(res, 500, { error: 'Internal Server Error', message });
 }
 
+function positiveInteger(value: string | undefined, fallback: number): number {
+  const parsed = Number.parseInt(value ?? '', 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+function validateApiKey(req: IncomingMessage): boolean {
+  const apiKey = req.headers['x-vlatam-ai-lab-key'];
+  if (typeof apiKey !== 'string') {
+    return false;
+  }
+
+  const configuredKeys = process.env['AI_LAB_API_KEYS'];
+  const validKeys = configuredKeys
+    ?.split(',')
+    .map((key) => key.trim())
+    .filter((key) => key.length > 0);
+
+  if (validKeys !== undefined && validKeys.length > 0) {
+    return validKeys.includes(apiKey);
+  }
+
+  const singleKey = process.env['AI_LAB_API_KEY'];
+  return singleKey !== undefined && singleKey.length > 0 && apiKey === singleKey;
+}
+
+export function cleanupExpiredEntries(): void {
+  const now = Date.now();
+
+  for (const [ip, entry] of rateLimitStore.entries()) {
+    if (now >= entry.resetAt) {
+      rateLimitStore.delete(ip);
+    }
+  }
+}
+
+export function getRateLimitStoreSize(): number {
+  return rateLimitStore.size;
+}
+
+const cleanupTimer = setInterval(cleanupExpiredEntries, CLEANUP_INTERVAL_MS);
+cleanupTimer.unref();
+
+function checkRateLimit(ip: string): RateLimitResult {
+  const now = Date.now();
+  const windowMs = positiveInteger(process.env['RATE_LIMIT_WINDOW_MS'], DEFAULT_RATE_LIMIT_WINDOW_MS);
+  const maxRequests = positiveInteger(process.env['RATE_LIMIT_MAX'], DEFAULT_RATE_LIMIT_MAX);
+  const entry = rateLimitStore.get(ip);
+
+  // Remove an expired entry immediately instead of waiting for the periodic sweep.
+  if (entry !== undefined && now >= entry.resetAt) {
+    rateLimitStore.delete(ip);
+  }
+
+  const currentEntry = rateLimitStore.get(ip);
+
+  if (currentEntry === undefined) {
+    rateLimitStore.set(ip, { count: 1, resetAt: now + windowMs });
+    return { allowed: true };
+  }
+
+  if (currentEntry.count >= maxRequests) {
+    return {
+      allowed: false,
+      retryAfter: Math.max(1, Math.ceil((currentEntry.resetAt - now) / 1000))
+    };
+  }
+
+  currentEntry.count += 1;
+  return { allowed: true };
+}
+
 export async function handleClassifierRequest(
   req: IncomingMessage,
   res: ServerResponse,
   options?: ApiServerOptions
 ): Promise<void> {
+  const rateLimit = checkRateLimit(req.socket.remoteAddress ?? 'unknown');
+  if (!rateLimit.allowed) {
+    sendJson(
+      res,
+      429,
+      { error: 'Too Many Requests', message: 'Rate limit exceeded' },
+      { 'Retry-After': String(rateLimit.retryAfter) }
+    );
+    return;
+  }
+
   // Health check endpoint. Keep the response intentionally free of internal state.
   if (req.url === '/health' && req.method === 'GET') {
     sendJson(res, 200, {
@@ -64,6 +160,14 @@ export async function handleClassifierRequest(
 
   if (urlParts[0] !== 'api' || urlParts[1] !== 'classifier') {
     sendJson(res, 404, { error: 'Not Found', message: 'Endpoint not found' });
+    return;
+  }
+
+  if (!validateApiKey(req)) {
+    sendJson(res, 401, {
+      error: 'Unauthorized',
+      message: 'Invalid or missing API key'
+    });
     return;
   }
 

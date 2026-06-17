@@ -17,6 +17,9 @@ Build and run the image:
 ```bash
 docker build -t vlatam-ai-lab-api:latest .
 docker run --rm -p 3000:3000 \
+  -e AI_LAB_API_KEYS="local-key-1,local-key-2" \
+  -e RATE_LIMIT_MAX=100 \
+  -e RATE_LIMIT_WINDOW_MS=60000 \
   -v "$(pwd)/data/exports:/app/data/exports:ro" \
   vlatam-ai-lab-api:latest
 ```
@@ -25,17 +28,25 @@ In another terminal:
 
 ```bash
 curl http://localhost:3000/health
-curl http://localhost:3000/api/classifier/infoleg/artifact--infoleg--extraction-001
-./scripts/deployment-smoke-test.sh
+curl -H "x-vlatam-ai-lab-key: local-key-1" \
+  http://localhost:3000/api/classifier/infoleg/artifact--infoleg--extraction-001
 ```
 
 ## Environment variables
 
-| Variable    | Required | Default         | Description                               |
-| ----------- | -------- | --------------- | ----------------------------------------- |
-| `PORT`      | No       | `3000`          | HTTP server port                          |
-| `DATA_ROOT` | No       | `process.cwd()` | Root directory containing `data/exports/` |
-| `NODE_ENV`  | No       | development     | Runtime environment label                 |
+| Variable               | Required  | Default         | Description                                                             |
+| ---------------------- | --------- | --------------- | ----------------------------------------------------------------------- |
+| `PORT`                 | No        | `3000`          | HTTP server port.                                                       |
+| `DATA_ROOT`            | No        | `process.cwd()` | Root directory containing `data/exports/`.                              |
+| `NODE_ENV`             | No        | development     | Runtime environment label.                                              |
+| `AI_LAB_API_KEYS`      | Preferred | none            | Comma-separated valid API keys. Takes precedence when it contains keys. |
+| `AI_LAB_API_KEY`       | Fallback  | none            | Single valid API key when no key list is configured.                    |
+| `RATE_LIMIT_WINDOW_MS` | No        | `60000`         | Positive rate-limit window in milliseconds.                             |
+| `RATE_LIMIT_MAX`       | No        | `100`           | Positive maximum requests per IP per window.                            |
+
+At least one API key must be configured for classifier requests to succeed. If
+no key is configured, the server fails closed with `401 Unauthorized` while
+`/health` remains public.
 
 ## Platform-specific deployment
 
@@ -43,7 +54,7 @@ curl http://localhost:3000/api/classifier/infoleg/artifact--infoleg--extraction-
 
 1. Create a staging/internal project and connect this repository.
 2. Deploy from the repository `Dockerfile`.
-3. Set `PORT=3000` and `DATA_ROOT=/app`.
+3. Set `PORT=3000`, `DATA_ROOT=/app`, API keys, and the desired rate limits.
 4. Provision approved export artifacts at `/app/data/exports`. If a volume is used, mount it read-only when the platform supports that mode.
 5. Configure the health-check path as `/health`.
 
@@ -95,8 +106,14 @@ Supporting Vercel would require converting the server to functions and moving ar
 - Mount only `data/exports/` and use read-only volume permissions where available.
 - Do not mount `data/intelligence/`, `data/evidence/`, raw inputs, or governance metadata.
 - Do not provide database, Supabase, Vercel, or AI-provider credentials.
+- Store API keys in the staging platform's secret manager or protected runtime
+  configuration. Never commit keys to the repository, image, documentation, or
+  logs. Rotate keys through deployment configuration when access changes.
 - Restrict staging access at the platform/network layer and terminate TLS at the platform or an approved reverse proxy.
-- Authentication and rate limiting remain future phases.
+- Classifier routes require API-key authentication; `/health` intentionally
+  remains public for platform health checks.
+- Rate limiting is process-local and per IP. It resets on restart and is not
+  shared across replicas, which is suitable only for the approved staging scope.
 - Monitor `GET /health`, response latency, and HTTP error rates. Logs must not expose artifact contents, credentials, or filesystem paths.
 
 ## Validation
@@ -114,11 +131,18 @@ Container validation:
 
 ```bash
 docker run -d -p 3000:3000 \
+  -e AI_LAB_API_KEY="local-smoke-test-key" \
+  -e RATE_LIMIT_MAX=100 \
+  -e RATE_LIMIT_WINDOW_MS=60000 \
   -v "$(pwd)/data/exports:/app/data/exports:ro" \
   --name vlatam-api \
   vlatam-ai-lab-api:latest
 sleep 5
-./scripts/deployment-smoke-test.sh
+curl --fail --silent --show-error http://localhost:3000/health > /dev/null
+curl --fail --silent --show-error \
+  -H "x-vlatam-ai-lab-key: local-smoke-test-key" \
+  http://localhost:3000/api/classifier/infoleg/artifact--infoleg--extraction-001 \
+  > /dev/null
 docker stop vlatam-api
 docker rm vlatam-api
 ```

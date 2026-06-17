@@ -41,14 +41,28 @@ pnpm install
 # Run all tests
 pnpm test
 
-# Start API server
-pnpm agents:api-server --port 3000
+# Configure at least one staging API key and start the server
+AI_LAB_API_KEYS="local-key-1,local-key-2" pnpm agents:api-server --port 3000
 
 # Query the API
-curl http://localhost:3000/api/classifier/infoleg/artifact--infoleg--extraction-001
+curl -H "x-vlatam-ai-lab-key: local-key-1" \
+  http://localhost:3000/api/classifier/infoleg/artifact--infoleg--extraction-001
 ```
 
 The API exposes `GET /api/classifier/:source_id/:artifact_id` and serves validated JSON exports from `data/exports/` without modifying them.
+`GET /health` remains public. All endpoints are rate-limited per client IP.
+
+API security environment variables:
+
+| Variable               | Default | Purpose                                                            |
+| ---------------------- | ------- | ------------------------------------------------------------------ |
+| `AI_LAB_API_KEYS`      | none    | Preferred comma-separated list of valid API keys.                  |
+| `AI_LAB_API_KEY`       | none    | Single-key fallback when `AI_LAB_API_KEYS` has no configured keys. |
+| `RATE_LIMIT_WINDOW_MS` | `60000` | In-memory rate-limit window in milliseconds.                       |
+| `RATE_LIMIT_MAX`       | `100`   | Maximum requests per IP in each window.                            |
+
+If no API key is configured, classifier requests fail closed with `401
+Unauthorized`. Keep key values out of source control and logs.
 
 ## `vlatam-global` consumer boundary
 
@@ -72,7 +86,8 @@ Consumers must validate `schema_version`, fail closed on unsupported or invalid 
 
 ## Current status
 
-- ✅ 166 tests passing
+- ✅ 176 tests passing
+- ✅ API-key authentication and in-memory per-IP rate limiting
 - ✅ 0 external dependencies in the native HTTP API path
 - ✅ Repo-first architecture
 - ✅ Native Node HTTP API server
