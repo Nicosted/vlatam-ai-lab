@@ -1,0 +1,37 @@
+# Fly.io staging configuration reference
+# This file is documentation only. Do not deploy without explicit human approval.
+
+app = "vlatam-ai-lab-api-staging"
+primary_region = "gru"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT = "3000"
+  DATA_ROOT = "/app"
+  NODE_ENV = "production"
+  RATE_LIMIT_WINDOW_MS = "60000"
+  RATE_LIMIT_MAX = "100"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+
+[[http_service.checks]]
+  path = "/health"
+  interval = "30s"
+  timeout = "5s"
+  grace_period = "10s"
+  method = "GET"
+
+# IMPORTANT: API keys must be set as Fly secrets, NOT committed here
+# Example:
+#   fly secrets set AI_LAB_API_KEYS="key1,key2"
+#   fly secrets list
+#   fly secrets set AI_LAB_API_KEYS="new-key-1,new-key-2"  # rotation
+#
+# Never put actual key values in this file, shell history, logs, or committed files.
