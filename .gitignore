@@ -6,6 +6,7 @@ coverage/
 .env
 .env.local
 .env.*.local
+fly.toml
 
 # Raw crawler data (too large for GitHub)
 data/raw/

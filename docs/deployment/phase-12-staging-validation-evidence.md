@@ -13,10 +13,14 @@
 - Added a non-secret Fly.io reference configuration for the `gru` staging region.
 - Expanded the API deployment guide with authentication, rate limiting, Fly.io staging reference steps, key rotation, read-only export-volume guidance, and the complete local Docker workflow.
 - Updated `.dockerignore` to exclude local Fly configuration and all requested development, documentation, sensitive-data, and raw-source paths while retaining `fly.toml.example`.
+- Corrected the Fly health check declaration to the documented `[[http_service.checks]]` array-of-tables syntax.
+- Added `fly.toml` to `.gitignore` so operator-local staging configuration cannot be accidentally staged.
 
 The supplied bare `nonexistent` smoke-test artifact ID is invalid under the existing API contract and returned `400`. The final probe uses the valid-but-absent ID `artifact--infoleg--nonexistent` to test the intended `404` behavior without changing schemas. The traversal probe uses an encoded separator so the request reaches the API validator and tests its `400` response rather than being normalized by the HTTP path layer.
 
 ## Validation results
+
+The full validation sequence was re-run after the pre-merge Fly health-check and Git-ignore corrections.
 
 | Check | Result |
 | --- | --- |
@@ -38,7 +42,7 @@ The repository-wide literal `sk-` scan found only pre-existing explanatory text 
 - No production credentials, databases, AI providers, Supabase project, Vercel project, or other external runtime service was accessed.
 - Docker image construction refreshed public base-image metadata and reused cached build layers after explicit approval; it did not deploy or connect the API runtime to an external service.
 - The first sandboxed test and localhost smoke-test attempts were blocked by local IPC/network permissions. The same commands passed after narrowly scoped local permission approval; these were sandbox constraints, not application failures.
-- The requested five-file scope does not include `.gitignore`, and the Phase 11 baseline does not ignore `fly.toml` there. Operators must keep the local copy uncommitted; `.dockerignore` does exclude it from image builds. Adding a Git ignore rule should be handled in a separately approved scope change.
+- Both Git and Docker ignore the operator-local `fly.toml`; only the secret-free `fly.toml.example` reference is committed.
 
 ## Human review gate
 
