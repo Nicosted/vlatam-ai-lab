@@ -25,6 +25,30 @@ export interface ClassificationCandidate {
   readonly status: 'candidate';
 }
 
+export interface ExportedClassificationCandidate {
+  readonly ncm_code?: string;
+  readonly description?: string;
+  readonly confidence?: number;
+}
+
+export interface ExportedEvidenceClaim {
+  readonly claim_id: string;
+  readonly claim_type: ClaimType;
+  readonly text: string;
+  readonly confidence?: number;
+  readonly affected_ncm?: string[];
+}
+
+export interface ClassifierApprovedArtifactExport {
+  readonly export_id: string;
+  readonly artifact_id: string;
+  readonly source_id: string;
+  readonly exported_at: string;
+  readonly classification_candidate?: ExportedClassificationCandidate;
+  readonly extracted_evidence: ExportedEvidenceClaim[];
+  readonly schema_version: string;
+}
+
 export const GOVERNANCE_FLAGS = {
   human_review_required: true,
   downstream_allowed: false,
@@ -133,6 +157,53 @@ function validateEvidenceClaim(value: unknown, index: number): string[] {
   }
   if (value['requires_review'] !== true) {
     errors.push(`extracted_evidence[${index}].requires_review must be true`);
+  }
+
+  return errors;
+}
+
+function validateExportedClassificationCandidate(value: unknown): string[] {
+  const errors: string[] = [];
+  if (!isRecord(value)) {
+    return ['classification_candidate must be an object'];
+  }
+
+  if (value['ncm_code'] !== undefined && typeof value['ncm_code'] !== 'string') {
+    errors.push('classification_candidate.ncm_code must be string');
+  }
+  if (value['description'] !== undefined && typeof value['description'] !== 'string') {
+    errors.push('classification_candidate.description must be string');
+  }
+  if (!hasOptionalNumberInRange(value['confidence'])) {
+    errors.push('classification_candidate.confidence must be between 0 and 1');
+  }
+
+  return errors;
+}
+
+function validateExportedEvidenceClaim(value: unknown, index: number): string[] {
+  const errors: string[] = [];
+  if (!isRecord(value)) {
+    return [`extracted_evidence[${index}] must be an object`];
+  }
+
+  if (typeof value['claim_id'] !== 'string' || value['claim_id'].length === 0) {
+    errors.push(`extracted_evidence[${index}] missing claim_id`);
+  }
+  if (typeof value['claim_type'] !== 'string' || !isValidClaimType(value['claim_type'])) {
+    errors.push(`extracted_evidence[${index}] missing claim_type`);
+  }
+  if (typeof value['text'] !== 'string' || value['text'].length === 0) {
+    errors.push(`extracted_evidence[${index}] missing text`);
+  }
+  if (!hasOptionalNumberInRange(value['confidence'])) {
+    errors.push(`extracted_evidence[${index}].confidence must be between 0 and 1`);
+  }
+  if (
+    value['affected_ncm'] !== undefined &&
+    (!Array.isArray(value['affected_ncm']) || value['affected_ncm'].some((item: unknown) => typeof item !== 'string'))
+  ) {
+    errors.push(`extracted_evidence[${index}].affected_ncm must be string array`);
   }
 
   return errors;
@@ -271,4 +342,49 @@ export function validateClassifierIntelligenceArtifact(
   }
 
   return { ok: true, artifact: artifact as unknown as ClassifierIntelligenceArtifact, errors: [] };
+}
+
+export function validateExportArtifact(
+  artifact: unknown
+): ContractValidationResult<ClassifierApprovedArtifactExport> {
+  const errors: string[] = [];
+
+  if (!isRecord(artifact)) {
+    return { ok: false, errors: ['Export artifact must be an object'] };
+  }
+
+  if (typeof artifact['export_id'] !== 'string' || artifact['export_id'].length === 0) {
+    errors.push('Missing export_id');
+  }
+  if (typeof artifact['artifact_id'] !== 'string' || artifact['artifact_id'].length === 0) {
+    errors.push('Missing artifact_id');
+  }
+  if (typeof artifact['source_id'] !== 'string' || artifact['source_id'].length === 0) {
+    errors.push('Missing source_id');
+  }
+  if (typeof artifact['exported_at'] !== 'string' || artifact['exported_at'].length === 0) {
+    errors.push('Missing exported_at');
+  } else if (Number.isNaN(Date.parse(artifact['exported_at']))) {
+    errors.push('exported_at must be a valid ISO 8601 timestamp');
+  }
+  if (!Array.isArray(artifact['extracted_evidence'])) {
+    errors.push('extracted_evidence must be array');
+  } else {
+    artifact['extracted_evidence'].forEach((claim: unknown, index: number) => {
+      errors.push(...validateExportedEvidenceClaim(claim, index));
+    });
+  }
+  if (typeof artifact['schema_version'] !== 'string' || artifact['schema_version'].length === 0) {
+    errors.push('Missing schema_version');
+  }
+
+  if (artifact['classification_candidate'] !== undefined) {
+    errors.push(...validateExportedClassificationCandidate(artifact['classification_candidate']));
+  }
+
+  if (errors.length > 0) {
+    return { ok: false, errors };
+  }
+
+  return { ok: true, artifact: artifact as unknown as ClassifierApprovedArtifactExport, errors: [] };
 }
