@@ -5,7 +5,11 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, it } from 'node:test';
 
-import { handleClassifierRequest } from '../../src/server/api-server.js';
+import {
+  cleanupExpiredEntries,
+  getRateLimitStoreSize,
+  handleClassifierRequest
+} from '../../src/server/api-server.js';
 
 const SOURCE_ID = 'infoleg';
 const ARTIFACT_ID = 'artifact--infoleg--extraction-001';
@@ -15,9 +19,16 @@ interface HttpResult {
   readonly contentType: string | null;
   readonly body: unknown;
   readonly rawBody: string;
+  readonly headers: Record<string, string>;
+}
+
+interface RequestOptions {
+  readonly apiKey?: string | null;
+  readonly ip?: string;
 }
 
 let testRoot = '';
+let requestSequence = 0;
 
 function exportPath(): string {
   return path.join(testRoot, 'data', 'exports', SOURCE_ID, `${ARTIFACT_ID}--export.json`);
@@ -47,10 +58,11 @@ function writeExport(content: string): void {
   writeFileSync(exportPath(), content, 'utf-8');
 }
 
-async function request(requestPath: string): Promise<HttpResult> {
+async function request(requestPath: string, options: RequestOptions = {}): Promise<HttpResult> {
   let statusCode = 0;
   let contentType: string | null = null;
   let rawBody = '';
+  let responseHeaders: Record<string, string> = {};
   const responseState = { headersSent: false, writableEnded: false };
   const response = {
     get headersSent() {
@@ -62,6 +74,7 @@ async function request(requestPath: string): Promise<HttpResult> {
     writeHead(code: number, headers: Record<string, string>) {
       statusCode = code;
       contentType = headers['Content-Type'] ?? null;
+      responseHeaders = headers;
       responseState.headersSent = true;
       return this;
     },
@@ -73,8 +86,10 @@ async function request(requestPath: string): Promise<HttpResult> {
   } as unknown as ServerResponse;
   const incomingRequest = {
     method: 'GET',
-    url: requestPath
-  } as IncomingMessage;
+    url: requestPath,
+    headers: options.apiKey === null ? {} : { 'x-vlatam-ai-lab-key': options.apiKey ?? 'test-api-key' },
+    socket: { remoteAddress: options.ip ?? `test-ip-${requestSequence++}` }
+  } as unknown as IncomingMessage;
 
   await handleClassifierRequest(incomingRequest, response, {
     data_root: testRoot
@@ -84,16 +99,25 @@ async function request(requestPath: string): Promise<HttpResult> {
     statusCode,
     contentType,
     body: JSON.parse(rawBody) as unknown,
-    rawBody
+    rawBody,
+    headers: responseHeaders
   };
 }
 
 beforeEach(() => {
   testRoot = mkdtempSync(path.join(tmpdir(), 'api-server-'));
+  process.env['AI_LAB_API_KEY'] = 'test-api-key';
+  delete process.env['AI_LAB_API_KEYS'];
+  delete process.env['RATE_LIMIT_WINDOW_MS'];
+  delete process.env['RATE_LIMIT_MAX'];
 });
 
 afterEach(() => {
   rmSync(testRoot, { recursive: true, force: true });
+  delete process.env['AI_LAB_API_KEY'];
+  delete process.env['AI_LAB_API_KEYS'];
+  delete process.env['RATE_LIMIT_WINDOW_MS'];
+  delete process.env['RATE_LIMIT_MAX'];
 });
 
 describe('handleClassifierRequest', () => {
@@ -117,6 +141,36 @@ describe('handleClassifierRequest', () => {
     assert.deepEqual(Object.keys(health).sort(), ['status', 'timestamp', 'version']);
   });
 
+  it('keeps the health endpoint public without an API key', async () => {
+    const response = await request('/health', { apiKey: null });
+
+    assert.equal(response.statusCode, 200);
+  });
+
+  it('returns 401 when the classifier API key is missing', async () => {
+    const response = await request(`/api/classifier/${SOURCE_ID}/${ARTIFACT_ID}`, {
+      apiKey: null
+    });
+
+    assert.equal(response.statusCode, 401);
+    assert.deepEqual(response.body, {
+      error: 'Unauthorized',
+      message: 'Invalid or missing API key'
+    });
+  });
+
+  it('returns 401 when the classifier API key is invalid', async () => {
+    const response = await request(`/api/classifier/${SOURCE_ID}/${ARTIFACT_ID}`, {
+      apiKey: 'invalid-key'
+    });
+
+    assert.equal(response.statusCode, 401);
+    assert.deepEqual(response.body, {
+      error: 'Unauthorized',
+      message: 'Invalid or missing API key'
+    });
+  });
+
   it('returns a validated export with a JSON content type', async () => {
     const artifact = validExport();
     writeExport(JSON.stringify(artifact));
@@ -126,6 +180,104 @@ describe('handleClassifierRequest', () => {
     assert.equal(response.statusCode, 200);
     assert.equal(response.contentType, 'application/json');
     assert.deepEqual(response.body, artifact);
+  });
+
+  it('accepts every configured comma-separated API key', async () => {
+    const artifact = validExport();
+    writeExport(JSON.stringify(artifact));
+    process.env['AI_LAB_API_KEYS'] = 'first-key, second-key';
+
+    const firstResponse = await request(`/api/classifier/${SOURCE_ID}/${ARTIFACT_ID}`, {
+      apiKey: 'first-key'
+    });
+    const secondResponse = await request(`/api/classifier/${SOURCE_ID}/${ARTIFACT_ID}`, {
+      apiKey: 'second-key'
+    });
+
+    assert.equal(firstResponse.statusCode, 200);
+    assert.equal(secondResponse.statusCode, 200);
+  });
+
+  it('allows requests within the per-IP rate limit', async () => {
+    process.env['RATE_LIMIT_MAX'] = '2';
+
+    const firstResponse = await request('/health', {
+      ip: 'rate-limit-allowed'
+    });
+    const secondResponse = await request('/health', {
+      ip: 'rate-limit-allowed'
+    });
+
+    assert.equal(firstResponse.statusCode, 200);
+    assert.equal(secondResponse.statusCode, 200);
+  });
+
+  it('returns 429 with Retry-After after the per-IP limit is exceeded', async () => {
+    process.env['RATE_LIMIT_MAX'] = '1';
+
+    await request('/health', { ip: 'rate-limit-exceeded' });
+    const response = await request('/health', { ip: 'rate-limit-exceeded' });
+
+    assert.equal(response.statusCode, 429);
+    assert.deepEqual(response.body, {
+      error: 'Too Many Requests',
+      message: 'Rate limit exceeded'
+    });
+    assert.equal(response.headers['Retry-After'], '60');
+  });
+
+  it('resets the per-IP rate limit after the window expires', async () => {
+    process.env['RATE_LIMIT_MAX'] = '1';
+    process.env['RATE_LIMIT_WINDOW_MS'] = '10';
+
+    await request('/health', { ip: 'rate-limit-reset' });
+    const limitedResponse = await request('/health', {
+      ip: 'rate-limit-reset'
+    });
+    await new Promise((resolve) => setTimeout(resolve, 15));
+    const resetResponse = await request('/health', { ip: 'rate-limit-reset' });
+
+    assert.equal(limitedResponse.statusCode, 429);
+    assert.equal(resetResponse.statusCode, 200);
+  });
+
+  it('tracks rate limits separately for different IP addresses', async () => {
+    process.env['RATE_LIMIT_MAX'] = '1';
+
+    await request('/health', { ip: 'rate-limit-ip-one' });
+    const limitedResponse = await request('/health', {
+      ip: 'rate-limit-ip-one'
+    });
+    const separateIpResponse = await request('/health', {
+      ip: 'rate-limit-ip-two'
+    });
+
+    assert.equal(limitedResponse.statusCode, 429);
+    assert.equal(separateIpResponse.statusCode, 200);
+  });
+
+  it('cleans up expired entries from the rate limit store', async () => {
+    const originalDateNow = Date.now;
+    let mockTime = originalDateNow() + 61_000;
+
+    Date.now = () => mockTime;
+    try {
+      cleanupExpiredEntries();
+      assert.equal(getRateLimitStoreSize(), 0);
+
+      for (let index = 0; index < 10; index += 1) {
+        await request('/health', { ip: `192.168.1.${index}` });
+      }
+
+      assert.equal(getRateLimitStoreSize(), 10);
+
+      mockTime += 70_000;
+      cleanupExpiredEntries();
+
+      assert.equal(getRateLimitStoreSize(), 0);
+    } finally {
+      Date.now = originalDateNow;
+    }
   });
 
   it('returns 404 for an unknown endpoint', async () => {

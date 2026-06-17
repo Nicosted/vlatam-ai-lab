@@ -38,10 +38,41 @@ Example request:
 
 ```http
 GET /api/classifier/infoleg/artifact--infoleg--extraction-001
+x-vlatam-ai-lab-key: <your-key>
 ```
 
 Query parameters do not alter artifact selection. Consumers must send the
 complete four-segment path shown above.
+
+## Authentication
+
+The classifier endpoint requires a valid API key in the
+`x-vlatam-ai-lab-key` request header. Operators configure keys with the
+preferred comma-separated `AI_LAB_API_KEYS` variable, or with the single-key
+`AI_LAB_API_KEY` fallback when no list is configured. If neither variable
+contains a key, the classifier endpoint fails closed.
+
+`GET /health` is public and does not require authentication. Its response
+remains limited to the documented health fields and does not expose key or
+rate-limit state.
+
+Example:
+
+```bash
+curl -H "x-vlatam-ai-lab-key: <your-key>" \
+  http://localhost:3000/api/classifier/infoleg/artifact--infoleg--extraction-001
+```
+
+## Rate Limiting
+
+All endpoints, including `/health`, use an in-memory per-IP rate limit. The
+default permits 100 requests per 60,000-millisecond window. Operators may set
+`RATE_LIMIT_MAX` and `RATE_LIMIT_WINDOW_MS` to positive integer values.
+
+Exceeding the limit returns `429 Too Many Requests` with a `Retry-After` header
+whose value is the number of seconds until the current window resets. Because
+the store is process-local, limits are not shared across server instances and
+reset when an instance restarts; this is an accepted staging limitation.
 
 ## Success Response Contract
 
@@ -133,6 +164,17 @@ Returned when the route shape or a URL parameter is invalid.
 Other possible sanitized `400` messages are `Invalid URL format`,
 `Invalid source_id format`, and `Invalid path`.
 
+### `401 Unauthorized`
+
+Returned when a classifier request has a missing or invalid API key.
+
+```json
+{
+  "error": "Unauthorized",
+  "message": "Invalid or missing API key"
+}
+```
+
 ### `404 Not Found`
 
 Returned when the endpoint is unknown or the requested export does not exist.
@@ -145,6 +187,18 @@ Returned when the endpoint is unknown or the requested export does not exist.
 ```
 
 An unknown route returns the sanitized message `Endpoint not found`.
+
+### `429 Too Many Requests`
+
+Returned when the client IP exceeds its configured request limit. The response
+includes `Retry-After` in seconds.
+
+```json
+{
+  "error": "Too Many Requests",
+  "message": "Rate limit exceeded"
+}
+```
 
 ### `405 Method Not Allowed`
 
@@ -230,20 +284,21 @@ response.
 
 ## Future Considerations (Out of Scope)
 
-The current local contract does not add authentication, authorization, rate
-limiting, or shared caching. A future reviewed integration may add API-key or
-JWT authentication. It should also define per-consumer rate limits and a
-version-aware caching strategy for stable export responses, including explicit
-invalidation and fail-closed behavior.
+The current local contract adds staging API-key authentication and process-local
+rate limiting. Shared rate-limit storage, consumer-specific quotas, JWT/OAuth2,
+and shared caching remain out of scope. A future reviewed integration may
+define a version-aware caching strategy for stable export responses, including
+explicit invalidation and fail-closed behavior.
 
-These additions require separate review and must not weaken the read-only,
+Any additions require separate review and must not weaken the read-only,
 Human Review Gate, schema-validation, path-containment, or production-isolation
 boundaries defined here.
 
 ## Source Snapshot, Assumptions, and Limitations
 
-This contract was derived from and checked against the local Phase 9 server,
+This contract was derived from and checked against the local Phase 11 server,
 the approved export schema and validator, the Export Contract agent contract,
 and the Phase 9 E2E fixture as of 2026-06-17. It documents the current local HTTP
-surface; it does not activate production connectivity, authentication, a
-database bridge, or any `vlatam-global` runtime change.
+surface. Authentication and rate limiting are local staging controls; this
+phase does not activate production connectivity, a database bridge, shared
+infrastructure, or any `vlatam-global` runtime change.
