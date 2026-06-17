@@ -10,6 +10,7 @@ coverage/
 # Raw crawler data (too large for GitHub)
 data/raw/
 data/deltas/
+data/evidence/
 data/intelligence/
 data/exports/
 
