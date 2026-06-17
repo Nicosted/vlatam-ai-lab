@@ -28,6 +28,7 @@
     "agents:evidence-writer": "tsx src/cli/evidence-writer.ts",
     "agents:human-review": "tsx src/cli/human-review-gate.ts",
     "agents:export-contract": "tsx src/cli/export-contract.ts",
+    "agents:api-server": "tsx src/cli/api-server.ts",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test 'tests/**/*.test.ts'",
     "lint": "eslint .",
