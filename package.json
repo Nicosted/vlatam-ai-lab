@@ -27,6 +27,7 @@
     "agents:delta-analyzer": "tsx src/cli/delta-analyzer.ts",
     "agents:evidence-writer": "tsx src/cli/evidence-writer.ts",
     "agents:human-review": "tsx src/cli/human-review-gate.ts",
+    "agents:export-contract": "tsx src/cli/export-contract.ts",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test 'tests/**/*.test.ts'",
     "lint": "eslint .",

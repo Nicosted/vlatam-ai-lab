@@ -11,6 +11,7 @@ coverage/
 data/raw/
 data/deltas/
 data/intelligence/
+data/exports/
 
 # ============================================
 # DATA MANAGEMENT - vLatam AI Lab
