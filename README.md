@@ -1,59 +1,93 @@
 # vlatam-ai-lab
 
-`vlatam-ai-lab` is an experimental AI operations and regulatory intelligence sandbox for the **vLatamGlobal** initiative.
+Primary engineering handoff for the local classifier-intelligence pipeline and its reviewed HTTP export boundary.
 
 ## Purpose
 
-This repository exists to prototype and validate agentic workflows for:
+`vlatam-ai-lab` is a repo-first, production-isolated sandbox for classifier intelligence. It implements the PCRAM chain through Phases 1–9: local source capture, immutable snapshots, delta analysis, evidence extraction, human review, clean export generation, and a read-only HTTP API for approved artifacts.
 
-- Regulatory source monitoring
-- Snapshot capture and storage
-- Delta analysis between source versions
-- Evidence-first report generation
-- Future classifier intelligence feed research
+The project is local-first and auditable. The approved export/API path uses native Node.js capabilities with no external runtime dependencies, no Supabase or production database access, and no runtime coupling to `vlatam-global`.
 
-## What this lab is
+## PCRAM chain
 
-- A **local-first**, auditable engineering workspace
-- A **production-isolated** sandbox for experimentation
-- A place to build small, testable, reversible components
+```text
+Source → Snapshot → Delta → Evidence → Review → Export → API → Contract Docs
+  1         2        3        4         5        6       9      10
+```
 
-## What this lab is not
+Only reviewed and approved artifacts cross the export boundary. Internal governance and reviewer metadata remain inside AI Lab.
 
-- Not the vLatamGlobal production application
-- Not connected to production infrastructure
-- Not a place for production credentials, migrations, or deployments
+## Agents
 
-## Current P0 goal: Regulatory Intelligence Lab
+| Stage | Name | Input | Output | Command |
+| --- | --- | --- | --- | --- |
+| 1 | Source Monitor | External sources | Snapshots | `pnpm agents:source-monitor` |
+| 2 | Snapshot Writer | Raw data | Versioned snapshots | `pnpm agents:snapshot-writer` |
+| 3 | Delta Analyzer | Snapshots | Evidence packets | `pnpm agents:delta-analyzer` |
+| 4 | AI Extraction | Evidence | Extraction results | Fixture-based |
+| 5 | Evidence Writer | Extractions | Intelligence artifacts | `pnpm agents:evidence-writer` |
+| 6 | Human Review Gate | Artifacts | Approved artifacts | `pnpm agents:human-review` |
+| 7 | Export Contract | Approved artifacts | Clean exports | `pnpm agents:export-contract` |
+| 8 | API Server | Exports | HTTP responses | `pnpm agents:api-server` |
 
-Initial objective: establish a minimal and safe foundation for regulatory intelligence workflows.
+## Quick start
 
-### First use case
+Requires Node.js 20+ and pnpm.
 
-**PCRAM bulletin / NCM monitoring** with a local placeholder pipeline:
+```bash
+# Install
+pnpm install
 
-1. Read local snapshot files from `snapshots/`
-2. Compute a basic local delta summary
-3. Write a markdown report into `reports/`
+# Run all tests
+pnpm test
 
-> No external fetches or service integrations are enabled in P0.
+# Start API server
+pnpm agents:api-server --port 3000
 
-## Safe local workflow
+# Query the API
+curl http://localhost:3000/api/classifier/infoleg/artifact--infoleg--extraction-001
+```
 
-1. Install dependencies: `pnpm install`
-2. Validate types: `pnpm typecheck`
-3. Run tests: `pnpm test`
-4. Run placeholder pipeline: `pnpm pcram:delta`
-5. Review generated report(s) under `reports/`
+The API exposes `GET /api/classifier/:source_id/:artifact_id` and serves validated JSON exports from `data/exports/` without modifying them.
 
-## Safety baseline
+## `vlatam-global` consumer boundary
 
-- Do not use production credentials.
-- Do not connect this lab to Supabase, Vercel, or production databases.
-- Do not run destructive commands.
-- Keep changes minimal, explicit, and reviewable.
-- Persistence boundary: `docs/ai-lab-persistence-boundary.md`.
-- Approved export bundle consumer contract:
-  `docs/approved-export-bundle-consumer-contract.md`.
-- Argentina curated source pack plan:
-  `docs/argentina-curated-source-pack-plan.md`.
+`vlatam-global` is an external, read-only consumer of the reviewed export contract.
+
+Allowed:
+
+- Read approved export artifacts through the HTTP API.
+- Retain stable `export_id`, `artifact_id`, and `source_id` values for audit correlation.
+- Consume reviewed `classification_candidate` and `extracted_evidence` fields.
+
+Not allowed:
+
+- Direct database or storage access.
+- Runtime coupling with AI Lab.
+- Dependency on internal governance flags.
+- Access to reviewer identity, timestamps, or approval metadata.
+- Create, update, delete, or other write operations.
+
+Consumers must validate `schema_version`, fail closed on unsupported or invalid responses, and keep operational decisions and runtime audit records on the `vlatam-global` side.
+
+## Current status
+
+- ✅ 166 tests passing
+- ✅ 0 external dependencies in the native HTTP API path
+- ✅ Repo-first architecture
+- ✅ Native Node HTTP API server
+- ✅ E2E verified
+- ✅ Integration contract documented
+
+## Documentation
+
+- [vlatam-global API Contract](docs/integration/vlatam-global-api-contract.md)
+- [Classifier Intelligence Artifact P1](docs/classifier-intelligence-artifact-p1.md)
+- [Phase 6 Evidence Writer](docs/agents/evidence-writer.md)
+- [Phase 7 Human Review Gate](docs/agents/human-review-gate.md)
+- [Phase 8 Export Contract](docs/agents/export-contract.md)
+- [Phase 9 API Server](docs/agents/api-server.md)
+
+## Safety boundary
+
+Use local fixtures and reviewed repository artifacts only. Do not add production credentials, connect to production services, run production migrations, or expose raw internal agent state through the API.
