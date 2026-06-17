@@ -35,10 +35,10 @@ function validExport(): Record<string, unknown> {
         claim_id: 'claim-001',
         claim_type: 'classification',
         text: 'Classification evidence',
-        confidence: 0.82,
-      },
+        confidence: 0.82
+      }
     ],
-    schema_version: '1.0.0',
+    schema_version: '1.0.0'
   };
 }
 
@@ -69,17 +69,22 @@ async function request(requestPath: string): Promise<HttpResult> {
       rawBody = body ?? '';
       responseState.writableEnded = true;
       return this;
-    },
+    }
   } as unknown as ServerResponse;
-  const incomingRequest = { method: 'GET', url: requestPath } as IncomingMessage;
+  const incomingRequest = {
+    method: 'GET',
+    url: requestPath
+  } as IncomingMessage;
 
-  await handleClassifierRequest(incomingRequest, response, { data_root: testRoot });
+  await handleClassifierRequest(incomingRequest, response, {
+    data_root: testRoot
+  });
 
   return {
     statusCode,
     contentType,
     body: JSON.parse(rawBody) as unknown,
-    rawBody,
+    rawBody
   };
 }
 
@@ -92,6 +97,26 @@ afterEach(() => {
 });
 
 describe('handleClassifierRequest', () => {
+  it('returns a healthy response without exposing internal state', async () => {
+    const beforeRequest = Date.now();
+    const response = await request('/health');
+    const afterRequest = Date.now();
+
+    assert.equal(response.statusCode, 200);
+    assert.equal(response.contentType, 'application/json');
+    assert.equal(typeof response.body, 'object');
+    assert.notEqual(response.body, null);
+
+    const health = response.body as Record<string, unknown>;
+    assert.equal(health['status'], 'healthy');
+    assert.equal(health['version'], '1.0.0');
+    assert.equal(typeof health['timestamp'], 'string');
+    const timestamp = Date.parse(health['timestamp'] as string);
+    assert.equal(Number.isNaN(timestamp), false);
+    assert.ok(timestamp >= beforeRequest && timestamp <= afterRequest);
+    assert.deepEqual(Object.keys(health).sort(), ['status', 'timestamp', 'version']);
+  });
+
   it('returns a validated export with a JSON content type', async () => {
     const artifact = validExport();
     writeExport(JSON.stringify(artifact));
@@ -107,28 +132,40 @@ describe('handleClassifierRequest', () => {
     const response = await request('/api/unknown');
 
     assert.equal(response.statusCode, 404);
-    assert.deepEqual(response.body, { error: 'Not Found', message: 'Endpoint not found' });
+    assert.deepEqual(response.body, {
+      error: 'Not Found',
+      message: 'Endpoint not found'
+    });
   });
 
   it('returns 400 for an invalid source_id', async () => {
     const response = await request(`/api/classifier/INFOLEG/${ARTIFACT_ID}`);
 
     assert.equal(response.statusCode, 400);
-    assert.deepEqual(response.body, { error: 'Bad Request', message: 'Invalid source_id format' });
+    assert.deepEqual(response.body, {
+      error: 'Bad Request',
+      message: 'Invalid source_id format'
+    });
   });
 
   it('returns 400 for an invalid artifact_id', async () => {
     const response = await request(`/api/classifier/${SOURCE_ID}/random-id`);
 
     assert.equal(response.statusCode, 400);
-    assert.deepEqual(response.body, { error: 'Bad Request', message: 'Invalid artifact_id format' });
+    assert.deepEqual(response.body, {
+      error: 'Bad Request',
+      message: 'Invalid artifact_id format'
+    });
   });
 
   it('returns 404 when the export does not exist', async () => {
     const response = await request(`/api/classifier/${SOURCE_ID}/${ARTIFACT_ID}`);
 
     assert.equal(response.statusCode, 404);
-    assert.deepEqual(response.body, { error: 'Not Found', message: 'Export artifact not found' });
+    assert.deepEqual(response.body, {
+      error: 'Not Found',
+      message: 'Export artifact not found'
+    });
   });
 
   it('returns 500 for corrupted JSON without exposing an absolute path', async () => {
@@ -139,7 +176,7 @@ describe('handleClassifierRequest', () => {
     assert.equal(response.statusCode, 500);
     assert.deepEqual(response.body, {
       error: 'Internal Server Error',
-      message: 'Artifact could not be read',
+      message: 'Artifact could not be read'
     });
     assert.equal(response.rawBody.includes(testRoot), false);
   });
@@ -152,7 +189,7 @@ describe('handleClassifierRequest', () => {
     assert.equal(response.statusCode, 500);
     assert.deepEqual(response.body, {
       error: 'Internal Server Error',
-      message: 'Artifact validation failed',
+      message: 'Artifact validation failed'
     });
     assert.equal(response.rawBody.includes(testRoot), false);
   });
@@ -161,7 +198,10 @@ describe('handleClassifierRequest', () => {
     const response = await request(`/api/classifier/%2E%2E%2Fetc/${ARTIFACT_ID}`);
 
     assert.equal(response.statusCode, 400);
-    assert.deepEqual(response.body, { error: 'Bad Request', message: 'Invalid source_id format' });
+    assert.deepEqual(response.body, {
+      error: 'Bad Request',
+      message: 'Invalid source_id format'
+    });
     assert.equal(response.rawBody.includes(testRoot), false);
     assert.equal(response.rawBody.includes(tmpdir()), false);
   });

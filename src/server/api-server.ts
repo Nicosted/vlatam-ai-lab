@@ -2,10 +2,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import path from 'node:path';
 
-import {
-  type ClassifierApprovedArtifactExport,
-  validateExportArtifact,
-} from '../contracts/vlatam-global-bridge.js';
+import { type ClassifierApprovedArtifactExport, validateExportArtifact } from '../contracts/vlatam-global-bridge.js';
 
 export interface ApiRequest {
   method: string;
@@ -44,8 +41,21 @@ export async function handleClassifierRequest(
   res: ServerResponse,
   options?: ApiServerOptions
 ): Promise<void> {
+  // Health check endpoint. Keep the response intentionally free of internal state.
+  if (req.url === '/health' && req.method === 'GET') {
+    sendJson(res, 200, {
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      version: '1.0.0'
+    });
+    return;
+  }
+
   if (req.method !== 'GET') {
-    sendJson(res, 405, { error: 'Method Not Allowed', message: 'Only GET is supported' });
+    sendJson(res, 405, {
+      error: 'Method Not Allowed',
+      message: 'Only GET is supported'
+    });
     return;
   }
 
@@ -66,11 +76,17 @@ export async function handleClassifierRequest(
   const artifactId = urlParts[3];
 
   if (sourceId === undefined || !SOURCE_ID_REGEX.test(sourceId)) {
-    sendJson(res, 400, { error: 'Bad Request', message: 'Invalid source_id format' });
+    sendJson(res, 400, {
+      error: 'Bad Request',
+      message: 'Invalid source_id format'
+    });
     return;
   }
   if (artifactId === undefined || !ARTIFACT_ID_REGEX.test(artifactId)) {
-    sendJson(res, 400, { error: 'Bad Request', message: 'Invalid artifact_id format' });
+    sendJson(res, 400, {
+      error: 'Bad Request',
+      message: 'Invalid artifact_id format'
+    });
     return;
   }
 
@@ -85,7 +101,10 @@ export async function handleClassifierRequest(
   }
 
   if (!existsSync(filePath)) {
-    sendJson(res, 404, { error: 'Not Found', message: 'Export artifact not found' });
+    sendJson(res, 404, {
+      error: 'Not Found',
+      message: 'Export artifact not found'
+    });
     return;
   }
 

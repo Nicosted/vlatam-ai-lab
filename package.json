@@ -21,7 +21,7 @@
     "sync:kv": "tsx scripts/sync-kv.ts",
     "dev:worker": "wrangler dev",
     "deploy:worker": "wrangler deploy",
-    "build": "tsc --noEmit",
+    "build": "tsc -p tsconfig.build.json",
     "agents:snapshot-writer": "tsx src/cli/snapshot-writer.ts",
     "agents:source-monitor": "tsx src/cli/source-monitor.ts",
     "agents:delta-analyzer": "tsx src/cli/delta-analyzer.ts",
