@@ -8,7 +8,9 @@ import {
   DEFAULT_REGULATORY_REVIEW_AREA_IDS,
   buildRegulatoryAdvisoryReadinessView,
   classifySourceCoverage,
+  type AdvisorySourceRecord,
   type RegulatoryAdvisoryReadinessBuildInput,
+  type RegulatoryReviewAreaId,
 } from '../../src/advisory/regulatory-advisory-read-model.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -23,6 +25,88 @@ const fixturePath = resolve(
 
 function loadFixture(): RegulatoryAdvisoryReadinessBuildInput {
   return JSON.parse(readFileSync(fixturePath, 'utf-8')) as RegulatoryAdvisoryReadinessBuildInput;
+}
+
+function approvedSourceForReviewArea(
+  areaId: RegulatoryReviewAreaId,
+  index: number,
+  reviewAreaWithoutEvidence?: RegulatoryReviewAreaId
+): AdvisorySourceRecord {
+  const sourceId = `positive-control-source-${index}`;
+  const isOfficialSource = index === 0;
+  const evidenceRefs =
+    areaId === reviewAreaWithoutEvidence ? [] : [`reports/reviewed-evidence/${areaId}.md`];
+
+  return {
+    source_ref: `snapshots/pcram/positive-control-${areaId}.json`,
+    source_id: sourceId,
+    jurisdiction_codes: ['AR', 'ES', 'EU', 'GLOBAL'],
+    review_area_ids: [areaId],
+    ...(evidenceRefs.length > 0 && { evidence_refs: evidenceRefs }),
+    internal_review_status: 'approved',
+    registry: {
+      source_id: sourceId,
+      source_name: `Positive control source for ${areaId}`,
+      ...(isOfficialSource && {
+        authority_level: 'official',
+        verification_status: 'verified_official',
+        source_locator: 'manual/local/reviewed-official-positive-control',
+      }),
+      freshness_status: 'current',
+      human_review_required: true,
+      downstream_allowed: true,
+    },
+    snapshot: {
+      snapshot_id: `positive-control-snapshot-${index}`,
+      source_id: sourceId,
+      capture_method: 'manual',
+      source_locator: 'manual/local/reviewed-positive-control',
+      freshness_status: 'current',
+      review_status: 'approved',
+      extraction_status: 'extracted',
+      human_review_required: true,
+      downstream_allowed: true,
+    },
+  };
+}
+
+function approvedPositiveControlInput(
+  reviewAreaWithoutEvidence?: RegulatoryReviewAreaId
+): RegulatoryAdvisoryReadinessBuildInput {
+  return {
+    fixture_status: 'approved',
+    generated_at: '2026-07-01T00:00:00.000Z',
+    use_case: {
+      origin_country: {
+        code: 'AR',
+        name: 'Argentina',
+        kind: 'country',
+      },
+      destination: {
+        countries: [
+          {
+            code: 'ES',
+            name: 'Spain',
+            kind: 'country',
+          },
+        ],
+        blocs: [
+          {
+            code: 'EU',
+            name: 'European Union',
+            kind: 'bloc',
+          },
+        ],
+      },
+      product_family: 'positive-control reviewed advisory product',
+      hs_ncm_code: '3808.99.99',
+      requested_language: 'en',
+    },
+    required_review_area_ids: DEFAULT_REGULATORY_REVIEW_AREA_IDS,
+    source_records: DEFAULT_REGULATORY_REVIEW_AREA_IDS.map((areaId, index) =>
+      approvedSourceForReviewArea(areaId, index, reviewAreaWithoutEvidence)
+    ),
+  };
 }
 
 describe('regulatory advisory read-model — Argentina to Spain/EU agrochemical readiness', () => {
@@ -104,5 +188,57 @@ describe('regulatory advisory read-model — Argentina to Spain/EU agrochemical 
     assert.equal(view.downstream_allowed, false);
     assert.ok(view.uncertainty_notes.some((note) => note.includes('does not emit a final legal')));
     assert.doesNotMatch(serialized, /\b(client may export|client can export|export is allowed|customs clearance is allowed)\b/);
+  });
+
+  it('allows downstream only when all required areas are approved and evidence-backed', () => {
+    const view = buildRegulatoryAdvisoryReadinessView(approvedPositiveControlInput());
+
+    assert.equal(view.downstream_allowed, true);
+    assert.equal(view.source_coverage_summary.classifications.reviewed_official, 1);
+    assert.equal(
+      view.source_coverage_summary.classifications.reviewed_internal,
+      DEFAULT_REGULATORY_REVIEW_AREA_IDS.length - 1
+    );
+    assert.equal(view.source_coverage_summary.classifications.sample_only, 0);
+    assert.equal(view.source_coverage_summary.classifications.stale, 0);
+    assert.equal(view.source_coverage_summary.classifications.unverified, 0);
+    assert.equal(view.source_coverage_summary.classifications.missing, 0);
+    assert.equal(view.source_coverage_summary.classifications.requires_human_review, 0);
+    assert.deepEqual(view.source_coverage_summary.missing_jurisdiction_codes, []);
+    assert.deepEqual(view.missing_or_unreviewed_inputs, []);
+    assert.equal(view.confirmed_reviewed_inputs.length, DEFAULT_REGULATORY_REVIEW_AREA_IDS.length);
+    assert.equal(view.evidence_refs.length, DEFAULT_REGULATORY_REVIEW_AREA_IDS.length);
+    assert.ok(
+      view.advisory_checklist.every(
+        (item) =>
+          item.status === 'covered_by_reviewed_evidence' &&
+          (item.coverage === 'reviewed_official' || item.coverage === 'reviewed_internal') &&
+          item.evidence_refs.length > 0
+      )
+    );
+  });
+
+  it('blocks downstream when one required area loses reviewed evidence', () => {
+    const reviewAreaWithoutEvidence =
+      DEFAULT_REGULATORY_REVIEW_AREA_IDS[DEFAULT_REGULATORY_REVIEW_AREA_IDS.length - 1];
+    if (reviewAreaWithoutEvidence === undefined) {
+      throw new Error('Expected at least one default regulatory review area');
+    }
+
+    const view = buildRegulatoryAdvisoryReadinessView(
+      approvedPositiveControlInput(reviewAreaWithoutEvidence)
+    );
+
+    assert.equal(view.downstream_allowed, false);
+    assert.equal(view.missing_or_unreviewed_inputs.length, 1);
+    assert.equal(view.source_coverage_summary.classifications.requires_human_review, 1);
+    assert.equal(view.source_coverage_summary.classifications.sample_only, 0);
+    assert.equal(view.source_coverage_summary.classifications.stale, 0);
+    assert.equal(view.source_coverage_summary.classifications.unverified, 0);
+
+    const missingInput = view.missing_or_unreviewed_inputs[0];
+    assert.ok(missingInput);
+    assert.equal(missingInput.review_area_id, reviewAreaWithoutEvidence);
+    assert.equal(missingInput.coverage, 'requires_human_review');
   });
 });

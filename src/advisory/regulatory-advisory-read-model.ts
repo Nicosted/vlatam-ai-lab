@@ -178,6 +178,11 @@ export interface AdvisorySourceSnapshotRecord {
   readonly downstream_allowed?: boolean;
 }
 
+// Read-model callers may embed source records for tests or small fixtures, but
+// these inputs are not canonical storage and must not become a parallel source
+// registry. Future advisory inputs should be resolved from PCRAM source
+// registry, snapshots, evidence, review manifests, jurisdiction packs, and
+// approved KB snapshots before this pure assembler is called.
 export interface AdvisorySourceRecord {
   readonly source_ref: string;
   readonly source_id: string;

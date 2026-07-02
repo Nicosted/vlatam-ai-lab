@@ -48,6 +48,17 @@ sample-only or unreviewed, freshness is stale or unknown, jurisdiction coverage
 is incomplete, product classification is missing or uncertain, or required
 review areas lack reviewed evidence references.
 
+Embedded `source_records` in advisory fixtures or tests are read-model input
+convenience only. They must not become a parallel source registry or a shortcut
+around PCRAM. Future PRs should resolve advisory inputs from canonical PCRAM
+records: source registry entries, source snapshots, evidence, review manifests,
+jurisdiction packs, and approved KB snapshots.
+
+This PR intentionally does not expose advisory output through the export/API
+boundary. vLatam Global should only receive advisory material through a later
+reviewed export/API contract once the relevant evidence and approval gates are
+defined and passed.
+
 ## Argentina To Spain/EU Agrochemical Case
 
 The first fixture is:
