@@ -1,0 +1,213 @@
+{
+  "fixture_id": "regulatory-advisory-readiness-ar-es-eu-ecological-biological-agrochemical",
+  "fixture_status": "pending_review",
+  "review_status": "pending_review",
+  "downstream_allowed": false,
+  "generated_at": "2026-07-01T00:00:00.000Z",
+  "use_case": {
+    "origin_country": {
+      "code": "AR",
+      "name": "Argentina",
+      "kind": "country"
+    },
+    "destination": {
+      "countries": [
+        {
+          "code": "ES",
+          "name": "Spain",
+          "kind": "country"
+        }
+      ],
+      "blocs": [
+        {
+          "code": "EU",
+          "name": "European Union",
+          "kind": "bloc"
+        }
+      ]
+    },
+    "product_family": "ecological-biological agrochemical products",
+    "hs_ncm_code": null,
+    "requested_language": "en"
+  },
+  "required_review_area_ids": [
+    "hs_ncm_classification_dependency",
+    "argentina_export_requirements",
+    "argentina_customs_export_documentation",
+    "senasa_or_relevant_argentine_authority_review",
+    "spain_import_customs_requirements",
+    "eu_market_access_requirements",
+    "eu_product_classification_uncertainty",
+    "reach_clp_or_chemical_compliance_screening",
+    "organic_ecological_biological_claim_validation",
+    "labeling_and_safety_documentation",
+    "certificates_registrations_licenses_permits",
+    "restricted_substances_active_ingredients_review",
+    "sds_technical_sheet_composition_documentation",
+    "incoterms_and_logistics_assumptions",
+    "human_expert_review_before_client_recommendation"
+  ],
+  "source_records": [
+    {
+      "source_ref": "snapshots/pcram/intelligence-source-registry-wco-hs-2022-official.json",
+      "source_id": "wco-hs-2022-edition",
+      "jurisdiction_codes": ["GLOBAL"],
+      "review_area_ids": ["hs_ncm_classification_dependency"],
+      "registry": {
+        "source_id": "wco-hs-2022-edition",
+        "source_name": "WCO Harmonized System Nomenclature 2022 Edition",
+        "source_type": "wco_hs_reference",
+        "authority_level": "official",
+        "reliability_level": "high",
+        "jurisdiction_scope": "global",
+        "topic_scope": ["hs_nomenclature", "hs_2022_edition", "tariff_classification"],
+        "source_locator": "https://www.wcoomd.org/en/topics/nomenclature/instrument-and-tools/hs-nomenclature-2022-edition.aspx",
+        "verification_status": "verified_official",
+        "freshness_status": "requires_review",
+        "human_review_required": true,
+        "downstream_allowed": false
+      }
+    },
+    {
+      "source_ref": "snapshots/pcram/intelligence-source-registry-mercosur-ncm-aec-official.json",
+      "source_id": "mercosur-ncm-aec",
+      "jurisdiction_codes": ["MERCOSUR"],
+      "review_area_ids": ["hs_ncm_classification_dependency", "argentina_export_requirements"],
+      "registry": {
+        "source_id": "mercosur-ncm-aec",
+        "source_name": "MERCOSUR Common Nomenclature (NCM) and Common External Tariff (AEC) Official Reference",
+        "source_type": "mercosur_norm",
+        "authority_level": "official",
+        "reliability_level": "high",
+        "jurisdiction_scope": "regional",
+        "regional_scope": "MERCOSUR",
+        "topic_scope": ["regional_nomenclature", "ncm", "common_external_tariff", "mercosur_norms"],
+        "source_locator": "https://www.mercosur.int/",
+        "verification_status": "verified_official",
+        "freshness_status": "requires_review",
+        "human_review_required": true,
+        "downstream_allowed": false
+      }
+    },
+    {
+      "source_ref": "snapshots/pcram/intelligence-source-registry-ar-decreto-557-2023-official.json",
+      "source_id": "ar-decreto-557-2023",
+      "jurisdiction_codes": ["AR"],
+      "review_area_ids": [
+        "hs_ncm_classification_dependency",
+        "argentina_export_requirements",
+        "argentina_customs_export_documentation"
+      ],
+      "registry": {
+        "source_id": "ar-decreto-557-2023",
+        "source_name": "Argentina Decreto 557/2023 - NCM adjusted to the VII Amendment of the Harmonized System",
+        "source_type": "ncm_reference",
+        "authority_level": "official",
+        "reliability_level": "high",
+        "jurisdiction_scope": "national",
+        "country_code": "AR",
+        "topic_scope": ["ncm_tariff", "common_external_tariff", "export_refunds", "hs_amendment_vii"],
+        "source_locator": "https://www.boletinoficial.gob.ar/",
+        "verification_status": "verified_official",
+        "freshness_status": "requires_review",
+        "human_review_required": true,
+        "downstream_allowed": false
+      },
+      "snapshot": {
+        "snapshot_id": "snapshot-ar-decreto-557-2023-2026-06-06t000000z",
+        "source_id": "ar-decreto-557-2023",
+        "capture_method": "manual",
+        "source_locator": "https://www.boletinoficial.gob.ar/",
+        "content_reference": "manual/local/requires-verification: Boletin Oficial portal recorded by hand; Decreto 557/2023 text not downloaded or ingested.",
+        "freshness_status": "requires_review",
+        "review_status": "not_reviewed",
+        "extraction_status": "not_started",
+        "human_review_required": true,
+        "downstream_allowed": false
+      }
+    },
+    {
+      "source_ref": "snapshots/pcram/intelligence-source-registry-ar-arca-arancel-official.json",
+      "source_id": "ar-arca-arancel-integrado",
+      "jurisdiction_codes": ["AR"],
+      "review_area_ids": [
+        "hs_ncm_classification_dependency",
+        "argentina_export_requirements",
+        "argentina_customs_export_documentation",
+        "certificates_registrations_licenses_permits"
+      ],
+      "registry": {
+        "source_id": "ar-arca-arancel-integrado",
+        "source_name": "ARCA (ex-AFIP) Arancel Integrado y Sufijos de Valor Reference",
+        "source_type": "customs_authority",
+        "authority_level": "official",
+        "reliability_level": "high",
+        "jurisdiction_scope": "national",
+        "country_code": "AR",
+        "topic_scope": ["arancel_integrado", "ncm_tariff", "valuation_suffixes", "customs_authority"],
+        "source_locator": "https://www.arca.gob.ar/",
+        "verification_status": "verified_official",
+        "freshness_status": "requires_review",
+        "human_review_required": true,
+        "downstream_allowed": false
+      },
+      "snapshot": {
+        "snapshot_id": "snapshot-ar-arca-arancel-integrado-2026-06-06t000000z",
+        "source_id": "ar-arca-arancel-integrado",
+        "capture_method": "manual",
+        "source_locator": "https://www.arca.gob.ar/",
+        "content_reference": "manual/local/requires-verification: ARCA portal recorded by hand; Arancel Integrado data not downloaded or ingested.",
+        "freshness_status": "requires_review",
+        "review_status": "not_reviewed",
+        "extraction_status": "not_started",
+        "human_review_required": true,
+        "downstream_allowed": false
+      }
+    },
+    {
+      "source_ref": "snapshots/pcram/intelligence-source-registry-ar-sectoral-placeholder-candidate.json",
+      "source_id": "ar-sectoral-source-placeholder-candidate",
+      "jurisdiction_codes": ["AR"],
+      "review_area_ids": [
+        "senasa_or_relevant_argentine_authority_review",
+        "certificates_registrations_licenses_permits",
+        "restricted_substances_active_ingredients_review"
+      ],
+      "registry": {
+        "source_id": "ar-sectoral-source-placeholder-candidate",
+        "source_name": "Argentina Sectoral Source Placeholder Candidate",
+        "source_type": "sectoral_regulator",
+        "authority_level": "unknown",
+        "reliability_level": "unknown",
+        "jurisdiction_scope": "national",
+        "country_code": "AR",
+        "topic_scope": ["sectoral_requirements", "import_permits", "source_candidate"],
+        "source_locator": "sample://argentina/sectoral-source-placeholder-candidate",
+        "verification_status": "unverified_sample",
+        "freshness_status": "requires_review",
+        "human_review_required": true,
+        "downstream_allowed": false
+      },
+      "snapshot": {
+        "snapshot_id": "snapshot-ar-sectoral-placeholder-candidate-2026-06-12t000000z",
+        "source_id": "ar-sectoral-source-placeholder-candidate",
+        "capture_method": "local_fixture",
+        "source_locator": "sample://argentina/sectoral-source-placeholder-candidate",
+        "content_reference": "manual/local/requires-verification: optional sectoral placeholder only; no official source selected.",
+        "freshness_status": "requires_review",
+        "review_status": "not_reviewed",
+        "extraction_status": "not_started",
+        "human_review_required": true,
+        "downstream_allowed": false
+      }
+    }
+  ],
+  "limitations": [
+    "Draft readiness fixture only; it is not a legal, customs, tariff, sanitary, chemical, fertilizer, pesticide, organic, phytosanitary, REACH/CLP, labeling, or EU market access conclusion.",
+    "Spain and European Union source coverage is missing in this fixture.",
+    "HS/NCM classification is missing and must not be guessed from the product family.",
+    "No reviewed evidence refs are attached to any required review area.",
+    "Human expert review is mandatory before any client-facing recommendation."
+  ],
+  "schema_version": "1.0.0"
+}
