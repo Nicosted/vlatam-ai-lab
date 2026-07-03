@@ -98,7 +98,7 @@ async function request(requestPath: string, options: RequestOptions = {}): Promi
   return {
     statusCode,
     contentType,
-    body: JSON.parse(rawBody) as unknown,
+    body: contentType === 'application/json' ? (JSON.parse(rawBody) as unknown) : rawBody,
     rawBody,
     headers: responseHeaders
   };
@@ -145,6 +145,27 @@ describe('handleClassifierRequest', () => {
     const response = await request('/health', { apiKey: null });
 
     assert.equal(response.statusCode, 200);
+  });
+
+  it('renders the regulatory research workspace page without requiring an API key', async () => {
+    const response = await request(
+      '/research/regulatory/ar-es-ecological-agrochemicals',
+      {
+        apiKey: null,
+      },
+    );
+
+    assert.equal(response.statusCode, 200);
+    assert.equal(response.contentType, 'text/html; charset=utf-8');
+    assert.match(response.rawBody, /Regulatory Research Workspace/);
+    assert.match(
+      response.rawBody,
+      /Export of ecological agrochemicals from Argentina to Spain/,
+    );
+    assert.match(response.rawBody, /This is a regulatory research workspace/);
+    assert.match(response.rawBody, /It is not final legal\/customs advice/);
+    assert.match(response.rawBody, /Missing Evidence/);
+    assert.match(response.rawBody, /professional review/);
   });
 
   it('returns 401 when the classifier API key is missing', async () => {

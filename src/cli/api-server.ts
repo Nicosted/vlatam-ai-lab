@@ -50,6 +50,7 @@ server.listen(port, () => {
   console.log('[api-server] ✓ Classifier Export API started');
   console.log(`[api-server]   port      : ${port}`);
   console.log('[api-server]   endpoint  : GET /api/classifier/:source_id/:artifact_id');
+  console.log('[api-server]   research  : GET /research/regulatory/ar-es-ecological-agrochemicals');
   console.log('[api-server]   health    : GET /health');
   console.log(`[api-server]   data_root : ${dataRoot}`);
 });
