@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import path from 'node:path';
 
+import { renderRegulatoryResearchWorkspaceHtml } from '../advisory/regulatory-research-workspace.js';
 import { type ClassifierApprovedArtifactExport, validateExportArtifact } from '../contracts/vlatam-global-bridge.js';
 
 export interface ApiRequest {
@@ -44,6 +45,11 @@ const rateLimitStore = new Map<string, RateLimitEntry>();
 function sendJson(res: ServerResponse, statusCode: number, body: unknown, headers: Record<string, string> = {}): void {
   res.writeHead(statusCode, { 'Content-Type': 'application/json', ...headers });
   res.end(JSON.stringify(body));
+}
+
+function sendHtml(res: ServerResponse, statusCode: number, body: string): void {
+  res.writeHead(statusCode, { 'Content-Type': 'text/html; charset=utf-8' });
+  res.end(body);
 }
 
 function sendInternalError(res: ServerResponse, message: string): void {
@@ -156,6 +162,12 @@ export async function handleClassifierRequest(
   }
 
   const pathname = req.url?.split('?', 1)[0] ?? '';
+
+  if (pathname === '/research/regulatory/ar-es-ecological-agrochemicals') {
+    sendHtml(res, 200, renderRegulatoryResearchWorkspaceHtml());
+    return;
+  }
+
   const urlParts = pathname.split('/').filter(Boolean);
 
   if (urlParts[0] !== 'api' || urlParts[1] !== 'classifier') {
