@@ -1,6 +1,19 @@
 {
   "contracts": [
     {
+      "contract_name": "ai_evaluation_suite",
+      "schema_file": "schemas/ai-evaluation-suite.schema.json",
+      "valid_fixture": "snapshots/evaluation/synthetic-suite.json",
+      "invalid_fixtures": ["snapshots/evaluation/invalid-suite-unknown-dimension.json"],
+      "test_file": "tests/evaluation/evaluation-schemas.test.ts",
+      "status": "implemented",
+      "purpose": "Versioned deterministic cases and dimensions for provider-neutral capability evaluation.",
+      "downstream_role": "Supplies replay-only evaluation configuration; it does not select or route profiles.",
+      "requires_human_review_semantics": false,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": false
+    },
+    {
       "contract_name": "ai_pricing", "schema_file": "schemas/ai-pricing.schema.json", "valid_fixture": "config/ai-pricing.json", "invalid_fixtures": [], "test_file": "tests/governance/catalogs.test.ts", "status": "implemented", "purpose": "Repository-owned fixed-point provider/model pricing evidence for AI-74.", "downstream_role": "Resolves execution cost metadata only; it is not customer billing.", "requires_human_review_semantics": false, "requires_traceability": true, "downstream_allowed_field_present": false
     },
     {
