@@ -2,7 +2,7 @@ export const EXECUTION_ERROR_CODES = [
   'UNKNOWN_PROVIDER', 'UNKNOWN_PROFILE', 'PROFILE_DISABLED', 'PROFILE_RETIRED',
   'PROFILE_CAPABILITY_MISMATCH', 'LIVE_EXECUTION_DISABLED', 'CREDENTIALS_UNAVAILABLE',
   'PROVIDER_RATE_LIMITED', 'PROVIDER_TIMEOUT', 'PROVIDER_UNAVAILABLE',
-  'PROVIDER_RESPONSE_INVALID', 'OUTPUT_SCHEMA_INVALID', 'EXECUTION_ABORTED',
+  'PROVIDER_RESPONSE_INVALID', 'REQUEST_SCHEMA_INVALID', 'OUTPUT_SCHEMA_INVALID', 'EXECUTION_ABORTED',
   'INTERNAL_EXECUTION_ERROR',
 ] as const;
 export type ExecutionErrorCode = (typeof EXECUTION_ERROR_CODES)[number];
@@ -23,6 +23,7 @@ const SAFE_MESSAGES: Record<ExecutionErrorCode, string> = {
   PROVIDER_TIMEOUT: 'The provider execution timed out.',
   PROVIDER_UNAVAILABLE: 'The provider is unavailable.',
   PROVIDER_RESPONSE_INVALID: 'The provider returned an invalid response.',
+  REQUEST_SCHEMA_INVALID: 'The capability request failed contract validation.',
   OUTPUT_SCHEMA_INVALID: 'The normalized output failed its contract.',
   EXECUTION_ABORTED: 'The execution was aborted.',
   INTERNAL_EXECUTION_ERROR: 'The execution failed safely.',
