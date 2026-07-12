@@ -17,6 +17,8 @@ export class ReplayProviderAdapter implements ProviderAdapter {
     if (profile.fixture_id === 'blocked') return { status: 'blocked', request_id: request.request_id, duration_ms: 1, finish_reason: 'blocked', error: executionError('PROVIDER_RESPONSE_INVALID') };
     const fixture = profile.fixture_id ? FIXTURES[profile.fixture_id] : undefined;
     if (!fixture) return { status: 'failed', request_id: request.request_id, duration_ms: 0, error: executionError('PROVIDER_RESPONSE_INVALID') };
-    return { ...fixture, request_id: request.request_id, status: 'succeeded' };
+    const fixtureOrigin = profile.privacy.replay_fixture_origin;
+    const usage = fixture.usage === undefined ? undefined : { ...fixture.usage, source: 'fixture' as const, ...(fixtureOrigin === 'synthetic' || fixtureOrigin === 'sanitized_recorded' ? { fixture_origin: fixtureOrigin } : {}) };
+    return { ...fixture, usage, request_id: request.request_id, status: 'succeeded' };
   }
 }
