@@ -1,0 +1,15 @@
+{
+  "schema_version": "1.0.0",
+  "request_id": "route-request",
+  "capability_id": "evidence.extraction.normative_claims",
+  "capability_request": {
+    "request_id": "capability-request",
+    "capability_id": "evidence.extraction.normative_claims",
+    "schema_version": "1.0.0",
+    "input": {},
+    "context": { "data_classification": "public", "jurisdiction": "AR" }
+  },
+  "execution_correlation_id": "route-execution",
+  "audit_correlation_id": "route-audit",
+  "budget_class": "development"
+}

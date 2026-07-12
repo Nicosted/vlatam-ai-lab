@@ -1,0 +1,136 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam.local/schemas/ai-profile-selection-policy.schema.json",
+  "title": "AI-78 profile selection policy v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "policy_id",
+    "policy_version",
+    "capability_id",
+    "permitted_lifecycle_states",
+    "required_benchmark_suites",
+    "required_ranking_policy",
+    "maximum_evidence_age_seconds",
+    "required_quality_gates",
+    "allowed_data_classifications",
+    "allowed_budget_classes",
+    "human_review"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "policy_id": { "$ref": "#/$defs/id" },
+    "policy_version": { "$ref": "#/$defs/semver" },
+    "capability_id": { "$ref": "#/$defs/id" },
+    "permitted_lifecycle_states": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "enum": ["production", "candidate", "shadow", "retired"] }
+    },
+    "required_benchmark_suites": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/ref" }
+    },
+    "required_ranking_policy": { "$ref": "#/$defs/ref" },
+    "maximum_evidence_age_seconds": { "type": "integer", "minimum": 0 },
+    "required_quality_gates": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/gate" }
+    },
+    "allowed_data_classifications": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "public",
+          "internal",
+          "confidential",
+          "regulated",
+          "restricted"
+        ]
+      }
+    },
+    "allowed_budget_classes": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "enum": ["development", "unclassified"] }
+    },
+    "required_budget_policy_refs": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/ref" }
+    },
+    "allowed_jurisdictions": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "allowed_regulatory_topics": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/id" }
+    },
+    "fallback": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["profile_id", "profile_version", "allowed_reasons"],
+      "properties": {
+        "profile_id": { "$ref": "#/$defs/id" },
+        "profile_version": { "$ref": "#/$defs/semver" },
+        "allowed_reasons": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "human_review": { "enum": ["required", "on_policy", "not_required"] },
+    "decision_ttl_seconds": { "type": "integer", "minimum": 1 }
+  },
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{1,127}$" },
+    "semver": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "version"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "version": { "$ref": "#/$defs/semver" }
+      }
+    },
+    "ratio": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["numerator", "denominator"],
+      "properties": {
+        "numerator": { "type": "integer", "minimum": 0 },
+        "denominator": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "gate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["gate_id", "type"],
+      "properties": {
+        "gate_id": { "$ref": "#/$defs/id" },
+        "type": {
+          "enum": [
+            "coverage_complete",
+            "no_blocked_or_rejected",
+            "minimum_score",
+            "dimension_perfect"
+          ]
+        },
+        "minimum_score": { "$ref": "#/$defs/ratio" },
+        "dimension_type": { "$ref": "#/$defs/id" }
+      }
+    }
+  }
+}
