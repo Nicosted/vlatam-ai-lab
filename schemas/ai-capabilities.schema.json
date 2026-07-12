@@ -1,0 +1,143 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/ai-capabilities.schema.json",
+  "title": "AI Capabilities Catalog",
+  "description": "Declarative inventory of AI capabilities for vlatam-ai-lab. Documentation-level; not a runtime registry.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "capabilities",
+    "allowed_status",
+    "allowed_risk_tier",
+    "allowed_provider_execution",
+    "allowed_human_review"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "schema_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "generated_by": {
+      "type": "string"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "description": {
+      "type": "string"
+    },
+    "allowed_status": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["existing", "partial", "planned", "out_of_scope"]
+      }
+    },
+    "allowed_risk_tier": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["low", "medium", "high"]
+      }
+    },
+    "allowed_provider_execution": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["required", "optional", "none"]
+      }
+    },
+    "allowed_human_review": {
+      "type": "array",
+      "items": {
+        "type": "boolean"
+      }
+    },
+    "capabilities": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "capability_id",
+          "name",
+          "domain",
+          "status",
+          "risk_tier",
+          "human_review",
+          "downstream_policy",
+          "provider_execution",
+          "roadmap_owner"
+        ],
+        "properties": {
+          "capability_id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+            "description": "Stable dotted identifier; never bound to a vendor or model."
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "domain": {
+            "type": "string",
+            "enum": [
+              "source",
+              "evidence",
+              "review",
+              "export",
+              "advisory",
+              "provider",
+              "governance",
+              "evaluation",
+              "routing"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": ["existing", "partial", "planned", "out_of_scope"]
+          },
+          "risk_tier": {
+            "type": "string",
+            "enum": ["low", "medium", "high"]
+          },
+          "human_review": {
+            "type": "boolean",
+            "description": "Whether the capability itself requires explicit human judgment. Mechanical or infrastructural capabilities may be false; regulated or interpretive capabilities must be true. Provider-adapter-layer capabilities are false because the calling capability carries the human-review requirement."
+          },
+          "downstream_policy": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["downstream_allowed", "reason"],
+            "properties": {
+              "downstream_allowed": {
+                "oneOf": [
+                  { "type": "boolean" },
+                  { "type": "string", "enum": ["conditional"] }
+                ]
+              },
+              "reason": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "provider_execution": {
+            "type": "string",
+            "enum": ["required", "optional", "none"]
+          },
+          "roadmap_owner": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  }
+}
