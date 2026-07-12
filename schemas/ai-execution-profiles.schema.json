@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/ai-execution-profiles.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "profiles"],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "profiles": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/profile" } }
+  },
+  "$defs": {
+    "profile": {
+      "type": "object", "additionalProperties": false,
+      "required": ["profile_id","capability_id","provider_id","model_id","mode","lifecycle_status","enabled","contract_version","configuration","eligibility"],
+      "properties": {
+        "profile_id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]+$" },
+        "capability_id": { "type": "string", "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$" },
+        "provider_id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]+$" },
+        "model_id": { "type": "string", "minLength": 1 },
+        "mode": { "enum": ["replay", "live"] },
+        "lifecycle_status": { "enum": ["production", "candidate", "shadow", "retired"] },
+        "enabled": { "type": "boolean" },
+        "contract_version": { "type": "string", "pattern": "^1\\.\\d+\\.\\d+$" },
+        "provider_configuration_ref": { "type": "string", "pattern": "^[A-Z0-9_]+$" },
+        "fixture_id": { "type": "string", "minLength": 1 },
+        "configuration": { "type": "object", "additionalProperties": false, "required": ["timeout_ms","response_format"], "properties": { "temperature": { "type": "number", "minimum": 0, "maximum": 2 }, "max_output_tokens": { "type": "integer", "minimum": 1 }, "timeout_ms": { "type": "integer", "minimum": 1, "maximum": 120000 }, "response_format": { "const": "json" } } },
+        "eligibility": { "type": "object", "additionalProperties": false, "required": ["privacy_compatibility","budget_class","evaluation_status"], "properties": { "privacy_compatibility": { "const": "declared_not_enforced" }, "budget_class": { "enum": ["development","unclassified"] }, "evaluation_status": { "enum": ["not_evaluated","fixture_verified"] } } }
+      }
+    }
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "schema_version": "1.0.0",
+  "profiles": [
+    {
+      "profile_id": "normative-claims.replay.v1",
+      "capability_id": "evidence.extraction.normative_claims",
+      "provider_id": "replay",
+      "model_id": "recorded-qwen-demo-v1",
+      "mode": "replay",
+      "lifecycle_status": "candidate",
+      "enabled": true,
+      "contract_version": "1.0.0",
+      "configuration": { "temperature": 0, "max_output_tokens": 2048, "timeout_ms": 5000, "response_format": "json" },
+      "eligibility": { "privacy_compatibility": "declared_not_enforced", "budget_class": "development", "evaluation_status": "fixture_verified" },
+      "fixture_id": "normative-claims-success"
+    },
+    {
+      "profile_id": "normative-claims.deepseek.v1",
+      "capability_id": "evidence.extraction.normative_claims",
+      "provider_id": "deepseek-openai-compatible",
+      "model_id": "deepseek-chat",
+      "mode": "live",
+      "lifecycle_status": "candidate",
+      "enabled": false,
+      "contract_version": "1.0.0",
+      "configuration": { "temperature": 0.1, "max_output_tokens": 2048, "timeout_ms": 30000, "response_format": "json" },
+      "provider_configuration_ref": "AI_LAB_DEEPSEEK",
+      "eligibility": { "privacy_compatibility": "declared_not_enforced", "budget_class": "unclassified", "evaluation_status": "not_evaluated" }
+    },
+    {
+      "profile_id": "normative-claims.dashscope.v1",
+      "capability_id": "evidence.extraction.normative_claims",
+      "provider_id": "dashscope-openai-compatible",
+      "model_id": "qwen-plus",
+      "mode": "live",
+      "lifecycle_status": "candidate",
+      "enabled": false,
+      "contract_version": "1.0.0",
+      "configuration": { "temperature": 0.1, "max_output_tokens": 2048, "timeout_ms": 30000, "response_format": "json" },
+      "provider_configuration_ref": "AI_LAB_DASHSCOPE",
+      "eligibility": { "privacy_compatibility": "declared_not_enforced", "budget_class": "unclassified", "evaluation_status": "not_evaluated" }
+    }
+  ]
+}
