@@ -20,7 +20,6 @@
     "profile_hash",
     "ranking_position",
     "evidence_created_at",
-    "review",
     "supersession_status"
   ],
   "properties": {
@@ -51,7 +50,7 @@
       "properties": {
         "attestation_id": { "$ref": "#/$defs/id" },
         "reviewer_role": { "$ref": "#/$defs/id" },
-        "decision": { "enum": ["approved", "rejected"] },
+        "decision": { "enum": ["approved", "pending", "rejected"] },
         "reviewed_at": { "type": "string", "format": "date-time" }
       }
     },

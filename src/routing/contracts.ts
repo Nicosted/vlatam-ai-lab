@@ -18,7 +18,9 @@ export type RoutingDecisionStatus =
 export type RoutingReasonCode =
   | "REVIEWED_WINNER_ELIGIBLE"
   | "FALLBACK_ELIGIBLE"
-  | "HUMAN_REVIEW_REQUIRED"
+  | "REVIEW_REQUIRED"
+  | "REVIEW_REJECTED"
+  | "REVIEWER_ROLE_UNAUTHORIZED"
   | "SCHEMA_OR_POLICY_INVALID"
   | "CAMPAIGN_NOT_COMPLETED"
   | "WINNER_NOT_UNIQUE"
@@ -30,6 +32,7 @@ export type RoutingReasonCode =
   | "PROFILE_INELIGIBLE"
   | "PRIVACY_INCOMPATIBLE"
   | "BUDGET_CLASS_INCOMPATIBLE"
+  | "BUDGET_POLICY_INCOMPATIBLE"
   | "JURISDICTION_INCOMPATIBLE"
   | "QUALITY_GATES_UNPROVEN"
   | "FALLBACK_NOT_ALLOWED"
@@ -42,7 +45,7 @@ export interface VersionedPolicyRef {
 export interface HumanReviewAttestation {
   readonly attestation_id: string;
   readonly reviewer_role: string;
-  readonly decision: "approved" | "rejected";
+  readonly decision: "approved" | "pending" | "rejected";
   readonly reviewed_at: string;
 }
 export interface ReviewedBenchmarkEvidenceReference {
@@ -61,7 +64,7 @@ export interface ReviewedBenchmarkEvidenceReference {
   readonly profile_hash: string;
   readonly ranking_position: number;
   readonly evidence_created_at: string;
-  readonly review: HumanReviewAttestation;
+  readonly review?: HumanReviewAttestation;
   readonly supersession_status: "current" | "superseded";
 }
 export interface FallbackPolicy {
@@ -82,6 +85,7 @@ export interface ProfileSelectionPolicy {
   readonly allowed_data_classifications: readonly DataClassification[];
   readonly allowed_budget_classes: readonly ExecutionProfile["eligibility"]["budget_class"][];
   readonly required_budget_policy_refs?: readonly VersionedPolicyRef[];
+  readonly allowed_reviewer_roles?: readonly string[];
   readonly allowed_jurisdictions?: readonly string[];
   readonly allowed_regulatory_topics?: readonly string[];
   readonly fallback?: FallbackPolicy;

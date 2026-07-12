@@ -64,8 +64,28 @@
     },
     {
       "id": "human-review-required",
-      "mutation": "review rejected+policy requires review",
+      "mutation": "review pending+policy requires review",
       "expected": "human_review_required"
+    },
+    {
+      "id": "review-rejected",
+      "mutation": "review decision=rejected",
+      "expected": "rejected"
+    },
+    {
+      "id": "budget-policy-mismatch",
+      "mutation": "required budget policy ref differs from campaign",
+      "expected": "blocked"
+    },
+    {
+      "id": "future-evidence",
+      "mutation": "evidence_created_at is one millisecond after router clock",
+      "expected": "blocked"
+    },
+    {
+      "id": "unauthorized-reviewer-role",
+      "mutation": "reviewer_role absent from allowed_reviewer_roles",
+      "expected": "blocked"
     }
   ]
 }

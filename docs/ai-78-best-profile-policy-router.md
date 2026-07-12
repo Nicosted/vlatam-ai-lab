@@ -8,17 +8,17 @@ Canonical profile identity is always `profile_id@profile_version`. The router re
 
 ## Human-review boundary
 
-AI-77 ranking is evidence, not authorization. The reviewed evidence reference binds reviewer role, decision, review timestamp, and attestation ID. Missing, malformed, rejected, or time-inconsistent attestations fail closed. A policy that requires review returns `human_review_required` instead of selecting a fallback when reviewed authorization is unavailable. Production activation remains a separate future human-controlled operational action.
+AI-77 ranking is evidence, not authorization. The policy declares unique `allowed_reviewer_roles`; this list is mandatory and non-empty for `required` and `on_policy` review. Role identifiers are metadata-only categories, not personal identities. Approved review may proceed; missing or pending review returns `human_review_required` with `REVIEW_REQUIRED`; explicit rejection returns `rejected` with `REVIEW_REJECTED`. Invalid attestations and unauthorized roles fail closed with distinct reasons. None of these terminal review failures may fallback.
 
 ## Eligibility and fallback
 
-Quality gates reuse AI-77 gate shapes and are proven directly against the winning `ProfileSummary`; rankings are never recomputed. Privacy eligibility calls the public AI-73 `PrivacyEnforcer` with the existing capability definition and exact execution profile. Budget eligibility checks the profile's public AI-74 budget class and versioned policy references only; it does not price, reserve, reconcile, or enforce execution-time limits.
+Quality gates reuse AI-77 gate shapes and are proven directly against the winning `ProfileSummary`; rankings are never recomputed. Privacy eligibility calls the public AI-73 `PrivacyEnforcer`. Budget class remains independent. When `required_budget_policy_refs` is configured, the campaign must bind an exact allowed ID/version; missing or incompatible references fail as `BUDGET_POLICY_INCOMPATIBLE`. No pricing, reservation, reconciliation, or execution-time enforcement is added.
 
-Fallback is opt-in. The policy must name its exact canonical profile and allowed reasons. The fallback must independently satisfy registry, capability, lifecycle, enabled, contract, privacy, budget-class, jurisdiction, and topic constraints. Privacy failures, evidence-integrity failures, schema/policy failures, identity conflicts, and human-review-required policies never fallback. A missing or ineligible configured fallback blocks.
+Fallback is opt-in. The policy must name its exact canonical profile and unique allowed reasons. Review rejection, attestation failure, unauthorized roles, privacy failure, evidence-integrity failure, schema/policy failure, and identity conflicts never fallback. Budget-policy incompatibility may fallback only when explicitly allowed and the fallback independently qualifies.
 
 ## Determinism, audit, and integration
 
-Policy and decision hashes use the AI-75 canonical normalization/hash helper. With an injected clock and ID source, identical inputs produce identical decision artifacts. Audit events contain only event IDs/types, timestamps, capability/request identifiers, canonical profile keys, reason codes, and correlation IDs. Prompts, raw benchmark data, credentials, personal data, provider secrets, and execution context are excluded and checked by `assertRoutingAuditMetadataOnly`.
+Timestamp checks use deterministic milliseconds against the injected clock. Invalid/future timestamps, review-before-evidence ordering, and stale evidence fail closed; exact-now and exact-maximum-age boundaries pass. Set-like policy arrays are normalized before hashing, so equivalent input ordering produces the same decision hash. Direct calls also validate nested IDs/versions, duplicate references/reasons, quality-gate field coherence, reviewer-role coherence, request correlations, and evidence fields before profile resolution. Audit remains metadata-only.
 
 `BestProfilePolicyRouter.route` is deliberately narrow and returns the artifact only. It does not call `MultiProviderGateway`, providers, or adapters; mutate registry state; persist a selection; change approved-artifact/export semantics; or edit deployment configuration. A future gateway integration may consume a reviewed decision explicitly, but AI-78 does not perform that activation.
 

@@ -27,6 +27,41 @@ import {
 const ID = /^[a-z0-9][a-z0-9._-]{1,127}$/;
 const SEMVER = /^\d+\.\d+\.\d+$/;
 const HASH = /^[a-f0-9]{64}$/;
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+const validRef = (value: unknown): value is { id: string; version: string } =>
+  isRecord(value) &&
+  ID.test(String(value.id)) &&
+  SEMVER.test(String(value.version));
+const refKey = (value: { id: string; version: string }) =>
+  `${value.id}@${value.version}`;
+const unique = (values: readonly string[]) =>
+  new Set(values).size === values.length;
+const validNonEmpty = (value: unknown) =>
+  typeof value === "string" && value.length > 0;
+const ROUTING_REASONS = new Set<RoutingReasonCode>([
+  "REVIEWED_WINNER_ELIGIBLE",
+  "FALLBACK_ELIGIBLE",
+  "REVIEW_REQUIRED",
+  "REVIEW_REJECTED",
+  "REVIEWER_ROLE_UNAUTHORIZED",
+  "SCHEMA_OR_POLICY_INVALID",
+  "CAMPAIGN_NOT_COMPLETED",
+  "WINNER_NOT_UNIQUE",
+  "EVIDENCE_INTEGRITY_FAILED",
+  "EVIDENCE_STALE",
+  "EVIDENCE_SUPERSEDED",
+  "REVIEW_ATTESTATION_INVALID",
+  "PROFILE_REFERENCE_CONFLICT",
+  "PROFILE_INELIGIBLE",
+  "PRIVACY_INCOMPATIBLE",
+  "BUDGET_CLASS_INCOMPATIBLE",
+  "BUDGET_POLICY_INCOMPATIBLE",
+  "JURISDICTION_INCOMPATIBLE",
+  "QUALITY_GATES_UNPROVEN",
+  "FALLBACK_NOT_ALLOWED",
+  "FALLBACK_INELIGIBLE",
+]);
 export interface PolicyRouterOptions {
   readonly profileResolver?: (
     ref: BenchmarkProfileRef,
@@ -55,12 +90,8 @@ export class BestProfilePolicyRouter {
   }
   route(input: RoutingInput): RoutingDecision {
     const now = this.clock();
+    const invalid = this.validatePolicyAndRequest(input);
     this.audit(input, "routing_evaluation_started");
-    const invalid = this.validatePolicyAndRequest(
-      input.policy,
-      input.request.capability_id,
-      input.request.capability_request.capability_id,
-    );
     if (invalid) return this.finish(input, "rejected", invalid, undefined, now);
     const evidenceError = this.validateEvidence(input, now);
     if (evidenceError) {
@@ -94,18 +125,6 @@ export class BestProfilePolicyRouter {
       eligibility.reason,
       benchmarkProfileKey(ref),
     );
-    if (
-      input.policy.human_review === "required" &&
-      input.evidence.review.decision !== "approved"
-    )
-      return this.finish(
-        input,
-        "human_review_required",
-        "HUMAN_REVIEW_REQUIRED",
-        undefined,
-        now,
-        eligibility,
-      );
     return this.finish(
       input,
       "selected",
@@ -116,28 +135,114 @@ export class BestProfilePolicyRouter {
     );
   }
   private validatePolicyAndRequest(
-    p: ProfileSelectionPolicy,
-    a: string,
-    b: string,
+    i: RoutingInput,
   ): RoutingReasonCode | undefined {
+    if (
+      !isRecord(i) ||
+      !isRecord(i.policy) ||
+      !isRecord(i.request) ||
+      !isRecord(i.request.capability_request)
+    )
+      return "SCHEMA_OR_POLICY_INVALID";
+    const p = i.policy;
+    const request = i.request;
+    const capabilityRequest = request.capability_request;
+    const suiteKeys = p.required_benchmark_suites?.map(refKey) ?? [];
+    const budgetKeys = p.required_budget_policy_refs?.map(refKey) ?? [];
+    const roles = p.allowed_reviewer_roles ?? [];
+    const requiresReview =
+      p.human_review === "required" || p.human_review === "on_policy";
+    const fallback = p.fallback;
     if (
       p.schema_version !== ROUTING_CONTRACT_VERSION ||
       !ID.test(p.policy_id) ||
       !SEMVER.test(p.policy_version) ||
-      p.capability_id !== a ||
-      a !== b ||
+      !ID.test(p.capability_id) ||
+      request.schema_version !== ROUTING_CONTRACT_VERSION ||
+      !validNonEmpty(request.request_id) ||
+      !validNonEmpty(request.execution_correlation_id) ||
+      !validNonEmpty(request.audit_correlation_id) ||
+      !validNonEmpty(request.budget_class) ||
+      request.capability_id !== p.capability_id ||
+      capabilityRequest.schema_version !== ROUTING_CONTRACT_VERSION ||
+      !validNonEmpty(capabilityRequest.request_id) ||
+      capabilityRequest.capability_id !== p.capability_id ||
+      !Array.isArray(p.permitted_lifecycle_states) ||
       !p.permitted_lifecycle_states.length ||
+      !Array.isArray(p.required_benchmark_suites) ||
       !p.required_benchmark_suites.length ||
+      !p.required_benchmark_suites.every(validRef) ||
+      !unique(suiteKeys) ||
+      !validRef(p.required_ranking_policy) ||
       !Number.isSafeInteger(p.maximum_evidence_age_seconds) ||
       p.maximum_evidence_age_seconds < 0 ||
+      !Array.isArray(p.required_quality_gates) ||
       !p.required_quality_gates.length ||
       new Set(p.required_quality_gates.map((gate) => gate.gate_id)).size !==
         p.required_quality_gates.length ||
+      !p.required_quality_gates.every((gate) => this.validQualityGate(gate)) ||
+      !Array.isArray(p.allowed_data_classifications) ||
       !p.allowed_data_classifications.length ||
+      !Array.isArray(p.allowed_budget_classes) ||
       !p.allowed_budget_classes.length
     )
       return "SCHEMA_OR_POLICY_INVALID";
+    if (
+      p.required_budget_policy_refs &&
+      (!p.required_budget_policy_refs.length ||
+        !p.required_budget_policy_refs.every(validRef) ||
+        !unique(budgetKeys))
+    )
+      return "SCHEMA_OR_POLICY_INVALID";
+    if (
+      requiresReview &&
+      (!roles.length || !roles.every((role) => ID.test(role)) || !unique(roles))
+    )
+      return "SCHEMA_OR_POLICY_INVALID";
+    if (
+      p.allowed_reviewer_roles &&
+      (!p.allowed_reviewer_roles.every((role) => ID.test(role)) ||
+        !unique(p.allowed_reviewer_roles))
+    )
+      return "SCHEMA_OR_POLICY_INVALID";
+    if (
+      fallback &&
+      (!ID.test(fallback.profile_id) ||
+        !SEMVER.test(fallback.profile_version) ||
+        !fallback.allowed_reasons.length ||
+        !unique(fallback.allowed_reasons) ||
+        !fallback.allowed_reasons.every((reason) =>
+          ROUTING_REASONS.has(reason),
+        ))
+    )
+      return "SCHEMA_OR_POLICY_INVALID";
     return undefined;
+  }
+  private validQualityGate(
+    gate: ProfileSelectionPolicy["required_quality_gates"][number],
+  ): boolean {
+    if (!isRecord(gate) || !ID.test(String(gate.gate_id))) return false;
+    if (gate.type === "minimum_score")
+      return (
+        isRecord(gate.minimum_score) &&
+        Number.isSafeInteger(gate.minimum_score.numerator) &&
+        gate.minimum_score.numerator >= 0 &&
+        Number.isSafeInteger(gate.minimum_score.denominator) &&
+        gate.minimum_score.denominator > 0 &&
+        gate.dimension_type === undefined
+      );
+    if (gate.type === "dimension_perfect")
+      return (
+        ID.test(String(gate.dimension_type)) && gate.minimum_score === undefined
+      );
+    if (
+      gate.type === "coverage_complete" ||
+      gate.type === "no_blocked_or_rejected"
+    )
+      return (
+        gate.minimum_score === undefined && gate.dimension_type === undefined
+      );
+    return false;
   }
   private validateEvidence(
     i: RoutingInput,
@@ -149,10 +254,19 @@ export class BestProfilePolicyRouter {
       policy: p,
     } = { evidence: i.evidence, result: i.campaign_result, policy: i.policy };
     if (
+      !isRecord(e) ||
+      !isRecord(r) ||
+      (!isRecord(e.review) && e.review !== undefined)
+    )
+      return "EVIDENCE_INTEGRITY_FAILED";
+    if (
       e.schema_version !== ROUTING_CONTRACT_VERSION ||
-      ![e.campaign_id, e.selected_profile_id, e.review.attestation_id].every(
-        ID.test.bind(ID),
-      ) ||
+      ![
+        e.campaign_id,
+        e.suite_id,
+        e.ranking_policy_id,
+        e.selected_profile_id,
+      ].every(ID.test.bind(ID)) ||
       ![
         e.campaign_version,
         e.suite_version,
@@ -161,22 +275,50 @@ export class BestProfilePolicyRouter {
       ].every(SEMVER.test.bind(SEMVER)) ||
       ![e.campaign_hash, e.suite_hash, e.profile_hash].every(
         HASH.test.bind(HASH),
-      )
+      ) ||
+      !validNonEmpty(e.campaign_execution_id) ||
+      e.ranking_position !== 1 ||
+      !["current", "superseded"].includes(e.supersession_status)
     )
       return "EVIDENCE_INTEGRITY_FAILED";
     if (r.status !== "completed") return "CAMPAIGN_NOT_COMPLETED";
     if (e.supersession_status !== "current") return "EVIDENCE_SUPERSEDED";
+    const evidenceCreated = Date.parse(e.evidence_created_at);
+    if (!Number.isFinite(evidenceCreated)) return "REVIEW_ATTESTATION_INVALID";
+    if (evidenceCreated > now.getTime()) return "REVIEW_ATTESTATION_INVALID";
+    const review = e.review;
+    if (review === undefined) return "REVIEW_REQUIRED";
     if (
-      e.review.decision !== "approved" ||
-      !Number.isFinite(Date.parse(e.review.reviewed_at)) ||
-      Date.parse(e.review.reviewed_at) < Date.parse(e.evidence_created_at)
+      !ID.test(review.attestation_id) ||
+      !ID.test(review.reviewer_role) ||
+      !["approved", "pending", "rejected"].includes(review.decision)
     )
       return "REVIEW_ATTESTATION_INVALID";
+    const reviewedAt = Date.parse(review.reviewed_at);
     if (
-      now.getTime() - Date.parse(e.evidence_created_at) >
-      p.maximum_evidence_age_seconds * 1000
+      !Number.isFinite(reviewedAt) ||
+      reviewedAt > now.getTime() ||
+      reviewedAt < evidenceCreated
     )
+      return "REVIEW_ATTESTATION_INVALID";
+    if (!p.allowed_reviewer_roles?.includes(review.reviewer_role))
+      return "REVIEWER_ROLE_UNAUTHORIZED";
+    if (review.decision === "pending") return "REVIEW_REQUIRED";
+    if (review.decision === "rejected") return "REVIEW_REJECTED";
+    if (now.getTime() - evidenceCreated > p.maximum_evidence_age_seconds * 1000)
       return "EVIDENCE_STALE";
+    if (p.required_budget_policy_refs) {
+      const campaignBudget = r.campaign?.budget_policy_ref;
+      if (
+        !campaignBudget ||
+        !p.required_budget_policy_refs.some(
+          (ref) =>
+            ref.id === campaignBudget.id &&
+            ref.version === campaignBudget.version,
+        )
+      )
+        return "BUDGET_POLICY_INCOMPATIBLE";
+    }
     if (
       r.campaign.campaign_id !== e.campaign_id ||
       r.campaign.campaign_version !== e.campaign_version ||
@@ -367,12 +509,19 @@ export class BestProfilePolicyRouter {
       "EVIDENCE_INTEGRITY_FAILED",
       "SCHEMA_OR_POLICY_INVALID",
       "PROFILE_REFERENCE_CONFLICT",
+      "REVIEW_REJECTED",
+      "REVIEW_ATTESTATION_INVALID",
+      "REVIEWER_ROLE_UNAUTHORIZED",
     ];
-    if (i.policy.human_review === "required")
+    if (
+      reason === "REVIEW_REQUIRED" &&
+      (i.policy.human_review === "required" ||
+        i.policy.human_review === "on_policy")
+    )
       return this.finish(
         i,
         "human_review_required",
-        "HUMAN_REVIEW_REQUIRED",
+        "REVIEW_REQUIRED",
         undefined,
         now,
       );
@@ -384,7 +533,9 @@ export class BestProfilePolicyRouter {
     )
       return this.finish(
         i,
-        reason === "SCHEMA_OR_POLICY_INVALID" ? "rejected" : "blocked",
+        reason === "SCHEMA_OR_POLICY_INVALID" || reason === "REVIEW_REJECTED"
+          ? "rejected"
+          : "blocked",
         reason,
         undefined,
         now,
@@ -430,7 +581,50 @@ export class BestProfilePolicyRouter {
     now: Date,
     eligibility?: EligibilityResult,
   ): RoutingDecision {
-    const policyHash = normalizeAndHash(i.policy).hash;
+    const canonicalPolicy = {
+      ...i.policy,
+      required_benchmark_suites: [...i.policy.required_benchmark_suites].sort(
+        (a, b) => refKey(a).localeCompare(refKey(b)),
+      ),
+      required_quality_gates: [...i.policy.required_quality_gates].sort(
+        (a, b) => a.gate_id.localeCompare(b.gate_id),
+      ),
+      allowed_data_classifications: [
+        ...i.policy.allowed_data_classifications,
+      ].sort(),
+      allowed_budget_classes: [...i.policy.allowed_budget_classes].sort(),
+      ...(i.policy.required_budget_policy_refs
+        ? {
+            required_budget_policy_refs: [
+              ...i.policy.required_budget_policy_refs,
+            ].sort((a, b) => refKey(a).localeCompare(refKey(b))),
+          }
+        : {}),
+      ...(i.policy.allowed_reviewer_roles
+        ? {
+            allowed_reviewer_roles: [...i.policy.allowed_reviewer_roles].sort(),
+          }
+        : {}),
+      ...(i.policy.allowed_jurisdictions
+        ? { allowed_jurisdictions: [...i.policy.allowed_jurisdictions].sort() }
+        : {}),
+      ...(i.policy.allowed_regulatory_topics
+        ? {
+            allowed_regulatory_topics: [
+              ...i.policy.allowed_regulatory_topics,
+            ].sort(),
+          }
+        : {}),
+      ...(i.policy.fallback
+        ? {
+            fallback: {
+              ...i.policy.fallback,
+              allowed_reasons: [...i.policy.fallback.allowed_reasons].sort(),
+            },
+          }
+        : {}),
+    };
+    const policyHash = normalizeAndHash(canonicalPolicy).hash;
     const base = {
       schema_version: ROUTING_CONTRACT_VERSION,
       status,
@@ -459,7 +653,7 @@ export class BestProfilePolicyRouter {
           }
         : {}),
       benchmark_evidence: i.evidence,
-      review_attestation: i.evidence.review,
+      ...(i.evidence.review ? { review_attestation: i.evidence.review } : {}),
       ...(eligibility ? { eligibility } : {}),
     };
     const decision = { ...base, decision_hash: normalizeAndHash(base).hash };

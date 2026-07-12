@@ -14,8 +14,7 @@
     "execution_correlation_id",
     "audit_correlation_id",
     "created_at",
-    "benchmark_evidence",
-    "review_attestation"
+    "benchmark_evidence"
   ],
   "properties": {
     "schema_version": { "const": "1.0.0" },
@@ -30,7 +29,31 @@
     },
     "capability_id": { "type": "string" },
     "policy": { "type": "object" },
-    "decision_reason": { "type": "string" },
+    "decision_reason": {
+      "enum": [
+        "REVIEWED_WINNER_ELIGIBLE",
+        "FALLBACK_ELIGIBLE",
+        "REVIEW_REQUIRED",
+        "REVIEW_REJECTED",
+        "REVIEWER_ROLE_UNAUTHORIZED",
+        "REVIEW_ATTESTATION_INVALID",
+        "SCHEMA_OR_POLICY_INVALID",
+        "CAMPAIGN_NOT_COMPLETED",
+        "WINNER_NOT_UNIQUE",
+        "EVIDENCE_INTEGRITY_FAILED",
+        "EVIDENCE_STALE",
+        "EVIDENCE_SUPERSEDED",
+        "PROFILE_REFERENCE_CONFLICT",
+        "PROFILE_INELIGIBLE",
+        "PRIVACY_INCOMPATIBLE",
+        "BUDGET_CLASS_INCOMPATIBLE",
+        "BUDGET_POLICY_INCOMPATIBLE",
+        "JURISDICTION_INCOMPATIBLE",
+        "QUALITY_GATES_UNPROVEN",
+        "FALLBACK_NOT_ALLOWED",
+        "FALLBACK_INELIGIBLE"
+      ]
+    },
     "decision_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
     "execution_correlation_id": { "type": "string" },
     "audit_correlation_id": { "type": "string" },

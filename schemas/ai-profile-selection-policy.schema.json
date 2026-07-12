@@ -63,7 +63,14 @@
     },
     "required_budget_policy_refs": {
       "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
       "items": { "$ref": "#/$defs/ref" }
+    },
+    "allowed_reviewer_roles": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/id" }
     },
     "allowed_jurisdictions": {
       "type": "array",
@@ -86,16 +93,49 @@
           "type": "array",
           "minItems": 1,
           "uniqueItems": true,
-          "items": { "type": "string", "minLength": 1 }
+          "items": { "$ref": "#/$defs/reason" }
         }
       }
     },
     "human_review": { "enum": ["required", "on_policy", "not_required"] },
     "decision_ttl_seconds": { "type": "integer", "minimum": 1 }
   },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "human_review": { "enum": ["required", "on_policy"] } }
+      },
+      "then": { "properties": { "allowed_reviewer_roles": { "minItems": 1 } } }
+    }
+  ],
   "$defs": {
     "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{1,127}$" },
     "semver": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "reason": {
+      "enum": [
+        "REVIEWED_WINNER_ELIGIBLE",
+        "FALLBACK_ELIGIBLE",
+        "REVIEW_REQUIRED",
+        "REVIEW_REJECTED",
+        "REVIEWER_ROLE_UNAUTHORIZED",
+        "SCHEMA_OR_POLICY_INVALID",
+        "CAMPAIGN_NOT_COMPLETED",
+        "WINNER_NOT_UNIQUE",
+        "EVIDENCE_INTEGRITY_FAILED",
+        "EVIDENCE_STALE",
+        "EVIDENCE_SUPERSEDED",
+        "REVIEW_ATTESTATION_INVALID",
+        "PROFILE_REFERENCE_CONFLICT",
+        "PROFILE_INELIGIBLE",
+        "PRIVACY_INCOMPATIBLE",
+        "BUDGET_CLASS_INCOMPATIBLE",
+        "BUDGET_POLICY_INCOMPATIBLE",
+        "JURISDICTION_INCOMPATIBLE",
+        "QUALITY_GATES_UNPROVEN",
+        "FALLBACK_NOT_ALLOWED",
+        "FALLBACK_INELIGIBLE"
+      ]
+    },
     "ref": {
       "type": "object",
       "additionalProperties": false,
@@ -130,7 +170,40 @@
         },
         "minimum_score": { "$ref": "#/$defs/ratio" },
         "dimension_type": { "$ref": "#/$defs/id" }
-      }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "type": { "const": "minimum_score" } } },
+          "then": {
+            "required": ["minimum_score"],
+            "not": { "required": ["dimension_type"] }
+          }
+        },
+        {
+          "if": { "properties": { "type": { "const": "dimension_perfect" } } },
+          "then": {
+            "required": ["dimension_type"],
+            "not": { "required": ["minimum_score"] }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "enum": ["coverage_complete", "no_blocked_or_rejected"]
+              }
+            }
+          },
+          "then": {
+            "not": {
+              "anyOf": [
+                { "required": ["minimum_score"] },
+                { "required": ["dimension_type"] }
+              ]
+            }
+          }
+        }
+      ]
     }
   }
 }
