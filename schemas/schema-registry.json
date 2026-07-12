@@ -1,6 +1,19 @@
 {
   "contracts": [
     {
+      "contract_name": "ai_regulatory_gold_suite",
+      "schema_file": "schemas/ai-regulatory-gold-suite.schema.json",
+      "valid_fixture": "snapshots/evaluation/regulatory-gold-ar-es-eu-v1.json",
+      "invalid_fixtures": [],
+      "test_file": "tests/evaluation/regulatory-gold-corpus.test.ts",
+      "status": "implemented",
+      "purpose": "Versioned evidence-backed regulatory gold cases that reuse AI-75 evaluation contracts.",
+      "downstream_role": "Supplies deterministic replay inputs for future AI-77 evaluation only.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": false
+    },
+    {
       "contract_name": "ai_evaluation_suite",
       "schema_file": "schemas/ai-evaluation-suite.schema.json",
       "valid_fixture": "snapshots/evaluation/synthetic-suite.json",
