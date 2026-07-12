@@ -86,7 +86,7 @@ Consumers must validate `schema_version`, fail closed on unsupported or invalid 
 
 ## Current status
 
-- ✅ 205 tests passing
+- ✅ 213 tests passing
 - ✅ API-key authentication and in-memory per-IP rate limiting
 - ✅ 0 external dependencies in the native HTTP API path
 - ✅ Repo-first architecture

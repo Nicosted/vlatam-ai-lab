@@ -32,7 +32,12 @@ intentionally out of scope, and which invariant each layer must enforce.
 ## 2. Existing surface (as audited on this branch)
 
 The current repository already contains the following components, which AI-70
-preserves and reorganizes rather than replaces:
+preserves and reorganizes rather than replaces. The "agent modules" count
+below is `12` — every file under `src/agents/` that defines an agent class
+or a PCRAM step. The shared `src/agents/types.ts` is excluded from the
+count; the HTTP `API Server` lives under `src/server/`, not `src/agents/`,
+and is listed separately. Every component below is reflected in the
+machine-readable catalog at `config/ai-capabilities.json`.
 
 | Component | Path | Status |
 | --- | --- | --- |
@@ -42,9 +47,9 @@ preserves and reorganizes rather than replaces:
 | Evidence Writer | `src/agents/evidence-writer.ts` | existing |
 | Human Review Gate | `src/agents/human-review-gate.ts` | existing |
 | Export Contract | `src/agents/export-contract.ts` | existing |
-| API Server (read-only) | `src/server/api-server.ts` | existing |
 | Normative Evidence Agent (DeepSeek) | `src/agents/normative-evidence-agent.ts` | existing (fixture-driven) |
 | Router Agent + specialized agents (ARCA/VUCE/InfoLEG) | `src/agents/router-agent.ts` | existing |
+| API Server (read-only HTTP) | `src/server/api-server.ts` | existing |
 | Cloudflare AI Gateway wrapper (skeleton) | `src/ai/ai-gateway.ts` | partial |
 | CountryAdapter interface (CL/UY/PY planned) | `src/adapters/types.ts` | partial (interface only) |
 | Regulatory Research Workspace | `src/advisory/regulatory-research-workspace.ts` | partial (read-only HTML, draft) |
@@ -210,7 +215,15 @@ A capability contract is a stable, vendor-neutral description of:
 - a downstream-safety class
   (`classifier_candidate` / `regulatory_advisory` / `logistics` / `payments` /
   `supplier` / `customer`);
-- a human-review requirement (always `true` for regulated capabilities);
+- a human-review requirement that distinguishes between
+  - capabilities that themselves require human judgment (regulated
+    capabilities that interpret evidence, generate classification or
+    advisory candidates, approve artifacts, or promote execution
+    profiles), and
+  - capabilities that are mechanical, infrastructural, transport-layer,
+    or apply a previously approved rule (and therefore do not require
+    human review at the capability boundary, even if the artifacts they
+    consume were already reviewed upstream);
 - a policy requirement block (privacy tier, ZDR class, retention, audit).
 
 The contract is a "type" in the FaaS sense: an input and a typed output with
@@ -327,7 +340,10 @@ A capability has:
 - a stable `capability_id`;
 - a request shape and a response shape;
 - a downstream-safety class;
-- a human-review requirement;
+- a `human_review` field that is `true` for capabilities that themselves
+  require explicit human judgment, and `false` for mechanical,
+  infrastructural, or transport-layer capabilities (or for capabilities
+  that apply a previously approved rule);
 - a policy block (privacy, retention, ZDR, audit).
 
 ### Provider
@@ -401,8 +417,12 @@ and are not deferred to later PRs.
 3. Cost optimization cannot override privacy policy. Budget never relaxes
    redaction, ZDR, or retention rules.
 4. Routing cannot override human-review requirements. Any capability whose
-   contract requires review must be reviewed; the router does not bypass
-   review even if a profile is `production`.
+   `human_review` field is `true` must be reviewed; the router does not
+   bypass review even if a profile is `production`. Capabilities whose
+   `human_review` field is `false` never become auto-approved: they only
+   produce, transport, or enforce a previously approved decision, and
+   the catalog enforces that no `human_review: false` capability may set
+   `downstream_allowed: true` unless it is on the serve-only allowlist.
 5. Vendor metadata must not leak through approved external exports.
    Approved exports never carry `provider_id`, `model_id`, prompt hashes,
    or vendor error codes. (See

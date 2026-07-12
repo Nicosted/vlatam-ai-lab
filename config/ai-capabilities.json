@@ -7,7 +7,7 @@
   "allowed_status": ["existing", "partial", "planned", "out_of_scope"],
   "allowed_risk_tier": ["low", "medium", "high"],
   "allowed_provider_execution": ["required", "optional", "none"],
-  "allowed_human_review": [true],
+  "allowed_human_review": [true, false],
   "capabilities": [
     {
       "capability_id": "source.acquisition.monitor",
@@ -15,7 +15,7 @@
       "domain": "source",
       "status": "existing",
       "risk_tier": "low",
-      "human_review": true,
+      "human_review": false,
       "downstream_policy": {
         "downstream_allowed": false,
         "reason": "No downstream export; produces internal deltas only."
@@ -29,10 +29,10 @@
       "domain": "source",
       "status": "existing",
       "risk_tier": "low",
-      "human_review": true,
+      "human_review": false,
       "downstream_policy": {
         "downstream_allowed": false,
-        "reason": "Snapshots are internal provenance records; export is gated by source registry and review."
+        "reason": "Mechanical, deterministic write of a content-hashed envelope. Provenance is captured by the snapshot schema; review applies to downstream artifacts."
       },
       "provider_execution": "none",
       "roadmap_owner": "ai-70-existing"
@@ -43,10 +43,10 @@
       "domain": "source",
       "status": "existing",
       "risk_tier": "low",
-      "human_review": true,
+      "human_review": false,
       "downstream_policy": {
         "downstream_allowed": false,
-        "reason": "Delta outputs are review-only evidence packets."
+        "reason": "Deterministic structural diff; review applies to the evidence packet that downstream capabilities consume."
       },
       "provider_execution": "none",
       "roadmap_owner": "ai-70-existing"
@@ -57,10 +57,10 @@
       "domain": "source",
       "status": "partial",
       "risk_tier": "low",
-      "human_review": true,
+      "human_review": false,
       "downstream_policy": {
         "downstream_allowed": false,
-        "reason": "Demo-only fixture; not authoritative."
+        "reason": "Demo-only fixture; not authoritative and not exported."
       },
       "provider_execution": "none",
       "roadmap_owner": "ai-72"
@@ -71,10 +71,10 @@
       "domain": "source",
       "status": "partial",
       "risk_tier": "low",
-      "human_review": true,
+      "human_review": false,
       "downstream_policy": {
         "downstream_allowed": false,
-        "reason": "Feature-flagged off; passthrough only."
+        "reason": "Feature-flagged off; mechanical passthrough only."
       },
       "provider_execution": "none",
       "roadmap_owner": "ai-72"
@@ -85,10 +85,10 @@
       "domain": "source",
       "status": "partial",
       "risk_tier": "medium",
-      "human_review": true,
+      "human_review": false,
       "downstream_policy": {
         "downstream_allowed": false,
-        "reason": "Adapter interface exists; per-country adapters not implemented."
+        "reason": "Adapter interface exists; per-country adapters not implemented. Mechanical source fetch is review-free; downstream tariff/intervention interpretations are gated separately."
       },
       "provider_execution": "none",
       "roadmap_owner": "ai-72,ai-78"
@@ -102,7 +102,7 @@
       "human_review": true,
       "downstream_policy": {
         "downstream_allowed": false,
-        "reason": "HTML read model; not yet exposed via export contract."
+        "reason": "Draft research workspace; human review required before any client-facing advisory."
       },
       "provider_execution": "none",
       "roadmap_owner": "ai-71,ai-72"
@@ -116,7 +116,7 @@
       "human_review": true,
       "downstream_policy": {
         "downstream_allowed": false,
-        "reason": "Read-model only; output must not cross export boundary."
+        "reason": "Read-model classification of regulated coverage; never auto-approved."
       },
       "provider_execution": "none",
       "roadmap_owner": "ai-71,ai-72"
@@ -144,7 +144,7 @@
       "human_review": true,
       "downstream_policy": {
         "downstream_allowed": false,
-        "reason": "Spike only; manual dry-run with recorded responses."
+        "reason": "Spike only; manual dry-run with recorded responses. Raw LLM output never crosses export boundary."
       },
       "provider_execution": "required",
       "roadmap_owner": "ai-72"
@@ -158,7 +158,7 @@
       "human_review": true,
       "downstream_policy": {
         "downstream_allowed": false,
-        "reason": "Workflow exists in tests; runtime path not wired."
+        "reason": "Workflow exists in tests; runtime path not wired. Draft/unreviewed output only."
       },
       "provider_execution": "required",
       "roadmap_owner": "ai-72"
@@ -172,7 +172,7 @@
       "human_review": true,
       "downstream_policy": {
         "downstream_allowed": false,
-        "reason": "Critic output feeds router; never exported on its own."
+        "reason": "Critic output feeds router; never exported on its own. Interpretation of regulated content requires review."
       },
       "provider_execution": "required",
       "roadmap_owner": "ai-78"
@@ -183,10 +183,10 @@
       "domain": "evidence",
       "status": "existing",
       "risk_tier": "low",
-      "human_review": true,
+      "human_review": false,
       "downstream_policy": {
         "downstream_allowed": false,
-        "reason": "Embeddings are internal indexes; not exported."
+        "reason": "Mechanical embedding; no interpretation. Internal indexes only."
       },
       "provider_execution": "required",
       "roadmap_owner": "ai-70-existing"
@@ -197,10 +197,10 @@
       "domain": "evidence",
       "status": "planned",
       "risk_tier": "low",
-      "human_review": true,
+      "human_review": false,
       "downstream_policy": {
         "downstream_allowed": false,
-        "reason": "Index maintenance only; not exported."
+        "reason": "Mechanical index maintenance; not exported."
       },
       "provider_execution": "optional",
       "roadmap_owner": "ai-72,ai-77"
@@ -214,7 +214,7 @@
       "human_review": true,
       "downstream_policy": {
         "downstream_allowed": false,
-        "reason": "Output is always draft; reviewed path is via the human review gate."
+        "reason": "Generates classification candidates that affect regulated decisions; always draft until reviewed."
       },
       "provider_execution": "none",
       "roadmap_owner": "ai-70-existing"
@@ -228,7 +228,7 @@
       "human_review": true,
       "downstream_policy": {
         "downstream_allowed": false,
-        "reason": "Surfaces missing-evidence gaps; never emits a final answer."
+        "reason": "Surfaces missing-evidence gaps for advisory cases; never emits a final answer and is always subject to professional review."
       },
       "provider_execution": "none",
       "roadmap_owner": "ai-71"
@@ -239,10 +239,10 @@
       "domain": "review",
       "status": "existing",
       "risk_tier": "high",
-      "human_review": true,
+      "human_review": false,
       "downstream_policy": {
         "downstream_allowed": "conditional",
-        "reason": "Downstream allowed only on reviewed_approved decision."
+        "reason": "The review itself is the act of human judgment; downstream export is only enabled on a reviewed_approved decision."
       },
       "provider_execution": "none",
       "roadmap_owner": "ai-70-existing"
@@ -256,7 +256,7 @@
       "human_review": true,
       "downstream_policy": {
         "downstream_allowed": false,
-        "reason": "Readiness summary; never emits final regulatory answer."
+        "reason": "Readiness summary; advisory answers always require professional human review."
       },
       "provider_execution": "none",
       "roadmap_owner": "ai-71"
@@ -270,7 +270,7 @@
       "human_review": true,
       "downstream_policy": {
         "downstream_allowed": "conditional",
-        "reason": "Approved only after explicit human review."
+        "reason": "Approved only after explicit human review; this capability is the precondition of any downstream."
       },
       "provider_execution": "none",
       "roadmap_owner": "ai-70-existing"
@@ -284,7 +284,7 @@
       "human_review": true,
       "downstream_policy": {
         "downstream_allowed": true,
-        "reason": "Validated against the export contract; provider metadata is stripped."
+        "reason": "Validated against the export contract; provider metadata is stripped. Human review is the precondition of the approved artifact this consumes."
       },
       "provider_execution": "none",
       "roadmap_owner": "ai-70-existing"
@@ -295,10 +295,10 @@
       "domain": "export",
       "status": "partial",
       "risk_tier": "medium",
-      "human_review": true,
+      "human_review": false,
       "downstream_policy": {
         "downstream_allowed": false,
-        "reason": "Repo-local read-only index; not a runtime bridge."
+        "reason": "Repo-local read-only index; deterministic over reviewed export contracts; not a runtime bridge."
       },
       "provider_execution": "none",
       "roadmap_owner": "ai-70-existing"
@@ -309,7 +309,7 @@
       "domain": "export",
       "status": "existing",
       "risk_tier": "low",
-      "human_review": true,
+      "human_review": false,
       "downstream_policy": {
         "downstream_allowed": false,
         "reason": "Document-only contract; vlatam-global consumption is future work."
@@ -323,10 +323,10 @@
       "domain": "export",
       "status": "existing",
       "risk_tier": "medium",
-      "human_review": true,
+      "human_review": false,
       "downstream_policy": {
         "downstream_allowed": true,
-        "reason": "Read-only HTTP API; fails closed on schema violation."
+        "reason": "Read-only HTTP API serving an already-approved artifact; review is the precondition of the artifact, not of the serving step."
       },
       "provider_execution": "none",
       "roadmap_owner": "ai-70-existing"
@@ -337,7 +337,7 @@
       "domain": "provider",
       "status": "partial",
       "risk_tier": "medium",
-      "human_review": true,
+      "human_review": false,
       "downstream_policy": {
         "downstream_allowed": false,
         "reason": "Internal transport; never crosses export boundary."
@@ -351,10 +351,10 @@
       "domain": "provider",
       "status": "partial",
       "risk_tier": "high",
-      "human_review": true,
+      "human_review": false,
       "downstream_policy": {
         "downstream_allowed": false,
-        "reason": "Currently embedded in domain code; ADR-003 requires removal."
+        "reason": "Internal transport; the calling capability (e.g. evidence.extraction.normative_claims) carries the human review requirement."
       },
       "provider_execution": "required",
       "roadmap_owner": "ai-72,ai-78"
@@ -365,10 +365,10 @@
       "domain": "provider",
       "status": "partial",
       "risk_tier": "high",
-      "human_review": true,
+      "human_review": false,
       "downstream_policy": {
         "downstream_allowed": false,
-        "reason": "Spike-only manual dry-run; not wired to runtime."
+        "reason": "Spike-only manual dry-run; not wired to runtime. The calling capability carries review."
       },
       "provider_execution": "required",
       "roadmap_owner": "ai-72"
@@ -379,7 +379,7 @@
       "domain": "provider",
       "status": "out_of_scope",
       "risk_tier": "low",
-      "human_review": true,
+      "human_review": false,
       "downstream_policy": {
         "downstream_allowed": false,
         "reason": "Not on the AI-71 to AI-78 roadmap."
@@ -393,10 +393,10 @@
       "domain": "governance",
       "status": "planned",
       "risk_tier": "high",
-      "human_review": true,
+      "human_review": false,
       "downstream_policy": {
         "downstream_allowed": false,
-        "reason": "Pre-export guardrail; never emits content directly."
+        "reason": "Mechanical enforcement of a previously approved privacy rule."
       },
       "provider_execution": "none",
       "roadmap_owner": "ai-73"
@@ -407,10 +407,10 @@
       "domain": "governance",
       "status": "planned",
       "risk_tier": "medium",
-      "human_review": true,
+      "human_review": false,
       "downstream_policy": {
         "downstream_allowed": false,
-        "reason": "Internal classification; never exported."
+        "reason": "Mechanical classification; review applies to the artifact that downstream consumes."
       },
       "provider_execution": "none",
       "roadmap_owner": "ai-73"
@@ -421,7 +421,7 @@
       "domain": "governance",
       "status": "planned",
       "risk_tier": "medium",
-      "human_review": true,
+      "human_review": false,
       "downstream_policy": {
         "downstream_allowed": false,
         "reason": "Internal decision; never exported."
@@ -435,7 +435,7 @@
       "domain": "governance",
       "status": "planned",
       "risk_tier": "medium",
-      "human_review": true,
+      "human_review": false,
       "downstream_policy": {
         "downstream_allowed": false,
         "reason": "Policy data; never exported."
@@ -449,7 +449,7 @@
       "domain": "governance",
       "status": "planned",
       "risk_tier": "low",
-      "human_review": true,
+      "human_review": false,
       "downstream_policy": {
         "downstream_allowed": false,
         "reason": "Local audit only; never exported."
@@ -463,10 +463,10 @@
       "domain": "governance",
       "status": "planned",
       "risk_tier": "low",
-      "human_review": true,
+      "human_review": false,
       "downstream_policy": {
         "downstream_allowed": false,
-        "reason": "Default-deny decision policy."
+        "reason": "Default-deny decision policy; never auto-approves."
       },
       "provider_execution": "none",
       "roadmap_owner": "ai-71,ai-78"
@@ -480,7 +480,7 @@
       "human_review": true,
       "downstream_policy": {
         "downstream_allowed": false,
-        "reason": "Reviewed fixtures; never classifier-approved."
+        "reason": "Reviewed fixtures only; a gold case is a human-reviewed artifact and may not be promoted automatically."
       },
       "provider_execution": "none",
       "roadmap_owner": "ai-76"
@@ -491,10 +491,10 @@
       "domain": "evaluation",
       "status": "planned",
       "risk_tier": "medium",
-      "human_review": true,
+      "human_review": false,
       "downstream_policy": {
         "downstream_allowed": false,
-        "reason": "Internal scoring; never exported."
+        "reason": "Deterministic and reviewed-LLM scoring; never auto-approves an artifact."
       },
       "provider_execution": "none",
       "roadmap_owner": "ai-75"
@@ -505,7 +505,7 @@
       "domain": "evaluation",
       "status": "planned",
       "risk_tier": "medium",
-      "human_review": true,
+      "human_review": false,
       "downstream_policy": {
         "downstream_allowed": false,
         "reason": "Internal record; never exported."
@@ -522,7 +522,7 @@
       "human_review": true,
       "downstream_policy": {
         "downstream_allowed": false,
-        "reason": "Lifecycle decision; never exported."
+        "reason": "Promotes a candidate/shadow execution profile to production; high-impact governance decision that must be human-reviewed."
       },
       "provider_execution": "none",
       "roadmap_owner": "ai-77,ai-78"
@@ -533,7 +533,7 @@
       "domain": "routing",
       "status": "planned",
       "risk_tier": "medium",
-      "human_review": true,
+      "human_review": false,
       "downstream_policy": {
         "downstream_allowed": false,
         "reason": "Internal selection; never exported."
@@ -547,7 +547,7 @@
       "domain": "routing",
       "status": "planned",
       "risk_tier": "medium",
-      "human_review": true,
+      "human_review": false,
       "downstream_policy": {
         "downstream_allowed": false,
         "reason": "Lifecycle filter; never exported."
@@ -561,10 +561,10 @@
       "domain": "routing",
       "status": "planned",
       "risk_tier": "low",
-      "human_review": true,
+      "human_review": false,
       "downstream_policy": {
         "downstream_allowed": false,
-        "reason": "Shadow output must never cross export boundary."
+        "reason": "Shadow output must never cross export boundary and cannot become approved automatically."
       },
       "provider_execution": "none",
       "roadmap_owner": "ai-78"

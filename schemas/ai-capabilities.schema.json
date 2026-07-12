@@ -109,7 +109,7 @@
           },
           "human_review": {
             "type": "boolean",
-            "const": true
+            "description": "Whether the capability itself requires explicit human judgment. Mechanical or infrastructural capabilities may be false; regulated or interpretive capabilities must be true. Provider-adapter-layer capabilities are false because the calling capability carries the human-review requirement."
           },
           "downstream_policy": {
             "type": "object",

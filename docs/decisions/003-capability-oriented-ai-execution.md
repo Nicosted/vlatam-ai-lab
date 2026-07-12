@@ -225,13 +225,27 @@ onwards and to every module under `src/agents/`, `src/advisory/`,
    candidate profile may run for evaluation, but its output is recorded
    separately and must never appear in the operational response or
    cross the export boundary.
+9. **Human review is required for the regulated subset, not the
+   mechanical subset.** A capability's `human_review` field may be
+   `false` only when the capability is mechanical, infrastructural, a
+   transport layer, or applies a previously approved rule. The catalog
+   at `config/ai-capabilities.json` partitions every capability into
+   the regulated set (`human_review: true`) or the mechanical set
+   (`human_review: false`); both sets are positive lists, and adding
+   a new capability requires adding it to one of them. A
+   `human_review: false` capability may have `downstream_allowed: true`
+   only when it only serves or consumes pre-approved artifacts (the
+   serve-only allowlist, currently `artifact.approved.serve_http`). No
+   `human_review: false` capability may produce or promote regulated
+   approved intelligence; that requires `human_review: true`.
 
 The catalog validator in `tests/architecture/ai-capabilities.test.ts`
-enforces rule 1, rule 2, and rule 4 at the static level: it rejects
-`provider_id`/`model_id` fields bound to a domain capability and rejects
-credential-shaped fields. The remaining rules are enforced at the
-runtime level by AI-72 through AI-78 and by the existing tests in
-`tests/agents/`.
+enforces rules 1, 2, 4, and 9 at the static level: it rejects
+`provider_id`/`model_id` fields bound to a domain capability, rejects
+credential-shaped fields, and asserts the regulated/mechanical
+partition and the downstream-allowed invariant. The remaining rules
+are enforced at the runtime level by AI-72 through AI-78 and by the
+existing tests in `tests/agents/`.
 
 ## References
 
