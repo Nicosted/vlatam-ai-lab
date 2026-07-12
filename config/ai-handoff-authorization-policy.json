@@ -1,0 +1,15 @@
+{
+  "schema_version": "1.0.0",
+  "policy_id": "handoff.reviewed-routing",
+  "policy_version": "1.0.0",
+  "allowed_authorizer_roles": ["ai-governance-authorizer"],
+  "allowed_routing_policies": [
+    { "id": "routing.best-profile", "version": "1.0.0" }
+  ],
+  "allowed_profile_lifecycle_states": ["candidate"],
+  "allowed_data_classifications": ["public", "internal"],
+  "allowed_budget_classes": ["development"],
+  "maximum_authorization_age_seconds": 3600,
+  "enforce_decision_ttl": true,
+  "authorization_mode": "single_use"
+}

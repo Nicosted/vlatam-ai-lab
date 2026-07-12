@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam.local/schemas/ai-routing-handoff-audit-event.schema.json",
+  "title": "AI-79 handoff audit event v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "event_id",
+    "event_type",
+    "occurred_at",
+    "handoff_id",
+    "execution_correlation_id",
+    "audit_correlation_id"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "event_id": { "type": "string" },
+    "event_type": {
+      "enum": [
+        "handoff_validation_started",
+        "routing_decision_accepted",
+        "routing_decision_rejected",
+        "authorization_accepted",
+        "authorization_rejected",
+        "authorization_consumed",
+        "execution_started",
+        "execution_completed",
+        "execution_failed",
+        "duplicate_execution_blocked"
+      ]
+    },
+    "occurred_at": { "type": "string", "format": "date-time" },
+    "handoff_id": { "type": "string" },
+    "decision_hash": { "type": "string" },
+    "authorization_id": { "type": "string" },
+    "capability_id": { "type": "string" },
+    "profile_key": { "type": "string" },
+    "execution_correlation_id": { "type": "string" },
+    "audit_correlation_id": { "type": "string" },
+    "reason_code": { "type": "string" },
+    "gateway_execution_id": { "type": "string" }
+  }
+}

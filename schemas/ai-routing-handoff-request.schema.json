@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam.local/schemas/ai-routing-handoff-request.schema.json",
+  "title": "AI-79 handoff request v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "handoff_id",
+    "decision",
+    "authorization",
+    "capability_request",
+    "budget_class",
+    "execution_correlation_id",
+    "audit_correlation_id"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "handoff_id": { "type": "string" },
+    "decision": { "type": "object" },
+    "authorization": { "type": "object" },
+    "capability_request": { "type": "object" },
+    "budget_class": { "type": "string" },
+    "execution_correlation_id": { "type": "string" },
+    "audit_correlation_id": { "type": "string" }
+  }
+}

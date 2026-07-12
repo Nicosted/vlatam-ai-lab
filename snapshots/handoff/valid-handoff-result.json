@@ -1,0 +1,17 @@
+{
+  "schema_version": "1.0.0",
+  "handoff_id": "handoff.fixture",
+  "decision_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "authorization_id": "authorization.fixture",
+  "capability_id": "evidence.extraction.normative_claims",
+  "profile_id": "normative-claims.replay.v1",
+  "profile_version": "1.1.0",
+  "canonical_profile_key": "normative-claims.replay.v1@1.1.0",
+  "gateway_execution_id": "gateway.execution",
+  "execution_status": "succeeded",
+  "gateway_audit_reference": "gateway.execution",
+  "usage_audit_reference": "gateway.execution",
+  "execution_correlation_id": "execution.correlation",
+  "audit_correlation_id": "audit.correlation",
+  "created_at": "2026-07-12T12:00:00.000Z"
+}

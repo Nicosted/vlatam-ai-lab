@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam.local/schemas/ai-routing-handoff-validation-result.schema.json",
+  "title": "AI-79 handoff validation result v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "handoff_id", "valid"],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "handoff_id": { "type": "string" },
+    "valid": { "type": "boolean" },
+    "decision_hash": { "type": "string" },
+    "authorization_id": { "type": "string" },
+    "canonical_profile_key": { "type": "string" },
+    "rejection_reason": { "type": "string" }
+  }
+}

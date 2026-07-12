@@ -1,0 +1,6 @@
+{
+  "schema_version": "1.0.0",
+  "authorization_id": "authorization.invalid",
+  "authorization_decision": "approved",
+  "authorized_at": "not-a-date"
+}

@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam.local/schemas/ai-routing-authorization-provenance.schema.json",
+  "title": "AI-79 authorization provenance v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "authorization_id",
+    "authorizer_role",
+    "authorization_decision",
+    "authorized_at",
+    "review_attestation_reference"
+  ],
+  "properties": {
+    "authorization_id": { "type": "string" },
+    "authorizer_role": { "type": "string" },
+    "authorization_decision": { "enum": ["approved", "rejected"] },
+    "authorized_at": { "type": "string", "format": "date-time" },
+    "review_attestation_reference": { "type": "string" },
+    "superseded_by": { "type": "string" }
+  }
+}

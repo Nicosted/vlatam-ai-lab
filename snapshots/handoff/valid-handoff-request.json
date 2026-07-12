@@ -1,0 +1,10 @@
+{
+  "schema_version": "1.0.0",
+  "handoff_id": "handoff.fixture",
+  "decision": {},
+  "authorization": {},
+  "capability_request": {},
+  "budget_class": "development",
+  "execution_correlation_id": "execution.correlation",
+  "audit_correlation_id": "audit.correlation"
+}

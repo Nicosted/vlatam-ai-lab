@@ -1,12 +1,163 @@
 {
   "contracts": [
-    {"contract_name":"ai_profile_selection_policy","schema_file":"schemas/ai-profile-selection-policy.schema.json","valid_fixture":"snapshots/routing/valid-policy.json","invalid_fixtures":["snapshots/routing/invalid-policy-empty-reviewer-roles.json","snapshots/routing/invalid-policy-incoherent-quality-gate.json"],"test_file":"tests/routing/routing-schemas.test.ts","status":"implemented","purpose":"Binds reviewed AI-77 evidence, eligibility gates, privacy, budget class, jurisdiction and explicit fallback behavior for AI-78.","downstream_role":"Produces a routing decision artifact only; it never executes or promotes a profile.","requires_human_review_semantics":true,"requires_traceability":true,"downstream_allowed_field_present":false},
-    {"contract_name":"ai_reviewed_benchmark_evidence","schema_file":"schemas/ai-reviewed-benchmark-evidence.schema.json","valid_fixture":"snapshots/routing/valid-reviewed-evidence.json","invalid_fixtures":["snapshots/routing/invalid-evidence-malformed-attestation.json"],"test_file":"tests/routing/routing-schemas.test.ts","status":"implemented","purpose":"Human-reviewed reference binding an AI-77 completed campaign, unique winner, hashes and attestation.","downstream_role":"Fail-closed evidence input to AI-78 only.","requires_human_review_semantics":true,"requires_traceability":true,"downstream_allowed_field_present":false},
-    {"contract_name":"ai_routing_request","schema_file":"schemas/ai-routing-request.schema.json","valid_fixture":"snapshots/routing/valid-routing-request.json","invalid_fixtures":[],"test_file":"tests/routing/policy-router.test.ts","status":"implemented","purpose":"Provider-neutral execution context for deterministic profile eligibility evaluation.","downstream_role":"Declares routing context without invoking the gateway.","requires_human_review_semantics":false,"requires_traceability":true,"downstream_allowed_field_present":false},
-    {"contract_name":"ai_routing_decision","schema_file":"schemas/ai-routing-decision.schema.json","valid_fixture":"snapshots/routing/valid-routing-decision.json","invalid_fixtures":[],"test_file":"tests/routing/policy-router.test.ts","status":"implemented","purpose":"Machine-readable selected, fallback, review, blocked, or rejected AI-78 decision artifact.","downstream_role":"Future explicit input to gateway integration; not production configuration.","requires_human_review_semantics":true,"requires_traceability":true,"downstream_allowed_field_present":false},
-    {"contract_name":"ai_benchmark_campaign","schema_file":"schemas/ai-benchmark-campaign.schema.json","valid_fixture":"snapshots/benchmark/synthetic-campaign.json","invalid_fixtures":["snapshots/benchmark/invalid-campaign-duplicate-profile.json"],"test_file":"tests/benchmark/benchmark-runner.test.ts","status":"implemented","purpose":"Versioned deterministic benchmark campaign definition for AI-77.","downstream_role":"Binds explicit suites, profiles, evaluation, execution, retry, budget and audit references without routing mutation.","requires_human_review_semantics":false,"requires_traceability":true,"downstream_allowed_field_present":false},
-    {"contract_name":"ai_benchmark_ranking_policy","schema_file":"schemas/ai-benchmark-ranking-policy.schema.json","valid_fixture":"config/ai-benchmark-ranking-policy.json","invalid_fixtures":[],"test_file":"tests/benchmark/benchmark-runner.test.ts","status":"implemented","purpose":"Versioned mandatory gates and fixed ranking tie-breakers for AI-77.","downstream_role":"Produces evidence for future AI-78 consumption; it does not select production profiles.","requires_human_review_semantics":true,"requires_traceability":true,"downstream_allowed_field_present":false},
-    {"contract_name":"ai_benchmark_result","schema_file":"schemas/ai-benchmark-result.schema.json","valid_fixture":"snapshots/benchmark/synthetic-result.json","invalid_fixtures":["snapshots/benchmark/invalid-result-malformed-summary.json","snapshots/benchmark/invalid-result-zero-denominator.json","snapshots/benchmark/invalid-result-cost.json","snapshots/benchmark/invalid-result-missing-currency.json","snapshots/benchmark/invalid-result-duplicate-ranking.json","snapshots/benchmark/invalid-result-incomplete-provenance.json","snapshots/benchmark/invalid-result-unknown-property.json"],"test_file":"tests/benchmark/benchmark-schemas-gold.test.ts","status":"implemented","purpose":"Machine-readable AI-77 campaign execution, profile summaries, ranking and provenance.","downstream_role":"Reviewed ranking input for future AI-78 only.","requires_human_review_semantics":true,"requires_traceability":true,"downstream_allowed_field_present":false},
+    {
+      "contract_name": "ai_handoff_authorization_policy",
+      "schema_file": "schemas/ai-handoff-authorization-policy.schema.json",
+      "valid_fixture": "config/ai-handoff-authorization-policy.json",
+      "invalid_fixtures": [],
+      "test_file": "tests/handoff/handoff-schemas.test.ts",
+      "status": "implemented",
+      "purpose": "Explicit human authorization policy for executing reviewed AI-78 routing decisions.",
+      "downstream_role": "Fail-closed AI-79 policy only; no registry or production-default mutation.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": false
+    },
+    {
+      "contract_name": "ai_routing_decision_execution_authorization",
+      "schema_file": "schemas/ai-routing-decision-execution-authorization.schema.json",
+      "valid_fixture": "snapshots/handoff/valid-authorization.json",
+      "invalid_fixtures": ["snapshots/handoff/invalid-authorization.json"],
+      "test_file": "tests/handoff/handoff-schemas.test.ts",
+      "status": "implemented",
+      "purpose": "Binds a human authorization to one exact AI-78 decision and profile identity.",
+      "downstream_role": "Authorizes gateway-only execution under AI-79.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": false
+    },
+    {
+      "contract_name": "ai_routing_handoff_request",
+      "schema_file": "schemas/ai-routing-handoff-request.schema.json",
+      "valid_fixture": "snapshots/handoff/valid-handoff-request.json",
+      "invalid_fixtures": [],
+      "test_file": "tests/handoff/reviewed-routing-handoff.test.ts",
+      "status": "implemented",
+      "purpose": "Carries the immutable decision, authorization, capability request and correlations into AI-79.",
+      "downstream_role": "Input to MultiProviderGateway.execute only after validation.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": false
+    },
+    {
+      "contract_name": "ai_routing_handoff_execution_result",
+      "schema_file": "schemas/ai-routing-handoff-execution-result.schema.json",
+      "valid_fixture": "snapshots/handoff/valid-handoff-result.json",
+      "invalid_fixtures": [],
+      "test_file": "tests/handoff/reviewed-routing-handoff.test.ts",
+      "status": "implemented",
+      "purpose": "Machine-readable outcome and gateway audit references for AI-79.",
+      "downstream_role": "Metadata result only; never a production-default artifact.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": false
+    },
+    {
+      "contract_name": "ai_profile_selection_policy",
+      "schema_file": "schemas/ai-profile-selection-policy.schema.json",
+      "valid_fixture": "snapshots/routing/valid-policy.json",
+      "invalid_fixtures": [
+        "snapshots/routing/invalid-policy-empty-reviewer-roles.json",
+        "snapshots/routing/invalid-policy-incoherent-quality-gate.json"
+      ],
+      "test_file": "tests/routing/routing-schemas.test.ts",
+      "status": "implemented",
+      "purpose": "Binds reviewed AI-77 evidence, eligibility gates, privacy, budget class, jurisdiction and explicit fallback behavior for AI-78.",
+      "downstream_role": "Produces a routing decision artifact only; it never executes or promotes a profile.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": false
+    },
+    {
+      "contract_name": "ai_reviewed_benchmark_evidence",
+      "schema_file": "schemas/ai-reviewed-benchmark-evidence.schema.json",
+      "valid_fixture": "snapshots/routing/valid-reviewed-evidence.json",
+      "invalid_fixtures": [
+        "snapshots/routing/invalid-evidence-malformed-attestation.json"
+      ],
+      "test_file": "tests/routing/routing-schemas.test.ts",
+      "status": "implemented",
+      "purpose": "Human-reviewed reference binding an AI-77 completed campaign, unique winner, hashes and attestation.",
+      "downstream_role": "Fail-closed evidence input to AI-78 only.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": false
+    },
+    {
+      "contract_name": "ai_routing_request",
+      "schema_file": "schemas/ai-routing-request.schema.json",
+      "valid_fixture": "snapshots/routing/valid-routing-request.json",
+      "invalid_fixtures": [],
+      "test_file": "tests/routing/policy-router.test.ts",
+      "status": "implemented",
+      "purpose": "Provider-neutral execution context for deterministic profile eligibility evaluation.",
+      "downstream_role": "Declares routing context without invoking the gateway.",
+      "requires_human_review_semantics": false,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": false
+    },
+    {
+      "contract_name": "ai_routing_decision",
+      "schema_file": "schemas/ai-routing-decision.schema.json",
+      "valid_fixture": "snapshots/routing/valid-routing-decision.json",
+      "invalid_fixtures": [],
+      "test_file": "tests/routing/policy-router.test.ts",
+      "status": "implemented",
+      "purpose": "Machine-readable selected, fallback, review, blocked, or rejected AI-78 decision artifact.",
+      "downstream_role": "Future explicit input to gateway integration; not production configuration.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": false
+    },
+    {
+      "contract_name": "ai_benchmark_campaign",
+      "schema_file": "schemas/ai-benchmark-campaign.schema.json",
+      "valid_fixture": "snapshots/benchmark/synthetic-campaign.json",
+      "invalid_fixtures": [
+        "snapshots/benchmark/invalid-campaign-duplicate-profile.json"
+      ],
+      "test_file": "tests/benchmark/benchmark-runner.test.ts",
+      "status": "implemented",
+      "purpose": "Versioned deterministic benchmark campaign definition for AI-77.",
+      "downstream_role": "Binds explicit suites, profiles, evaluation, execution, retry, budget and audit references without routing mutation.",
+      "requires_human_review_semantics": false,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": false
+    },
+    {
+      "contract_name": "ai_benchmark_ranking_policy",
+      "schema_file": "schemas/ai-benchmark-ranking-policy.schema.json",
+      "valid_fixture": "config/ai-benchmark-ranking-policy.json",
+      "invalid_fixtures": [],
+      "test_file": "tests/benchmark/benchmark-runner.test.ts",
+      "status": "implemented",
+      "purpose": "Versioned mandatory gates and fixed ranking tie-breakers for AI-77.",
+      "downstream_role": "Produces evidence for future AI-78 consumption; it does not select production profiles.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": false
+    },
+    {
+      "contract_name": "ai_benchmark_result",
+      "schema_file": "schemas/ai-benchmark-result.schema.json",
+      "valid_fixture": "snapshots/benchmark/synthetic-result.json",
+      "invalid_fixtures": [
+        "snapshots/benchmark/invalid-result-malformed-summary.json",
+        "snapshots/benchmark/invalid-result-zero-denominator.json",
+        "snapshots/benchmark/invalid-result-cost.json",
+        "snapshots/benchmark/invalid-result-missing-currency.json",
+        "snapshots/benchmark/invalid-result-duplicate-ranking.json",
+        "snapshots/benchmark/invalid-result-incomplete-provenance.json",
+        "snapshots/benchmark/invalid-result-unknown-property.json"
+      ],
+      "test_file": "tests/benchmark/benchmark-schemas-gold.test.ts",
+      "status": "implemented",
+      "purpose": "Machine-readable AI-77 campaign execution, profile summaries, ranking and provenance.",
+      "downstream_role": "Reviewed ranking input for future AI-78 only.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": false
+    },
     {
       "contract_name": "ai_regulatory_gold_suite",
       "schema_file": "schemas/ai-regulatory-gold-suite.schema.json",
@@ -24,7 +175,9 @@
       "contract_name": "ai_evaluation_suite",
       "schema_file": "schemas/ai-evaluation-suite.schema.json",
       "valid_fixture": "snapshots/evaluation/synthetic-suite.json",
-      "invalid_fixtures": ["snapshots/evaluation/invalid-suite-unknown-dimension.json"],
+      "invalid_fixtures": [
+        "snapshots/evaluation/invalid-suite-unknown-dimension.json"
+      ],
       "test_file": "tests/evaluation/evaluation-schemas.test.ts",
       "status": "implemented",
       "purpose": "Versioned deterministic cases and dimensions for provider-neutral capability evaluation.",
@@ -34,10 +187,30 @@
       "downstream_allowed_field_present": false
     },
     {
-      "contract_name": "ai_pricing", "schema_file": "schemas/ai-pricing.schema.json", "valid_fixture": "config/ai-pricing.json", "invalid_fixtures": [], "test_file": "tests/governance/catalogs.test.ts", "status": "implemented", "purpose": "Repository-owned fixed-point provider/model pricing evidence for AI-74.", "downstream_role": "Resolves execution cost metadata only; it is not customer billing.", "requires_human_review_semantics": false, "requires_traceability": true, "downstream_allowed_field_present": false
+      "contract_name": "ai_pricing",
+      "schema_file": "schemas/ai-pricing.schema.json",
+      "valid_fixture": "config/ai-pricing.json",
+      "invalid_fixtures": [],
+      "test_file": "tests/governance/catalogs.test.ts",
+      "status": "implemented",
+      "purpose": "Repository-owned fixed-point provider/model pricing evidence for AI-74.",
+      "downstream_role": "Resolves execution cost metadata only; it is not customer billing.",
+      "requires_human_review_semantics": false,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": false
     },
     {
-      "contract_name": "ai_budget_policies", "schema_file": "schemas/ai-budget-policies.schema.json", "valid_fixture": "config/ai-budget-policies.json", "invalid_fixtures": [], "test_file": "tests/governance/catalogs.test.ts", "status": "implemented", "purpose": "Deterministic local execution budget policies for AI-74.", "downstream_role": "Blocks or reserves gateway execution capacity; it is not a balance or quota service.", "requires_human_review_semantics": false, "requires_traceability": true, "downstream_allowed_field_present": false
+      "contract_name": "ai_budget_policies",
+      "schema_file": "schemas/ai-budget-policies.schema.json",
+      "valid_fixture": "config/ai-budget-policies.json",
+      "invalid_fixtures": [],
+      "test_file": "tests/governance/catalogs.test.ts",
+      "status": "implemented",
+      "purpose": "Deterministic local execution budget policies for AI-74.",
+      "downstream_role": "Blocks or reserves gateway execution capacity; it is not a balance or quota service.",
+      "requires_human_review_semantics": false,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": false
     },
     {
       "contract_name": "ai_execution_profiles",

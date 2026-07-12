@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam.local/schemas/ai-routing-handoff-execution-result.schema.json",
+  "title": "AI-79 handoff execution result v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "handoff_id",
+    "decision_hash",
+    "authorization_id",
+    "capability_id",
+    "profile_id",
+    "profile_version",
+    "canonical_profile_key",
+    "execution_status",
+    "execution_correlation_id",
+    "audit_correlation_id",
+    "created_at"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "handoff_id": { "type": "string" },
+    "decision_hash": { "type": "string" },
+    "authorization_id": { "type": "string" },
+    "capability_id": { "type": "string" },
+    "profile_id": { "type": "string" },
+    "profile_version": { "type": "string" },
+    "canonical_profile_key": { "type": "string" },
+    "gateway_execution_id": { "type": "string" },
+    "execution_status": {
+      "enum": ["succeeded", "blocked", "failed", "rejected"]
+    },
+    "gateway_audit_reference": { "type": "string" },
+    "usage_audit_reference": { "type": "string" },
+    "execution_correlation_id": { "type": "string" },
+    "audit_correlation_id": { "type": "string" },
+    "created_at": { "type": "string", "format": "date-time" },
+    "rejection_reason": { "type": "string" }
+  }
+}
