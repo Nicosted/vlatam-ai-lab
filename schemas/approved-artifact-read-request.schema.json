@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/approved-artifact-read-request.schema.json",
+  "title": "Approved Artifact Read — Request",
+  "description": "Provider-neutral request envelope for the `artifact.approved.serve_http` capability. The capability accepts only a domain lookup request (a source_id and an artifact_id) and never carries API keys, headers, IP addresses, endpoint URLs, or other transport or authentication details. The identifier formats mirror the existing rules in `src/server/api-server.ts`: `source_id` matches `^[a-z0-9_-]+$`; `artifact_id` matches `^artifact--[a-z0-9_-]+--[a-z0-9_-]+$`. The output is a `classifier-approved-artifact-export`; the read request must not duplicate that payload.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["source_id", "artifact_id"],
+  "properties": {
+    "source_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9_-]+$",
+      "minLength": 1,
+      "maxLength": 160,
+      "description": "Source identifier. Must match the existing API server source_id pattern."
+    },
+    "artifact_id": {
+      "type": "string",
+      "pattern": "^artifact--[a-z0-9_-]+--[a-z0-9_-]+$",
+      "minLength": 1,
+      "maxLength": 200,
+      "description": "Artifact identifier. Must match the existing API server artifact_id pattern."
+    }
+  }
+}

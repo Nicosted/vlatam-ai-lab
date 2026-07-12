@@ -104,14 +104,14 @@ export const DOMAIN_CAPABILITY_BINDINGS: readonly DomainCapabilityBinding[] = [
   },
   {
     capability_id: 'source.regulatory_advisory.readiness_check' as CapabilityId,
-    input_schema_ref: 'schemas/intelligence-source-snapshot.schema.json',
-    output_schema_ref: 'schemas/extractable-evidence-packet.schema.json',
+    input_schema_ref: 'schemas/regulatory-advisory-readiness-request.schema.json',
+    output_schema_ref: 'schemas/regulatory-advisory-readiness-result.schema.json',
     human_review_required: true,
     downstream_allowed: false,
     risk_tier: 'medium',
     provider_execution: 'none',
     notes:
-      'Reads a captured source snapshot and produces an evidence-packet-shaped readiness summary. The advisory answer is never emitted by this capability; the readiness summary is for human review only.',
+      'Accepts the current regulatory advisory read-model input and produces its readiness view. Missing evidence and source coverage are explicit; no final regulatory conclusion is emitted, human review is required, and downstream use is always blocked.',
   },
   {
     capability_id: 'review.human.gate' as CapabilityId,
@@ -144,11 +144,11 @@ export const DOMAIN_CAPABILITY_BINDINGS: readonly DomainCapabilityBinding[] = [
     risk_tier: 'high',
     provider_execution: 'none',
     notes:
-      'Generates a clean export from a reviewed classifier intelligence artifact. The export schema strips governance and reviewer metadata; the reviewer identity never crosses this boundary. The capability is the post-review boundary itself and is therefore allowed to be downstream-eligible: every input is reviewed, every output is not.',
+      'Accepts only a classifier intelligence artifact that already satisfies the reviewed-approved precondition. It strips internal governance and reviewer metadata and produces an approved read-only export, never an unreviewed model output.',
   },
   {
     capability_id: 'artifact.approved.serve_http' as CapabilityId,
-    input_schema_ref: 'schemas/classifier-approved-artifact-export-contract.schema.json',
+    input_schema_ref: 'schemas/approved-artifact-read-request.schema.json',
     output_schema_ref: 'schemas/classifier-approved-artifact-export.schema.json',
     human_review_required: false,
     downstream_allowed: true,

@@ -1,0 +1,16 @@
+{
+  "use_case": {
+    "origin_country": { "code": "AR", "name": "Argentina", "kind": "country" },
+    "destination": {
+      "countries": [{ "code": "ES", "name": "Spain", "kind": "country" }],
+      "blocs": [{ "code": "EU", "name": "European Union", "kind": "bloc" }]
+    },
+    "product_family": "ecological-biological agrochemical products",
+    "hs_ncm_code": null,
+    "requested_language": "en"
+  },
+  "source_records": [],
+  "required_review_area_ids": ["hs_ncm_classification_dependency"],
+  "fixture_status": "pending_review",
+  "generated_at": "2026-07-01T00:00:00.000Z"
+}

@@ -52,7 +52,7 @@ The contract layer is independent of:
 | `schemas/capability-error.schema.json` | JSON Schema for the error block. |
 | `schemas/capability-policy.schema.json` | JSON Schema for the policy block. |
 | `tests/capabilities/*.test.ts` | The contract compatibility tests. |
-| `schemas/schema-registry.json` | Updated to include the four new schemas. |
+| `schemas/schema-registry.json` | Registers 24 contracts, including the four core capability schemas and the three corrected domain-binding schemas. |
 | `config/ai-capabilities.json` | Source of truth for the catalog; the registry reads this file. |
 
 ## 3. Request lifecycle
@@ -214,11 +214,39 @@ per the AI-71 spec, is:
 | --- | --- | --- | --- | --- | --- | --- |
 | `evidence.extraction.normative_claims` | `extractable-evidence-packet.schema.json` | `ai-extraction-result.schema.json` | high | yes | no | required |
 | `evidence.classifier_candidate.generate` | `ai-extraction-result.schema.json` | `classifier-intelligence-artifact.schema.json` | high | yes | no | none |
-| `source.regulatory_advisory.readiness_check` | `intelligence-source-snapshot.schema.json` | `extractable-evidence-packet.schema.json` | medium | yes | no | none |
+| `source.regulatory_advisory.readiness_check` | `regulatory-advisory-readiness-request.schema.json` | `regulatory-advisory-readiness-result.schema.json` | medium | yes | no | none |
 | `review.human.gate` | `classifier-intelligence-artifact.schema.json` | `classifier-intelligence-artifact.schema.json` | high | no | conditional | none |
 | `artifact.approved.generate` | `classifier-intelligence-artifact.schema.json` | `classifier-intelligence-artifact.schema.json` | high | yes | conditional | none |
 | `artifact.export_contract.generate` | `classifier-intelligence-artifact.schema.json` | `classifier-approved-artifact-export.schema.json` | high | yes | yes | none |
-| `artifact.approved.serve_http` | `classifier-approved-artifact-export-contract.schema.json` | `classifier-approved-artifact-export.schema.json` | medium | no | yes | none |
+| `artifact.approved.serve_http` | `approved-artifact-read-request.schema.json` | `classifier-approved-artifact-export.schema.json` | medium | no | yes | none |
+
+The advisory readiness binding mirrors the current
+`RegulatoryAdvisoryReadinessBuildInput` and
+`RegulatoryAdvisoryReadinessView` structures. Its result exposes
+source coverage and missing or unreviewed evidence, requires human
+review, fixes `downstream_allowed` to `false`, and never represents a
+final regulatory conclusion or carries provider/reviewer metadata.
+
+The approved-artifact HTTP binding accepts only the current domain
+lookup identifiers (`source_id` and `artifact_id`) using the same
+patterns as `src/server/api-server.ts`. API keys, headers, endpoints,
+IP addresses, reviewer data, and export payload fields are outside the
+contract. Its output remains the existing approved read-only export.
+
+`artifact.export_contract.generate` is a post-review transformation:
+its input must already satisfy the reviewed-approved precondition. It
+strips internal governance and reviewer metadata and emits an approved
+read-only export, never an unreviewed model output.
+
+## 8.1 Schema and fixture inventory
+
+The repository now contains 32 JSON Schema files and 166 PCRAM snapshot
+fixtures. The schema registry contains 24 contract entries. For the
+three corrected domain contracts, the registry records three valid
+fixtures and 13 invalid fixtures covering missing fields, identifier
+safety/path traversal, forbidden provider/reviewer/transport fields,
+incorrect downstream approval, and malformed source-coverage or
+missing-evidence structures.
 
 The binding is descriptive, not invasive. The existing domain
 modules under `src/agents/`, `src/advisory/`, and `src/server/` are

@@ -1,0 +1,501 @@
+{
+  "advisory_id": "advisory--ar--es-eu--ecological-biological-agrochemical-products--hs-ncm-unclassified",
+  "use_case": {
+    "status": "pending_review",
+    "summary": "Argentina -> Spain / European Union: ecological-biological agrochemical products",
+    "requested_language": "en"
+  },
+  "jurisdictions": {
+    "origin": {
+      "code": "AR",
+      "name": "Argentina",
+      "kind": "country"
+    },
+    "destination_countries": [
+      {
+        "code": "ES",
+        "name": "Spain",
+        "kind": "country"
+      }
+    ],
+    "destination_blocs": [
+      {
+        "code": "EU",
+        "name": "European Union",
+        "kind": "bloc"
+      }
+    ]
+  },
+  "product_scope": {
+    "product_family": "ecological-biological agrochemical products",
+    "hs_ncm_code": null,
+    "classification_status": "missing_or_uncertain"
+  },
+  "source_coverage_summary": {
+    "source_count": 5,
+    "classifications": {
+      "reviewed_official": 0,
+      "reviewed_internal": 0,
+      "sample_only": 1,
+      "missing": 0,
+      "stale": 0,
+      "unverified": 0,
+      "requires_human_review": 4
+    },
+    "official_reviewed_source_count": 0,
+    "reviewed_internal_source_count": 0,
+    "sample_only_source_count": 1,
+    "has_reviewed_official_source": false,
+    "missing_required_area_count": 15,
+    "areas_with_reviewed_evidence": [],
+    "areas_without_reviewed_evidence": [
+      "hs_ncm_classification_dependency",
+      "argentina_export_requirements",
+      "argentina_customs_export_documentation",
+      "senasa_or_relevant_argentine_authority_review",
+      "spain_import_customs_requirements",
+      "eu_market_access_requirements",
+      "eu_product_classification_uncertainty",
+      "reach_clp_or_chemical_compliance_screening",
+      "organic_ecological_biological_claim_validation",
+      "labeling_and_safety_documentation",
+      "certificates_registrations_licenses_permits",
+      "restricted_substances_active_ingredients_review",
+      "sds_technical_sheet_composition_documentation",
+      "incoterms_and_logistics_assumptions",
+      "human_expert_review_before_client_recommendation"
+    ],
+    "missing_jurisdiction_codes": [
+      "AR",
+      "ES",
+      "EU"
+    ]
+  },
+  "confirmed_reviewed_inputs": [],
+  "missing_or_unreviewed_inputs": [
+    {
+      "review_area_id": "hs_ncm_classification_dependency",
+      "review_area": "HS/NCM classification dependency",
+      "coverage": "requires_human_review",
+      "source_refs": [
+        "snapshots/pcram/intelligence-source-registry-wco-hs-2022-official.json",
+        "snapshots/pcram/intelligence-source-registry-mercosur-ncm-aec-official.json",
+        "snapshots/pcram/intelligence-source-registry-ar-decreto-557-2023-official.json",
+        "snapshots/pcram/intelligence-source-registry-ar-arca-arancel-official.json"
+      ],
+      "evidence_refs": [],
+      "reason": "The source or snapshot requires human review before downstream use."
+    },
+    {
+      "review_area_id": "argentina_export_requirements",
+      "review_area": "Argentina export requirements",
+      "coverage": "requires_human_review",
+      "source_refs": [
+        "snapshots/pcram/intelligence-source-registry-mercosur-ncm-aec-official.json",
+        "snapshots/pcram/intelligence-source-registry-ar-decreto-557-2023-official.json",
+        "snapshots/pcram/intelligence-source-registry-ar-arca-arancel-official.json"
+      ],
+      "evidence_refs": [],
+      "reason": "The source or snapshot requires human review before downstream use."
+    },
+    {
+      "review_area_id": "argentina_customs_export_documentation",
+      "review_area": "Argentina customs/export documentation",
+      "coverage": "requires_human_review",
+      "source_refs": [
+        "snapshots/pcram/intelligence-source-registry-ar-decreto-557-2023-official.json",
+        "snapshots/pcram/intelligence-source-registry-ar-arca-arancel-official.json"
+      ],
+      "evidence_refs": [],
+      "reason": "The source or snapshot requires human review before downstream use."
+    },
+    {
+      "review_area_id": "senasa_or_relevant_argentine_authority_review",
+      "review_area": "SENASA or relevant Argentine authority review if applicable",
+      "coverage": "sample_only",
+      "source_refs": [
+        "snapshots/pcram/intelligence-source-registry-ar-sectoral-placeholder-candidate.json"
+      ],
+      "evidence_refs": [],
+      "reason": "Sample-only or placeholder sources are present; they are not client-safe."
+    },
+    {
+      "review_area_id": "spain_import_customs_requirements",
+      "review_area": "Spain import/customs requirements",
+      "coverage": "missing",
+      "source_refs": [],
+      "evidence_refs": [],
+      "reason": "No local source is registered for this area."
+    },
+    {
+      "review_area_id": "eu_market_access_requirements",
+      "review_area": "EU market access requirements",
+      "coverage": "missing",
+      "source_refs": [],
+      "evidence_refs": [],
+      "reason": "No local source is registered for this area."
+    },
+    {
+      "review_area_id": "eu_product_classification_uncertainty",
+      "review_area": "EU plant protection product / fertilizer / biostimulant / chemical classification uncertainty",
+      "coverage": "missing",
+      "source_refs": [],
+      "evidence_refs": [],
+      "reason": "No local source is registered for this area."
+    },
+    {
+      "review_area_id": "reach_clp_or_chemical_compliance_screening",
+      "review_area": "REACH/CLP or chemical compliance screening if applicable",
+      "coverage": "missing",
+      "source_refs": [],
+      "evidence_refs": [],
+      "reason": "No local source is registered for this area."
+    },
+    {
+      "review_area_id": "organic_ecological_biological_claim_validation",
+      "review_area": "Organic/ecological/biological claim validation",
+      "coverage": "missing",
+      "source_refs": [],
+      "evidence_refs": [],
+      "reason": "No local source is registered for this area."
+    },
+    {
+      "review_area_id": "labeling_and_safety_documentation",
+      "review_area": "Labeling and safety documentation",
+      "coverage": "missing",
+      "source_refs": [],
+      "evidence_refs": [],
+      "reason": "No local source is registered for this area."
+    },
+    {
+      "review_area_id": "certificates_registrations_licenses_permits",
+      "review_area": "Certificates, registrations, licenses, permits",
+      "coverage": "requires_human_review",
+      "source_refs": [
+        "snapshots/pcram/intelligence-source-registry-ar-arca-arancel-official.json",
+        "snapshots/pcram/intelligence-source-registry-ar-sectoral-placeholder-candidate.json"
+      ],
+      "evidence_refs": [],
+      "reason": "The source or snapshot requires human review before downstream use."
+    },
+    {
+      "review_area_id": "restricted_substances_active_ingredients_review",
+      "review_area": "Restricted substances / active ingredients review",
+      "coverage": "sample_only",
+      "source_refs": [
+        "snapshots/pcram/intelligence-source-registry-ar-sectoral-placeholder-candidate.json"
+      ],
+      "evidence_refs": [],
+      "reason": "Sample-only or placeholder sources are present; they are not client-safe."
+    },
+    {
+      "review_area_id": "sds_technical_sheet_composition_documentation",
+      "review_area": "SDS / technical sheet / composition documentation",
+      "coverage": "missing",
+      "source_refs": [],
+      "evidence_refs": [],
+      "reason": "No local source is registered for this area."
+    },
+    {
+      "review_area_id": "incoterms_and_logistics_assumptions",
+      "review_area": "Incoterms and logistics assumptions",
+      "coverage": "missing",
+      "source_refs": [],
+      "evidence_refs": [],
+      "reason": "No local source is registered for this area."
+    },
+    {
+      "review_area_id": "human_expert_review_before_client_recommendation",
+      "review_area": "Human expert review before client-facing recommendation",
+      "coverage": "missing",
+      "source_refs": [],
+      "evidence_refs": [],
+      "reason": "No local source is registered for this area."
+    }
+  ],
+  "required_review_areas": [
+    {
+      "area_id": "hs_ncm_classification_dependency",
+      "label": "HS/NCM classification dependency",
+      "required": true
+    },
+    {
+      "area_id": "argentina_export_requirements",
+      "label": "Argentina export requirements",
+      "required": true
+    },
+    {
+      "area_id": "argentina_customs_export_documentation",
+      "label": "Argentina customs/export documentation",
+      "required": true
+    },
+    {
+      "area_id": "senasa_or_relevant_argentine_authority_review",
+      "label": "SENASA or relevant Argentine authority review if applicable",
+      "required": true
+    },
+    {
+      "area_id": "spain_import_customs_requirements",
+      "label": "Spain import/customs requirements",
+      "required": true
+    },
+    {
+      "area_id": "eu_market_access_requirements",
+      "label": "EU market access requirements",
+      "required": true
+    },
+    {
+      "area_id": "eu_product_classification_uncertainty",
+      "label": "EU plant protection product / fertilizer / biostimulant / chemical classification uncertainty",
+      "required": true
+    },
+    {
+      "area_id": "reach_clp_or_chemical_compliance_screening",
+      "label": "REACH/CLP or chemical compliance screening if applicable",
+      "required": true
+    },
+    {
+      "area_id": "organic_ecological_biological_claim_validation",
+      "label": "Organic/ecological/biological claim validation",
+      "required": true
+    },
+    {
+      "area_id": "labeling_and_safety_documentation",
+      "label": "Labeling and safety documentation",
+      "required": true
+    },
+    {
+      "area_id": "certificates_registrations_licenses_permits",
+      "label": "Certificates, registrations, licenses, permits",
+      "required": true
+    },
+    {
+      "area_id": "restricted_substances_active_ingredients_review",
+      "label": "Restricted substances / active ingredients review",
+      "required": true
+    },
+    {
+      "area_id": "sds_technical_sheet_composition_documentation",
+      "label": "SDS / technical sheet / composition documentation",
+      "required": true
+    },
+    {
+      "area_id": "incoterms_and_logistics_assumptions",
+      "label": "Incoterms and logistics assumptions",
+      "required": true
+    },
+    {
+      "area_id": "human_expert_review_before_client_recommendation",
+      "label": "Human expert review before client-facing recommendation",
+      "required": true
+    }
+  ],
+  "advisory_checklist": [
+    {
+      "item_id": "hs_ncm_classification_dependency",
+      "label": "HS/NCM classification dependency",
+      "status": "needs_reviewed_evidence",
+      "coverage": "requires_human_review",
+      "source_refs": [
+        "snapshots/pcram/intelligence-source-registry-wco-hs-2022-official.json",
+        "snapshots/pcram/intelligence-source-registry-mercosur-ncm-aec-official.json",
+        "snapshots/pcram/intelligence-source-registry-ar-decreto-557-2023-official.json",
+        "snapshots/pcram/intelligence-source-registry-ar-arca-arancel-official.json"
+      ],
+      "evidence_refs": [],
+      "notes": [
+        "HS/NCM code is missing or uncertain; the read-model did not infer or guess a classification.",
+        "This area has no reviewed evidence backing it."
+      ]
+    },
+    {
+      "item_id": "argentina_export_requirements",
+      "label": "Argentina export requirements",
+      "status": "needs_reviewed_evidence",
+      "coverage": "requires_human_review",
+      "source_refs": [
+        "snapshots/pcram/intelligence-source-registry-mercosur-ncm-aec-official.json",
+        "snapshots/pcram/intelligence-source-registry-ar-decreto-557-2023-official.json",
+        "snapshots/pcram/intelligence-source-registry-ar-arca-arancel-official.json"
+      ],
+      "evidence_refs": [],
+      "notes": [
+        "This area has no reviewed evidence backing it."
+      ]
+    },
+    {
+      "item_id": "argentina_customs_export_documentation",
+      "label": "Argentina customs/export documentation",
+      "status": "needs_reviewed_evidence",
+      "coverage": "requires_human_review",
+      "source_refs": [
+        "snapshots/pcram/intelligence-source-registry-ar-decreto-557-2023-official.json",
+        "snapshots/pcram/intelligence-source-registry-ar-arca-arancel-official.json"
+      ],
+      "evidence_refs": [],
+      "notes": [
+        "This area has no reviewed evidence backing it."
+      ]
+    },
+    {
+      "item_id": "senasa_or_relevant_argentine_authority_review",
+      "label": "SENASA or relevant Argentine authority review if applicable",
+      "status": "needs_reviewed_evidence",
+      "coverage": "sample_only",
+      "source_refs": [
+        "snapshots/pcram/intelligence-source-registry-ar-sectoral-placeholder-candidate.json"
+      ],
+      "evidence_refs": [],
+      "notes": [
+        "This area has no reviewed evidence backing it."
+      ]
+    },
+    {
+      "item_id": "spain_import_customs_requirements",
+      "label": "Spain import/customs requirements",
+      "status": "missing_source",
+      "coverage": "missing",
+      "source_refs": [],
+      "evidence_refs": [],
+      "notes": [
+        "This area has no reviewed evidence backing it."
+      ]
+    },
+    {
+      "item_id": "eu_market_access_requirements",
+      "label": "EU market access requirements",
+      "status": "missing_source",
+      "coverage": "missing",
+      "source_refs": [],
+      "evidence_refs": [],
+      "notes": [
+        "This area has no reviewed evidence backing it."
+      ]
+    },
+    {
+      "item_id": "eu_product_classification_uncertainty",
+      "label": "EU plant protection product / fertilizer / biostimulant / chemical classification uncertainty",
+      "status": "missing_source",
+      "coverage": "missing",
+      "source_refs": [],
+      "evidence_refs": [],
+      "notes": [
+        "This area has no reviewed evidence backing it."
+      ]
+    },
+    {
+      "item_id": "reach_clp_or_chemical_compliance_screening",
+      "label": "REACH/CLP or chemical compliance screening if applicable",
+      "status": "missing_source",
+      "coverage": "missing",
+      "source_refs": [],
+      "evidence_refs": [],
+      "notes": [
+        "This area has no reviewed evidence backing it."
+      ]
+    },
+    {
+      "item_id": "organic_ecological_biological_claim_validation",
+      "label": "Organic/ecological/biological claim validation",
+      "status": "missing_source",
+      "coverage": "missing",
+      "source_refs": [],
+      "evidence_refs": [],
+      "notes": [
+        "This area has no reviewed evidence backing it."
+      ]
+    },
+    {
+      "item_id": "labeling_and_safety_documentation",
+      "label": "Labeling and safety documentation",
+      "status": "missing_source",
+      "coverage": "missing",
+      "source_refs": [],
+      "evidence_refs": [],
+      "notes": [
+        "This area has no reviewed evidence backing it."
+      ]
+    },
+    {
+      "item_id": "certificates_registrations_licenses_permits",
+      "label": "Certificates, registrations, licenses, permits",
+      "status": "needs_reviewed_evidence",
+      "coverage": "requires_human_review",
+      "source_refs": [
+        "snapshots/pcram/intelligence-source-registry-ar-arca-arancel-official.json",
+        "snapshots/pcram/intelligence-source-registry-ar-sectoral-placeholder-candidate.json"
+      ],
+      "evidence_refs": [],
+      "notes": [
+        "This area has no reviewed evidence backing it."
+      ]
+    },
+    {
+      "item_id": "restricted_substances_active_ingredients_review",
+      "label": "Restricted substances / active ingredients review",
+      "status": "needs_reviewed_evidence",
+      "coverage": "sample_only",
+      "source_refs": [
+        "snapshots/pcram/intelligence-source-registry-ar-sectoral-placeholder-candidate.json"
+      ],
+      "evidence_refs": [],
+      "notes": [
+        "This area has no reviewed evidence backing it."
+      ]
+    },
+    {
+      "item_id": "sds_technical_sheet_composition_documentation",
+      "label": "SDS / technical sheet / composition documentation",
+      "status": "missing_source",
+      "coverage": "missing",
+      "source_refs": [],
+      "evidence_refs": [],
+      "notes": [
+        "This area has no reviewed evidence backing it."
+      ]
+    },
+    {
+      "item_id": "incoterms_and_logistics_assumptions",
+      "label": "Incoterms and logistics assumptions",
+      "status": "missing_source",
+      "coverage": "missing",
+      "source_refs": [],
+      "evidence_refs": [],
+      "notes": [
+        "This area has no reviewed evidence backing it."
+      ]
+    },
+    {
+      "item_id": "human_expert_review_before_client_recommendation",
+      "label": "Human expert review before client-facing recommendation",
+      "status": "missing_source",
+      "coverage": "missing",
+      "source_refs": [],
+      "evidence_refs": [],
+      "notes": [
+        "This area has no reviewed evidence backing it."
+      ]
+    }
+  ],
+  "source_refs": [
+    "snapshots/pcram/intelligence-source-registry-wco-hs-2022-official.json",
+    "snapshots/pcram/intelligence-source-registry-mercosur-ncm-aec-official.json",
+    "snapshots/pcram/intelligence-source-registry-ar-decreto-557-2023-official.json",
+    "snapshots/pcram/intelligence-source-registry-ar-arca-arancel-official.json",
+    "snapshots/pcram/intelligence-source-registry-ar-sectoral-placeholder-candidate.json"
+  ],
+  "evidence_refs": [],
+  "human_review_required": true,
+  "downstream_allowed": false,
+  "uncertainty_notes": [
+    "This read-model does not emit a final legal, customs, tariff, sanitary, chemical, or compliance recommendation.",
+    "Human expert review is mandatory before any client-facing recommendation.",
+    "HS/NCM code is missing or uncertain; the read-model did not infer or guess a classification.",
+    "No reviewed official source covers this advisory end to end.",
+    "Jurisdiction coverage is incomplete for the required jurisdiction codes. Missing: AR, ES, EU.",
+    "Sample-only or placeholder sources are present; they are not client-safe.",
+    "This area has no reviewed evidence backing it. Missing areas: hs_ncm_classification_dependency, argentina_export_requirements, argentina_customs_export_documentation, senasa_or_relevant_argentine_authority_review, spain_import_customs_requirements, eu_market_access_requirements, eu_product_classification_uncertainty, reach_clp_or_chemical_compliance_screening, organic_ecological_biological_claim_validation, labeling_and_safety_documentation, certificates_registrations_licenses_permits, restricted_substances_active_ingredients_review, sds_technical_sheet_composition_documentation, incoterms_and_logistics_assumptions, human_expert_review_before_client_recommendation."
+  ],
+  "generated_at": "2026-07-01T00:00:00.000Z",
+  "schema_version": "1.0.0"
+}

@@ -1,0 +1,9 @@
+{
+  "use_case": {
+    "origin_country": { "code": "AR", "name": "Argentina", "kind": "country" },
+    "destination": {},
+    "product_family": "agrochemical products",
+    "requested_language": "en"
+  },
+  "source_records": [{ "source_ref": "fixture", "source_id": "source", "jurisdiction_codes": ["AR"], "review_area_ids": ["not-a-real-review-area"] }]
+}

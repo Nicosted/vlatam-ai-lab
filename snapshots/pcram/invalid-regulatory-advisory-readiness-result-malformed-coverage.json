@@ -1,0 +1,6 @@
+{
+  "source_coverage_summary": { "source_count": "five" },
+  "missing_or_unreviewed_inputs": "missing",
+  "human_review_required": true,
+  "downstream_allowed": false
+}

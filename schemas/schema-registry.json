@@ -353,6 +353,61 @@
       "requires_human_review_semantics": true,
       "requires_traceability": true,
       "downstream_allowed_field_present": true
+    },
+    {
+      "contract_name": "regulatory_advisory_readiness_request",
+      "schema_file": "schemas/regulatory-advisory-readiness-request.schema.json",
+      "valid_fixture": "snapshots/pcram/regulatory-advisory-readiness-request-valid.json",
+      "invalid_fixtures": [
+        "snapshots/pcram/invalid-regulatory-advisory-readiness-request-missing-required.json",
+        "snapshots/pcram/invalid-regulatory-advisory-readiness-request-provider-field.json",
+        "snapshots/pcram/invalid-regulatory-advisory-readiness-request-reviewer-field.json",
+        "snapshots/pcram/invalid-regulatory-advisory-readiness-request-malformed-source-coverage.json"
+      ],
+      "test_file": "tests/capabilities/domain-binding-schemas.test.ts",
+      "status": "implemented",
+      "purpose": "Mirrors the current provider-neutral RegulatoryAdvisoryReadinessBuildInput accepted by the advisory read-model.",
+      "downstream_role": "Supplies bounded use-case and local source-coverage inputs for a review-required, non-downstream readiness view; it cannot request a final regulatory conclusion.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": false
+    },
+    {
+      "contract_name": "regulatory_advisory_readiness_result",
+      "schema_file": "schemas/regulatory-advisory-readiness-result.schema.json",
+      "valid_fixture": "snapshots/pcram/regulatory-advisory-readiness-result-valid.json",
+      "invalid_fixtures": [
+        "snapshots/pcram/invalid-regulatory-advisory-readiness-result-missing-required.json",
+        "snapshots/pcram/invalid-regulatory-advisory-readiness-result-downstream-allowed.json",
+        "snapshots/pcram/invalid-regulatory-advisory-readiness-result-reviewer-field.json",
+        "snapshots/pcram/invalid-regulatory-advisory-readiness-result-provider-field.json",
+        "snapshots/pcram/invalid-regulatory-advisory-readiness-result-malformed-coverage.json"
+      ],
+      "test_file": "tests/capabilities/domain-binding-schemas.test.ts",
+      "status": "implemented",
+      "purpose": "Mirrors the current RegulatoryAdvisoryReadinessView, including explicit source coverage and missing or unreviewed evidence.",
+      "downstream_role": "Fails closed with human review required and downstream use forbidden; it is a readiness read-model, not a final regulatory conclusion.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": true
+    },
+    {
+      "contract_name": "approved_artifact_read_request",
+      "schema_file": "schemas/approved-artifact-read-request.schema.json",
+      "valid_fixture": "snapshots/pcram/approved-artifact-read-request-valid.json",
+      "invalid_fixtures": [
+        "snapshots/pcram/invalid-approved-artifact-read-request-missing-required.json",
+        "snapshots/pcram/invalid-approved-artifact-read-request-malformed-identifier.json",
+        "snapshots/pcram/invalid-approved-artifact-read-request-path-traversal.json",
+        "snapshots/pcram/invalid-approved-artifact-read-request-transport-field.json"
+      ],
+      "test_file": "tests/capabilities/domain-binding-schemas.test.ts",
+      "status": "implemented",
+      "purpose": "Defines the two-identifier domain lookup accepted by the existing approved-artifact HTTP read route.",
+      "downstream_role": "Locates an already approved read-only export without carrying credentials, headers, endpoints, IP addresses, reviewer data, or a duplicate export payload.",
+      "requires_human_review_semantics": false,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": false
     }
   ]
 }

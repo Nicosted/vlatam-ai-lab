@@ -1,0 +1,183 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/regulatory-advisory-readiness-request.schema.json",
+  "title": "Regulatory Advisory Readiness — Request",
+  "description": "Provider-neutral request envelope for the `source.regulatory_advisory.readiness_check` capability. The shape is the typed mirror of `RegulatoryAdvisoryReadinessBuildInput` in `src/advisory/regulatory-advisory-read-model.ts`. The capability never accepts a final regulatory conclusion in input and never emits one in output. Human review is required by construction; the request must not bypass it.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["use_case"],
+  "properties": {
+    "use_case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["origin_country", "destination", "product_family", "requested_language"],
+      "properties": {
+        "origin_country": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["code", "name", "kind"],
+          "properties": {
+            "code": { "type": "string", "minLength": 1, "maxLength": 16 },
+            "name": { "type": "string", "minLength": 1, "maxLength": 200 },
+            "kind": { "type": "string", "enum": ["country", "bloc", "region", "global"] }
+          }
+        },
+        "destination": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "countries": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["code", "name", "kind"],
+                "properties": {
+                  "code": { "type": "string", "minLength": 1, "maxLength": 16 },
+                  "name": { "type": "string", "minLength": 1, "maxLength": 200 },
+                  "kind": { "type": "string", "enum": ["country", "bloc", "region", "global"] }
+                }
+              }
+            },
+            "blocs": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["code", "name", "kind"],
+                "properties": {
+                  "code": { "type": "string", "minLength": 1, "maxLength": 16 },
+                  "name": { "type": "string", "minLength": 1, "maxLength": 200 },
+                  "kind": { "type": "string", "enum": ["country", "bloc", "region", "global"] }
+                }
+              }
+            }
+          }
+        },
+        "product_family": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 400
+        },
+        "hs_ncm_code": {
+          "description": "HS/NCM code when provided. The contract is explicit: the read-model never infers a classification when this field is null or absent.",
+          "type": ["string", "null"],
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "requested_language": {
+          "type": "string",
+          "enum": ["en", "es"]
+        }
+      }
+    },
+    "source_records": {
+      "description": "Embedded source records for the read-model. These are read-only inputs, not a parallel source registry. Future advisory inputs should be resolved from the PCRAM source registry, snapshots, evidence, review manifests, jurisdiction packs, and approved KB snapshots.",
+      "type": "array",
+      "items": { "$ref": "#/$defs/sourceRecord" }
+    },
+    "required_review_area_ids": {
+      "description": "The subset of regulatory review areas that must be present. Absent means the full default review-area set is used.",
+      "type": "array",
+      "items": { "$ref": "#/$defs/reviewAreaId" }
+    },
+    "fixture_status": {
+      "type": "string",
+      "enum": ["draft", "pending_review", "approved", "rejected"]
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "$defs": {
+    "sourceRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_ref", "source_id", "jurisdiction_codes", "review_area_ids"],
+      "properties": {
+        "source_ref": { "type": "string", "minLength": 1, "maxLength": 400 },
+        "source_id": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "jurisdiction_codes": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1, "maxLength": 16 }
+        },
+        "review_area_ids": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/reviewAreaId" }
+        },
+        "registry": { "$ref": "#/$defs/registryRecord" },
+        "snapshot": { "$ref": "#/$defs/snapshotRecord" },
+        "evidence_refs": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1, "maxLength": 400 }
+        },
+        "internal_review_status": {
+          "type": "string",
+          "enum": ["draft", "pending_review", "approved", "rejected"]
+        }
+      }
+    },
+    "registryRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_id"],
+      "properties": {
+        "source_id": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "source_name": { "type": "string", "maxLength": 400 },
+        "source_type": { "type": "string", "maxLength": 160 },
+        "authority_level": { "type": "string", "maxLength": 160 },
+        "reliability_level": { "type": "string", "maxLength": 160 },
+        "jurisdiction_scope": { "type": "string", "maxLength": 200 },
+        "country_code": { "type": "string", "maxLength": 16 },
+        "regional_scope": { "type": "string", "maxLength": 200 },
+        "topic_scope": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "source_locator": { "type": "string", "maxLength": 1000 },
+        "verification_status": { "type": "string", "maxLength": 80 },
+        "freshness_status": { "type": "string", "maxLength": 80 },
+        "human_review_required": { "type": "boolean" },
+        "downstream_allowed": { "type": "boolean" }
+      }
+    },
+    "snapshotRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["snapshot_id", "source_id"],
+      "properties": {
+        "snapshot_id": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "source_id": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "capture_method": { "type": "string", "maxLength": 200 },
+        "source_locator": { "type": "string", "maxLength": 1000 },
+        "content_reference": { "type": "string", "maxLength": 1000 },
+        "freshness_status": { "type": "string", "maxLength": 80 },
+        "review_status": { "type": "string", "maxLength": 80 },
+        "extraction_status": { "type": "string", "maxLength": 80 },
+        "human_review_required": { "type": "boolean" },
+        "downstream_allowed": { "type": "boolean" }
+      }
+    },
+    "reviewAreaId": {
+      "type": "string",
+      "enum": [
+        "hs_ncm_classification_dependency",
+        "argentina_export_requirements",
+        "argentina_customs_export_documentation",
+        "senasa_or_relevant_argentine_authority_review",
+        "spain_import_customs_requirements",
+        "eu_market_access_requirements",
+        "eu_product_classification_uncertainty",
+        "reach_clp_or_chemical_compliance_screening",
+        "organic_ecological_biological_claim_validation",
+        "labeling_and_safety_documentation",
+        "certificates_registrations_licenses_permits",
+        "restricted_substances_active_ingredients_review",
+        "sds_technical_sheet_composition_documentation",
+        "incoterms_and_logistics_assumptions",
+        "human_expert_review_before_client_recommendation"
+      ]
+    }
+  }
+}
