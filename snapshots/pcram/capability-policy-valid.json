@@ -1,0 +1,31 @@
+{
+  "human_review_policy": {
+    "required": true,
+    "reason": "Capability interprets regulated evidence; review is mandatory.",
+    "review_state_required": "reviewed_approved",
+    "no_auto_approval": true
+  },
+  "downstream_policy": {
+    "downstream_allowed": false,
+    "reason": "Capability output is always draft until reviewed."
+  },
+  "privacy_requirement": {
+    "tier": "regulated",
+    "zdr_required": true,
+    "redact_fields": ["supplier_names", "prices", "bank_data"],
+    "retention_class": "audit_with_payload"
+  },
+  "budget_requirement": {
+    "max_cost_usd": 1.0,
+    "window": "per_request"
+  },
+  "evaluation_requirement": {
+    "metric_set": ["quality", "latency", "cost", "safety"],
+    "gold_case_required": true,
+    "min_quality": 0.8
+  },
+  "execution_requirement": {
+    "provider_execution": "required",
+    "deterministic_fallback": false
+  }
+}

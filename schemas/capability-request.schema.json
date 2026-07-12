@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/capability-request.schema.json",
+  "title": "AI-71 Capability Request",
+  "description": "Stable, provider-neutral capability request envelope. The request never carries provider, model, profile, or credential fields; the schema rejects such fields and the validator at src/capabilities/validation.ts enforces the same rule on top of the schema.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["request_id", "capability_id", "schema_version", "input"],
+  "properties": {
+    "request_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "description": "Stable per-invocation identifier chosen by the caller."
+    },
+    "capability_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+      "description": "Stable, vendor-neutral dotted identifier. Rejects provider or model names."
+    },
+    "schema_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Contract schema version. The MAJOR component must be supported; the runtime validator at src/capabilities/validation.ts enforces this rule in addition to the schema."
+    },
+    "input": {
+      "type": "object",
+      "description": "Capability-specific input. The shape is validated by the JSON Schema referenced at CapabilityDefinition.input_schema_ref. Bare arrays are rejected at the request boundary.",
+      "additionalProperties": true
+    },
+    "context": {
+      "type": "object",
+      "description": "Per-invocation context. Every field is optional because not every caller knows every fact; the contract does not require fabrication.",
+      "additionalProperties": false,
+      "properties": {
+        "jurisdiction": { "type": "string" },
+        "source_id": { "type": "string" },
+        "artifact_id": { "type": "string" },
+        "correlation_id": { "type": "string" },
+        "data_classification": {
+          "type": "string",
+          "enum": ["public", "internal", "regulated", "restricted"]
+        },
+        "downstream_use": {
+          "type": "string",
+          "enum": ["none", "evidence_packet", "classifier_candidate", "advisory_draft", "approved_export"]
+        },
+        "actor_category": { "type": "string" },
+        "workflow": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "extras": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "description": "Reject provider/credential field names anywhere in the request. The contract is provider-neutral; leaking such fields at the request boundary is a fail-closed violation.",
+      "not": {
+        "anyOf": [
+          { "required": ["provider"] },
+          { "required": ["provider_id"] },
+          { "required": ["provider_name"] },
+          { "required": ["provider_response"] },
+          { "required": ["model"] },
+          { "required": ["model_id"] },
+          { "required": ["model_name"] },
+          { "required": ["model_version"] },
+          { "required": ["api_key"] },
+          { "required": ["apikey"] },
+          { "required": ["api_token"] },
+          { "required": ["token"] },
+          { "required": ["bearer"] },
+          { "required": ["authorization"] },
+          { "required": ["secret"] },
+          { "required": ["client_secret"] },
+          { "required": ["access_key"] },
+          { "required": ["private_key"] },
+          { "required": ["password"] },
+          { "required": ["endpoint_url"] },
+          { "required": ["base_url"] },
+          { "required": ["profile"] },
+          { "required": ["profile_id"] },
+          { "required": ["execution_profile"] },
+          { "required": ["prompt_hash"] },
+          { "required": ["reviewer"] },
+          { "required": ["reviewer_id"] },
+          { "required": ["reviewer_name"] }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "human_review_policy": {
+    "required": true,
+    "reason": "Capability interprets regulated evidence."
+  },
+  "downstream_policy": {
+    "downstream_allowed": false,
+    "reason": "Capability output is always draft."
+  },
+  "privacy_requirement": {
+    "tier": "unknown_tier",
+    "zdr_required": true,
+    "redact_fields": [],
+    "retention_class": "audit_with_payload"
+  },
+  "budget_requirement": {},
+  "evaluation_requirement": {
+    "gold_case_required": true
+  },
+  "execution_requirement": {
+    "provider_execution": "required",
+    "deterministic_fallback": false
+  }
+}

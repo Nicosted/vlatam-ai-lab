@@ -286,6 +286,73 @@
       "requires_human_review_semantics": true,
       "requires_traceability": true,
       "downstream_allowed_field_present": true
+    },
+    {
+      "contract_name": "capability_request",
+      "schema_file": "schemas/capability-request.schema.json",
+      "valid_fixture": "snapshots/pcram/capability-request-valid.json",
+      "invalid_fixtures": [
+        "snapshots/pcram/capability-request-invalid-missing-required.json",
+        "snapshots/pcram/capability-request-invalid-unsupported-version.json",
+        "snapshots/pcram/capability-request-invalid-provider-credential.json"
+      ],
+      "test_file": "tests/capabilities/contracts.test.ts",
+      "status": "implemented",
+      "purpose": "Stable, provider-neutral capability request envelope. The request never carries provider, model, profile, or credential fields; the schema and the runtime validator reject such fields at the request boundary.",
+      "downstream_role": "The only shape domain workflows hand to the capability layer. Provider selection is a routing concern (AI-78) and is forbidden here.",
+      "requires_human_review_semantics": false,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": false
+    },
+    {
+      "contract_name": "capability_result",
+      "schema_file": "schemas/capability-result.schema.json",
+      "valid_fixture": "snapshots/pcram/capability-result-valid.json",
+      "invalid_fixtures": [
+        "snapshots/pcram/capability-result-invalid-succeeded-without-output.json",
+        "snapshots/pcram/capability-result-invalid-blocked-downstream-allowed.json",
+        "snapshots/pcram/capability-result-invalid-blocked-without-error.json",
+        "snapshots/pcram/capability-result-invalid-reviewer-leak.json"
+      ],
+      "test_file": "tests/capabilities/contracts.test.ts",
+      "status": "implemented",
+      "purpose": "Stable, provider-neutral capability result envelope. A succeeded result does NOT imply downstream approval; the governance block is the only place downstream eligibility is expressed.",
+      "downstream_role": "The only shape the capability layer hands back to a domain workflow. Provider response objects, prompt hashes, reviewer identity, and credential metadata are forbidden at this boundary.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": true
+    },
+    {
+      "contract_name": "capability_error",
+      "schema_file": "schemas/capability-error.schema.json",
+      "valid_fixture": "snapshots/pcram/capability-error-valid.json",
+      "invalid_fixtures": [
+        "snapshots/pcram/capability-error-invalid-code.json",
+        "snapshots/pcram/capability-error-invalid-missing-message.json"
+      ],
+      "test_file": "tests/capabilities/contracts.test.ts",
+      "status": "implemented",
+      "purpose": "Structured error block on a CapabilityResult. Categories are contract | policy | execution | internal; codes are the stable namespaced enumeration defined by the AI-71 contract.",
+      "downstream_role": "Used in failed and blocked results. The contract does not surface raw provider exception messages, stack traces, or vendor error codes.",
+      "requires_human_review_semantics": false,
+      "requires_traceability": false,
+      "downstream_allowed_field_present": false
+    },
+    {
+      "contract_name": "capability_policy",
+      "schema_file": "schemas/capability-policy.schema.json",
+      "valid_fixture": "snapshots/pcram/capability-policy-valid.json",
+      "invalid_fixtures": [
+        "snapshots/pcram/capability-policy-invalid-missing-block.json",
+        "snapshots/pcram/capability-policy-invalid-tier.json"
+      ],
+      "test_file": "tests/capabilities/contracts.test.ts",
+      "status": "implemented",
+      "purpose": "Declarative policy block attached to a CapabilityDefinition. AI-71 only models these requirements; AI-72 through AI-78 enforce them.",
+      "downstream_role": "The single place privacy (AI-73), budget (AI-74), evaluation (AI-75/77), and execution (AI-78) requirements are declared. The absence of a requirement is itself a statement.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": true
     }
   ]
 }

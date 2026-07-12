@@ -1,0 +1,8 @@
+{
+  "category": "policy",
+  "code": "HUMAN_REVIEW_REQUIRED",
+  "message": "Capability requires explicit human review.",
+  "details": {
+    "policy": "downstream_allowed: true requires human_review_required: false"
+  }
+}
