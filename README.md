@@ -98,15 +98,17 @@ Consumers must validate `schema_version`, fail closed on unsupported or invalid 
 
 ## Documentation
 
-### Architecture and capability map (AI-70 / AI-71)
+### Architecture and capability map (AI-70 / AI-71 / AI-72 / AI-73)
 
 - [AI System Architecture](docs/architecture/ai-system-architecture.md) — target layered architecture and safety invariants.
 - [AI Capability Map](docs/architecture/ai-capability-map.md) — current and planned capability inventory.
 - [AI Roadmap Dependency Map](docs/architecture/ai-roadmap-dependency-map.md) — AI-70 through AI-78 sequence and gates.
 - [AI Capability Contracts (AI-71)](docs/architecture/ai-capability-contracts.md) — provider-neutral request, result, policy, and error envelopes plus the typed definition registry.
 - [AI Multi-Provider Gateway (AI-72)](docs/architecture/ai-multi-provider-gateway.md) — explicit execution profiles, normalized adapters, deterministic replay, strict output validation, and safe audit metadata.
+- [AI Privacy and ZDR Enforcement (AI-73)](docs/architecture/ai-privacy-zdr-enforcement.md) — data classification, deterministic redaction, retention compatibility, ZDR evidence verification, replay fixture provenance, and the gateway privacy gate.
 - [ADR-003: Capability-Oriented AI Execution](docs/decisions/003-capability-oriented-ai-execution.md) — vendor-neutral execution doctrine.
 - [AI Capabilities Catalog](config/ai-capabilities.json) — declarative capability inventory.
+- [AI Privacy Policy Catalog](config/ai-privacy-policies.json) — machine-readable privacy decisions per capability and classification.
 
 ### Reference
 

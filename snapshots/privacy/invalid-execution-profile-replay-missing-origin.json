@@ -1,0 +1,29 @@
+{
+  "schema_version": "1.1.0",
+  "profiles": [
+    {
+      "profile_id": "test.replay-missing-origin.v1",
+      "capability_id": "evidence.extraction.normative_claims",
+      "provider_id": "replay",
+      "model_id": "fixture",
+      "mode": "replay",
+      "lifecycle_status": "candidate",
+      "enabled": true,
+      "contract_version": "1.1.0",
+      "configuration": { "timeout_ms": 5000, "response_format": "json" },
+      "eligibility": { "privacy_compatibility": "declared_not_enforced", "budget_class": "development", "evaluation_status": "fixture_verified" },
+      "privacy": {
+        "max_data_classification": "internal",
+        "external_processing": "forbidden",
+        "zdr_support": "unsupported",
+        "retention_behavior": "bounded_local_fixture",
+        "training_use": "declared_not_used",
+        "processing_region": "local",
+        "pre_execution_redaction_required": true,
+        "regulated_data_permitted": false,
+        "restricted_data_permitted": false
+      },
+      "fixture_id": "normative-claims-success"
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+{
+  "schema_version": "1.0.0",
+  "description": "AI-73 ZDR verification evidence store. Repository-owned metadata only; the underlying evidence documents never enter the repository. Empty is the honest state: no provider ZDR posture has been verified. Profile declarations are never proof.",
+  "evidence": []
+}

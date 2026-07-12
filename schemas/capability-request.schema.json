@@ -39,7 +39,7 @@
         "correlation_id": { "type": "string" },
         "data_classification": {
           "type": "string",
-          "enum": ["public", "internal", "regulated", "restricted"]
+          "enum": ["public", "internal", "confidential", "regulated", "restricted"]
         },
         "downstream_use": {
           "type": "string",

@@ -1,0 +1,33 @@
+{
+  "schema_version": "1.0.0",
+  "policies": [
+    {
+      "policy_id": "privacy.test.ambiguous-a.v1",
+      "schema_version": "1.0.0",
+      "capability_ids": ["evidence.extraction.normative_claims"],
+      "classifications": ["public"],
+      "allowed_execution_modes": ["replay"],
+      "zdr_requirement": "not_required",
+      "retention_requirement": { "allowed_retention_behaviors": ["none"] },
+      "redaction_rules": [],
+      "decision": "allow",
+      "priority": 100,
+      "reason_code": "PRIVACY_CLEARED",
+      "human_review_required": false
+    },
+    {
+      "policy_id": "privacy.test.ambiguous-b.v1",
+      "schema_version": "1.0.0",
+      "capability_ids": ["evidence.extraction.normative_claims"],
+      "classifications": ["public"],
+      "allowed_execution_modes": ["replay"],
+      "zdr_requirement": "not_required",
+      "retention_requirement": { "allowed_retention_behaviors": ["none"] },
+      "redaction_rules": [],
+      "decision": "block",
+      "priority": 100,
+      "reason_code": "EXTERNAL_PROCESSING_FORBIDDEN",
+      "human_review_required": false
+    }
+  ]
+}

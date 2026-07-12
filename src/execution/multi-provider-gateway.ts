@@ -1,6 +1,10 @@
 import { randomUUID } from 'node:crypto';
 import type { CapabilityError, CapabilityRequest, CapabilityResult } from '../capabilities/index.js';
 import { assertCapabilitySupported, validateCapabilityRequest, validateCapabilityResult } from '../capabilities/index.js';
+import { PrivacyEnforcer } from '../privacy/privacy-enforcer.js';
+import type { PrivacyAuditRecord } from '../privacy/privacy-audit.js';
+import { mapPrivacyReasonToCapabilityError, privacyReasonMessage } from '../privacy/errors.js';
+import type { PrivacyReasonCode } from '../privacy/errors.js';
 import type { ProviderAdapterRegistry } from '../providers/adapter-registry.js';
 import type { ProviderExecutionResult } from '../providers/provider-adapter.js';
 import { capabilityResult, mapNormativeClaimsRequest, parseNormativeClaimsOutput } from './normative-claims-mapper.js';
@@ -11,10 +15,17 @@ import { ExecutionError, executionError, sanitizeProviderError, type ExecutionEr
 import { assertExecutionProfile } from './profile-catalog.js';
 
 export interface GatewayInvocation { readonly capability_request: CapabilityRequest; readonly execution_profile_id: string; readonly signal?: AbortSignal; }
-export interface GatewayOutcome { readonly result: CapabilityResult; readonly audit: ExecutionAuditRecord; }
-export interface GatewayOptions { readonly registry: ProviderAdapterRegistry; readonly clock?: () => Date; readonly executionId?: () => string; readonly profileResolver?: (id: string) => ExecutionProfile; }
+export interface GatewayOutcome { readonly result: CapabilityResult; readonly audit: ExecutionAuditRecord; readonly privacy_audit?: PrivacyAuditRecord | undefined; }
+export interface GatewayOptions { readonly registry: ProviderAdapterRegistry; readonly clock?: () => Date; readonly executionId?: () => string; readonly profileResolver?: (id: string) => ExecutionProfile; readonly privacyEnforcer?: PrivacyEnforcer; }
+
+/** Internal signal carrying a privacy block through the failure path
+ * without fabricating a provider error. */
+class PrivacyBlockedExecutionError extends ExecutionError {
+  constructor(readonly reason_code: PrivacyReasonCode) { super('PRIVACY_BLOCKED', privacyReasonMessage(reason_code)); this.name = 'PrivacyBlockedExecutionError'; }
+}
 
 function capabilityError(error: ExecutionError): CapabilityError {
+  if (error instanceof PrivacyBlockedExecutionError) { const mapped = mapPrivacyReasonToCapabilityError(error.reason_code); return { category: mapped.category, code: mapped.code, message: mapped.message }; }
   if (error.code === 'REQUEST_SCHEMA_INVALID') return { category: 'contract', code: 'INVALID_REQUEST', message: error.message };
   const policy = ['PROFILE_DISABLED','PROFILE_RETIRED','LIVE_EXECUTION_DISABLED','CREDENTIALS_UNAVAILABLE'].includes(error.code);
   const contract = ['UNKNOWN_PROFILE','UNKNOWN_PROVIDER','PROFILE_CAPABILITY_MISMATCH','OUTPUT_SCHEMA_INVALID','PROVIDER_RESPONSE_INVALID'].includes(error.code);
@@ -33,28 +44,37 @@ function failedResult(request: SafeRequestFields, error: ExecutionError): Capabi
 }
 
 export class MultiProviderGateway {
-  private readonly clock: () => Date; private readonly executionId: () => string; private readonly profileResolver: (id: string) => ExecutionProfile;
-  constructor(private readonly options: GatewayOptions) { this.clock = options.clock ?? (() => new Date()); this.executionId = options.executionId ?? randomUUID; this.profileResolver = options.profileResolver ?? assertExecutionProfile; }
+  private readonly clock: () => Date; private readonly executionId: () => string; private readonly profileResolver: (id: string) => ExecutionProfile; private readonly privacyEnforcer: PrivacyEnforcer;
+  constructor(private readonly options: GatewayOptions) { this.clock = options.clock ?? (() => new Date()); this.executionId = options.executionId ?? randomUUID; this.profileResolver = options.profileResolver ?? assertExecutionProfile; this.privacyEnforcer = options.privacyEnforcer ?? new PrivacyEnforcer({ clock: this.clock }); }
   async execute(invocation: GatewayInvocation): Promise<GatewayOutcome> {
     const started = this.clock(); const executionId = this.executionId(); const request = safeRequestFields(invocation.capability_request);
     let profile: ExecutionProfile | undefined; let providerResult: ProviderExecutionResult | undefined;
     let abortCause: 'caller' | 'timeout' | undefined;
+    let privacyAudit: PrivacyAuditRecord | undefined;
     let error: ExecutionError | undefined; let result: CapabilityResult;
     try {
-      if (invocation.signal?.aborted) { abortCause = 'caller'; throw executionError('EXECUTION_ABORTED'); }
       const validation = validateCapabilityRequest(invocation.capability_request);
       if (!validation.ok) throw executionError('REQUEST_SCHEMA_INVALID');
-      assertCapabilitySupported(invocation.capability_request.capability_id);
+      if (invocation.signal?.aborted) { abortCause = 'caller'; throw executionError('EXECUTION_ABORTED'); }
+      const definition = assertCapabilitySupported(invocation.capability_request.capability_id);
       profile = this.profileResolver(invocation.execution_profile_id);
       if (validateExecutionProfile(profile).length) throw executionError('INTERNAL_EXECUTION_ERROR');
       if (profile.capability_id !== invocation.capability_request.capability_id) throw executionError('PROFILE_CAPABILITY_MISMATCH');
       if (!profile.enabled) throw executionError('PROFILE_DISABLED');
       if (profile.lifecycle_status === 'retired') throw executionError('PROFILE_RETIRED');
       if (profile.lifecycle_status === 'shadow') throw executionError('PROFILE_DISABLED');
+      // AI-73: privacy is a hard eligibility gate BEFORE adapter lookup,
+      // mapping, or timeouts. A blocked decision never reaches a
+      // provider, never starts a timeout, never retries or falls back,
+      // and never selects a different profile.
+      const decision = this.privacyEnforcer.enforce({ capability_request: invocation.capability_request, capability_definition: definition, execution_profile: profile });
+      privacyAudit = decision.audit;
+      if (decision.status !== 'allowed' || decision.cleared_request === undefined) throw new PrivacyBlockedExecutionError(decision.reason_code);
+      const clearedRequest = decision.cleared_request;
+      const mapped = mapNormativeClaimsRequest(clearedRequest);
+      if (invocation.signal?.aborted) { abortCause = 'caller'; throw executionError('EXECUTION_ABORTED'); }
       const adapter = this.options.registry.assertProviderAdapterSupported(profile.provider_id);
       if (!adapter.supports(profile)) throw executionError('UNKNOWN_PROVIDER');
-      const mapped = mapNormativeClaimsRequest(invocation.capability_request);
-      if (invocation.signal?.aborted) { abortCause = 'caller'; throw executionError('EXECUTION_ABORTED'); }
       const controller = new AbortController();
       const timeout = setTimeout(() => { abortCause = abortCause ?? 'timeout'; controller.abort(); }, profile.configuration.timeout_ms);
       const onCallerAbort = () => { abortCause = abortCause ?? 'caller'; controller.abort(); };
@@ -64,8 +84,8 @@ export class MultiProviderGateway {
       if (abortCause === 'timeout') throw executionError('PROVIDER_TIMEOUT');
       if (abortCause === 'caller') throw executionError('EXECUTION_ABORTED');
       if (providerResult.status !== 'succeeded' || !providerResult.content) throw providerResult.error ?? executionError('PROVIDER_RESPONSE_INVALID');
-      const output = parseNormativeClaimsOutput(providerResult.content, invocation.capability_request);
-      result = capabilityResult(invocation.capability_request, output);
+      const output = parseNormativeClaimsOutput(providerResult.content, clearedRequest);
+      result = capabilityResult(clearedRequest, output);
       const resultValidation = validateCapabilityResult(result);
       if (!resultValidation.ok) throw executionError('OUTPUT_SCHEMA_INVALID');
     } catch (caught) {
@@ -75,6 +95,6 @@ export class MultiProviderGateway {
       result = failedResult(request, error);
     }
     const finished = this.clock();
-    return { result, audit: { execution_id: executionId, request_id: request.request_id, capability_id: request.capability_id, profile_id: profile?.profile_id, provider_id: profile?.provider_id, model_id: profile?.model_id, lifecycle_status: profile?.lifecycle_status, mode: profile?.mode, started_at: started.toISOString(), finished_at: finished.toISOString(), duration_ms: Math.max(0, finished.getTime() - started.getTime()), usage: providerResult?.usage, result_status: result.status, error_code: error?.code as ExecutionErrorCode | undefined, capability_contract_version: request.schema_version, profile_contract_version: profile?.contract_version } };
+    return { result, audit: { execution_id: executionId, request_id: request.request_id, capability_id: request.capability_id, profile_id: profile?.profile_id, provider_id: profile?.provider_id, model_id: profile?.model_id, lifecycle_status: profile?.lifecycle_status, mode: profile?.mode, started_at: started.toISOString(), finished_at: finished.toISOString(), duration_ms: Math.max(0, finished.getTime() - started.getTime()), usage: providerResult?.usage, result_status: result.status, error_code: error?.code as ExecutionErrorCode | undefined, capability_contract_version: request.schema_version, profile_contract_version: profile?.contract_version }, privacy_audit: privacyAudit };
   }
 }

@@ -1,0 +1,134 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/ai-privacy-audit.schema.json",
+  "title": "AI-73 privacy audit record (metadata-only)",
+  "description": "Closed audit shape. No request input, original or redacted values, prompts, document text, evidence excerpts, PII, credentials, provider responses, or reviewer identity may appear. additionalProperties is false so payload content cannot ride along in unexpected fields.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "privacy_decision_id",
+    "schema_version",
+    "request_id",
+    "capability_id",
+    "decision",
+    "reason_code",
+    "required_actions",
+    "redaction",
+    "redaction_counts",
+    "decided_at"
+  ],
+  "properties": {
+    "privacy_decision_id": { "type": "string", "pattern": "^pdec-[a-f0-9]{24}$" },
+    "schema_version": { "type": "string", "pattern": "^1\\.\\d+\\.\\d+$" },
+    "request_id": { "type": "string", "minLength": 1 },
+    "execution_id": { "type": "string", "minLength": 1 },
+    "capability_id": { "type": "string", "minLength": 1 },
+    "profile_id": { "type": "string", "minLength": 1 },
+    "data_classification": {
+      "enum": ["public", "internal", "confidential", "regulated", "restricted"]
+    },
+    "privacy_policy_id": { "type": "string", "minLength": 1 },
+    "privacy_policy_version": { "type": "string", "minLength": 1 },
+    "decision": { "enum": ["allowed", "blocked"] },
+    "reason_code": {
+      "enum": [
+        "PRIVACY_CLEARED",
+        "DATA_CLASSIFICATION_REQUIRED",
+        "UNKNOWN_DATA_CLASSIFICATION",
+        "PRIVACY_POLICY_MISSING",
+        "PRIVACY_POLICY_AMBIGUOUS",
+        "PROFILE_PRIVACY_DECLARATION_MISSING",
+        "PROFILE_PRIVACY_INCOMPATIBLE",
+        "ZDR_REQUIRED",
+        "ZDR_UNVERIFIED",
+        "ZDR_EVIDENCE_MISSING",
+        "ZDR_EVIDENCE_EXPIRED",
+        "ZDR_EVIDENCE_SCOPE_MISMATCH",
+        "REDACTION_REQUIRED",
+        "REDACTION_FAILED",
+        "REDACTION_PATH_UNKNOWN",
+        "RETENTION_POLICY_INCOMPATIBLE",
+        "EXTERNAL_PROCESSING_FORBIDDEN",
+        "REPLAY_FIXTURE_UNSAFE",
+        "PRIVACY_CONFIGURATION_INVALID"
+      ]
+    },
+    "required_actions": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "redaction_applied",
+          "zdr_verified",
+          "retention_validated",
+          "local_execution_enforced",
+          "human_review_required",
+          "blocked"
+        ]
+      }
+    },
+    "redaction": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "action", "outcome", "count"],
+        "properties": {
+          "path": { "type": "string", "pattern": "^input(\\.[a-zA-Z_][a-zA-Z0-9_]*(\\[\\])?)+$" },
+          "action": {
+            "enum": [
+              "remove",
+              "replace_with_marker",
+              "hash_identifier",
+              "tokenize_reference",
+              "preserve",
+              "block_request"
+            ]
+          },
+          "outcome": { "enum": ["applied", "skipped_absent", "blocked"] },
+          "count": { "type": "integer", "minimum": 0 }
+        }
+      }
+    },
+    "redaction_counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["removed", "replaced", "hashed", "tokenized", "preserved"],
+      "properties": {
+        "removed": { "type": "integer", "minimum": 0 },
+        "replaced": { "type": "integer", "minimum": 0 },
+        "hashed": { "type": "integer", "minimum": 0 },
+        "tokenized": { "type": "integer", "minimum": 0 },
+        "preserved": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "zdr_requirement": { "enum": ["not_required", "required_for_external", "required"] },
+    "zdr_support": { "enum": ["verified", "declared_unverified", "unsupported", "unknown"] },
+    "zdr_evidence_id": { "type": "string", "minLength": 1 },
+    "zdr_evidence_hash": { "type": "string", "pattern": "^[a-f0-9]{16,128}$" },
+    "retention_requirement": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "none",
+          "ephemeral_memory",
+          "bounded_local_fixture",
+          "provider_declared_bounded",
+          "provider_unknown",
+          "forbidden"
+        ]
+      }
+    },
+    "retention_declaration": {
+      "enum": [
+        "none",
+        "ephemeral_memory",
+        "bounded_local_fixture",
+        "provider_declared_bounded",
+        "provider_unknown",
+        "forbidden"
+      ]
+    },
+    "execution_mode": { "enum": ["replay", "live"] },
+    "decided_at": { "type": "string", "format": "date-time" }
+  }
+}

@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.0.0",
+  "schema_version": "1.1.0",
   "profiles": [
     {
       "profile_id": "normative-claims.replay.v1",
@@ -9,9 +9,22 @@
       "mode": "replay",
       "lifecycle_status": "candidate",
       "enabled": true,
-      "contract_version": "1.0.0",
+      "contract_version": "1.1.0",
       "configuration": { "temperature": 0, "max_output_tokens": 2048, "timeout_ms": 5000, "response_format": "json" },
       "eligibility": { "privacy_compatibility": "declared_not_enforced", "budget_class": "development", "evaluation_status": "fixture_verified" },
+      "privacy": {
+        "max_data_classification": "internal",
+        "external_processing": "forbidden",
+        "zdr_support": "unsupported",
+        "retention_behavior": "bounded_local_fixture",
+        "training_use": "declared_not_used",
+        "processing_region": "local",
+        "pre_execution_redaction_required": true,
+        "replay_fixture_origin": "synthetic",
+        "replay_fixture_sanitization": "not_applicable",
+        "regulated_data_permitted": false,
+        "restricted_data_permitted": false
+      },
       "fixture_id": "normative-claims-success"
     },
     {
@@ -22,10 +35,21 @@
       "mode": "live",
       "lifecycle_status": "candidate",
       "enabled": false,
-      "contract_version": "1.0.0",
+      "contract_version": "1.1.0",
       "configuration": { "temperature": 0.1, "max_output_tokens": 2048, "timeout_ms": 30000, "response_format": "json" },
       "provider_configuration_ref": "AI_LAB_DEEPSEEK",
-      "eligibility": { "privacy_compatibility": "declared_not_enforced", "budget_class": "unclassified", "evaluation_status": "not_evaluated" }
+      "eligibility": { "privacy_compatibility": "declared_not_enforced", "budget_class": "unclassified", "evaluation_status": "not_evaluated" },
+      "privacy": {
+        "max_data_classification": "public",
+        "external_processing": "allowed",
+        "zdr_support": "unknown",
+        "retention_behavior": "provider_unknown",
+        "training_use": "unknown",
+        "processing_region": "unknown",
+        "pre_execution_redaction_required": true,
+        "regulated_data_permitted": false,
+        "restricted_data_permitted": false
+      }
     },
     {
       "profile_id": "normative-claims.dashscope.v1",
@@ -35,10 +59,21 @@
       "mode": "live",
       "lifecycle_status": "candidate",
       "enabled": false,
-      "contract_version": "1.0.0",
+      "contract_version": "1.1.0",
       "configuration": { "temperature": 0.1, "max_output_tokens": 2048, "timeout_ms": 30000, "response_format": "json" },
       "provider_configuration_ref": "AI_LAB_DASHSCOPE",
-      "eligibility": { "privacy_compatibility": "declared_not_enforced", "budget_class": "unclassified", "evaluation_status": "not_evaluated" }
+      "eligibility": { "privacy_compatibility": "declared_not_enforced", "budget_class": "unclassified", "evaluation_status": "not_evaluated" },
+      "privacy": {
+        "max_data_classification": "public",
+        "external_processing": "allowed",
+        "zdr_support": "unknown",
+        "retention_behavior": "provider_unknown",
+        "training_use": "unknown",
+        "processing_region": "unknown",
+        "pre_execution_redaction_required": true,
+        "regulated_data_permitted": false,
+        "restricted_data_permitted": false
+      }
     }
   ]
 }

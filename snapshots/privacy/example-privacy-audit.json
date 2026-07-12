@@ -1,0 +1,25 @@
+{
+  "privacy_decision_id": "pdec-0123456789abcdef01234567",
+  "schema_version": "1.0.0",
+  "request_id": "request-audit-001",
+  "execution_id": "execution-audit-001",
+  "capability_id": "evidence.extraction.normative_claims",
+  "profile_id": "normative-claims.replay.v1",
+  "data_classification": "internal",
+  "privacy_policy_id": "privacy.evidence-extraction.internal.v1",
+  "privacy_policy_version": "1.0.0",
+  "decision": "allowed",
+  "reason_code": "PRIVACY_CLEARED",
+  "required_actions": ["retention_validated", "redaction_applied"],
+  "redaction": [
+    { "path": "input.packet_id", "action": "preserve", "outcome": "applied", "count": 1 },
+    { "path": "input.contact_email", "action": "hash_identifier", "outcome": "applied", "count": 1 }
+  ],
+  "redaction_counts": { "removed": 0, "replaced": 0, "hashed": 1, "tokenized": 0, "preserved": 1 },
+  "zdr_requirement": "required_for_external",
+  "zdr_support": "unsupported",
+  "retention_requirement": ["none", "ephemeral_memory", "bounded_local_fixture"],
+  "retention_declaration": "bounded_local_fixture",
+  "execution_mode": "replay",
+  "decided_at": "2026-01-01T00:00:00.000Z"
+}
