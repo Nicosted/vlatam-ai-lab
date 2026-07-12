@@ -1,0 +1,62 @@
+{
+  "suite_id": "regulatory.gold.ar-es-eu.agricultural-inputs",
+  "version": "1.0.0",
+  "contract_version": "1.0.0",
+  "corpus_kind": "regulatory_gold",
+  "evaluator": { "evaluator_id": "evaluation.deterministic", "evaluator_version": "1.0.0" },
+  "capability_profile": { "capability_id": "regulatory.advisory.readiness", "capability_version": "1.0.0", "profile_id": "replay.regulatory.gold", "profile_version": "1.0.0" },
+  "provenance": [
+    { "provenance_id": "advisory.source-of-truth.2026-07-02", "authority": "vLatam AI Lab reviewed repository documentation", "jurisdiction": "AR-ES-EU", "source_ref": "docs/advisory/regulatory-source-of-truth.md", "snapshot_version": "git:dff6ed72", "accessed_at": "2026-07-12", "effective_from": "2026-07-02" },
+    { "provenance_id": "advisory.fixture.2026-07-01", "authority": "vLatam AI Lab pending-review advisory fixture", "jurisdiction": "AR-ES-EU", "source_ref": "data/fixtures/advisory/regulatory-advisory-readiness-ar-es-eu-ecological-biological-agrochemical.json", "snapshot_version": "1.0.0", "accessed_at": "2026-07-12", "effective_from": "2026-07-01" }
+  ],
+  "cases": [
+    {
+      "case_id": "gold.jurisdiction.export-import-scope", "version": "1.0.0", "suite_ref": { "id": "regulatory.gold.ar-es-eu.agricultural-inputs", "version": "1.0.0" },
+      "jurisdiction_scope": ["AR", "ES", "EU"], "regulatory_topic": "jurisdiction_identification",
+      "input": { "origin_country": "AR", "destination_country": "ES", "destination_bloc": "EU", "product_description": "ecological agricultural input", "intended_use": "crop production" },
+      "expected": { "status": "succeeded", "required_facts": ["Identify Argentina as export jurisdiction and Spain plus EU as destination scopes"], "acceptable_alternatives": ["Describe Spain as the member-state destination within the EU regulatory scope"], "forbidden_assertions": ["Do not state that one jurisdiction alone determines all obligations"], "mandatory_abstention_conditions": ["Abstain from final compliance conclusions until product classification and reviewed destination evidence exist"], "required_evidence": ["Jurisdiction-scoped reviewed source records for each asserted obligation"], "required_clarification_questions": ["Confirm the final destination and whether placing on the EU market is intended"], "human_review_triggers": ["Any client-facing jurisdictional conclusion"] },
+      "dimensions": [{"dimension_id":"jurisdictions","type":"required_field_completeness","weight_units":1,"required_paths":["jurisdictions.origin","jurisdictions.destination_country","jurisdictions.destination_bloc"]},{"dimension_id":"abstention","type":"correct_abstention","weight_units":1,"expected":true}],
+      "provenance_refs": ["advisory.source-of-truth.2026-07-02"], "evidence_ids": ["authority-path-source-snapshot-delta-evidence-review-export-api"], "review_status": "in_review", "reviewer_role": "regulatory_counsel", "temporal_validity": { "valid_from": "2026-07-02", "as_of": "2026-07-12", "status": "requires_review" }
+    },
+    {
+      "case_id": "gold.classification.ambiguous-category", "version": "1.0.0", "suite_ref": { "id": "regulatory.gold.ar-es-eu.agricultural-inputs", "version": "1.0.0" },
+      "jurisdiction_scope": ["AR", "ES", "EU"], "regulatory_topic": "product_and_use_ambiguity",
+      "input": { "product_description": "biological ecological crop product", "composition": null, "intended_use": null, "label_claims": null },
+      "expected": { "status": "succeeded", "required_facts": ["Classification among fertilizer, biostimulant, plant-protection product, pesticide, or adjacent category is unresolved"], "acceptable_alternatives": ["Present candidate paths as conditional hypotheses"], "forbidden_assertions": ["Do not assign a definitive regulated category from marketing language"], "mandatory_abstention_conditions": ["Abstain from category-specific requirements while composition, claims, and intended use are missing"], "required_evidence": ["Reviewed official classification criteria applicable to AR, ES, and EU"], "required_clarification_questions": ["Request full composition, active ingredients, intended use, mode of action, and label claims"], "human_review_triggers": ["Borderline product classification or category conflict"] },
+      "dimensions": [{"dimension_id":"classification-state","type":"allowed_value","weight_units":1,"path":"classification.status","allowed":["unresolved","requires_clarification"]},{"dimension_id":"abstention","type":"correct_abstention","weight_units":2,"expected":true}],
+      "provenance_refs": ["advisory.fixture.2026-07-01"], "evidence_ids": ["eu-product-classification-uncertainty"], "review_status": "in_review", "reviewer_role": "regulatory_counsel", "temporal_validity": { "valid_from": "2026-07-01", "as_of": "2026-07-12", "status": "requires_review" }
+    },
+    {
+      "case_id": "gold.missing-information.documents", "version": "1.0.0", "suite_ref": { "id": "regulatory.gold.ar-es-eu.agricultural-inputs", "version": "1.0.0" },
+      "jurisdiction_scope": ["AR", "ES", "EU"], "regulatory_topic": "missing_information_and_documents",
+      "input": { "composition": null, "manufacturer": null, "registration": null, "labeling": null, "destination_details": null },
+      "expected": { "status": "succeeded", "required_facts": ["The supplied facts are insufficient to determine registrations, permits, certificates, labeling, or safety-document obligations"], "acceptable_alternatives": ["Return a prioritized missing-information checklist"], "forbidden_assertions": ["Do not claim that a named document or registration is definitively required"], "mandatory_abstention_conditions": ["Abstain from a complete document list until classification and destination facts are established"], "required_evidence": ["Reviewed evidence for each asserted document requirement"], "required_clarification_questions": ["Request manufacturer identity, composition, registration status, proposed label, destination, and importer role"], "human_review_triggers": ["Missing manufacturer or registration information at decision time"] },
+      "dimensions": [{"dimension_id":"questions","type":"required_field_completeness","weight_units":2,"required_paths":["clarification_questions"]},{"dimension_id":"abstention","type":"correct_abstention","weight_units":2,"expected":true}],
+      "provenance_refs": ["advisory.fixture.2026-07-01"], "evidence_ids": ["sds-technical-sheet-composition-documentation","certificates-registrations-licenses-permits"], "review_status": "in_review", "reviewer_role": "regulatory_counsel", "temporal_validity": { "valid_from": "2026-07-01", "as_of": "2026-07-12", "status": "requires_review" }
+    },
+    {
+      "case_id": "gold.authority.evidence-gap", "version": "1.0.0", "suite_ref": { "id": "regulatory.gold.ar-es-eu.agricultural-inputs", "version": "1.0.0" },
+      "jurisdiction_scope": ["AR", "ES", "EU"], "regulatory_topic": "authority_identification_and_evidence_conflict",
+      "input": { "known_authority_records": ["ARCA customs reference"], "sectoral_authority_record": "unverified placeholder", "spain_eu_records": [] },
+      "expected": { "status": "succeeded", "required_facts": ["ARCA evidence is customs-scoped; sectoral and Spain/EU authority coverage remains insufficient"], "acceptable_alternatives": ["Name authority candidates only as unverified and requiring review"], "forbidden_assertions": ["Do not promote a placeholder or official-source identity into reviewed legal authority evidence"], "mandatory_abstention_conditions": ["Abstain from authority-specific conclusions when the relevant reviewed record is absent"], "required_evidence": ["Reviewed official authority source and snapshot for the applicable topic"], "required_clarification_questions": ["Which regulated function and product category requires an authority determination?"], "human_review_triggers": ["Conflicting, unverified, stale, or absent authority evidence"] },
+      "dimensions": [{"dimension_id":"evidence","type":"evidence_presence","weight_units":1,"minimum_evidence":1,"minimum_citations":1},{"dimension_id":"abstention","type":"correct_abstention","weight_units":2,"expected":true}],
+      "provenance_refs": ["advisory.fixture.2026-07-01","advisory.source-of-truth.2026-07-02"], "evidence_ids": ["ar-arca-arancel-integrado","ar-sectoral-source-placeholder-candidate","missing-spain-eu-source-coverage"], "review_status": "in_review", "reviewer_role": "regulatory_counsel", "temporal_validity": { "valid_from": "2026-07-02", "as_of": "2026-07-12", "status": "requires_review" }
+    },
+    {
+      "case_id": "gold.conditional.path-selection", "version": "1.0.0", "suite_ref": { "id": "regulatory.gold.ar-es-eu.agricultural-inputs", "version": "1.0.0" },
+      "jurisdiction_scope": ["AR", "ES", "EU"], "regulatory_topic": "regulatory_path_and_conditional_obligations",
+      "input": { "candidate_categories": ["fertilizer","biostimulant","plant_protection_product","pesticide","adjacent"], "confirmed_category": null },
+      "expected": { "status": "succeeded", "required_facts": ["Regulatory path and obligations depend on verified classification and product facts"], "acceptable_alternatives": ["Use a conditional decision tree without selecting a winning category"], "forbidden_assertions": ["Do not collapse all candidate categories into one obligation set"], "mandatory_abstention_conditions": ["Abstain from final path selection until category evidence is sufficient"], "required_evidence": ["Reviewed category criteria and jurisdiction-specific obligation evidence"], "required_clarification_questions": ["What claims, composition, use, mode of action, and market role apply?"], "human_review_triggers": ["Multiple plausible regulatory paths remain"] },
+      "dimensions": [{"dimension_id":"path-status","type":"exact_value","weight_units":1,"path":"regulatory_path.status","expected":"conditional"},{"dimension_id":"abstention","type":"correct_abstention","weight_units":2,"expected":true}],
+      "provenance_refs": ["advisory.source-of-truth.2026-07-02"], "evidence_ids": ["eu-product-classification-uncertainty","human-expert-review-before-client-recommendation"], "review_status": "in_review", "reviewer_role": "regulatory_counsel", "temporal_validity": { "valid_from": "2026-07-02", "as_of": "2026-07-12", "status": "requires_review" }
+    },
+    {
+      "case_id": "gold.temporal.stale-or-unknown", "version": "1.0.0", "suite_ref": { "id": "regulatory.gold.ar-es-eu.agricultural-inputs", "version": "1.0.0" },
+      "jurisdiction_scope": ["AR", "ES", "EU"], "regulatory_topic": "temporal_validity_and_source_date",
+      "input": { "decision_date": "2026-07-12", "source_freshness": "requires_review", "reviewed_destination_evidence": false },
+      "expected": { "status": "succeeded", "required_facts": ["Source effective date, access date, freshness, and review status must be considered"], "acceptable_alternatives": ["Treat unknown validity as requiring review"], "forbidden_assertions": ["Do not describe requires-review evidence as current law or current compliance"], "mandatory_abstention_conditions": ["Abstain when temporal validity for a material assertion is absent, stale without approval, or unknown"], "required_evidence": ["Dated source snapshot with applicable review and freshness metadata"], "required_clarification_questions": ["What is the intended transaction or placing-on-market date?"], "human_review_triggers": ["Material source is stale, superseded, or has unknown effective status"] },
+      "dimensions": [{"dimension_id":"temporal-status","type":"allowed_value","weight_units":1,"path":"temporal_assessment.status","allowed":["requires_review","insufficient"]},{"dimension_id":"abstention","type":"correct_abstention","weight_units":2,"expected":true}],
+      "provenance_refs": ["advisory.fixture.2026-07-01"], "evidence_ids": ["freshness-requires-review","missing-reviewed-destination-evidence"], "review_status": "in_review", "reviewer_role": "regulatory_counsel", "temporal_validity": { "valid_from": "2026-07-01", "as_of": "2026-07-12", "status": "requires_review" }
+    }
+  ]
+}

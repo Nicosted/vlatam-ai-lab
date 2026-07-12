@@ -31,6 +31,7 @@
     "agents:api-server": "tsx src/cli/api-server.ts",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test 'tests/**/*.test.ts'",
+    "ai:evaluation:validate-gold": "tsx scripts/validate-regulatory-gold.ts",
     "lint": "eslint .",
     "format": "prettier --check .",
     "format:write": "prettier --write .",

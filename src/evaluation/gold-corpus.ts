@@ -1,0 +1,19 @@
+import { readFileSync } from 'node:fs';
+import { EVALUATION_DIMENSION_TYPES, GOLD_REVIEW_STATUSES, type RegulatoryGoldSuite } from './contracts.js';
+import { EvaluationError, normalizeAndHash, validateEvaluationSuite } from './evaluator.js';
+
+const ID=/^[a-z0-9][a-z0-9._-]{1,127}$/; const DATE=/^\d{4}-\d{2}-\d{2}$/;
+const LEAK=/(api[_-]?key|password|authorization|bearer|raw[_-]?(prompt|output|context)|system[_-]?prompt|customer[_-]?(name|email)|email_address)/i;
+const REQUIRED_EXPECTED=['required_facts','acceptable_alternatives','forbidden_assertions','mandatory_abstention_conditions','required_evidence','required_clarification_questions','human_review_triggers'] as const;
+function reject(message:string):never{throw new EvaluationError('REJECTED',message);}
+function nonEmptyStrings(value:unknown):value is readonly string[]{return Array.isArray(value)&&value.length>0&&value.every(x=>typeof x==='string'&&x.trim().length>0);}
+export function validateRegulatoryGoldSuite(suite:RegulatoryGoldSuite):void{
+  validateEvaluationSuite(suite);
+  if(suite.corpus_kind!=='regulatory_gold'||!Array.isArray(suite.provenance)||suite.provenance.length===0)reject('missing gold provenance');
+  const provenance=new Set<string>(); for(const p of suite.provenance){if(!ID.test(p.provenance_id)||provenance.has(p.provenance_id)||!p.authority.trim()||!p.jurisdiction.trim()||!p.source_ref.trim()||!p.snapshot_version.trim()||!DATE.test(p.accessed_at)||(p.effective_from!==undefined&&!DATE.test(p.effective_from))||(p.effective_to!==undefined&&!DATE.test(p.effective_to)))reject('invalid or duplicate provenance');provenance.add(p.provenance_id);}
+  const caseIds=new Set<string>(); for(const c of suite.cases){if(caseIds.has(c.case_id))reject('conflicting case versions');caseIds.add(c.case_id);if(c.suite_ref.id!==suite.suite_id||c.suite_ref.version!==suite.version)reject('incompatible case suite reference');if(!nonEmptyStrings(c.jurisdiction_scope)||!c.regulatory_topic.trim()||!nonEmptyStrings(c.provenance_refs)||!nonEmptyStrings(c.evidence_ids))reject('missing case provenance or scope');if(!c.provenance_refs.every(id=>provenance.has(id)))reject('unknown provenance reference');if(!c.temporal_validity||!DATE.test(c.temporal_validity.valid_from)||!DATE.test(c.temporal_validity.as_of)||(c.temporal_validity.valid_to!==undefined&&!DATE.test(c.temporal_validity.valid_to)))reject('missing temporal validity');if(!(GOLD_REVIEW_STATUSES as readonly string[]).includes(c.review_status)||!c.reviewer_role.trim())reject('invalid review state');if(c.review_status==='approved'&&(!c.reviewed_by?.trim()||!c.reviewed_at||Number.isNaN(Date.parse(c.reviewed_at))))reject('approved case missing review metadata');for(const field of REQUIRED_EXPECTED)if(!nonEmptyStrings(c.expected[field]))reject(`missing expected outcome field: ${field}`);if(!c.dimensions.every(d=>(EVALUATION_DIMENSION_TYPES as readonly string[]).includes(d.type)))reject('unsupported dimension');}
+  normalizeAndHash(suite);
+  if(LEAK.test(JSON.stringify(suite)))reject('restricted corpus content');
+}
+export function regulatoryGoldSuiteHash(suite:RegulatoryGoldSuite):string{validateRegulatoryGoldSuite(suite);const normalized={...suite,provenance:[...suite.provenance].sort((a,b)=>a.provenance_id.localeCompare(b.provenance_id)),cases:[...suite.cases].sort((a,b)=>`${a.case_id}@${a.version}`.localeCompare(`${b.case_id}@${b.version}`)).map(c=>({...c,jurisdiction_scope:[...c.jurisdiction_scope].sort(),provenance_refs:[...c.provenance_refs].sort(),evidence_ids:[...c.evidence_ids].sort(),dimensions:[...c.dimensions].sort((a,b)=>a.dimension_id.localeCompare(b.dimension_id))}))};return normalizeAndHash(normalized).hash;}
+export function loadRegulatoryGoldSuite(path:string):RegulatoryGoldSuite{const suite=JSON.parse(readFileSync(path,'utf8')) as RegulatoryGoldSuite;validateRegulatoryGoldSuite(suite);return suite;}
