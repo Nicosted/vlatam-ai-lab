@@ -1,6 +1,19 @@
 {
   "contracts": [
     {
+      "contract_name": "ai_execution_profiles",
+      "schema_file": "schemas/ai-execution-profiles.schema.json",
+      "valid_fixture": "config/ai-execution-profiles.json",
+      "invalid_fixtures": [],
+      "test_file": "tests/execution/execution-profiles.test.ts",
+      "status": "implemented",
+      "purpose": "Declares provider execution profiles without credentials or routing behavior.",
+      "downstream_role": "Selects an explicitly requested adapter configuration only.",
+      "requires_human_review_semantics": false,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": false
+    },
+    {
       "contract_name": "source_version",
       "schema_file": "schemas/source-version.schema.json",
       "valid_fixture": "snapshots/pcram/example-source-version.json",
