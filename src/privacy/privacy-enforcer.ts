@@ -38,6 +38,7 @@ export interface PrivacyEnforcementInput {
   readonly capability_request: CapabilityRequest;
   readonly capability_definition: CapabilityDefinition;
   readonly execution_profile: ExecutionProfile;
+  readonly execution_id?: string | undefined;
 }
 
 export interface PrivacyEnforcementDecision {
@@ -86,6 +87,7 @@ function decisionId(requestId: string, capabilityId: string, profileId: string):
 
 interface AuditDraft {
   request_id: string;
+  execution_id?: string | undefined;
   capability_id: string;
   profile_id?: string | undefined;
   data_classification?: DataClassificationId | undefined;
@@ -123,6 +125,7 @@ export class PrivacyEnforcer {
       // sanitized configuration error and a minimal metadata audit.
       const draft: AuditDraft = {
         request_id: safeString(input?.capability_request?.request_id),
+        execution_id: input?.execution_id ?? this.executionId,
         capability_id: safeString(input?.capability_definition?.capability_id),
         profile_id: input?.execution_profile?.profile_id,
         redaction: [],
@@ -137,6 +140,7 @@ export class PrivacyEnforcer {
     const requiredActions: PrivacyAction[] = [];
     const draft: AuditDraft = {
       request_id: safeString(request?.request_id),
+      execution_id: input.execution_id ?? this.executionId,
       capability_id: safeString(definition?.capability_id),
       profile_id: profile?.profile_id,
       execution_mode: profile?.mode,
@@ -360,7 +364,7 @@ export class PrivacyEnforcer {
       privacy_decision_id: decisionId(draft.request_id, draft.capability_id, draft.profile_id ?? 'unknown'),
       schema_version: PRIVACY_AUDIT_SCHEMA_VERSION,
       request_id: draft.request_id,
-      execution_id: this.executionId,
+      execution_id: draft.execution_id,
       capability_id: draft.capability_id,
       profile_id: draft.profile_id,
       data_classification: draft.data_classification,

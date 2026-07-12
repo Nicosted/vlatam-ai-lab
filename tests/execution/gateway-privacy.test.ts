@@ -138,6 +138,7 @@ describe('AI-73 gateway privacy integration', () => {
     assert.equal(outcome.audit.error_code, 'PRIVACY_BLOCKED');
     assert.equal(outcome.audit.usage, undefined);
     assert.ok(outcome.privacy_audit);
+    assert.equal(outcome.privacy_audit.execution_id, outcome.audit.execution_id);
     assert.equal(outcome.privacy_audit?.reason_code, 'DATA_CLASSIFICATION_REQUIRED');
   });
 
@@ -189,6 +190,58 @@ describe('AI-73 gateway privacy integration', () => {
     assert.ok(outcome.privacy_audit);
     assert.equal(outcome.privacy_audit?.decision, 'allowed');
     assert.equal(outcome.privacy_audit?.reason_code, 'PRIVACY_CLEARED');
+  });
+
+  it('correlates privacy and execution audits for every invocation of a reused enforcer', async () => {
+    const registry = new ProviderAdapterRegistry();
+    let arrivals = 0;
+    let inFlight = 0;
+    let maxInFlight = 0;
+    let release: () => void = () => undefined;
+    const gate = new Promise<void>(resolve => { release = resolve; });
+    const adapter: RecordingAdapter = {
+      provider_id: 'primary' as never,
+      calls: 0,
+      seen: [],
+      supports: () => true,
+      execute: async req => {
+        adapter.calls += 1;
+        adapter.seen.push(req);
+        arrivals += 1;
+        inFlight += 1;
+        maxInFlight = Math.max(maxInFlight, inFlight);
+        if (arrivals === 2) release();
+        await gate;
+        inFlight -= 1;
+        return { status: 'succeeded' as const, request_id: req.request_id, content: successFixture.content, duration_ms: 1 };
+      },
+    };
+    registry.registerProviderAdapter(adapter);
+    const sharedEnforcer = new PrivacyEnforcer({ zdrEvidence: evidenceStore, clock: () => NOW });
+    const executionIds = ['execution-privacy-001', 'execution-privacy-002'];
+    const reusedGateway = new MultiProviderGateway({
+      registry,
+      profileResolver: () => profileWith(LOCAL_REPLAY_PRIVACY),
+      clock: () => NOW,
+      executionId: () => executionIds.shift()!,
+      privacyEnforcer: sharedEnforcer,
+    });
+    assert.equal(Reflect.get(sharedEnforcer, 'executionId'), undefined);
+    const [first, second] = await Promise.all([
+      reusedGateway.execute({ capability_request: request('public'), execution_profile_id: 'x' }),
+      reusedGateway.execute({ capability_request: request('public'), execution_profile_id: 'x' }),
+    ]);
+    assert.equal(adapter.calls, 2);
+    assert.equal(arrivals, 2);
+    assert.equal(maxInFlight, 2);
+    assert.equal(inFlight, 0);
+    assert.equal(first.audit.execution_id, 'execution-privacy-001');
+    assert.equal(second.audit.execution_id, 'execution-privacy-002');
+    assert.equal(first.privacy_audit?.execution_id, first.audit.execution_id);
+    assert.equal(second.privacy_audit?.execution_id, second.audit.execution_id);
+    assert.notEqual(first.audit.execution_id, second.audit.execution_id);
+    assert.equal(new Set([first.privacy_audit?.execution_id, second.privacy_audit?.execution_id]).size, 2);
+    assert.equal(Reflect.get(sharedEnforcer, 'executionId'), undefined);
   });
 
   it('redacts before mapping and before adapter invocation: originals never reach either', async () => {
