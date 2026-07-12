@@ -1,0 +1,21 @@
+{
+  "request_id": "req-ai71-valid-001",
+  "capability_id": "evidence.extraction.normative_claims",
+  "schema_version": "1.0.0",
+  "input": {
+    "evidence_packet_id": "packet-ar-arancel-4202-92-00-2026-06-14",
+    "snapshot_id": "snapshot-ar-arancel-4202-92-00-2026-06-14",
+    "source_id": "infoleg"
+  },
+  "context": {
+    "jurisdiction": "AR",
+    "source_id": "infoleg",
+    "artifact_id": "artifact--infoleg--extraction-001",
+    "correlation_id": "trace-001",
+    "data_classification": "regulated",
+    "downstream_use": "classifier_candidate",
+    "actor_category": "pcram.evidence_writer",
+    "workflow": "pcram.evidence_extraction",
+    "timestamp": "2026-07-11T22:00:00.000Z"
+  }
+}

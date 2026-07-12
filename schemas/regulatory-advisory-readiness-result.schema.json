@@ -1,0 +1,297 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/regulatory-advisory-readiness-result.schema.json",
+  "title": "Regulatory Advisory Readiness — Result",
+  "description": "Provider-neutral result envelope for the `source.regulatory_advisory.readiness_check` capability. The shape is the typed mirror of `RegulatoryAdvisoryReadinessView` in `src/advisory/regulatory-advisory-read-model.ts`. The view is a read-model summary; it does NOT emit a final legal, customs, tariff, sanitary, chemical, or compliance recommendation. The contract fails closed: `human_review_required: true` and `downstream_allowed: false` are not negotiable, and reviewer identity is never present.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "advisory_id",
+    "use_case",
+    "jurisdictions",
+    "product_scope",
+    "source_coverage_summary",
+    "confirmed_reviewed_inputs",
+    "missing_or_unreviewed_inputs",
+    "required_review_areas",
+    "advisory_checklist",
+    "source_refs",
+    "evidence_refs",
+    "human_review_required",
+    "downstream_allowed",
+    "uncertainty_notes",
+    "generated_at",
+    "schema_version"
+  ],
+  "properties": {
+    "advisory_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "use_case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "summary", "requested_language"],
+      "properties": {
+        "status": { "type": "string", "enum": ["draft", "pending_review", "approved", "rejected"] },
+        "summary": { "type": "string", "minLength": 1, "maxLength": 2000 },
+        "requested_language": { "type": "string", "enum": ["en", "es"] }
+      }
+    },
+    "jurisdictions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["origin", "destination_countries", "destination_blocs"],
+      "properties": {
+        "origin": { "$ref": "#/$defs/jurisdiction" },
+        "destination_countries": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/jurisdiction" }
+        },
+        "destination_blocs": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/jurisdiction" }
+        }
+      }
+    },
+    "product_scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["product_family", "hs_ncm_code", "classification_status"],
+      "properties": {
+        "product_family": { "type": "string", "minLength": 1, "maxLength": 400 },
+        "hs_ncm_code": { "type": ["string", "null"] },
+        "classification_status": {
+          "type": "string",
+          "enum": ["provided_unreviewed", "missing_or_uncertain"]
+        }
+      }
+    },
+    "source_coverage_summary": { "$ref": "#/$defs/sourceCoverageSummary" },
+    "confirmed_reviewed_inputs": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/confirmedReviewedInput" }
+    },
+    "missing_or_unreviewed_inputs": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/missingOrUnreviewedInput" }
+    },
+    "required_review_areas": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/requiredReviewArea" }
+    },
+    "advisory_checklist": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/checklistItem" }
+    },
+    "source_refs": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1, "maxLength": 400 }
+    },
+    "evidence_refs": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1, "maxLength": 400 }
+    },
+    "human_review_required": { "const": true },
+    "downstream_allowed": { "const": false },
+    "uncertainty_notes": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1, "maxLength": 2000 }
+    },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "schema_version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" }
+  },
+  "$defs": {
+    "jurisdiction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "name", "kind"],
+      "properties": {
+        "code": { "type": "string", "minLength": 1, "maxLength": 16 },
+        "name": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "kind": { "type": "string", "enum": ["country", "bloc", "region", "global"] }
+      }
+    },
+    "sourceCoverageSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_count",
+        "classifications",
+        "official_reviewed_source_count",
+        "reviewed_internal_source_count",
+        "sample_only_source_count",
+        "has_reviewed_official_source",
+        "missing_required_area_count",
+        "areas_with_reviewed_evidence",
+        "areas_without_reviewed_evidence",
+        "missing_jurisdiction_codes"
+      ],
+      "properties": {
+        "source_count": { "type": "integer", "minimum": 0 },
+        "classifications": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "reviewed_official",
+            "reviewed_internal",
+            "sample_only",
+            "missing",
+            "stale",
+            "unverified",
+            "requires_human_review"
+          ],
+          "properties": {
+            "reviewed_official": { "type": "integer", "minimum": 0 },
+            "reviewed_internal": { "type": "integer", "minimum": 0 },
+            "sample_only": { "type": "integer", "minimum": 0 },
+            "missing": { "type": "integer", "minimum": 0 },
+            "stale": { "type": "integer", "minimum": 0 },
+            "unverified": { "type": "integer", "minimum": 0 },
+            "requires_human_review": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "official_reviewed_source_count": { "type": "integer", "minimum": 0 },
+        "reviewed_internal_source_count": { "type": "integer", "minimum": 0 },
+        "sample_only_source_count": { "type": "integer", "minimum": 0 },
+        "has_reviewed_official_source": { "type": "boolean" },
+        "missing_required_area_count": { "type": "integer", "minimum": 0 },
+        "areas_with_reviewed_evidence": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/reviewAreaId" }
+        },
+        "areas_without_reviewed_evidence": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/reviewAreaId" }
+        },
+        "missing_jurisdiction_codes": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1, "maxLength": 16 }
+        }
+      }
+    },
+    "confirmedReviewedInput": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_ref", "source_id", "coverage", "review_area_ids", "evidence_refs"],
+      "properties": {
+        "source_ref": { "type": "string", "minLength": 1, "maxLength": 400 },
+        "source_id": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "coverage": {
+          "type": "string",
+          "enum": ["reviewed_official", "reviewed_internal"]
+        },
+        "review_area_ids": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/reviewAreaId" }
+        },
+        "evidence_refs": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1, "maxLength": 400 }
+        }
+      }
+    },
+    "missingOrUnreviewedInput": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["review_area_id", "review_area", "coverage", "source_refs", "evidence_refs", "reason"],
+      "properties": {
+        "review_area_id": { "$ref": "#/$defs/reviewAreaId" },
+        "review_area": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "coverage": {
+          "type": "string",
+          "enum": [
+            "reviewed_official",
+            "reviewed_internal",
+            "sample_only",
+            "missing",
+            "stale",
+            "unverified",
+            "requires_human_review"
+          ]
+        },
+        "source_refs": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1, "maxLength": 400 }
+        },
+        "evidence_refs": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1, "maxLength": 400 }
+        },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 2000 }
+      }
+    },
+    "requiredReviewArea": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["area_id", "label", "required"],
+      "properties": {
+        "area_id": { "$ref": "#/$defs/reviewAreaId" },
+        "label": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "required": { "const": true }
+      }
+    },
+    "checklistItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["item_id", "label", "status", "coverage", "source_refs", "evidence_refs", "notes"],
+      "properties": {
+        "item_id": { "$ref": "#/$defs/reviewAreaId" },
+        "label": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "status": {
+          "type": "string",
+          "enum": [
+            "covered_by_reviewed_evidence",
+            "missing_source",
+            "needs_reviewed_evidence"
+          ]
+        },
+        "coverage": {
+          "type": "string",
+          "enum": [
+            "reviewed_official",
+            "reviewed_internal",
+            "sample_only",
+            "missing",
+            "stale",
+            "unverified",
+            "requires_human_review"
+          ]
+        },
+        "source_refs": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1, "maxLength": 400 }
+        },
+        "evidence_refs": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1, "maxLength": 400 }
+        },
+        "notes": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1, "maxLength": 2000 }
+        }
+      }
+    },
+    "reviewAreaId": {
+      "type": "string",
+      "enum": [
+        "hs_ncm_classification_dependency",
+        "argentina_export_requirements",
+        "argentina_customs_export_documentation",
+        "senasa_or_relevant_argentine_authority_review",
+        "spain_import_customs_requirements",
+        "eu_market_access_requirements",
+        "eu_product_classification_uncertainty",
+        "reach_clp_or_chemical_compliance_screening",
+        "organic_ecological_biological_claim_validation",
+        "labeling_and_safety_documentation",
+        "certificates_registrations_licenses_permits",
+        "restricted_substances_active_ingredients_review",
+        "sds_technical_sheet_composition_documentation",
+        "incoterms_and_logistics_assumptions",
+        "human_expert_review_before_client_recommendation"
+      ]
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "request_id": "req-ai71-invalid-003",
+  "capability_id": "evidence.extraction.normative_claims",
+  "schema_version": "1.0.0",
+  "status": "blocked",
+  "error": {
+    "category": "policy",
+    "code": "HUMAN_REVIEW_REQUIRED",
+    "message": "Capability requires explicit human review; auto-approval is forbidden."
+  },
+  "governance": {
+    "human_review_required": true,
+    "downstream_allowed": true,
+    "approval_state": "approved"
+  }
+}

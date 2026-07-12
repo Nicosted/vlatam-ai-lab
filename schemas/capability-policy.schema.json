@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/capability-policy.schema.json",
+  "title": "AI-71 Capability Policy",
+  "description": "Declarative policy block attached to a CapabilityDefinition. AI-71 only models these requirements; AI-72 through AI-78 enforce them. The schema is explicit: every block is required, even if its values are empty, because the absence of a requirement is itself a statement, not a default.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "human_review_policy",
+    "downstream_policy",
+    "privacy_requirement",
+    "budget_requirement",
+    "evaluation_requirement",
+    "execution_requirement"
+  ],
+  "properties": {
+    "human_review_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["required", "reason"],
+      "properties": {
+        "required": { "type": "boolean" },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 1000 },
+        "review_state_required": {
+          "type": "string",
+          "enum": ["reviewed_approved", "reviewed_rejected"]
+        },
+        "no_auto_approval": { "type": "boolean" }
+      }
+    },
+    "downstream_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["downstream_allowed", "reason"],
+      "properties": {
+        "downstream_allowed": {
+          "oneOf": [
+            { "type": "boolean" },
+            { "type": "string", "enum": ["conditional"] }
+          ]
+        },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 1000 }
+      }
+    },
+    "privacy_requirement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tier", "zdr_required", "redact_fields", "retention_class"],
+      "properties": {
+        "tier": {
+          "type": "string",
+          "enum": ["standard", "sensitive", "regulated", "restricted"]
+        },
+        "zdr_required": { "type": "boolean" },
+        "redact_fields": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "retention_class": {
+          "type": "string",
+          "enum": ["no_retention", "audit_only", "audit_with_payload", "reviewed_export"]
+        },
+        "notes": { "type": "string", "maxLength": 1000 }
+      }
+    },
+    "budget_requirement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [],
+      "properties": {
+        "max_cost_usd": { "type": "number", "minimum": 0 },
+        "window": {
+          "type": "string",
+          "enum": ["per_request", "per_session", "per_day"]
+        },
+        "notes": { "type": "string", "maxLength": 1000 }
+      }
+    },
+    "evaluation_requirement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["gold_case_required"],
+      "properties": {
+        "metric_set": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "gold_case_required": { "type": "boolean" },
+        "min_quality": { "type": "number", "minimum": 0, "maximum": 1 },
+        "notes": { "type": "string", "maxLength": 1000 }
+      }
+    },
+    "execution_requirement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provider_execution", "deterministic_fallback"],
+      "properties": {
+        "provider_execution": {
+          "type": "string",
+          "enum": ["required", "optional", "none"]
+        },
+        "deterministic_fallback": { "type": "boolean" },
+        "notes": { "type": "string", "maxLength": 1000 }
+      }
+    }
+  }
+}

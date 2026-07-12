@@ -1,0 +1,11 @@
+{
+  "request_id": "req-ai71-invalid-002",
+  "capability_id": "evidence.extraction.normative_claims",
+  "schema_version": "1.0.0",
+  "status": "succeeded",
+  "governance": {
+    "human_review_required": true,
+    "downstream_allowed": false,
+    "approval_state": "pending"
+  }
+}

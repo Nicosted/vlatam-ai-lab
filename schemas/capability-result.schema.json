@@ -1,0 +1,242 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/capability-result.schema.json",
+  "title": "AI-71 Capability Result",
+  "description": "Stable, provider-neutral capability result envelope. The result never carries provider, model, profile, credential, reviewer, or vendor response fields. A succeeded result does NOT imply downstream approval; the governance block is the only place downstream eligibility is expressed.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "request_id",
+    "capability_id",
+    "schema_version",
+    "status",
+    "governance"
+  ],
+  "properties": {
+    "request_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "capability_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$"
+    },
+    "schema_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["succeeded", "failed", "blocked"]
+    },
+    "output": {
+      "description": "Capability-specific output. The shape is validated by the JSON Schema referenced at CapabilityDefinition.output_schema_ref. Present only when status is 'succeeded'.",
+      "type": ["object", "array", "string", "number", "boolean", "null"]
+    },
+    "error": {
+      "type": "object",
+      "description": "Structured error. Present when status is 'failed' or 'blocked'. Validated against schemas/capability-error.schema.json.",
+      "additionalProperties": false,
+      "required": ["category", "code", "message"],
+      "properties": {
+        "category": {
+          "type": "string",
+          "enum": ["contract", "policy", "execution", "internal"]
+        },
+        "code": {
+          "type": "string",
+          "enum": [
+            "UNKNOWN_CAPABILITY",
+            "INVALID_REQUEST",
+            "INVALID_RESULT",
+            "UNSUPPORTED_SCHEMA_VERSION",
+            "POLICY_BLOCKED",
+            "PRIVACY_POLICY_REQUIRED",
+            "BUDGET_POLICY_REQUIRED",
+            "EVALUATION_POLICY_REQUIRED",
+            "HUMAN_REVIEW_REQUIRED",
+            "EXECUTION_UNAVAILABLE",
+            "MISSING_EVIDENCE",
+            "PROVIDER_ERROR",
+            "TIMEOUT",
+            "INTERNAL_ERROR"
+          ]
+        },
+        "message": { "type": "string", "minLength": 1 },
+        "details": { "type": "object" }
+      }
+    },
+    "governance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "human_review_required",
+        "downstream_allowed",
+        "approval_state"
+      ],
+      "properties": {
+        "human_review_required": { "type": "boolean" },
+        "downstream_allowed": { "type": "boolean" },
+        "approval_state": {
+          "type": "string",
+          "enum": ["not_required", "pending", "approved", "rejected"]
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "description": "Reject provider/credential/reviewer field names anywhere in the result.",
+      "not": {
+        "anyOf": [
+          { "required": ["provider"] },
+          { "required": ["provider_id"] },
+          { "required": ["provider_name"] },
+          { "required": ["provider_response"] },
+          { "required": ["model"] },
+          { "required": ["model_id"] },
+          { "required": ["model_name"] },
+          { "required": ["model_version"] },
+          { "required": ["api_key"] },
+          { "required": ["apikey"] },
+          { "required": ["api_token"] },
+          { "required": ["token"] },
+          { "required": ["bearer"] },
+          { "required": ["authorization"] },
+          { "required": ["secret"] },
+          { "required": ["client_secret"] },
+          { "required": ["access_key"] },
+          { "required": ["private_key"] },
+          { "required": ["password"] },
+          { "required": ["endpoint_url"] },
+          { "required": ["base_url"] },
+          { "required": ["profile"] },
+          { "required": ["profile_id"] },
+          { "required": ["execution_profile"] },
+          { "required": ["prompt_hash"] },
+          { "required": ["reviewer"] },
+          { "required": ["reviewer_id"] },
+          { "required": ["reviewer_name"] }
+        ]
+      }
+    },
+    {
+      "description": "succeeded requires output and forbids error.",
+      "if": { "properties": { "status": { "const": "succeeded" } } },
+      "then": {
+        "required": ["output"],
+        "properties": { "error": false }
+      }
+    },
+    {
+      "description": "failed requires error and forbids output.",
+      "if": { "properties": { "status": { "const": "failed" } } },
+      "then": {
+        "required": ["error"],
+        "properties": { "output": false }
+      }
+    },
+    {
+      "description": "blocked requires error and forbids output.",
+      "if": { "properties": { "status": { "const": "blocked" } } },
+      "then": {
+        "required": ["error"],
+        "properties": { "output": false }
+      }
+    },
+    {
+      "description": "blocked cannot be downstream-allowed.",
+      "if": {
+        "properties": {
+          "status": { "const": "blocked" },
+          "governance": {
+            "type": "object",
+            "properties": { "downstream_allowed": { "const": true } }
+          }
+        }
+      },
+      "then": false
+    },
+    {
+      "description": "downstream_allowed=true requires human_review_required=false.",
+      "if": {
+        "properties": {
+          "governance": {
+            "type": "object",
+            "properties": { "downstream_allowed": { "const": true } },
+            "required": ["downstream_allowed"]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "governance": {
+            "properties": { "human_review_required": { "const": false } },
+            "required": ["human_review_required"]
+          }
+        }
+      }
+    },
+    {
+      "description": "approval_state=pending requires human_review_required=true.",
+      "if": {
+        "properties": {
+          "governance": {
+            "type": "object",
+            "properties": { "approval_state": { "const": "pending" } },
+            "required": ["approval_state"]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "governance": {
+            "properties": { "human_review_required": { "const": true } },
+            "required": ["human_review_required"]
+          }
+        }
+      }
+    },
+    {
+      "description": "approval_state=not_required requires human_review_required=false.",
+      "if": {
+        "properties": {
+          "governance": {
+            "type": "object",
+            "properties": { "approval_state": { "const": "not_required" } },
+            "required": ["approval_state"]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "governance": {
+            "properties": { "human_review_required": { "const": false } },
+            "required": ["human_review_required"]
+          }
+        }
+      }
+    },
+    {
+      "description": "approval_state=rejected requires downstream_allowed=false.",
+      "if": {
+        "properties": {
+          "governance": {
+            "type": "object",
+            "properties": { "approval_state": { "const": "rejected" } },
+            "required": ["approval_state"]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "governance": {
+            "properties": { "downstream_allowed": { "const": false } },
+            "required": ["downstream_allowed"]
+          }
+        }
+      }
+    }
+  ]
+}
