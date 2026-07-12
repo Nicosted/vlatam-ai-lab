@@ -17,6 +17,9 @@ The gateway creates an execution ID for each invocation, but AI-73 only allowed 
 - Passed the gateway invocation's execution ID into privacy enforcement.
 - Built privacy audits from the per-call ID, while retaining the constructor option as a compatibility fallback for direct enforcer callers.
 - Added a regression test covering two gateway invocations that share one enforcer and receive distinct execution IDs.
+- Strengthened that regression with a deterministic adapter barrier so both invocations are in flight concurrently before either completes.
+- Correlated a representative privacy-blocked gateway outcome without starting provider or timeout-dependent work.
+- Confirmed standalone enforcer calls omit execution IDs unless the constructor fallback is explicitly supplied.
 
 ## Assumptions and limitations
 
@@ -26,10 +29,12 @@ The gateway creates an execution ID for each invocation, but AI-73 only allowed 
 
 ## Local verification
 
-- Focused AI-73 gateway and enforcer tests: passed (43 tests).
-- Full test suite: passed (505 tests).
+- Focused privacy tests: passed (86 tests).
+- Full test suite: passed (506 tests).
 - TypeScript typecheck: passed.
-- ESLint on the three changed TypeScript files: passed.
+- TypeScript build: passed.
+- Targeted ESLint on execution and privacy sources/tests: passed.
+- `git diff --check`: passed.
 - Repository-wide lint remains red on 115 pre-existing errors outside the AI-73.1 files; none are in the changed files and they were not refactored into this corrective PR.
 
 This report records local implementation evidence only and requires human review before merge.

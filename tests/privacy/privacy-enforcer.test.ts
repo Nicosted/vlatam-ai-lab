@@ -454,6 +454,17 @@ describe('AI-73 privacy enforcer — live catalog profiles', () => {
 });
 
 describe('AI-73 privacy enforcer — audit safety', () => {
+  it('uses execution IDs only when direct callers explicitly supply them', () => {
+    const withoutExecutionId = enforce(request('public'), replayProfile);
+    const withConstructorExecutionId = enforce(
+      request('public'),
+      replayProfile,
+      enforcer({ executionId: 'execution-standalone-001' })
+    );
+    assert.equal(withoutExecutionId.audit.execution_id, undefined);
+    assert.equal(withConstructorExecutionId.audit.execution_id, 'execution-standalone-001');
+  });
+
   it('emits metadata-only audits for allowed and blocked decisions', () => {
     const outcomes = [
       enforce(request('internal', { contact_email: SENTINEL_EMAIL }), replayProfile),
