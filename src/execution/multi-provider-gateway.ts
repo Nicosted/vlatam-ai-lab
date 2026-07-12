@@ -13,10 +13,11 @@ import type { ExecutionProfile } from './execution-profile.js';
 import { validateExecutionProfile } from './execution-profile.js';
 import { ExecutionError, executionError, sanitizeProviderError, type ExecutionErrorCode } from './errors.js';
 import { assertExecutionProfile } from './profile-catalog.js';
+import { BudgetEnforcer, GovernanceError, calculateCost, normalizeUsage, type BudgetAuditRecord, type GovernanceReservation, type UsageAuditRecord } from '../governance/index.js';
 
 export interface GatewayInvocation { readonly capability_request: CapabilityRequest; readonly execution_profile_id: string; readonly signal?: AbortSignal; }
-export interface GatewayOutcome { readonly result: CapabilityResult; readonly audit: ExecutionAuditRecord; readonly privacy_audit?: PrivacyAuditRecord | undefined; }
-export interface GatewayOptions { readonly registry: ProviderAdapterRegistry; readonly clock?: () => Date; readonly executionId?: () => string; readonly profileResolver?: (id: string) => ExecutionProfile; readonly privacyEnforcer?: PrivacyEnforcer; }
+export interface GatewayOutcome { readonly result: CapabilityResult; readonly audit: ExecutionAuditRecord; readonly privacy_audit?: PrivacyAuditRecord | undefined; readonly usage_audit?: UsageAuditRecord | undefined; readonly budget_audit?: BudgetAuditRecord | undefined; }
+export interface GatewayOptions { readonly registry: ProviderAdapterRegistry; readonly clock?: () => Date; readonly executionId?: () => string; readonly profileResolver?: (id: string) => ExecutionProfile; readonly privacyEnforcer?: PrivacyEnforcer; readonly budgetEnforcer?: BudgetEnforcer; }
 
 /** Internal signal carrying a privacy block through the failure path
  * without fabricating a provider error. */
@@ -27,7 +28,7 @@ class PrivacyBlockedExecutionError extends ExecutionError {
 function capabilityError(error: ExecutionError): CapabilityError {
   if (error instanceof PrivacyBlockedExecutionError) { const mapped = mapPrivacyReasonToCapabilityError(error.reason_code); return { category: mapped.category, code: mapped.code, message: mapped.message }; }
   if (error.code === 'REQUEST_SCHEMA_INVALID') return { category: 'contract', code: 'INVALID_REQUEST', message: error.message };
-  const policy = ['PROFILE_DISABLED','PROFILE_RETIRED','LIVE_EXECUTION_DISABLED','CREDENTIALS_UNAVAILABLE'].includes(error.code);
+  const policy = ['PROFILE_DISABLED','PROFILE_RETIRED','LIVE_EXECUTION_DISABLED','CREDENTIALS_UNAVAILABLE'].includes(error.code) || error instanceof GovernanceError;
   const contract = ['UNKNOWN_PROFILE','UNKNOWN_PROVIDER','PROFILE_CAPABILITY_MISMATCH','OUTPUT_SCHEMA_INVALID','PROVIDER_RESPONSE_INVALID'].includes(error.code);
   return { category: policy ? 'policy' : contract ? 'contract' : error.code === 'INTERNAL_EXECUTION_ERROR' ? 'internal' : 'execution', code: policy ? 'EXECUTION_UNAVAILABLE' : contract ? 'INVALID_RESULT' : error.code === 'PROVIDER_TIMEOUT' ? 'TIMEOUT' : error.code === 'INTERNAL_EXECUTION_ERROR' ? 'INTERNAL_ERROR' : 'PROVIDER_ERROR', message: error.message };
 }
@@ -44,13 +45,14 @@ function failedResult(request: SafeRequestFields, error: ExecutionError): Capabi
 }
 
 export class MultiProviderGateway {
-  private readonly clock: () => Date; private readonly executionId: () => string; private readonly profileResolver: (id: string) => ExecutionProfile; private readonly privacyEnforcer: PrivacyEnforcer;
-  constructor(private readonly options: GatewayOptions) { this.clock = options.clock ?? (() => new Date()); this.executionId = options.executionId ?? randomUUID; this.profileResolver = options.profileResolver ?? assertExecutionProfile; this.privacyEnforcer = options.privacyEnforcer ?? new PrivacyEnforcer({ clock: this.clock }); }
+  private readonly clock: () => Date; private readonly executionId: () => string; private readonly profileResolver: (id: string) => ExecutionProfile; private readonly privacyEnforcer: PrivacyEnforcer; private readonly budgetEnforcer: BudgetEnforcer;
+  constructor(private readonly options: GatewayOptions) { this.clock = options.clock ?? (() => new Date()); this.executionId = options.executionId ?? randomUUID; this.profileResolver = options.profileResolver ?? assertExecutionProfile; this.privacyEnforcer = options.privacyEnforcer ?? new PrivacyEnforcer({ clock: this.clock }); this.budgetEnforcer = options.budgetEnforcer ?? new BudgetEnforcer({ clock: this.clock }); }
   async execute(invocation: GatewayInvocation): Promise<GatewayOutcome> {
     const started = this.clock(); const executionId = this.executionId(); const request = safeRequestFields(invocation.capability_request);
     let profile: ExecutionProfile | undefined; let providerResult: ProviderExecutionResult | undefined;
     let abortCause: 'caller' | 'timeout' | undefined;
     let privacyAudit: PrivacyAuditRecord | undefined;
+    let governance: GovernanceReservation | undefined; let usageAudit: UsageAuditRecord | undefined; let budgetAudit: BudgetAuditRecord | undefined;
     let error: ExecutionError | undefined; let result: CapabilityResult;
     try {
       const validation = validateCapabilityRequest(invocation.capability_request);
@@ -71,6 +73,9 @@ export class MultiProviderGateway {
       privacyAudit = decision.audit;
       if (decision.status !== 'allowed' || decision.cleared_request === undefined) throw new PrivacyBlockedExecutionError(decision.reason_code);
       const clearedRequest = decision.cleared_request;
+      // AI-74: resolve, estimate and reserve before mapping, timeout creation,
+      // adapter lookup or execution. The cleared request is used only in memory.
+      governance = this.budgetEnforcer.reserve(executionId, invocation.capability_request, clearedRequest, profile);
       const mapped = mapNormativeClaimsRequest(clearedRequest);
       if (invocation.signal?.aborted) { abortCause = 'caller'; throw executionError('EXECUTION_ABORTED'); }
       const adapter = this.options.registry.assertProviderAdapterSupported(profile.provider_id);
@@ -84,6 +89,14 @@ export class MultiProviderGateway {
       if (abortCause === 'timeout') throw executionError('PROVIDER_TIMEOUT');
       if (abortCause === 'caller') throw executionError('EXECUTION_ABORTED');
       if (providerResult.status !== 'succeeded' || !providerResult.content) throw providerResult.error ?? executionError('PROVIDER_RESPONSE_INVALID');
+      const actualUsage = normalizeUsage(providerResult.usage, providerResult.duration_ms);
+      if (governance.policy.require_usage && actualUsage.status !== 'complete') throw new GovernanceError('USAGE_UNAVAILABLE');
+      const actualCost = actualUsage.status === 'complete' ? calculateCost(actualUsage, governance.pricing, 'actual') : undefined;
+      if (actualUsage.total_tokens !== undefined && actualUsage.total_tokens > governance.policy.max_actual_tokens_per_request) throw new GovernanceError('REQUEST_TOKEN_LIMIT_EXCEEDED');
+      if (actualCost !== undefined && actualCost.total_cost_minor > BigInt(governance.policy.max_actual_cost_minor_per_request)) throw new GovernanceError('REQUEST_COST_LIMIT_EXCEEDED');
+      const reconciled = this.budgetEnforcer.ledger.reconcile(governance.reservation.reservation_id, executionId, actualUsage.total_tokens ?? governance.estimated_usage.total_tokens!, actualCost?.total_cost_minor ?? governance.estimated_cost.total_cost_minor, 'consumed');
+      usageAudit = { execution_id: executionId, request_id: request.request_id, capability_id: request.capability_id, profile_id: profile.profile_id, provider_id: profile.provider_id, model_id: profile.model_id, estimated_usage: governance.estimated_usage, actual_usage: actualUsage, pricing_id: governance.pricing.pricing_id, estimated_cost_minor: governance.estimated_cost.total_cost_minor.toString(), actual_cost_minor: actualCost?.total_cost_minor.toString(), currency: governance.pricing.currency, calculation_version: '1.0.0' };
+      budgetAudit = { execution_id: executionId, reservation_id: reconciled.reservation_id, policy_id: reconciled.policy_id, scope_id: reconciled.scope_id, estimated_amount_minor: governance.estimated_cost.total_cost_minor.toString(), reserved_amount_minor: reconciled.reserved_cost_minor.toString(), actual_amount_minor: reconciled.actual_cost_minor?.toString(), released_amount_minor: reconciled.released_cost_minor?.toString(), final_state: reconciled.state, started_at: started.toISOString(), finished_at: this.clock().toISOString() };
       const output = parseNormativeClaimsOutput(providerResult.content, clearedRequest);
       result = capabilityResult(clearedRequest, output);
       const resultValidation = validateCapabilityResult(result);
@@ -92,9 +105,16 @@ export class MultiProviderGateway {
       // The recorded abort cause wins over whatever the adapter threw: a timeout is never
       // mislabeled as a caller abort (or vice versa) based on a generic AbortError.
       error = abortCause === 'timeout' ? executionError('PROVIDER_TIMEOUT') : abortCause === 'caller' ? executionError('EXECUTION_ABORTED') : caught instanceof ExecutionError ? caught : sanitizeProviderError(caught);
+      if (governance !== undefined && governance.reservation.state === 'reserved') {
+        const released = this.budgetEnforcer.ledger.reconcile(governance.reservation.reservation_id, executionId, 0, 0n, 'failed');
+        budgetAudit = { execution_id: executionId, reservation_id: released.reservation_id, policy_id: released.policy_id, scope_id: released.scope_id, estimated_amount_minor: governance.estimated_cost.total_cost_minor.toString(), reserved_amount_minor: released.reserved_cost_minor.toString(), released_amount_minor: released.released_cost_minor?.toString(), final_state: released.state, reason_code: error instanceof GovernanceError ? error.governance_code : undefined, started_at: started.toISOString(), finished_at: this.clock().toISOString() };
+        usageAudit = { execution_id: executionId, request_id: request.request_id, capability_id: request.capability_id, profile_id: profile?.profile_id, provider_id: profile?.provider_id, model_id: profile?.model_id, estimated_usage: governance.estimated_usage, ...(providerResult === undefined ? {} : { actual_usage: normalizeUsage(providerResult.usage, providerResult.duration_ms) }), pricing_id: governance.pricing.pricing_id, estimated_cost_minor: governance.estimated_cost.total_cost_minor.toString(), currency: governance.pricing.currency, calculation_version: '1.0.0' };
+      } else if (error instanceof GovernanceError) {
+        budgetAudit = { execution_id: executionId, final_state: 'blocked', reason_code: error.governance_code, started_at: started.toISOString(), finished_at: this.clock().toISOString() };
+      }
       result = failedResult(request, error);
     }
     const finished = this.clock();
-    return { result, audit: { execution_id: executionId, request_id: request.request_id, capability_id: request.capability_id, profile_id: profile?.profile_id, provider_id: profile?.provider_id, model_id: profile?.model_id, lifecycle_status: profile?.lifecycle_status, mode: profile?.mode, started_at: started.toISOString(), finished_at: finished.toISOString(), duration_ms: Math.max(0, finished.getTime() - started.getTime()), usage: providerResult?.usage, result_status: result.status, error_code: error?.code as ExecutionErrorCode | undefined, capability_contract_version: request.schema_version, profile_contract_version: profile?.contract_version }, privacy_audit: privacyAudit };
+    return { result, audit: { execution_id: executionId, request_id: request.request_id, capability_id: request.capability_id, profile_id: profile?.profile_id, provider_id: profile?.provider_id, model_id: profile?.model_id, lifecycle_status: profile?.lifecycle_status, mode: profile?.mode, started_at: started.toISOString(), finished_at: finished.toISOString(), duration_ms: Math.max(0, finished.getTime() - started.getTime()), usage: providerResult?.usage, result_status: result.status, error_code: error?.code as ExecutionErrorCode | undefined, capability_contract_version: request.schema_version, profile_contract_version: profile?.contract_version }, privacy_audit: privacyAudit, usage_audit: usageAudit, budget_audit: budgetAudit };
   }
 }
