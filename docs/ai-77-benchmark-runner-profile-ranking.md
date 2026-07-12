@@ -4,7 +4,7 @@
 
 A campaign binds an immutable suite ID/version/hash, explicit profile IDs and contract versions, `evaluation.deterministic@1.0.0`, `benchmark.profile-ranking.default@1.0.0`, mode, bounded concurrency, retry policy, optional budget-policy reference, timestamp, and execution/audit correlations. Validation and hashing happen before profile work. Each profile/case/attempt receives separate IDs and audit correlations; the runner keeps no campaign state in constructor-level mutable storage.
 
-Every selected profile runs every eligible case in stable ID/version order unless `case_subset` explicitly narrows coverage. Missing, blocked, rejected, and failed cases remain failures. Incomplete coverage fails closed. `allow_partial_reporting` permits a partial evidence artifact, but partial rankings disqualify every profile and cannot approve a winner.
+Profile identity is always the canonical `profile_id@profile_version` key. Resolution, replay matching, audit correlation, ordering, ranking assignments, hashes, and provenance preserve both fields, so two versions of one profile remain distinct. Every selected profile runs every eligible case in stable ID/version order unless `case_subset` explicitly narrows coverage. Missing, blocked, rejected, and failed cases remain failures. Incomplete coverage fails closed. `allow_partial_reporting` permits a partial evidence artifact, but partial rankings disqualify every profile and cannot approve a winner.
 
 ## Live and replay
 
@@ -18,7 +18,7 @@ Concurrency is bounded by `concurrency_limit` for profile and case work. Retries
 
 ## Ranking
 
-The initial policy requires complete coverage, no blocked/rejected schema or policy outcomes, and at least 3/4 exact aggregate quality. Eligible profiles are compared with integer cross multiplication—never floating point—in this fixed order: aggregate quality, correct abstention/escalation behavior, completion reliability, lower exact minor-unit cost, then lower total latency. Profile IDs stabilize serialization only after all configured comparisons are equal; equal profiles retain the same rank.
+The initial policy requires complete coverage, no blocked/rejected schema or policy outcomes, and at least 3/4 exact aggregate quality. Eligible profiles are compared with exact `BigInt` cross multiplication—never floating point—in this fixed order: aggregate quality, correct abstention/escalation behavior, completion reliability, lower exact minor-unit cost, then lower total latency. Canonical profile keys stabilize serialization only after all configured comparisons are equal; equal profiles retain the same rank. Cost comparison is permitted only when every eligible profile has complete exact cost metadata in one shared normalized currency. Mixed currencies within a profile, different currencies between eligible profiles, and missing cost/currency fail closed; no conversion or inferred currency is performed.
 
 The ranking result records every disqualification. A winner is approved only for a complete campaign with one uniquely first-ranked eligible profile. AI-78 may consume a human-reviewed result as routing evidence, but AI-77 does not mutate the capability registry, select a production profile, change routing, or alter approved-artifact/export semantics.
 
