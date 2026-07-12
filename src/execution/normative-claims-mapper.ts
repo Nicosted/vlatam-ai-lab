@@ -18,8 +18,8 @@ const OUTPUT_KEYS = new Set(['extraction_result_id','evidence_packet_id','review
 export function mapNormativeClaimsRequest(request: CapabilityRequest): ProviderExecutionRequest {
   if (request.capability_id !== 'evidence.extraction.normative_claims') throw executionError('PROFILE_CAPABILITY_MISMATCH');
   const input = request.input as Partial<ExtractionInput>;
-  if (typeof input.packet_id !== 'string' || !Array.isArray(input.evidence_refs)) throw executionError('OUTPUT_SCHEMA_INVALID');
-  for (const ref of input.evidence_refs) if (!ref || typeof ref.source_id !== 'string' || typeof ref.snapshot_id !== 'string' || typeof ref.excerpt !== 'string') throw executionError('OUTPUT_SCHEMA_INVALID');
+  if (typeof input.packet_id !== 'string' || !Array.isArray(input.evidence_refs)) throw executionError('REQUEST_SCHEMA_INVALID');
+  for (const ref of input.evidence_refs) if (!ref || typeof ref.source_id !== 'string' || typeof ref.snapshot_id !== 'string' || typeof ref.excerpt !== 'string') throw executionError('REQUEST_SCHEMA_INVALID');
   const system = 'Use only supplied evidence. Report missing evidence. Never invent a final regulatory conclusion. Output is draft, review-required, and not downstream-approved. Return strict JSON only.';
   const evidence = input.evidence_refs.map((r) => ({ source_id: r.source_id, snapshot_id: r.snapshot_id, section_label: r.section_label, article_number: r.article_number, excerpt: r.excerpt }));
   return { request_id: request.request_id, structured_output: true, messages: [{ role: 'system', content: system }, { role: 'user', content: JSON.stringify({ packet_id: input.packet_id, evidence_refs: evidence }) }] };
