@@ -67,7 +67,7 @@ export class MultiProviderGateway {
       // mapping, or timeouts. A blocked decision never reaches a
       // provider, never starts a timeout, never retries or falls back,
       // and never selects a different profile.
-      const decision = this.privacyEnforcer.enforce({ capability_request: invocation.capability_request, capability_definition: definition, execution_profile: profile });
+      const decision = this.privacyEnforcer.enforce({ capability_request: invocation.capability_request, capability_definition: definition, execution_profile: profile, execution_id: executionId });
       privacyAudit = decision.audit;
       if (decision.status !== 'allowed' || decision.cleared_request === undefined) throw new PrivacyBlockedExecutionError(decision.reason_code);
       const clearedRequest = decision.cleared_request;

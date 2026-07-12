@@ -191,6 +191,25 @@ describe('AI-73 gateway privacy integration', () => {
     assert.equal(outcome.privacy_audit?.reason_code, 'PRIVACY_CLEARED');
   });
 
+  it('correlates privacy and execution audits for every invocation of a reused enforcer', async () => {
+    const registry = new ProviderAdapterRegistry();
+    registry.registerProviderAdapter(recordingAdapter('primary'));
+    const sharedEnforcer = new PrivacyEnforcer({ zdrEvidence: evidenceStore, clock: () => NOW });
+    let invocation = 0;
+    const reusedGateway = new MultiProviderGateway({
+      registry,
+      profileResolver: () => profileWith(LOCAL_REPLAY_PRIVACY),
+      clock: () => NOW,
+      executionId: () => `execution-privacy-${++invocation}`,
+      privacyEnforcer: sharedEnforcer,
+    });
+    const first = await reusedGateway.execute({ capability_request: request('public'), execution_profile_id: 'x' });
+    const second = await reusedGateway.execute({ capability_request: request('public'), execution_profile_id: 'x' });
+    assert.equal(first.privacy_audit?.execution_id, first.audit.execution_id);
+    assert.equal(second.privacy_audit?.execution_id, second.audit.execution_id);
+    assert.notEqual(first.audit.execution_id, second.audit.execution_id);
+  });
+
   it('redacts before mapping and before adapter invocation: originals never reach either', async () => {
     // Test-owned policy: the excerpt itself is hashed for internal data,
     // so the sentinel must be absent from the mapped provider messages.
