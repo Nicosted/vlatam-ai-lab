@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam.local/schemas/ai-reviewed-benchmark-evidence.schema.json",
+  "title": "AI-78 reviewed benchmark evidence v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "campaign_id",
+    "campaign_version",
+    "campaign_execution_id",
+    "campaign_hash",
+    "suite_id",
+    "suite_version",
+    "suite_hash",
+    "ranking_policy_id",
+    "ranking_policy_version",
+    "selected_profile_id",
+    "selected_profile_version",
+    "profile_hash",
+    "ranking_position",
+    "evidence_created_at",
+    "supersession_status"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "campaign_id": { "$ref": "#/$defs/id" },
+    "campaign_version": { "$ref": "#/$defs/semver" },
+    "campaign_execution_id": { "type": "string", "minLength": 1 },
+    "campaign_hash": { "$ref": "#/$defs/hash" },
+    "suite_id": { "$ref": "#/$defs/id" },
+    "suite_version": { "$ref": "#/$defs/semver" },
+    "suite_hash": { "$ref": "#/$defs/hash" },
+    "ranking_policy_id": { "$ref": "#/$defs/id" },
+    "ranking_policy_version": { "$ref": "#/$defs/semver" },
+    "selected_profile_id": { "$ref": "#/$defs/id" },
+    "selected_profile_version": { "$ref": "#/$defs/semver" },
+    "profile_hash": { "$ref": "#/$defs/hash" },
+    "ranking_position": { "const": 1 },
+    "evidence_created_at": { "type": "string", "format": "date-time" },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "attestation_id",
+        "reviewer_role",
+        "decision",
+        "reviewed_at"
+      ],
+      "properties": {
+        "attestation_id": { "$ref": "#/$defs/id" },
+        "reviewer_role": { "$ref": "#/$defs/id" },
+        "decision": { "enum": ["approved", "pending", "rejected"] },
+        "reviewed_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "supersession_status": { "enum": ["current", "superseded"] }
+  },
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{1,127}$" },
+    "semver": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+  }
+}

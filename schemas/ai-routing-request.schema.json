@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam.local/schemas/ai-routing-request.schema.json",
+  "title": "AI-78 routing request v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "request_id",
+    "capability_id",
+    "capability_request",
+    "execution_correlation_id",
+    "audit_correlation_id",
+    "budget_class"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "request_id": { "type": "string", "minLength": 1 },
+    "capability_id": { "type": "string", "minLength": 1 },
+    "capability_request": { "type": "object" },
+    "execution_correlation_id": { "type": "string", "minLength": 1 },
+    "audit_correlation_id": { "type": "string", "minLength": 1 },
+    "budget_class": { "type": "string", "minLength": 1 },
+    "regulatory_topic": { "type": "string", "minLength": 1 }
+  }
+}

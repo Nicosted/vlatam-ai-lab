@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam.local/schemas/ai-routing-decision.schema.json",
+  "title": "AI-78 routing decision v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "status",
+    "capability_id",
+    "policy",
+    "decision_reason",
+    "decision_hash",
+    "execution_correlation_id",
+    "audit_correlation_id",
+    "created_at",
+    "benchmark_evidence"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "status": {
+      "enum": [
+        "selected",
+        "fallback_selected",
+        "human_review_required",
+        "blocked",
+        "rejected"
+      ]
+    },
+    "capability_id": { "type": "string" },
+    "policy": { "type": "object" },
+    "decision_reason": {
+      "enum": [
+        "REVIEWED_WINNER_ELIGIBLE",
+        "FALLBACK_ELIGIBLE",
+        "REVIEW_REQUIRED",
+        "REVIEW_REJECTED",
+        "REVIEWER_ROLE_UNAUTHORIZED",
+        "REVIEW_ATTESTATION_INVALID",
+        "SCHEMA_OR_POLICY_INVALID",
+        "CAMPAIGN_NOT_COMPLETED",
+        "WINNER_NOT_UNIQUE",
+        "EVIDENCE_INTEGRITY_FAILED",
+        "EVIDENCE_STALE",
+        "EVIDENCE_SUPERSEDED",
+        "PROFILE_REFERENCE_CONFLICT",
+        "PROFILE_INELIGIBLE",
+        "PRIVACY_INCOMPATIBLE",
+        "BUDGET_CLASS_INCOMPATIBLE",
+        "BUDGET_POLICY_INCOMPATIBLE",
+        "JURISDICTION_INCOMPATIBLE",
+        "QUALITY_GATES_UNPROVEN",
+        "FALLBACK_NOT_ALLOWED",
+        "FALLBACK_INELIGIBLE"
+      ]
+    },
+    "decision_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "execution_correlation_id": { "type": "string" },
+    "audit_correlation_id": { "type": "string" },
+    "created_at": { "type": "string", "format": "date-time" },
+    "expiry_at": { "type": "string", "format": "date-time" },
+    "selected_profile_id": { "type": "string" },
+    "selected_profile_version": { "type": "string" },
+    "canonical_profile_key": { "type": "string" },
+    "benchmark_evidence": { "type": "object" },
+    "review_attestation": { "type": "object" },
+    "eligibility": { "type": "object" }
+  }
+}

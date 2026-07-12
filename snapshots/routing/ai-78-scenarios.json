@@ -1,0 +1,91 @@
+{
+  "schema_version": "1.0.0",
+  "description": "Deterministic AI-78 fixture manifest. Tests construct each delta over the valid reviewed winner fixture and verify the named outcome.",
+  "fixtures": [
+    {
+      "id": "valid-reviewed-winner-selection",
+      "mutation": "none",
+      "expected": "selected"
+    },
+    {
+      "id": "two-versions-same-profile",
+      "mutation": "candidate_version=2.0.0",
+      "expected": "exact-version-only"
+    },
+    {
+      "id": "expired-evidence",
+      "mutation": "evidence_created_at=stale",
+      "expected": "blocked"
+    },
+    {
+      "id": "superseded-evidence",
+      "mutation": "supersession_status=superseded",
+      "expected": "blocked"
+    },
+    {
+      "id": "partial-campaign",
+      "mutation": "campaign.status=partial",
+      "expected": "blocked"
+    },
+    {
+      "id": "ambiguous-winner",
+      "mutation": "two rank-1 entries",
+      "expected": "blocked"
+    },
+    {
+      "id": "profile-hash-mismatch",
+      "mutation": "profile_hash=other",
+      "expected": "blocked"
+    },
+    {
+      "id": "registry-version-mismatch",
+      "mutation": "selected_profile_version=2.0.0",
+      "expected": "blocked"
+    },
+    {
+      "id": "privacy-incompatibility",
+      "mutation": "classification=restricted",
+      "expected": "blocked"
+    },
+    {
+      "id": "budget-class-incompatibility",
+      "mutation": "budget_class=unclassified",
+      "expected": "blocked"
+    },
+    {
+      "id": "valid-fallback",
+      "mutation": "stale+allowed fallback",
+      "expected": "fallback_selected"
+    },
+    {
+      "id": "invalid-fallback",
+      "mutation": "missing fallback profile",
+      "expected": "blocked"
+    },
+    {
+      "id": "human-review-required",
+      "mutation": "review pending+policy requires review",
+      "expected": "human_review_required"
+    },
+    {
+      "id": "review-rejected",
+      "mutation": "review decision=rejected",
+      "expected": "rejected"
+    },
+    {
+      "id": "budget-policy-mismatch",
+      "mutation": "required budget policy ref differs from campaign",
+      "expected": "blocked"
+    },
+    {
+      "id": "future-evidence",
+      "mutation": "evidence_created_at is one millisecond after router clock",
+      "expected": "blocked"
+    },
+    {
+      "id": "unauthorized-reviewer-role",
+      "mutation": "reviewer_role absent from allowed_reviewer_roles",
+      "expected": "blocked"
+    }
+  ]
+}
