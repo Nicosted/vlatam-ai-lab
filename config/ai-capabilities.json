@@ -1,0 +1,573 @@
+{
+  "$schema": "https://vlatam-ai-lab.local/schemas/ai-capabilities.schema.json",
+  "schema_version": "1.0.0",
+  "generated_by": "AI-70",
+  "generated_at": "2026-07-11T00:00:00.000Z",
+  "description": "Declarative inventory of AI capabilities for vlatam-ai-lab. This file is documentation-level only. It is consumed by documentation checks and by the AI-71 capability contract work. It is not a runtime registry.",
+  "allowed_status": ["existing", "partial", "planned", "out_of_scope"],
+  "allowed_risk_tier": ["low", "medium", "high"],
+  "allowed_provider_execution": ["required", "optional", "none"],
+  "allowed_human_review": [true],
+  "capabilities": [
+    {
+      "capability_id": "source.acquisition.monitor",
+      "name": "Source acquisition monitor",
+      "domain": "source",
+      "status": "existing",
+      "risk_tier": "low",
+      "human_review": true,
+      "downstream_policy": {
+        "downstream_allowed": false,
+        "reason": "No downstream export; produces internal deltas only."
+      },
+      "provider_execution": "none",
+      "roadmap_owner": "ai-70-existing"
+    },
+    {
+      "capability_id": "source.snapshot.write",
+      "name": "Immutable snapshot writing",
+      "domain": "source",
+      "status": "existing",
+      "risk_tier": "low",
+      "human_review": true,
+      "downstream_policy": {
+        "downstream_allowed": false,
+        "reason": "Snapshots are internal provenance records; export is gated by source registry and review."
+      },
+      "provider_execution": "none",
+      "roadmap_owner": "ai-70-existing"
+    },
+    {
+      "capability_id": "source.delta.detect",
+      "name": "Snapshot delta detection",
+      "domain": "source",
+      "status": "existing",
+      "risk_tier": "low",
+      "human_review": true,
+      "downstream_policy": {
+        "downstream_allowed": false,
+        "reason": "Delta outputs are review-only evidence packets."
+      },
+      "provider_execution": "none",
+      "roadmap_owner": "ai-70-existing"
+    },
+    {
+      "capability_id": "source.snapshot.embedded_evidence_demo",
+      "name": "Embedded-evidence demo packet",
+      "domain": "source",
+      "status": "partial",
+      "risk_tier": "low",
+      "human_review": true,
+      "downstream_policy": {
+        "downstream_allowed": false,
+        "reason": "Demo-only fixture; not authoritative."
+      },
+      "provider_execution": "none",
+      "roadmap_owner": "ai-72"
+    },
+    {
+      "capability_id": "source.acquisition.cloudflare_pipeline_v1",
+      "name": "Cloudflare pipeline source acquisition",
+      "domain": "source",
+      "status": "partial",
+      "risk_tier": "low",
+      "human_review": true,
+      "downstream_policy": {
+        "downstream_allowed": false,
+        "reason": "Feature-flagged off; passthrough only."
+      },
+      "provider_execution": "none",
+      "roadmap_owner": "ai-72"
+    },
+    {
+      "capability_id": "source.acquisition.multi_country",
+      "name": "Multi-country source acquisition (CL/UY/PY)",
+      "domain": "source",
+      "status": "partial",
+      "risk_tier": "medium",
+      "human_review": true,
+      "downstream_policy": {
+        "downstream_allowed": false,
+        "reason": "Adapter interface exists; per-country adapters not implemented."
+      },
+      "provider_execution": "none",
+      "roadmap_owner": "ai-72,ai-78"
+    },
+    {
+      "capability_id": "source.regulatory_research.advisory_input",
+      "name": "Regulatory research advisory input",
+      "domain": "advisory",
+      "status": "partial",
+      "risk_tier": "medium",
+      "human_review": true,
+      "downstream_policy": {
+        "downstream_allowed": false,
+        "reason": "HTML read model; not yet exposed via export contract."
+      },
+      "provider_execution": "none",
+      "roadmap_owner": "ai-71,ai-72"
+    },
+    {
+      "capability_id": "source.regulatory_advisory.readiness_check",
+      "name": "Advisory readiness classification",
+      "domain": "advisory",
+      "status": "partial",
+      "risk_tier": "medium",
+      "human_review": true,
+      "downstream_policy": {
+        "downstream_allowed": false,
+        "reason": "Read-model only; output must not cross export boundary."
+      },
+      "provider_execution": "none",
+      "roadmap_owner": "ai-71,ai-72"
+    },
+    {
+      "capability_id": "evidence.extraction.normative_claims",
+      "name": "Normative-claim extraction",
+      "domain": "evidence",
+      "status": "existing",
+      "risk_tier": "high",
+      "human_review": true,
+      "downstream_policy": {
+        "downstream_allowed": false,
+        "reason": "Output is always draft/unreviewed; never classifier-approved."
+      },
+      "provider_execution": "required",
+      "roadmap_owner": "ai-72,ai-78"
+    },
+    {
+      "capability_id": "evidence.extraction.qwen_dashscope",
+      "name": "Qwen/DashScope extraction (spike)",
+      "domain": "evidence",
+      "status": "partial",
+      "risk_tier": "high",
+      "human_review": true,
+      "downstream_policy": {
+        "downstream_allowed": false,
+        "reason": "Spike only; manual dry-run with recorded responses."
+      },
+      "provider_execution": "required",
+      "roadmap_owner": "ai-72"
+    },
+    {
+      "capability_id": "evidence.extraction.langgraph_workflow",
+      "name": "LangGraph extractor/critic/validator",
+      "domain": "evidence",
+      "status": "partial",
+      "risk_tier": "high",
+      "human_review": true,
+      "downstream_policy": {
+        "downstream_allowed": false,
+        "reason": "Workflow exists in tests; runtime path not wired."
+      },
+      "provider_execution": "required",
+      "roadmap_owner": "ai-72"
+    },
+    {
+      "capability_id": "evidence.extraction.critic_review",
+      "name": "Critic review pass",
+      "domain": "evidence",
+      "status": "existing",
+      "risk_tier": "high",
+      "human_review": true,
+      "downstream_policy": {
+        "downstream_allowed": false,
+        "reason": "Critic output feeds router; never exported on its own."
+      },
+      "provider_execution": "required",
+      "roadmap_owner": "ai-78"
+    },
+    {
+      "capability_id": "evidence.embedding.bge_m3",
+      "name": "Multilingual embedding generation",
+      "domain": "evidence",
+      "status": "existing",
+      "risk_tier": "low",
+      "human_review": true,
+      "downstream_policy": {
+        "downstream_allowed": false,
+        "reason": "Embeddings are internal indexes; not exported."
+      },
+      "provider_execution": "required",
+      "roadmap_owner": "ai-70-existing"
+    },
+    {
+      "capability_id": "evidence.embedding.refresh",
+      "name": "Embedding refresh on snapshot change",
+      "domain": "evidence",
+      "status": "planned",
+      "risk_tier": "low",
+      "human_review": true,
+      "downstream_policy": {
+        "downstream_allowed": false,
+        "reason": "Index maintenance only; not exported."
+      },
+      "provider_execution": "optional",
+      "roadmap_owner": "ai-72,ai-77"
+    },
+    {
+      "capability_id": "evidence.classifier_candidate.generate",
+      "name": "Classifier candidate generation",
+      "domain": "evidence",
+      "status": "existing",
+      "risk_tier": "high",
+      "human_review": true,
+      "downstream_policy": {
+        "downstream_allowed": false,
+        "reason": "Output is always draft; reviewed path is via the human review gate."
+      },
+      "provider_execution": "none",
+      "roadmap_owner": "ai-70-existing"
+    },
+    {
+      "capability_id": "evidence.regulatory_research.question_prep",
+      "name": "Research question prep",
+      "domain": "advisory",
+      "status": "partial",
+      "risk_tier": "medium",
+      "human_review": true,
+      "downstream_policy": {
+        "downstream_allowed": false,
+        "reason": "Surfaces missing-evidence gaps; never emits a final answer."
+      },
+      "provider_execution": "none",
+      "roadmap_owner": "ai-71"
+    },
+    {
+      "capability_id": "review.human.gate",
+      "name": "Human review gate",
+      "domain": "review",
+      "status": "existing",
+      "risk_tier": "high",
+      "human_review": true,
+      "downstream_policy": {
+        "downstream_allowed": "conditional",
+        "reason": "Downstream allowed only on reviewed_approved decision."
+      },
+      "provider_execution": "none",
+      "roadmap_owner": "ai-70-existing"
+    },
+    {
+      "capability_id": "review.human.gate.regulatory_research",
+      "name": "Advisory workspace readiness",
+      "domain": "review",
+      "status": "partial",
+      "risk_tier": "medium",
+      "human_review": true,
+      "downstream_policy": {
+        "downstream_allowed": false,
+        "reason": "Readiness summary; never emits final regulatory answer."
+      },
+      "provider_execution": "none",
+      "roadmap_owner": "ai-71"
+    },
+    {
+      "capability_id": "artifact.approved.generate",
+      "name": "Approved artifact generation",
+      "domain": "review",
+      "status": "existing",
+      "risk_tier": "high",
+      "human_review": true,
+      "downstream_policy": {
+        "downstream_allowed": "conditional",
+        "reason": "Approved only after explicit human review."
+      },
+      "provider_execution": "none",
+      "roadmap_owner": "ai-70-existing"
+    },
+    {
+      "capability_id": "artifact.export_contract.generate",
+      "name": "Export contract generation",
+      "domain": "export",
+      "status": "existing",
+      "risk_tier": "high",
+      "human_review": true,
+      "downstream_policy": {
+        "downstream_allowed": true,
+        "reason": "Validated against the export contract; provider metadata is stripped."
+      },
+      "provider_execution": "none",
+      "roadmap_owner": "ai-70-existing"
+    },
+    {
+      "capability_id": "artifact.export_catalog.generate",
+      "name": "Export catalog index",
+      "domain": "export",
+      "status": "partial",
+      "risk_tier": "medium",
+      "human_review": true,
+      "downstream_policy": {
+        "downstream_allowed": false,
+        "reason": "Repo-local read-only index; not a runtime bridge."
+      },
+      "provider_execution": "none",
+      "roadmap_owner": "ai-70-existing"
+    },
+    {
+      "capability_id": "artifact.export_bundle.consumer_contract",
+      "name": "Approved export bundle consumer contract",
+      "domain": "export",
+      "status": "existing",
+      "risk_tier": "low",
+      "human_review": true,
+      "downstream_policy": {
+        "downstream_allowed": false,
+        "reason": "Document-only contract; vlatam-global consumption is future work."
+      },
+      "provider_execution": "none",
+      "roadmap_owner": "ai-70-existing"
+    },
+    {
+      "capability_id": "artifact.approved.serve_http",
+      "name": "Approved artifact serving",
+      "domain": "export",
+      "status": "existing",
+      "risk_tier": "medium",
+      "human_review": true,
+      "downstream_policy": {
+        "downstream_allowed": true,
+        "reason": "Read-only HTTP API; fails closed on schema violation."
+      },
+      "provider_execution": "none",
+      "roadmap_owner": "ai-70-existing"
+    },
+    {
+      "capability_id": "provider.execution.cloudflare_ai_gateway",
+      "name": "Cloudflare AI Gateway wrapper",
+      "domain": "provider",
+      "status": "partial",
+      "risk_tier": "medium",
+      "human_review": true,
+      "downstream_policy": {
+        "downstream_allowed": false,
+        "reason": "Internal transport; never crosses export boundary."
+      },
+      "provider_execution": "required",
+      "roadmap_owner": "ai-72"
+    },
+    {
+      "capability_id": "provider.execution.deepseek_direct",
+      "name": "DeepSeek direct calls",
+      "domain": "provider",
+      "status": "partial",
+      "risk_tier": "high",
+      "human_review": true,
+      "downstream_policy": {
+        "downstream_allowed": false,
+        "reason": "Currently embedded in domain code; ADR-003 requires removal."
+      },
+      "provider_execution": "required",
+      "roadmap_owner": "ai-72,ai-78"
+    },
+    {
+      "capability_id": "provider.execution.qwen_dashscope_runtime",
+      "name": "DashScope/Qwen runtime",
+      "domain": "provider",
+      "status": "partial",
+      "risk_tier": "high",
+      "human_review": true,
+      "downstream_policy": {
+        "downstream_allowed": false,
+        "reason": "Spike-only manual dry-run; not wired to runtime."
+      },
+      "provider_execution": "required",
+      "roadmap_owner": "ai-72"
+    },
+    {
+      "capability_id": "provider.execution.local_runtime",
+      "name": "Local model runtime",
+      "domain": "provider",
+      "status": "out_of_scope",
+      "risk_tier": "low",
+      "human_review": true,
+      "downstream_policy": {
+        "downstream_allowed": false,
+        "reason": "Not on the AI-71 to AI-78 roadmap."
+      },
+      "provider_execution": "required",
+      "roadmap_owner": "out_of_scope"
+    },
+    {
+      "capability_id": "governance.privacy.zdr",
+      "name": "Privacy and ZDR enforcement",
+      "domain": "governance",
+      "status": "planned",
+      "risk_tier": "high",
+      "human_review": true,
+      "downstream_policy": {
+        "downstream_allowed": false,
+        "reason": "Pre-export guardrail; never emits content directly."
+      },
+      "provider_execution": "none",
+      "roadmap_owner": "ai-73"
+    },
+    {
+      "capability_id": "governance.data.classification",
+      "name": "Data classification",
+      "domain": "governance",
+      "status": "planned",
+      "risk_tier": "medium",
+      "human_review": true,
+      "downstream_policy": {
+        "downstream_allowed": false,
+        "reason": "Internal classification; never exported."
+      },
+      "provider_execution": "none",
+      "roadmap_owner": "ai-73"
+    },
+    {
+      "capability_id": "governance.budget.cost_governor",
+      "name": "Budget governor",
+      "domain": "governance",
+      "status": "planned",
+      "risk_tier": "medium",
+      "human_review": true,
+      "downstream_policy": {
+        "downstream_allowed": false,
+        "reason": "Internal decision; never exported."
+      },
+      "provider_execution": "none",
+      "roadmap_owner": "ai-74"
+    },
+    {
+      "capability_id": "governance.allowlist.providers",
+      "name": "Provider allowlist per capability",
+      "domain": "governance",
+      "status": "planned",
+      "risk_tier": "medium",
+      "human_review": true,
+      "downstream_policy": {
+        "downstream_allowed": false,
+        "reason": "Policy data; never exported."
+      },
+      "provider_execution": "none",
+      "roadmap_owner": "ai-71,ai-73"
+    },
+    {
+      "capability_id": "governance.audit.record",
+      "name": "Audit record writing",
+      "domain": "governance",
+      "status": "planned",
+      "risk_tier": "low",
+      "human_review": true,
+      "downstream_policy": {
+        "downstream_allowed": false,
+        "reason": "Local audit only; never exported."
+      },
+      "provider_execution": "none",
+      "roadmap_owner": "ai-73,ai-78"
+    },
+    {
+      "capability_id": "governance.fail_closed",
+      "name": "Fail-closed behavior",
+      "domain": "governance",
+      "status": "planned",
+      "risk_tier": "low",
+      "human_review": true,
+      "downstream_policy": {
+        "downstream_allowed": false,
+        "reason": "Default-deny decision policy."
+      },
+      "provider_execution": "none",
+      "roadmap_owner": "ai-71,ai-78"
+    },
+    {
+      "capability_id": "evaluation.gold_cases",
+      "name": "Gold case management",
+      "domain": "evaluation",
+      "status": "planned",
+      "risk_tier": "high",
+      "human_review": true,
+      "downstream_policy": {
+        "downstream_allowed": false,
+        "reason": "Reviewed fixtures; never classifier-approved."
+      },
+      "provider_execution": "none",
+      "roadmap_owner": "ai-76"
+    },
+    {
+      "capability_id": "evaluation.evaluator",
+      "name": "Evaluator contracts",
+      "domain": "evaluation",
+      "status": "planned",
+      "risk_tier": "medium",
+      "human_review": true,
+      "downstream_policy": {
+        "downstream_allowed": false,
+        "reason": "Internal scoring; never exported."
+      },
+      "provider_execution": "none",
+      "roadmap_owner": "ai-75"
+    },
+    {
+      "capability_id": "evaluation.benchmark.run",
+      "name": "Benchmark execution",
+      "domain": "evaluation",
+      "status": "planned",
+      "risk_tier": "medium",
+      "human_review": true,
+      "downstream_policy": {
+        "downstream_allowed": false,
+        "reason": "Internal record; never exported."
+      },
+      "provider_execution": "none",
+      "roadmap_owner": "ai-77"
+    },
+    {
+      "capability_id": "evaluation.profile.promote",
+      "name": "Profile promotion",
+      "domain": "evaluation",
+      "status": "planned",
+      "risk_tier": "high",
+      "human_review": true,
+      "downstream_policy": {
+        "downstream_allowed": false,
+        "reason": "Lifecycle decision; never exported."
+      },
+      "provider_execution": "none",
+      "roadmap_owner": "ai-77,ai-78"
+    },
+    {
+      "capability_id": "routing.best_profile",
+      "name": "Best-profile router",
+      "domain": "routing",
+      "status": "planned",
+      "risk_tier": "medium",
+      "human_review": true,
+      "downstream_policy": {
+        "downstream_allowed": false,
+        "reason": "Internal selection; never exported."
+      },
+      "provider_execution": "none",
+      "roadmap_owner": "ai-78"
+    },
+    {
+      "capability_id": "routing.lifecycle.production",
+      "name": "Production profile selection",
+      "domain": "routing",
+      "status": "planned",
+      "risk_tier": "medium",
+      "human_review": true,
+      "downstream_policy": {
+        "downstream_allowed": false,
+        "reason": "Lifecycle filter; never exported."
+      },
+      "provider_execution": "none",
+      "roadmap_owner": "ai-78"
+    },
+    {
+      "capability_id": "routing.lifecycle.shadow",
+      "name": "Shadow profile execution",
+      "domain": "routing",
+      "status": "planned",
+      "risk_tier": "low",
+      "human_review": true,
+      "downstream_policy": {
+        "downstream_allowed": false,
+        "reason": "Shadow output must never cross export boundary."
+      },
+      "provider_execution": "none",
+      "roadmap_owner": "ai-78"
+    }
+  ]
+}

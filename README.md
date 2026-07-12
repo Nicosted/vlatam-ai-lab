@@ -86,15 +86,26 @@ Consumers must validate `schema_version`, fail closed on unsupported or invalid 
 
 ## Current status
 
-- ✅ 176 tests passing
+- ✅ 205 tests passing
 - ✅ API-key authentication and in-memory per-IP rate limiting
 - ✅ 0 external dependencies in the native HTTP API path
 - ✅ Repo-first architecture
 - ✅ Native Node HTTP API server
 - ✅ E2E verified
 - ✅ Integration contract documented
+- ✅ AI-70 architecture, capability map, and capability catalog delivered
 
 ## Documentation
+
+### Architecture and capability map (AI-70)
+
+- [AI System Architecture](docs/architecture/ai-system-architecture.md) — target layered architecture and safety invariants.
+- [AI Capability Map](docs/architecture/ai-capability-map.md) — current and planned capability inventory.
+- [AI Roadmap Dependency Map](docs/architecture/ai-roadmap-dependency-map.md) — AI-70 through AI-78 sequence and gates.
+- [ADR-003: Capability-Oriented AI Execution](docs/decisions/003-capability-oriented-ai-execution.md) — vendor-neutral execution doctrine.
+- [AI Capabilities Catalog](config/ai-capabilities.json) — declarative capability inventory.
+
+### Reference
 
 - [vlatam-global API Contract](docs/integration/vlatam-global-api-contract.md)
 - [Classifier Intelligence Artifact P1](docs/classifier-intelligence-artifact-p1.md)
