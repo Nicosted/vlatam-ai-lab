@@ -1,0 +1,20 @@
+{
+  "schema_version": "1.0.0",
+  "evidence": [
+    {
+      "evidence_id": "zdr-evidence.test-missing-expiry.v1",
+      "schema_version": "1.0.0",
+      "profile_ids": ["test.regulated.local.v1"],
+      "capability_ids": ["evidence.extraction.normative_claims"],
+      "classifications": ["regulated"],
+      "regions": ["local"],
+      "retention_behaviors": ["none"],
+      "training_use": "contractually_prohibited_verified",
+      "verification_source_type": "test_fixture",
+      "status": "verified",
+      "verified_at": "2026-01-01T00:00:00.000Z",
+      "evidence_hash": "1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d",
+      "human_review_status": "reviewed_approved"
+    }
+  ]
+}

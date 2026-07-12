@@ -5,9 +5,10 @@ import type { ExecutionProfile } from '../../src/execution/execution-profile.js'
 import { MultiProviderGateway } from '../../src/execution/multi-provider-gateway.js';
 import { ProviderAdapterRegistry } from '../../src/providers/adapter-registry.js';
 import type { ProviderAdapter } from '../../src/providers/provider-adapter.js';
+import { LOCAL_REPLAY_PRIVACY } from '../helpers/privacy.js';
 
-const request: CapabilityRequest = { request_id: 'request-hardening-001', capability_id: 'evidence.extraction.normative_claims' as never, schema_version: '1.0.0', input: { packet_id: 'packet-hardening-001', evidence_refs: [{ source_id: 'source-001', snapshot_id: 'snapshot-001', section_label: 'section-1', excerpt: 'Synthetic evidence only.' }] } };
-const profileFor = (provider: string, timeout_ms = 120_000): ExecutionProfile => ({ profile_id: 'test.hardening' as never, capability_id: request.capability_id, provider_id: provider as never, model_id: 'fixture' as never, mode: 'replay', lifecycle_status: 'candidate', enabled: true, contract_version: '1.0.0', configuration: { timeout_ms, response_format: 'json' }, eligibility: { privacy_compatibility: 'declared_not_enforced', budget_class: 'development', evaluation_status: 'fixture_verified' }, fixture_id: 'normative-claims-success' });
+const request: CapabilityRequest = { request_id: 'request-hardening-001', capability_id: 'evidence.extraction.normative_claims' as never, schema_version: '1.0.0', input: { packet_id: 'packet-hardening-001', evidence_refs: [{ source_id: 'source-001', snapshot_id: 'snapshot-001', section_label: 'section-1', excerpt: 'Synthetic evidence only.' }] }, context: { data_classification: 'public' } };
+const profileFor = (provider: string, timeout_ms = 120_000): ExecutionProfile => ({ profile_id: 'test.hardening' as never, capability_id: request.capability_id, provider_id: provider as never, model_id: 'fixture' as never, mode: 'replay', lifecycle_status: 'candidate', enabled: true, contract_version: '1.0.0', configuration: { timeout_ms, response_format: 'json' }, eligibility: { privacy_compatibility: 'declared_not_enforced', budget_class: 'development', evaluation_status: 'fixture_verified' }, privacy: LOCAL_REPLAY_PRIVACY, fixture_id: 'normative-claims-success' });
 
 interface CountingAdapter extends ProviderAdapter { calls: number; sawAbort: boolean; }
 // Deterministic fake adapter: counts invocations and settles only when the gateway-provided signal aborts.
@@ -101,6 +102,19 @@ describe('AI-72.1 gateway hardening', () => {
   });
 
   describe('caller abort versus gateway timeout', () => {
+    it('validates the request before rejecting a pre-aborted signal', async () => {
+      const adapter = countingAdapter('primary');
+      const controller = new AbortController();
+      controller.abort();
+      const outcome = await gateway(profileFor('primary'), [adapter]).execute({
+        capability_request: { ...request, request_id: '' } as never,
+        execution_profile_id: 'x',
+        signal: controller.signal,
+      });
+      assert.equal(adapter.calls, 0);
+      assert.equal(outcome.audit.error_code, 'REQUEST_SCHEMA_INVALID');
+      assert.equal(outcome.result.error?.code, 'INVALID_REQUEST');
+    });
     it('labels a caller abort during adapter execution as EXECUTION_ABORTED, not PROVIDER_TIMEOUT', async () => {
       const adapter = hangingAdapter('primary');
       const controller = new AbortController();

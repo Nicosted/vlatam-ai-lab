@@ -4,10 +4,14 @@
       "contract_name": "ai_execution_profiles",
       "schema_file": "schemas/ai-execution-profiles.schema.json",
       "valid_fixture": "config/ai-execution-profiles.json",
-      "invalid_fixtures": [],
+      "invalid_fixtures": [
+        "snapshots/privacy/invalid-execution-profile-missing-privacy.json",
+        "snapshots/privacy/invalid-execution-profile-unknown-retention.json",
+        "snapshots/privacy/invalid-execution-profile-replay-missing-origin.json"
+      ],
       "test_file": "tests/execution/execution-profiles.test.ts",
       "status": "implemented",
-      "purpose": "Declares provider execution profiles without credentials or routing behavior.",
+      "purpose": "Declares provider execution profiles, including AI-73 privacy declarations, without credentials or routing behavior.",
       "downstream_role": "Selects an explicitly requested adapter configuration only.",
       "requires_human_review_semantics": false,
       "requires_traceability": true,
@@ -418,6 +422,53 @@
       "status": "implemented",
       "purpose": "Defines the two-identifier domain lookup accepted by the existing approved-artifact HTTP read route.",
       "downstream_role": "Locates an already approved read-only export without carrying credentials, headers, endpoints, IP addresses, reviewer data, or a duplicate export payload.",
+      "requires_human_review_semantics": false,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": false
+    },
+    {
+      "contract_name": "ai_privacy_policies",
+      "schema_file": "schemas/ai-privacy-policies.schema.json",
+      "valid_fixture": "config/ai-privacy-policies.json",
+      "invalid_fixtures": [
+        "snapshots/privacy/invalid-privacy-policies-unknown-action.json",
+        "snapshots/privacy/invalid-privacy-policies-credential-field.json"
+      ],
+      "test_file": "tests/privacy/privacy-schemas.test.ts",
+      "status": "implemented",
+      "purpose": "Deterministically maps capability and data classification to a privacy decision with redaction, ZDR, and retention requirements.",
+      "downstream_role": "Feeds the AI-73 privacy enforcer; a privacy block prevents any adapter invocation.",
+      "requires_human_review_semantics": false,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": false
+    },
+    {
+      "contract_name": "ai_zdr_evidence",
+      "schema_file": "schemas/ai-zdr-evidence.schema.json",
+      "valid_fixture": "snapshots/privacy/example-zdr-evidence.json",
+      "invalid_fixtures": [
+        "snapshots/privacy/invalid-zdr-evidence-missing-expiry.json",
+        "snapshots/privacy/invalid-zdr-evidence-unknown-status.json"
+      ],
+      "test_file": "tests/privacy/privacy-schemas.test.ts",
+      "status": "implemented",
+      "purpose": "Repository-owned ZDR verification evidence metadata with explicit scope and expiry; declarations are never proof.",
+      "downstream_role": "Required for any ZDR-gated execution; missing or expired evidence fails closed.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": false
+    },
+    {
+      "contract_name": "ai_privacy_audit",
+      "schema_file": "schemas/ai-privacy-audit.schema.json",
+      "valid_fixture": "snapshots/privacy/example-privacy-audit.json",
+      "invalid_fixtures": [
+        "snapshots/privacy/invalid-privacy-audit-with-payload.json"
+      ],
+      "test_file": "tests/privacy/privacy-schemas.test.ts",
+      "status": "implemented",
+      "purpose": "Metadata-only privacy decision audit record; payload content is structurally excluded.",
+      "downstream_role": "Traceability record emitted alongside execution audits for every enforced request.",
       "requires_human_review_semantics": false,
       "requires_traceability": true,
       "downstream_allowed_field_present": false

@@ -3,7 +3,7 @@ export const EXECUTION_ERROR_CODES = [
   'PROFILE_CAPABILITY_MISMATCH', 'LIVE_EXECUTION_DISABLED', 'CREDENTIALS_UNAVAILABLE',
   'PROVIDER_RATE_LIMITED', 'PROVIDER_TIMEOUT', 'PROVIDER_UNAVAILABLE',
   'PROVIDER_RESPONSE_INVALID', 'REQUEST_SCHEMA_INVALID', 'OUTPUT_SCHEMA_INVALID', 'EXECUTION_ABORTED',
-  'INTERNAL_EXECUTION_ERROR',
+  'PRIVACY_BLOCKED', 'INTERNAL_EXECUTION_ERROR',
 ] as const;
 export type ExecutionErrorCode = (typeof EXECUTION_ERROR_CODES)[number];
 
@@ -26,6 +26,7 @@ const SAFE_MESSAGES: Record<ExecutionErrorCode, string> = {
   REQUEST_SCHEMA_INVALID: 'The capability request failed contract validation.',
   OUTPUT_SCHEMA_INVALID: 'The normalized output failed its contract.',
   EXECUTION_ABORTED: 'The execution was aborted.',
+  PRIVACY_BLOCKED: 'The request was blocked by privacy enforcement.',
   INTERNAL_EXECUTION_ERROR: 'The execution failed safely.',
 };
 export function executionError(code: ExecutionErrorCode): ExecutionError { return new ExecutionError(code, SAFE_MESSAGES[code]); }

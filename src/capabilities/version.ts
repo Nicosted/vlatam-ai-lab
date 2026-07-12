@@ -20,7 +20,9 @@
  */
 
 export const CAPABILITY_CONTRACT_MAJOR = 1 as const;
-export const CAPABILITY_CONTRACT_MINOR = 0 as const;
+// MINOR 1: AI-73 added the `confidential` data classification
+// (additive optional enum value on `CapabilityContext`).
+export const CAPABILITY_CONTRACT_MINOR = 1 as const;
 export const CAPABILITY_CONTRACT_PATCH = 0 as const;
 
 export const CAPABILITY_CONTRACT_VERSION = `${CAPABILITY_CONTRACT_MAJOR}.${CAPABILITY_CONTRACT_MINOR}.${CAPABILITY_CONTRACT_PATCH}` as const;

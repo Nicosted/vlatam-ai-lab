@@ -99,7 +99,7 @@ function loadFixture(name: string): Record<string, unknown> {
 describe('AI-71 contract — version constants and enums', () => {
   it('exposes a single supported MAJOR version and the contract version matches', () => {
     assert.equal(CAPABILITY_CONTRACT_MAJOR, 1);
-    assert.equal(CAPABILITY_CONTRACT_VERSION, '1.0.0');
+    assert.equal(CAPABILITY_CONTRACT_VERSION, '1.1.0');
     assert.deepEqual([...SUPPORTED_CAPABILITY_CONTRACT_MAJORS], [1]);
   });
 
@@ -114,8 +114,8 @@ describe('AI-71 contract — version constants and enums', () => {
     assert.deepEqual([...CAPABILITY_RESULT_STATUSES], ['succeeded', 'failed', 'blocked']);
   });
 
-  it('exposes the four data classifications and the five downstream-use values', () => {
-    assert.deepEqual([...DATA_CLASSIFICATIONS], ['public', 'internal', 'regulated', 'restricted']);
+  it('exposes the five data classifications and the five downstream-use values', () => {
+    assert.deepEqual([...DATA_CLASSIFICATIONS], ['public', 'internal', 'confidential', 'regulated', 'restricted']);
     assert.deepEqual(
       [...DOWNSTREAM_USE_VALUES],
       ['none', 'evidence_packet', 'classifier_candidate', 'advisory_draft', 'approved_export']

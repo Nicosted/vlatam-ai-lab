@@ -1,0 +1,167 @@
+{
+  "schema_version": "1.0.0",
+  "description": "AI-73 machine-readable privacy policy catalog. Deterministic mapping from (capability, request classification) to a privacy decision. No provider code, credentials, endpoints, or legal text belong here.",
+  "policies": [
+    {
+      "policy_id": "privacy.evidence-extraction.public.v1",
+      "schema_version": "1.0.0",
+      "capability_ids": ["evidence.extraction.normative_claims"],
+      "classifications": ["public"],
+      "allowed_execution_modes": ["replay", "live"],
+      "zdr_requirement": "not_required",
+      "retention_requirement": {
+        "allowed_retention_behaviors": [
+          "none",
+          "ephemeral_memory",
+          "bounded_local_fixture",
+          "provider_declared_bounded",
+          "provider_unknown"
+        ]
+      },
+      "redaction_rules": [],
+      "decision": "allow",
+      "priority": 100,
+      "reason_code": "PRIVACY_CLEARED",
+      "human_review_required": false
+    },
+    {
+      "policy_id": "privacy.evidence-extraction.internal.v1",
+      "schema_version": "1.0.0",
+      "capability_ids": ["evidence.extraction.normative_claims"],
+      "classifications": ["internal"],
+      "allowed_execution_modes": ["replay", "live"],
+      "zdr_requirement": "not_required",
+      "retention_requirement": {
+        "allowed_retention_behaviors": [
+          "none",
+          "ephemeral_memory",
+          "bounded_local_fixture",
+          "provider_declared_bounded",
+          "provider_unknown"
+        ]
+      },
+      "redaction_rules": [
+        { "path": "input.packet_id", "action": "preserve", "presence": "required" },
+        { "path": "input.supplier_names", "action": "remove", "presence": "optional", "covers": ["supplier_names"] },
+        { "path": "input.prices", "action": "remove", "presence": "optional", "covers": ["prices"] },
+        { "path": "input.bank_data", "action": "block_request", "presence": "optional", "covers": ["bank_data"] },
+        { "path": "input.bank_account", "action": "block_request", "presence": "optional", "covers": ["bank_data"] },
+        { "path": "input.broker_pii", "action": "remove", "presence": "optional", "covers": ["broker_pii"] },
+        { "path": "input.contact_email", "action": "hash_identifier", "presence": "optional" },
+        { "path": "input.contact_phone", "action": "remove", "presence": "optional" },
+        { "path": "input.personal_name", "action": "replace_with_marker", "presence": "optional" },
+        { "path": "input.postal_address", "action": "replace_with_marker", "presence": "optional" },
+        { "path": "input.tax_identifier", "action": "hash_identifier", "presence": "optional" },
+        { "path": "input.reviewer_identity", "action": "remove", "presence": "optional" },
+        { "path": "input.credential_material", "action": "block_request", "presence": "optional" },
+        { "path": "input.raw_document_text", "action": "block_request", "presence": "optional" },
+        { "path": "input.source_reference", "action": "tokenize_reference", "presence": "optional" }
+      ],
+      "decision": "require_redaction",
+      "priority": 100,
+      "reason_code": "REDACTION_REQUIRED",
+      "human_review_required": false
+    },
+    {
+      "policy_id": "privacy.evidence-extraction.confidential.v1",
+      "schema_version": "1.0.0",
+      "capability_ids": ["evidence.extraction.normative_claims"],
+      "classifications": ["confidential"],
+      "allowed_execution_modes": ["replay", "live"],
+      "zdr_requirement": "not_required",
+      "retention_requirement": {
+        "allowed_retention_behaviors": [
+          "none",
+          "ephemeral_memory",
+          "bounded_local_fixture",
+          "provider_declared_bounded"
+        ]
+      },
+      "redaction_rules": [
+        { "path": "input.packet_id", "action": "preserve", "presence": "required" },
+        { "path": "input.supplier_names", "action": "remove", "presence": "optional", "covers": ["supplier_names"] },
+        { "path": "input.prices", "action": "remove", "presence": "optional", "covers": ["prices"] },
+        { "path": "input.bank_data", "action": "block_request", "presence": "optional", "covers": ["bank_data"] },
+        { "path": "input.bank_account", "action": "block_request", "presence": "optional", "covers": ["bank_data"] },
+        { "path": "input.broker_pii", "action": "remove", "presence": "optional", "covers": ["broker_pii"] },
+        { "path": "input.contact_email", "action": "hash_identifier", "presence": "optional" },
+        { "path": "input.contact_phone", "action": "remove", "presence": "optional" },
+        { "path": "input.personal_name", "action": "replace_with_marker", "presence": "optional" },
+        { "path": "input.postal_address", "action": "replace_with_marker", "presence": "optional" },
+        { "path": "input.tax_identifier", "action": "hash_identifier", "presence": "optional" },
+        { "path": "input.reviewer_identity", "action": "remove", "presence": "optional" },
+        { "path": "input.credential_material", "action": "block_request", "presence": "optional" },
+        { "path": "input.raw_document_text", "action": "block_request", "presence": "optional" },
+        { "path": "input.source_reference", "action": "tokenize_reference", "presence": "optional" }
+      ],
+      "decision": "require_redaction",
+      "priority": 100,
+      "reason_code": "REDACTION_REQUIRED",
+      "human_review_required": true
+    },
+    {
+      "policy_id": "privacy.evidence-extraction.regulated.v1",
+      "schema_version": "1.0.0",
+      "capability_ids": ["evidence.extraction.normative_claims"],
+      "classifications": ["regulated"],
+      "allowed_execution_modes": ["replay", "live"],
+      "zdr_requirement": "required_for_external",
+      "retention_requirement": {
+        "allowed_retention_behaviors": ["none", "ephemeral_memory", "bounded_local_fixture"]
+      },
+      "redaction_rules": [
+        { "path": "input.packet_id", "action": "preserve", "presence": "required" },
+        { "path": "input.supplier_names", "action": "remove", "presence": "optional", "covers": ["supplier_names"] },
+        { "path": "input.prices", "action": "remove", "presence": "optional", "covers": ["prices"] },
+        { "path": "input.bank_data", "action": "block_request", "presence": "optional", "covers": ["bank_data"] },
+        { "path": "input.bank_account", "action": "block_request", "presence": "optional", "covers": ["bank_data"] },
+        { "path": "input.broker_pii", "action": "remove", "presence": "optional", "covers": ["broker_pii"] },
+        { "path": "input.contact_email", "action": "hash_identifier", "presence": "optional" },
+        { "path": "input.contact_phone", "action": "remove", "presence": "optional" },
+        { "path": "input.personal_name", "action": "replace_with_marker", "presence": "optional" },
+        { "path": "input.postal_address", "action": "replace_with_marker", "presence": "optional" },
+        { "path": "input.tax_identifier", "action": "hash_identifier", "presence": "optional" },
+        { "path": "input.reviewer_identity", "action": "remove", "presence": "optional" },
+        { "path": "input.credential_material", "action": "block_request", "presence": "optional" },
+        { "path": "input.raw_document_text", "action": "block_request", "presence": "optional" },
+        { "path": "input.source_reference", "action": "tokenize_reference", "presence": "optional" }
+      ],
+      "decision": "require_verified_zdr",
+      "priority": 100,
+      "reason_code": "ZDR_REQUIRED",
+      "human_review_required": true
+    },
+    {
+      "policy_id": "privacy.evidence-extraction.restricted.v1",
+      "schema_version": "1.0.0",
+      "capability_ids": ["evidence.extraction.normative_claims"],
+      "classifications": ["restricted"],
+      "allowed_execution_modes": ["replay"],
+      "zdr_requirement": "required_for_external",
+      "retention_requirement": {
+        "allowed_retention_behaviors": ["none", "ephemeral_memory"]
+      },
+      "redaction_rules": [
+        { "path": "input.packet_id", "action": "preserve", "presence": "required" },
+        { "path": "input.supplier_names", "action": "remove", "presence": "optional", "covers": ["supplier_names"] },
+        { "path": "input.prices", "action": "remove", "presence": "optional", "covers": ["prices"] },
+        { "path": "input.bank_data", "action": "block_request", "presence": "optional", "covers": ["bank_data"] },
+        { "path": "input.bank_account", "action": "block_request", "presence": "optional", "covers": ["bank_data"] },
+        { "path": "input.broker_pii", "action": "remove", "presence": "optional", "covers": ["broker_pii"] },
+        { "path": "input.contact_email", "action": "hash_identifier", "presence": "optional" },
+        { "path": "input.contact_phone", "action": "remove", "presence": "optional" },
+        { "path": "input.personal_name", "action": "replace_with_marker", "presence": "optional" },
+        { "path": "input.postal_address", "action": "replace_with_marker", "presence": "optional" },
+        { "path": "input.tax_identifier", "action": "hash_identifier", "presence": "optional" },
+        { "path": "input.reviewer_identity", "action": "remove", "presence": "optional" },
+        { "path": "input.credential_material", "action": "block_request", "presence": "optional" },
+        { "path": "input.raw_document_text", "action": "block_request", "presence": "optional" },
+        { "path": "input.source_reference", "action": "tokenize_reference", "presence": "optional" }
+      ],
+      "decision": "require_local_execution",
+      "priority": 100,
+      "reason_code": "EXTERNAL_PROCESSING_FORBIDDEN",
+      "human_review_required": true
+    }
+  ]
+}

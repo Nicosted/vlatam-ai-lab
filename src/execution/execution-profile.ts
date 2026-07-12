@@ -1,4 +1,6 @@
 import type { CapabilityId } from '../capabilities/index.js';
+import { validatePrivacyProfileDeclaration } from '../privacy/privacy-policy.js';
+import type { PrivacyProfileDeclaration } from '../privacy/privacy-policy.js';
 
 export type ExecutionProfileId = string & { readonly __executionProfileId: unique symbol };
 export type ProviderId = string & { readonly __providerId: unique symbol };
@@ -30,11 +32,18 @@ export interface ExecutionProfile {
   readonly contract_version: string;
   readonly configuration: ProfileConfiguration;
   readonly provider_configuration_ref?: string;
+  /** AI-72 legacy eligibility block. Superseded for privacy purposes
+   * by the AI-73 `privacy` declaration below; retained unchanged so
+   * AI-72 consumers keep working. */
   readonly eligibility: ProfileEligibility;
+  /** AI-73 privacy declaration. A declaration is never proof: the
+   * privacy enforcer independently validates it and, for verified
+   * ZDR, requires matching repository evidence. */
+  readonly privacy: PrivacyProfileDeclaration;
   readonly fixture_id?: string;
 }
 
-export const EXECUTION_PROFILE_CONTRACT_VERSION = '1.0.0';
+export const EXECUTION_PROFILE_CONTRACT_VERSION = '1.1.0';
 export const SUPPORTED_EXECUTION_PROFILE_MAJOR = 1;
 
 export function validateExecutionProfile(profile: ExecutionProfile): readonly string[] {
@@ -46,6 +55,11 @@ export function validateExecutionProfile(profile: ExecutionProfile): readonly st
   const major = Number(profile.contract_version.split('.')[0]);
   if (major !== SUPPORTED_EXECUTION_PROFILE_MAJOR) errors.push('unsupported profile contract version');
   if (profile.lifecycle_status === 'shadow' && profile.enabled) errors.push('shadow execution is not supported by AI-72');
+  if (profile.privacy === undefined) {
+    errors.push('privacy declaration is required');
+  } else {
+    errors.push(...validatePrivacyProfileDeclaration(profile.privacy, profile.mode));
+  }
   return errors;
 }
 

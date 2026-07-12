@@ -109,13 +109,18 @@ export type CapabilityResultStatus = (typeof CAPABILITY_RESULT_STATUSES)[number]
 
 /**
  * Allowed values for the `data_classification` field of
- * `CapabilityContext`. The taxonomy is intentionally coarse: it is
- * declaration, not enforcement. Operational enforcement belongs to
- * AI-73.
+ * `CapabilityContext`. AI-71 shipped the four-value set
+ * (`public`, `internal`, `regulated`, `restricted`); AI-73 added
+ * `confidential` between `internal` and `regulated` as an additive
+ * (MINOR) contract change — existing values keep their exact
+ * semantics. Operational enforcement lives in `src/privacy/`
+ * (AI-73): gateway-mediated execution now requires an explicit
+ * classification and fails closed on missing or unknown values.
  */
 export const DATA_CLASSIFICATIONS = [
   'public',
   'internal',
+  'confidential',
   'regulated',
   'restricted',
 ] as const;

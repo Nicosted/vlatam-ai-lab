@@ -3,9 +3,10 @@ import { describe, it } from 'node:test';
 import type { ExecutionProfile } from '../../src/execution/execution-profile.js';
 import { createDashScopeAdapter, createDeepSeekAdapter } from '../../src/providers/openai-compatible-adapter.js';
 import type { ProviderExecutionRequest } from '../../src/providers/provider-adapter.js';
+import { LIVE_UNKNOWN_PRIVACY } from '../helpers/privacy.js';
 
 const request: ProviderExecutionRequest = { request_id: 'r', structured_output: true, messages: [{ role: 'user', content: 'safe fixture' }] };
-const profile = (provider: string): ExecutionProfile => ({ profile_id: 'test.live' as never, capability_id: 'evidence.extraction.normative_claims' as never, provider_id: provider as never, model_id: 'test-model' as never, mode: 'live', lifecycle_status: 'candidate', enabled: true, contract_version: '1.0.0', configuration: { timeout_ms: 1000, response_format: 'json' }, eligibility: { privacy_compatibility: 'declared_not_enforced', budget_class: 'development', evaluation_status: 'not_evaluated' } });
+const profile = (provider: string): ExecutionProfile => ({ profile_id: 'test.live' as never, capability_id: 'evidence.extraction.normative_claims' as never, provider_id: provider as never, model_id: 'test-model' as never, mode: 'live', lifecycle_status: 'candidate', enabled: true, contract_version: '1.0.0', configuration: { timeout_ms: 1000, response_format: 'json' }, eligibility: { privacy_compatibility: 'declared_not_enforced', budget_class: 'development', evaluation_status: 'not_evaluated' }, privacy: LIVE_UNKNOWN_PRIVACY });
 const context = { execution_id: 'e', signal: new AbortController().signal, timeout_ms: 1000 };
 
 describe('AI-72 live adapters', () => {

@@ -1,0 +1,13 @@
+{
+  "privacy_decision_id": "pdec-0123456789abcdef01234567",
+  "schema_version": "1.0.0",
+  "request_id": "request-audit-001",
+  "capability_id": "evidence.extraction.normative_claims",
+  "decision": "allowed",
+  "reason_code": "PRIVACY_CLEARED",
+  "required_actions": ["retention_validated"],
+  "redaction": [],
+  "redaction_counts": { "removed": 0, "replaced": 0, "hashed": 0, "tokenized": 0, "preserved": 0 },
+  "decided_at": "2026-01-01T00:00:00.000Z",
+  "input": { "packet_id": "leaked-payload" }
+}

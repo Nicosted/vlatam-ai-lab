@@ -1,0 +1,28 @@
+{
+  "schema_version": "1.1.0",
+  "profiles": [
+    {
+      "profile_id": "test.live-unknown-retention.v1",
+      "capability_id": "evidence.extraction.normative_claims",
+      "provider_id": "deepseek-openai-compatible",
+      "model_id": "deepseek-chat",
+      "mode": "live",
+      "lifecycle_status": "candidate",
+      "enabled": false,
+      "contract_version": "1.1.0",
+      "configuration": { "timeout_ms": 30000, "response_format": "json" },
+      "eligibility": { "privacy_compatibility": "declared_not_enforced", "budget_class": "unclassified", "evaluation_status": "not_evaluated" },
+      "privacy": {
+        "max_data_classification": "public",
+        "external_processing": "allowed",
+        "zdr_support": "unknown",
+        "retention_behavior": "indefinite_vendor_side",
+        "training_use": "unknown",
+        "processing_region": "unknown",
+        "pre_execution_redaction_required": true,
+        "regulated_data_permitted": false,
+        "restricted_data_permitted": false
+      }
+    }
+  ]
+}

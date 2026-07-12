@@ -1,0 +1,142 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/ai-privacy-policies.schema.json",
+  "title": "AI-73 privacy policy catalog",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "policies"],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "description": { "type": "string" },
+    "policies": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/policy" }
+    }
+  },
+  "$defs": {
+    "classification": {
+      "enum": ["public", "internal", "confidential", "regulated", "restricted"]
+    },
+    "retention_behavior": {
+      "enum": [
+        "none",
+        "ephemeral_memory",
+        "bounded_local_fixture",
+        "provider_declared_bounded",
+        "provider_unknown",
+        "forbidden"
+      ]
+    },
+    "redaction_rule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "action", "presence"],
+      "properties": {
+        "path": {
+          "type": "string",
+          "pattern": "^input(\\.[a-zA-Z_][a-zA-Z0-9_]*(\\[\\])?)+$"
+        },
+        "action": {
+          "enum": [
+            "remove",
+            "replace_with_marker",
+            "hash_identifier",
+            "tokenize_reference",
+            "preserve",
+            "block_request"
+          ]
+        },
+        "presence": { "enum": ["required", "optional"] },
+        "covers": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+      }
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "policy_id",
+        "schema_version",
+        "capability_ids",
+        "classifications",
+        "allowed_execution_modes",
+        "zdr_requirement",
+        "retention_requirement",
+        "redaction_rules",
+        "decision",
+        "priority",
+        "reason_code",
+        "human_review_required"
+      ],
+      "properties": {
+        "policy_id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]+$" },
+        "schema_version": { "type": "string", "pattern": "^1\\.\\d+\\.\\d+$" },
+        "capability_ids": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$" }
+        },
+        "classifications": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/classification" }
+        },
+        "allowed_execution_modes": {
+          "type": "array",
+          "items": { "enum": ["replay", "live"] }
+        },
+        "zdr_requirement": { "enum": ["not_required", "required_for_external", "required"] },
+        "retention_requirement": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["allowed_retention_behaviors"],
+          "properties": {
+            "allowed_retention_behaviors": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/retention_behavior" }
+            }
+          }
+        },
+        "redaction_rules": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/redaction_rule" }
+        },
+        "decision": {
+          "enum": [
+            "allow",
+            "block",
+            "require_redaction",
+            "require_local_execution",
+            "require_verified_zdr",
+            "require_human_review"
+          ]
+        },
+        "priority": { "type": "integer" },
+        "reason_code": {
+          "enum": [
+            "PRIVACY_CLEARED",
+            "DATA_CLASSIFICATION_REQUIRED",
+            "UNKNOWN_DATA_CLASSIFICATION",
+            "PRIVACY_POLICY_MISSING",
+            "PRIVACY_POLICY_AMBIGUOUS",
+            "PROFILE_PRIVACY_DECLARATION_MISSING",
+            "PROFILE_PRIVACY_INCOMPATIBLE",
+            "ZDR_REQUIRED",
+            "ZDR_UNVERIFIED",
+            "ZDR_EVIDENCE_MISSING",
+            "ZDR_EVIDENCE_EXPIRED",
+            "ZDR_EVIDENCE_SCOPE_MISMATCH",
+            "REDACTION_REQUIRED",
+            "REDACTION_FAILED",
+            "REDACTION_PATH_UNKNOWN",
+            "RETENTION_POLICY_INCOMPATIBLE",
+            "EXTERNAL_PROCESSING_FORBIDDEN",
+            "REPLAY_FIXTURE_UNSAFE",
+            "PRIVACY_CONFIGURATION_INVALID"
+          ]
+        },
+        "human_review_required": { "type": "boolean" }
+      }
+    }
+  }
+}

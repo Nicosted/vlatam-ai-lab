@@ -1,0 +1,21 @@
+{
+  "schema_version": "1.0.0",
+  "evidence": [
+    {
+      "evidence_id": "zdr-evidence.test-unknown-status.v1",
+      "schema_version": "1.0.0",
+      "profile_ids": ["test.regulated.local.v1"],
+      "capability_ids": ["evidence.extraction.normative_claims"],
+      "classifications": ["regulated"],
+      "regions": ["local"],
+      "retention_behaviors": ["none"],
+      "training_use": "contractually_prohibited_verified",
+      "verification_source_type": "test_fixture",
+      "status": "vendor_marketing_claim",
+      "verified_at": "2026-01-01T00:00:00.000Z",
+      "expires_at": "2027-01-01T00:00:00.000Z",
+      "evidence_hash": "7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c",
+      "human_review_status": "reviewed_approved"
+    }
+  ]
+}
