@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.0.0",
+  "schema_version": "2.0.0",
   "selected_profile_id": "normative-claims.minimax-direct.m2.7.v1",
   "provider_id": "minimax-direct",
   "model_id": "MiniMax-M2.7",
@@ -10,13 +10,16 @@
   "live_execution": {
     "authorized": false,
     "request_count": 0,
-    "actual_cost_minor": "0",
+    "actual_exact_cost": { "numerator": "0", "denominator": "1" },
+    "accounting_scale": "1000000",
+    "actual_accounting_units": "0",
+    "rounding_policy": "CEILING",
     "currency": "USD"
   },
   "campaign_limits": {
     "max_requests": 10,
     "max_concurrency": 2,
-    "max_reserved_cost_minor": "100"
+    "max_reserved_accounting_units": "1000000"
   },
   "pre_transport_failures": [
     "candidate_disabled",

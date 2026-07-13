@@ -1,0 +1,32 @@
+{
+  "schema_version": "2.0.0",
+  "prices": [
+    {
+      "pricing_id": "invalid.missing-evidence-hash.v2",
+      "schema_version": "2.0.0",
+      "pricing_contract_version": "1.0.0",
+      "provider_id": "replay",
+      "model_id": "*",
+      "currency": "USD",
+      "rates": [
+        {
+          "contract_version": "1.0.0",
+          "amount": { "numerator": "1", "denominator": "1" },
+          "currency": "USD",
+          "billing_unit": "token",
+          "usage_category": "input"
+        }
+      ],
+      "effective_from": "1970-01-01T00:00:00.000Z",
+      "permitted_execution_modes": ["replay"],
+      "evidence": {
+        "evidence_id": "repo:test-invalid",
+        "evidence_version": "1.0.0",
+        "reviewed_at": "2026-07-13",
+        "expires_at": "2099-01-01T00:00:00.000Z",
+        "status": "fixture"
+      }
+    }
+  ],
+  "legacy_prices": []
+}

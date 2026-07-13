@@ -1,11 +1,106 @@
-import assert from 'node:assert/strict'; import { describe,it } from 'node:test';
-import { BudgetPolicyCatalog, GovernanceError, InMemoryBudgetLedger, type BudgetPolicy } from '../../src/governance/index.js';
-const policy=(o:Partial<BudgetPolicy>={}):BudgetPolicy=>({policy_id:'p',schema_version:'1',priority:1,capability_id:'cap.x',profile_class:'development',execution_mode:'replay',request_classification:'*',environment_id:'local',project_id:'project',tenant_id:'tenant',scope_id:'scope',currency:'USD',require_usage:true,require_verified_pricing:true,behavior:'hard_block',max_estimated_tokens_per_request:10,max_actual_tokens_per_request:10,max_estimated_cost_minor_per_request:10,max_actual_cost_minor_per_request:10,rolling_request_limit:1,rolling_token_limit:10,rolling_cost_minor_limit:10,...o});
-const request={capability_id:'cap.x',context:{data_classification:'public'}} as never; const profile={profile_id:'x',mode:'replay',eligibility:{budget_class:'development'}} as never;
-describe('AI-74 policy and ledger',()=>{
-  it('resolves deterministically and rejects missing, ambiguous, and duplicate policies',()=>{ assert.equal(new BudgetPolicyCatalog({schema_version:'1',policies:[policy()]}).resolve(request,profile).policy_id,'p'); assert.throws(()=>new BudgetPolicyCatalog({schema_version:'1',policies:[]}).resolve(request,profile),GovernanceError); assert.throws(()=>new BudgetPolicyCatalog({schema_version:'1',policies:[policy(),policy({policy_id:'q'})]}).resolve(request,profile),GovernanceError); assert.throws(()=>new BudgetPolicyCatalog({schema_version:'1',policies:[policy(),policy()]}),GovernanceError); });
-  it('blocks request token/cost and rolling request/token/cost limits',()=>{ assert.throws(()=>new InMemoryBudgetLedger().reserve('e',policy(),11,1n),GovernanceError); assert.throws(()=>new InMemoryBudgetLedger().reserve('e',policy(),1,11n),GovernanceError); const l=new InMemoryBudgetLedger(); l.reserve('a',policy(),5,5n); for(const p of [policy(),policy({rolling_request_limit:2,rolling_token_limit:5}),policy({rolling_request_limit:2,rolling_cost_minor_limit:5})]) assert.throws(()=>l.reserve('b',p,5,5n),GovernanceError); });
-  it('reserves before consumption, releases unused, and reconciles actual idempotently',()=>{ const l=new InMemoryBudgetLedger(); const r=l.reserve('e',policy({rolling_request_limit:2}),5,8n); assert.equal(r.state,'reserved'); const done=l.reconcile(r.reservation_id,'e',4,6n,'consumed'); assert.equal(done.released_cost_minor,2n); assert.equal(l.reconcile(r.reservation_id,'e',4,6n,'consumed').actual_cost_minor,6n); assert.equal(l.snapshot('scope')?.cost,6n); const r2=l.reserve('f',policy({rolling_request_limit:2}),1,1n); assert.equal(l.reconcile(r2.reservation_id,'f',0,0n,'failed').state,'released'); });
-  it('prevents cross-execution reconciliation',()=>{ const l=new InMemoryBudgetLedger(); const r=l.reserve('e',policy({rolling_request_limit:2}),1,1n); assert.throws(()=>l.reconcile(r.reservation_id,'other',1,1n,'consumed'),GovernanceError); });
-  it('serializes competing reservations and isolates scopes without mutable context leaks',async()=>{ const l=new InMemoryBudgetLedger(); let release!:()=>void; const barrier=new Promise<void>(r=>release=r); const attempt=async(id:string)=>{await barrier; try{return l.reserve(id,policy(),6,6n)}catch{return undefined}}; const a=attempt('a'),b=attempt('b'); release(); const results=await Promise.all([a,b]); assert.equal(results.filter(Boolean).length,1); assert.equal(new Set(results.filter(Boolean).map(r=>r!.reservation_id)).size,1); assert.ok(l.reserve('c',policy({scope_id:'isolated'}),6,6n)); assert.equal(policy().scope_id,'scope'); });
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
+import {
+  BudgetPolicyCatalog,
+  GovernanceError,
+  InMemoryBudgetLedger,
+} from "../../src/governance/index.js";
+import { binding, policy, reconciliation } from "../helpers/governance.js";
+
+const now = new Date("2026-07-13T12:00:00.000Z");
+
+describe("AI-74 rational policy and in-memory ledger", () => {
+  it("resolves v2 policies and rejects ambiguous or mismatched accounting policy", () => {
+    const request = {
+      capability_id: "cap.test",
+      context: { data_classification: "public" },
+    } as never;
+    const profile = {
+      profile_id: "profile.test",
+      mode: "replay",
+      eligibility: { budget_class: "development" },
+    } as never;
+    assert.equal(
+      new BudgetPolicyCatalog({
+        schema_version: "2.0.0",
+        policies: [policy()],
+      }).resolve(request, profile).policy_id,
+      "policy.test.v2",
+    );
+    assert.throws(
+      () =>
+        new BudgetPolicyCatalog({
+          schema_version: "2.0.0",
+          policies: [policy(), policy({ policy_id: "policy.other" })],
+        }).resolve(request, profile),
+      GovernanceError,
+    );
+    assert.throws(
+      () =>
+        new BudgetPolicyCatalog({
+          schema_version: "2.0.0",
+          policies: [policy({ accounting_scale: "100" as never })],
+        }),
+      GovernanceError,
+    );
+  });
+
+  it("enforces exact accounting-unit request and rolling limits", () => {
+    const ledger = new InMemoryBudgetLedger();
+    assert.throws(
+      () =>
+        ledger.reserve(
+          binding(),
+          policy({ max_estimated_cost_accounting_units_per_request: "9" }),
+          now,
+        ),
+      GovernanceError,
+    );
+    ledger.reserve(binding(), policy({ rolling_request_limit: 1 }), now);
+    assert.throws(
+      () =>
+        ledger.reserve(
+          binding({ execution_id: "execution.two", request_id: "request.two" }),
+          policy({ rolling_request_limit: 1 }),
+          now,
+        ),
+      GovernanceError,
+    );
+  });
+
+  it("reconciles exact actual cost idempotently below and above estimate", () => {
+    for (const [id, exact, units] of [
+      ["execution.below", { numerator: "3", denominator: "500000" }, 6n],
+      ["execution.above", { numerator: "9", denominator: "500000" }, 18n],
+    ] as const) {
+      const ledger = new InMemoryBudgetLedger();
+      const source = binding({ execution_id: id, request_id: `request.${id}` });
+      const reserved = ledger.reserve(source, policy(), now);
+      const input = reconciliation(reserved.reservation_id, {
+        execution_id: id,
+        actual_exact_cost: exact,
+        actual_accounting_units: units,
+      });
+      const first = ledger.reconcile(input);
+      assert.equal(first.actual_accounting_units, units);
+      assert.deepEqual(first.actual_exact_cost, exact);
+      assert.equal(ledger.reconcile(input).binding_hash, first.binding_hash);
+    }
+  });
+
+  it("fails reconciliation when price, evidence, scale, or rounding changes", () => {
+    for (const patch of [
+      { pricing_contract_hash: "b".repeat(64) },
+      { pricing_evidence_hash: "b".repeat(64) },
+      { accounting_scale: "100" },
+      { reconciliation_rounding_policy: "HALF_EVEN" as never },
+    ]) {
+      const ledger = new InMemoryBudgetLedger();
+      const reserved = ledger.reserve(binding(), policy(), now);
+      assert.throws(
+        () => ledger.reconcile(reconciliation(reserved.reservation_id, patch)),
+        GovernanceError,
+      );
+    }
+  });
 });

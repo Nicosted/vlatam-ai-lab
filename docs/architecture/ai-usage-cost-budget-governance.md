@@ -1,38 +1,41 @@
 # AI-74 — Usage, Cost, and Budget Governance
 
-## Pre-change findings and scope
+## Scope and execution boundary
 
-`ProviderUsage` exposed optional input, output, and total tokens. The OpenAI-compatible adapters mapped prompt/completion/total fields but exposed no cached or reasoning tokens; replay fixtures contained optional counts without an explicit usage origin. Missing values were unreliable and no repository pricing catalog, exact calculator, reservation ledger, or gateway budget gate existed.
+AI-74 governs every remaining provider execution path through `MultiProviderGateway`. The pre-AI-72 direct paths were retired on 2026-07-13. Pricing, budget, and ledger changes remain internal governance contracts: they do not change reviewed/approved artifact exports, customer billing, balances, invoices, payments, or `vlatam-global`.
 
-AI-74 governs only `MultiProviderGateway`. Legacy `src/ai/ai-gateway.ts`, extraction scripts, embedding scripts, and worker rate limiting remain outside enforcement; the legacy gateway also retains its own floating-point cost/cache/fallback metadata. This is not repository-wide governance coverage.
+## Exact pricing contract
 
-> **Update (2026-07-13, governed-execution-boundary PR):** the legacy paths
-> named above were retired and removed. Every remaining provider execution
-> path runs through `MultiProviderGateway`, so AI-74 budget governance now
-> covers all provider execution in the repository.
+Pricing catalog `2.0.0` contains closed price contracts `1.0.0`. A monetary amount is the reduced unsigned rational `numerator / denominator`; both components are canonical base-10 strings and are parsed into `bigint`. Denominators are positive. Signs, whitespace, decimals, exponents, leading zeroes, unknown fields, and unreduced fractions fail closed. Canonical JSON and domain-separated SHA-256 bind object-order-independent evidence.
 
-## Contracts and arithmetic
+Each rate explicitly binds currency, billing unit, and one usage category. The closed categories are `input`, `output`, `cache_read`, `cache_write`, `reasoning`, and `request`; the closed units are `token`, `million_tokens`, and `request`. Only `USD` is currently accepted. Request prices require `request`; token categories require `token` or `million_tokens`. No unknown unit or currency is inferred or converted.
 
-Normalized usage records input, output, total, cached-input and reasoning tokens, request count, duration, source, status, and confidence. Unknown usage remains unavailable. Replay declares fixture origin as synthetic or sanitized-recorded. Pre-execution estimation is deterministic: UTF-8 serialized privacy-cleared request bytes are divided by four with ceiling, then the profile output bound (or the documented 2,048-token compatibility default) is added. Estimation inputs never enter audits.
+Category absence is different from zero. Absence means unsupported or not priced; an explicitly free category is `0/1`. Unknown provider-reported usage remains unknown, while synthetic and sanitized replay fixtures may explicitly declare zero. Input, output, cache read, cache write, reasoning, and request charges remain separate. Runtime validation recomputes the exact total from every present charge and rejects incompatible units, mixed currencies, stale evidence, noncanonical rationals, or an inconsistent total.
 
-`config/ai-pricing.json` is repository-owned. Monetary values are integer minor units with an integer token denominator. Calculations use `bigint` multiplication and deterministic ceiling division; estimated and actual costs remain separate. Missing, ambiguous, expired, incompatible, or insufficiently evidenced pricing fails closed. Live prices are explicitly unknown; test wildcard entries are fixtures, not provider claims.
+Current deterministic replay fixtures were migrated from unambiguous test-owned historical values. Existing provider entries without reviewed rational evidence remain under `legacy_prices` and return `pricing_contract_migration_required`; no decimal precision is inferred and there is no override bypass.
 
-## Policy, durable reservation, and concurrency
+## Exact arithmetic and accounting conversion
 
-`config/ai-budget-policies.json` matches capability, explicit profile or profile class, mode, classification, and opaque environment/project/tenant/scope placeholders with deterministic priority. Missing and tied matches fail closed. Limits cover per-request and rolling requests, tokens, and cost.
+All monetary parsing, reduction, addition, multiplication, comparison, aggregation, and usage multiplication use bounded `bigint` arithmetic. No JavaScript floating point participates in monetary calculations. Exact computed and reconciled costs remain rationals.
 
-The governed default is `SqliteBudgetLedger`, stored at the repository-local `.local/ai-budget-usage-ledger.sqlite` path. The in-memory implementation remains only as an explicitly injected test adapter. SQLite uses WAL, a bounded busy timeout, `BEGIN IMMEDIATE`, schema version `1`, deterministic DDL validation, integrity checks, and primary-key uniqueness on `execution_id`. Reservations and reconciliations survive restart and coordinate independent local processes sharing the database. Store unavailability, locking, corruption, malformed rows, schema mismatch, DDL mismatch, duplicate execution, and binding conflict all fail closed.
+The ledger accounting scale is `1000000` units per USD (micro-USD). The current catalog's migrated rates are whole USD-per-million values and are exactly representable at this scale. More importantly, the reviewed MiniMax cache-write evidence of USD `3/8` per million tokens becomes exactly `375000` accounting units, and a representative OpenRouter rate of USD `3/20000000` per token conservatively becomes one accounting unit for one token. A smaller cent or milli-USD scale cannot conservatively reserve representative sub-cent per-token usage with useful granularity. Exact rational values are preserved separately even when the accounting conversion ceilings.
 
-Each reservation binds execution/request/capability, exact profile ID/version, exact budget-policy ID/version, pricing ID and evidence ID/hash, scope, currency, estimated input/output tokens, estimated and reserved minor-unit cost, and store schema version. A versioned-domain SHA-256 hash makes any change fail closed. Rolling windows are explicit policy metadata (`rolling_window_seconds`); abandoned reservations expire after `reservation_ttl_seconds`. Scope and currency are isolated in every rolling aggregate.
+Reservation and actual reconciliation use `CEILING` at the same declared scale, so neither can round down. Display-only formatting may use `HALF_EVEN`; display values never affect reservation, enforcement, binding, or reconciliation. Scale and all rounding policies are versioned in the budget policy and bound into ledger operations.
 
-## Gateway order and audits
+## Durable reservation and reconciliation
 
-The order is validation, pre-abort rejection, capability/profile validation, privacy enforcement, budget policy, usage estimate, pricing/cost, durable reservation, request mapping, timeout, exactly one adapter, actual usage/cost, reconciliation, output validation, and correlated audits. Budget-store failures happen before mapping, adapter lookup, timeout creation, provider request construction, or execution. Privacy blocks create no reservation. No routing, ranking, retry, fallback, shadow execution, or alternate profile selection was added.
+`SqliteBudgetLedger` schema `2` retains repository-local persistence, WAL, bounded busy timeout, `BEGIN IMMEDIATE`, cross-process exclusion, integrity checks, exact column/schema validation, deterministic DDL hashing, restart behavior, rolling windows, and controlled errors. It persists metadata only.
 
-Usage and budget audits contain IDs, normalized counts, integer monetary strings, state, safe reason codes, and timestamps only. They exclude payloads, prompts, excerpts, PII, credentials, raw responses, reviewer identity, and legal text.
+Each reservation binds execution, request, capability, profile ID/version, policy ID/version, scope, currency, pricing ID, price-contract version and canonical hash, pricing evidence identity/hash/version/review and expiry dates, accounting scale, reservation and reconciliation rounding, estimated exact rational cost, and integer accounting units. Actual reconciliation binds the same price identity, evidence hash, scale, and rounding policy, records exact actual cost, and is idempotent. Any changed price, evidence, profile, policy, scope, currency, scale, or rounding policy fails closed.
 
-## Replay and live limitations
+Schema `1`, altered DDL, incompatible rows, and partial legacy stores are not migrated or repaired automatically. Validation occurs before database creation when possible, and incompatible stores fail closed without weakening PR #94 atomicity or duplicate prevention.
 
-Replay is budget-governed and is not zero-cost by default; fixture usage/pricing must be labeled. Unknown fixture usage can be blocked by certainty-requiring policies. DeepSeek and DashScope remain disabled, their pricing evidence remains unknown, and AI-74 makes no live call or production activation.
+## Gateway order and audit safety
 
-The store is local SQLite coordination, not distributed or multi-region consensus. Historical in-memory reservations are not migrated or assumed consumed; after upgrade, only durable records participate in rolling limits. Production billing, balances, invoices, payments, managed storage, approved-artifact changes, and export-contract changes remain out of scope.
+The order is validation, pre-abort rejection, capability/profile validation, privacy enforcement, policy resolution, usage estimation, exact pricing/cost, durable reservation, request mapping, timeout, exactly one adapter, actual usage/cost, reconciliation, output validation, and correlated audits. Store failure occurs before adapter lookup, timeout, transport, or provider work.
+
+Audits contain identifiers, normalized usage, exact rational costs, accounting-unit strings, safe state/reason codes, and timestamps only. They exclude payloads, prompts, excerpts, personal data, credentials, raw responses, reviewer identity, and legal text. Provider-reported and estimated usage remain distinct, and actual-over-estimate is recorded exactly.
+
+## Limitations
+
+The ledger is local SQLite coordination, not distributed consensus. Currency conversion is unsupported. OpenRouter and MiniMax remain disabled and runtime-blocked; no adapter, execution profile, provider selection, live benchmark, or external request is introduced here.

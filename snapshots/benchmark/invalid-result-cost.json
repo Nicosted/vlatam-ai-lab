@@ -1,1 +1,7 @@
-{"exact_cost":{"amount_minor":"1.5","currency":"USD"}}
+{
+  "exact_cost": {
+    "cost_contract_version": "1.0.0",
+    "amount": { "numerator": "1.5", "denominator": "1" },
+    "currency": "USD"
+  }
+}

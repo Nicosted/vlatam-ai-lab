@@ -35,14 +35,23 @@
         "budget_policy_id",
         "budget_policy_version",
         "pricing_id",
+        "pricing_contract_version",
+        "pricing_contract_hash",
         "pricing_evidence_id",
         "pricing_evidence_hash",
+        "pricing_evidence_version",
+        "pricing_evidence_reviewed_at",
+        "pricing_evidence_expires_at",
         "scope_id",
         "currency",
+        "accounting_scale",
+        "reservation_rounding_policy",
+        "reconciliation_rounding_policy",
         "estimated_input_tokens",
         "estimated_output_tokens",
-        "estimated_cost_minor",
-        "reserved_cost_minor",
+        "estimated_exact_cost",
+        "estimated_accounting_units",
+        "reserved_accounting_units",
         "actual_usage_state",
         "reservation_status",
         "reconciliation_status",
@@ -53,7 +62,7 @@
         "state",
         "policy_id",
         "reserved_tokens",
-        "released_cost_minor"
+        "released_accounting_units"
       ],
       "properties": {
         "execution_id": { "$ref": "#/$defs/id" },
@@ -65,22 +74,35 @@
         "budget_policy_id": { "$ref": "#/$defs/id" },
         "budget_policy_version": { "$ref": "#/$defs/version" },
         "pricing_id": { "$ref": "#/$defs/id" },
+        "pricing_contract_version": { "$ref": "#/$defs/version" },
+        "pricing_contract_hash": { "$ref": "#/$defs/hash" },
         "pricing_evidence_id": {
           "type": "string",
           "minLength": 1,
           "maxLength": 256
         },
         "pricing_evidence_hash": { "$ref": "#/$defs/hash" },
+        "pricing_evidence_version": { "$ref": "#/$defs/version" },
+        "pricing_evidence_reviewed_at": { "type": "string", "format": "date" },
+        "pricing_evidence_expires_at": {
+          "type": "string",
+          "format": "date-time"
+        },
         "scope_id": { "$ref": "#/$defs/id" },
-        "currency": { "type": "string", "pattern": "^[A-Z]{3}$" },
+        "currency": { "const": "USD" },
+        "accounting_scale": { "const": "1000000" },
+        "reservation_rounding_policy": { "const": "CEILING" },
+        "reconciliation_rounding_policy": { "const": "CEILING" },
         "estimated_input_tokens": { "$ref": "#/$defs/nonnegativeInteger" },
         "estimated_output_tokens": { "$ref": "#/$defs/nonnegativeInteger" },
-        "estimated_cost_minor": { "$ref": "#/$defs/minor" },
-        "reserved_cost_minor": { "$ref": "#/$defs/minor" },
+        "estimated_exact_cost": { "$ref": "#/$defs/rational" },
+        "estimated_accounting_units": { "$ref": "#/$defs/unsigned" },
+        "reserved_accounting_units": { "$ref": "#/$defs/unsigned" },
         "actual_usage_state": { "enum": ["unknown", "known", "unavailable"] },
         "actual_input_tokens": { "$ref": "#/$defs/nonnegativeInteger" },
         "actual_output_tokens": { "$ref": "#/$defs/nonnegativeInteger" },
-        "actual_cost_minor": { "$ref": "#/$defs/minor" },
+        "actual_exact_cost": { "$ref": "#/$defs/rational" },
+        "actual_accounting_units": { "$ref": "#/$defs/unsigned" },
         "reservation_status": {
           "enum": ["reserved", "released", "expired", "consumed"]
         },
@@ -91,18 +113,27 @@
         "expires_at": { "type": "string", "format": "date-time" },
         "reconciled_at": { "type": "string", "format": "date-time" },
         "released_at": { "type": "string", "format": "date-time" },
-        "schema_version": { "const": 1 },
+        "schema_version": { "const": 2 },
         "binding_hash": { "$ref": "#/$defs/hash" },
         "state": { "enum": ["reserved", "released", "expired", "consumed"] },
         "policy_id": { "$ref": "#/$defs/id" },
         "reserved_tokens": { "$ref": "#/$defs/nonnegativeInteger" },
-        "released_cost_minor": { "$ref": "#/$defs/minor" }
+        "released_accounting_units": { "$ref": "#/$defs/unsigned" }
       }
     },
     "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{0,127}$" },
-    "version": { "type": "string", "pattern": "^\\d+(?:\\.\\d+){0,2}$" },
+    "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
     "hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
-    "minor": { "type": "string", "pattern": "^(0|[1-9][0-9]*)$" },
+    "unsigned": { "type": "string", "pattern": "^(0|[1-9][0-9]*)$" },
+    "rational": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["numerator", "denominator"],
+      "properties": {
+        "numerator": { "$ref": "#/$defs/unsigned" },
+        "denominator": { "type": "string", "pattern": "^[1-9][0-9]*$" }
+      }
+    },
     "nonnegativeInteger": {
       "type": "integer",
       "minimum": 0,

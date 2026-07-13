@@ -231,10 +231,13 @@
       "contract_name": "ai_pricing",
       "schema_file": "schemas/ai-pricing.schema.json",
       "valid_fixture": "config/ai-pricing.json",
-      "invalid_fixtures": [],
+      "invalid_fixtures": [
+        "snapshots/governance/invalid-pricing-denominator-zero.json",
+        "snapshots/governance/invalid-pricing-missing-evidence-hash.json"
+      ],
       "test_file": "tests/governance/catalogs.test.ts",
       "status": "implemented",
-      "purpose": "Repository-owned fixed-point provider/model pricing evidence for AI-74.",
+      "purpose": "Repository-owned exact rational provider/model pricing evidence for AI-74.",
       "downstream_role": "Resolves execution cost metadata only; it is not customer billing.",
       "requires_human_review_semantics": false,
       "requires_traceability": true,

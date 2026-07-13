@@ -1,31 +1,299 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import assert from 'node:assert/strict';
-import { describe,it } from 'node:test';
-import { BenchmarkError, BenchmarkRunner, assertBenchmarkAuditMetadataOnly, benchmarkCampaignHash, rankProfiles, validateBenchmarkCampaign, type BenchmarkAuditEvent, type BenchmarkCampaignDefinition, type BenchmarkReplayRecord, type ProfileSummary, type RankingPolicy } from '../../src/benchmark/index.js';
-import { normalizeAndHash, normalizeObservedOutcome, type EvaluationSuite } from '../../src/evaluation/index.js';
-import type { ExecutionProfile } from '../../src/execution/execution-profile.js';
-import { LOCAL_REPLAY_PRIVACY } from '../helpers/privacy.js';
-import { MultiProviderGateway } from '../../src/execution/multi-provider-gateway.js';
-import { ProviderAdapterRegistry } from '../../src/providers/adapter-registry.js';
-import { ReplayProviderAdapter } from '../../src/providers/replay-adapter.js';
-import { BudgetEnforcer, InMemoryBudgetLedger } from '../../src/governance/index.js';
-const cases=[1,2].map(n=>({case_id:`case.${n}`,version:'1.0.0',input:{request_id:`request-${n}`,capability_id:'evidence.extraction.normative_claims',schema_version:'1.0.0',input:{packet_id:`packet-${n}`,evidence_refs:[{source_id:'s',snapshot_id:'x',section_label:'a',excerpt:'fixture'}]},context:{data_classification:'public'}},expected:{status:'succeeded' as const,output:{label:'ok'}},dimensions:[{dimension_id:'schema',type:'schema_validity' as const,weight_units:2,schema:{type:'object',required:['label']}},{dimension_id:'exact',type:'exact_value' as const,weight_units:3,path:'label',expected:'ok'},{dimension_id:'abstention',type:'correct_abstention' as const,weight_units:1,expected:false}]}));
-const suite:EvaluationSuite={suite_id:'suite.benchmark',version:'1.0.0',contract_version:'1.0.0',evaluator:{evaluator_id:'evaluation.deterministic',evaluator_version:'1.0.0'},capability_profile:{capability_id:'evidence.extraction.normative_claims',capability_version:'1.0.0',profile_id:'placeholder.profile',profile_version:'1.0.0'},cases};
-const refs=[{profile_id:'profile.alpha',profile_version:'1.0.0'},{profile_id:'profile.beta',profile_version:'1.0.0'}];
-const campaign=(change:Partial<BenchmarkCampaignDefinition>={}):BenchmarkCampaignDefinition=>({schema_version:'1.0.0',campaign_id:'campaign.synthetic',campaign_version:'1.0.0',suite:{id:suite.suite_id,version:suite.version,hash:normalizeAndHash(suite).hash},profiles:refs,evaluator:suite.evaluator,ranking_policy:{id:'ranking.default',version:'1.0.0'},execution_mode:'replay',concurrency_limit:2,retry_policy:{max_attempts:2,retryable_error_codes:['PROVIDER_TIMEOUT']},created_at:'2026-07-12T00:00:00.000Z',execution_correlation_id:'execution.campaign',audit_correlation_id:'audit.campaign',...change});
-const policy:RankingPolicy={schema_version:'1.0.0',policy_id:'ranking.default',version:'1.0.0',mandatory_gates:[{gate_id:'coverage',type:'coverage_complete'},{gate_id:'correct',type:'no_blocked_or_rejected'}],tie_breakers:['quality','abstention','reliability','cost','latency']};
-const profile=(ref:{profile_id:string;profile_version:string}):ExecutionProfile=>({profile_id:ref.profile_id as never,capability_id:'evidence.extraction.normative_claims' as never,provider_id:'replay' as never,model_id:`fixture-${ref.profile_version}` as never,mode:'replay',lifecycle_status:'candidate',enabled:true,contract_version:ref.profile_version,configuration:{timeout_ms:100,response_format:'json'},eligibility:{privacy_compatibility:'declared_not_enforced',budget_class:'development',evaluation_status:'fixture_verified'},privacy:LOCAL_REPLAY_PRIVACY,fixture_id:'x'});
-const replay=(order=refs):BenchmarkReplayRecord[]=>order.flatMap(p=>[...cases].reverse().map((c,ci)=>{const pi=p.profile_id==='profile.alpha'?0:1;return{profile:p,case_ref:{id:c.case_id,version:c.version},execution_id:`e.${p.profile_id}.${c.case_id}`,audit_correlation_id:`a.${p.profile_id}.${c.case_id}`,normalized_input:c.input,normalized_output:normalizeObservedOutcome({status:'succeeded',output:{label:'ok'},latency_ms:10+pi+ci,usage:{input_tokens:2,output_tokens:3,total_tokens:5,source:'fixture',fixture_origin:'synthetic'}}),usage:{input_tokens:2,output_tokens:3,total_tokens:5},cost_minor:String(pi+1),currency:'USD',latency_ms:10+pi+ci};}));
-describe('AI-77 benchmark runner',()=>{
- it('validates identities, duplicates, versions, modes and deterministic campaign hashing',()=>{validateBenchmarkCampaign(campaign());assert.equal(benchmarkCampaignHash(campaign()),benchmarkCampaignHash({...campaign(),profiles:[...refs].map(x=>({...x}))}));for(const bad of [{profiles:[refs[0]!,refs[0]!]},{concurrency_limit:0},{execution_mode:'other' as never},{suite:{...campaign().suite,hash:'bad'}}])assert.throws(()=>validateBenchmarkCampaign(campaign(bad)),BenchmarkError);});
- it('runs full profile-by-case replay coverage with zero gateway calls and exact accounting',async()=>{let calls=0;const events:BenchmarkAuditEvent[]=[];const result=await new BenchmarkRunner({profileResolver:profile,gateway:{execute:async()=>{calls++;throw new Error('not called');}},clock:()=>new Date(0),id:(()=>{let n=0;return()=>`id-${++n}`;})(),auditSink:e=>events.push(e)}).run({campaign:campaign(),suite,rankingPolicy:policy,replayRecords:replay()});assert.equal(calls,0);assert.deepEqual(result.profile_runs.map(r=>r.attempts.length),[2,2]);assert.ok(result.profile_summaries.every(s=>s.completed_count===2&&s.score.numerator===12&&s.score.denominator===12&&s.usage_totals.total_tokens===10));assert.equal(result.ranking.entries[0]?.profile.profile_id,'profile.alpha');assert.ok(result.profile_runs.every(r=>r.attempts.every(a=>a.observation===undefined)));assert.ok(events.every(e=>assertBenchmarkAuditMetadataOnly(e).length===0));assert.doesNotMatch(JSON.stringify(events),/fixture|request-|packet-|prompt|email/i);});
- it('is stable across profile, case, replay and filesystem ordering',async()=>{const runner=()=>new BenchmarkRunner({profileResolver:profile,clock:()=>new Date(0),id:()=> 'fixed'});const a=await runner().run({campaign:campaign(),suite,rankingPolicy:policy,replayRecords:replay()});const reversedSuite={...suite,cases:[...suite.cases].reverse()};const b=await runner().run({campaign:campaign({profiles:[...refs].reverse(),suite:{...campaign().suite,hash:normalizeAndHash(reversedSuite).hash}}),suite:reversedSuite,rankingPolicy:policy,replayRecords:[...replay([...refs].reverse())].reverse()});assert.deepEqual(a.ranking,b.ranking);});
- it('fails closed on incomplete coverage and makes allowed partial results winner-ineligible',async()=>{const r=new BenchmarkRunner({profileResolver:profile});await assert.rejects(()=>r.run({campaign:campaign(),suite,rankingPolicy:policy,replayRecords:replay().slice(1)}),/incomplete campaign/);const partial=await r.run({campaign:campaign({allow_partial_reporting:true}),suite,rankingPolicy:policy,replayRecords:replay().slice(1)});assert.equal(partial.status,'partial');assert.equal(partial.ranking.approved_winner,false);assert.ok(partial.ranking.entries.some(e=>e.disqualification_reasons.includes('partial_campaign')));});
- it('uses bounded live gateway concurrency and retries only configured execution failures',async()=>{let active=0,max=0,calls=0;const gateway={execute:async({capability_request}:{capability_request:any})=>{active++;max=Math.max(max,active);calls++;await Promise.resolve();active--;const fail=calls===1;return{result:fail?{...capability_request,status:'failed',error:{category:'execution',code:'PROVIDER_ERROR',message:'safe'},governance:{human_review_required:true,downstream_allowed:false,approval_state:'pending'}}:{...capability_request,status:'succeeded',output:{label:'ok'},governance:{human_review_required:true,downstream_allowed:false,approval_state:'pending'}},audit:{execution_id:`live-${calls}`,request_id:capability_request.request_id,capability_id:capability_request.capability_id,started_at:new Date(0).toISOString(),finished_at:new Date(0).toISOString(),duration_ms:1,result_status:fail?'failed':'succeeded',error_code:fail?'PROVIDER_TIMEOUT':undefined}}}};const noCostPolicy={...policy,tie_breakers:['quality','reliability'] as const};const result=await new BenchmarkRunner({profileResolver:profile,gateway:gateway as never}).run({campaign:campaign({execution_mode:'live',profiles:[refs[0]!],concurrency_limit:1}),suite,rankingPolicy:noCostPolicy});assert.equal(max,1);assert.equal(calls,3);assert.equal(result.profile_runs[0]?.attempts.length,3);assert.equal(result.profile_runs[0]?.attempts[0]?.retry.selected_final_attempt,false);});
- it('routes live-mode fixture attempts through the existing gateway and adapter registry',async()=>{const registry=new ProviderAdapterRegistry();let adapterCalls=0;const replayAdapter=new ReplayProviderAdapter();registry.registerProviderAdapter({provider_id:replayAdapter.provider_id,supports:p=>replayAdapter.supports(p),execute:async(...args)=>{adapterCalls++;return replayAdapter.execute(...args);}});const fixtureProfile=(id:string)=>({...profile({profile_id:id,profile_version:'1.0.0'}),fixture_id:'normative-claims-success'});let execution=0;const gateway=new MultiProviderGateway({registry,profileResolver:fixtureProfile,executionId:()=>`benchmark-gateway-${++execution}`,budgetEnforcer:new BudgetEnforcer({ledger:new InMemoryBudgetLedger()})});const result=await new BenchmarkRunner({profileResolver:ref=>fixtureProfile(ref.profile_id),gateway}).run({campaign:campaign({execution_mode:'live',profiles:[refs[0]!],allow_partial_reporting:true}),suite,rankingPolicy:policy});assert.equal(adapterCalls,2);assert.equal(result.profile_runs[0]?.attempts.length,2);});
- it('does not retry privacy, validation, policy, or budget blocks',async()=>{for(const code of ['PRIVACY_BLOCKED','REQUEST_SCHEMA_INVALID','PROFILE_DISABLED','BUDGET_EXHAUSTED']){let calls=0;const gateway={execute:async({capability_request}:{capability_request:any})=>{calls++;return{result:{...capability_request,status:'blocked',error:{category:'policy',code:'EXECUTION_UNAVAILABLE',message:'safe'},governance:{human_review_required:true,downstream_allowed:false,approval_state:'pending'}},audit:{execution_id:'x',request_id:'x',capability_id:capability_request.capability_id,started_at:new Date(0).toISOString(),finished_at:new Date(0).toISOString(),duration_ms:0,result_status:'blocked',error_code:code}}}};await new BenchmarkRunner({profileResolver:profile,gateway:gateway as never}).run({campaign:campaign({execution_mode:'live',profiles:[refs[0]!],allow_partial_reporting:true,retry_policy:{max_attempts:3,retryable_error_codes:[code]}}),suite,rankingPolicy:policy});assert.equal(calls,2);}});
- it('ranks with exact gates, cost/latency tie-breaks and genuine equal rank',()=>{const base:ProfileSummary={profile:refs[0]!,eligible_case_count:2,completed_count:2,failed_count:0,blocked_count:0,rejected_count:0,score:{numerator:3,denominator:4},dimensions:[],abstention_passed:1,human_review_required_count:0,usage_totals:{input_tokens:1,output_tokens:1,total_tokens:2},exact_cost:{amount_minor:'2',currency:'USD'},latency:{total_ms:20,maximum_ms:10},failure_reasons:[],suite_hash:'x',profile_hash:'y',coverage_complete:true};const equal={...base,profile:refs[1]!};assert.deepEqual(rankProfiles([equal,base],policy).entries.map(e=>e.rank),[1,1]);const cheaper={...equal,exact_cost:{amount_minor:'1',currency:'USD'}};assert.equal(rankProfiles([base,cheaper],policy).entries[0]?.profile.profile_id,'profile.beta');const blocked={...cheaper,blocked_count:1,coverage_complete:false};assert.equal(rankProfiles([base,blocked],policy).entries.find(e=>e.profile.profile_id==='profile.beta')?.eligible,false);});
- it('keeps two versions of one profile distinct through resolution, replay, audit, provenance and ranking',async()=>{const versions=[{profile_id:'profile.shared',profile_version:'1.0.0'},{profile_id:'profile.shared',profile_version:'2.0.0'}];const resolved:string[]=[];const versionRecords=versions.flatMap((ref,vi)=>cases.map((c,ci)=>({...replay([refs[0]!])[ci]!,profile:ref,case_ref:{id:c.case_id,version:c.version},execution_id:`version-${vi}-${ci}`,audit_correlation_id:`version-audit-${vi}-${ci}`,cost_minor:'1',currency:'USD'})));const events:BenchmarkAuditEvent[]=[];const result=await new BenchmarkRunner({profileResolver:ref=>{resolved.push(`${ref.profile_id}@${ref.profile_version}`);return profile(ref);},auditSink:e=>events.push(e)}).run({campaign:campaign({profiles:versions}),suite,rankingPolicy:policy,replayRecords:versionRecords});assert.deepEqual(resolved,versions.map(x=>`${x.profile_id}@${x.profile_version}`));assert.equal(result.profile_runs.length,2);assert.equal(new Set(result.profile_runs.map(x=>x.audit_correlation_id)).size,2);assert.deepEqual(result.ranking.entries.map(x=>x.rank),[1,1]);assert.equal(result.ranking.approved_winner,false);assert.equal(result.provenance.profile_hashes.length,2);assert.equal(new Set(result.provenance.profile_hashes.map(x=>x.hash)).size,2);assert.ok(events.some(e=>e.profile_id==='profile.shared@1.0.0')&&events.some(e=>e.profile_id==='profile.shared@2.0.0'));});
- it('fails closed for mixed, incompatible, or missing cost currencies and permits cost-free policies',async()=>{const one=campaign({profiles:[refs[0]!]});const mixed=replay([refs[0]!]).map((r,i)=>({...r,currency:i?'EUR':'USD'}));await assert.rejects(()=>new BenchmarkRunner({profileResolver:profile}).run({campaign:one,suite,rankingPolicy:policy,replayRecords:mixed}),/mixed benchmark currencies/);const base:ProfileSummary={profile:refs[0]!,eligible_case_count:1,completed_count:1,failed_count:0,blocked_count:0,rejected_count:0,score:{numerator:1,denominator:1},dimensions:[],abstention_passed:0,human_review_required_count:0,usage_totals:{input_tokens:0,output_tokens:0,total_tokens:0},exact_cost:{amount_minor:'1',currency:'USD'},latency:{total_ms:1,maximum_ms:1},failure_reasons:[],suite_hash:'x',profile_hash:'y',coverage_complete:true};assert.throws(()=>rankProfiles([base,{...base,profile:refs[1]!,exact_cost:{amount_minor:'1',currency:'EUR'}}],policy),/currencies incompatible/);assert.throws(()=>rankProfiles([base,{...base,profile:refs[1]!,exact_cost:undefined}],policy),/cost metadata missing/);const noCostPolicy={...policy,tie_breakers:['quality','reliability'] as const};assert.doesNotThrow(()=>rankProfiles([{...base,exact_cost:undefined},{...base,profile:refs[1]!,exact_cost:undefined}],noCostPolicy));assert.equal(rankProfiles([base,{...base,profile:refs[1]!,exact_cost:{amount_minor:'2',currency:'USD'}}],policy).entries[0]?.profile.profile_id,'profile.alpha');});
- it('compares reliability with exact BigInt cross-products beyond safe number multiplication',()=>{const noCost={...policy,tie_breakers:['reliability'] as const};const base:ProfileSummary={profile:refs[0]!,eligible_case_count:Number.MAX_SAFE_INTEGER,completed_count:Number.MAX_SAFE_INTEGER-1,failed_count:0,blocked_count:0,rejected_count:0,score:{numerator:1,denominator:1},dimensions:[],abstention_passed:0,human_review_required_count:0,usage_totals:{input_tokens:0,output_tokens:0,total_tokens:0},latency:{total_ms:0,maximum_ms:0},failure_reasons:[],suite_hash:'x',profile_hash:'y',coverage_complete:true};const lower={...base,profile:refs[1]!,eligible_case_count:Number.MAX_SAFE_INTEGER-1,completed_count:Number.MAX_SAFE_INTEGER-2};assert.equal(rankProfiles([lower,base],noCost).entries[0]?.profile.profile_id,'profile.alpha');});
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
+import {
+  BenchmarkError,
+  BenchmarkRunner,
+  assertBenchmarkAuditMetadataOnly,
+  benchmarkCampaignHash,
+  rankProfiles,
+  validateBenchmarkCampaign,
+  type BenchmarkAuditEvent,
+  type BenchmarkCampaignDefinition,
+  type BenchmarkReplayRecord,
+  type ProfileSummary,
+  type RankingPolicy,
+} from "../../src/benchmark/index.js";
+import {
+  normalizeAndHash,
+  normalizeObservedOutcome,
+  type EvaluationSuite,
+} from "../../src/evaluation/index.js";
+import type { ExecutionProfile } from "../../src/execution/execution-profile.js";
+import { LOCAL_REPLAY_PRIVACY } from "../helpers/privacy.js";
+
+const cases = [1, 2].map((number) => ({
+  case_id: `case.${number}`,
+  version: "1.0.0",
+  input: { request_id: `request-${number}` },
+  expected: { status: "succeeded" as const, output: { label: "ok" } },
+  dimensions: [
+    {
+      dimension_id: "exact",
+      type: "exact_value" as const,
+      weight_units: 3,
+      path: "label",
+      expected: "ok",
+    },
+  ],
+}));
+const suite: EvaluationSuite = {
+  suite_id: "suite.benchmark",
+  version: "1.0.0",
+  contract_version: "1.0.0",
+  evaluator: {
+    evaluator_id: "evaluation.deterministic",
+    evaluator_version: "1.0.0",
+  },
+  capability_profile: {
+    capability_id: "evidence.extraction.normative_claims",
+    capability_version: "1.0.0",
+    profile_id: "placeholder.profile",
+    profile_version: "1.0.0",
+  },
+  cases,
+};
+const refs = [
+  { profile_id: "profile.alpha", profile_version: "1.0.0" },
+  { profile_id: "profile.beta", profile_version: "1.0.0" },
+];
+const campaign = (
+  change: Partial<BenchmarkCampaignDefinition> = {},
+): BenchmarkCampaignDefinition => ({
+  schema_version: "1.0.0",
+  campaign_id: "campaign.synthetic",
+  campaign_version: "1.0.0",
+  suite: {
+    id: suite.suite_id,
+    version: suite.version,
+    hash: normalizeAndHash(suite).hash,
+  },
+  profiles: refs,
+  evaluator: suite.evaluator,
+  ranking_policy: { id: "ranking.default", version: "1.0.0" },
+  execution_mode: "replay",
+  concurrency_limit: 2,
+  retry_policy: {
+    max_attempts: 2,
+    retryable_error_codes: ["PROVIDER_TIMEOUT"],
+  },
+  created_at: "2026-07-12T00:00:00.000Z",
+  execution_correlation_id: "execution.campaign",
+  audit_correlation_id: "audit.campaign",
+  ...change,
+});
+const rankingPolicy: RankingPolicy = {
+  schema_version: "1.0.0",
+  policy_id: "ranking.default",
+  version: "1.0.0",
+  mandatory_gates: [
+    { gate_id: "coverage", type: "coverage_complete" },
+    { gate_id: "correct", type: "no_blocked_or_rejected" },
+  ],
+  tie_breakers: ["quality", "reliability", "cost", "latency"],
+};
+const profile = (ref: {
+  profile_id: string;
+  profile_version: string;
+}): ExecutionProfile => ({
+  profile_id: ref.profile_id as never,
+  capability_id: "evidence.extraction.normative_claims" as never,
+  provider_id: "replay" as never,
+  model_id: "fixture" as never,
+  mode: "replay",
+  lifecycle_status: "candidate",
+  enabled: true,
+  contract_version: ref.profile_version,
+  configuration: { timeout_ms: 100, response_format: "json" },
+  eligibility: {
+    privacy_compatibility: "declared_not_enforced",
+    budget_class: "development",
+    evaluation_status: "fixture_verified",
+  },
+  privacy: LOCAL_REPLAY_PRIVACY,
+  fixture_id: "fixture",
+});
+const replay = (order = refs): BenchmarkReplayRecord[] =>
+  order.flatMap((reference) =>
+    [...cases].reverse().map((testCase) => {
+      const amount = reference.profile_id === "profile.alpha" ? "1" : "2";
+      return {
+        profile: reference,
+        case_ref: { id: testCase.case_id, version: testCase.version },
+        execution_id: `execution.${reference.profile_id}.${testCase.case_id}`,
+        audit_correlation_id: `audit.${reference.profile_id}.${testCase.case_id}`,
+        normalized_input: testCase.input,
+        normalized_output: normalizeObservedOutcome({
+          status: "succeeded",
+          output: { label: "ok" },
+          latency_ms: 10,
+        }),
+        usage: { input_tokens: 2, output_tokens: 3, total_tokens: 5 },
+        exact_cost: {
+          cost_contract_version: "1.0.0",
+          amount: { numerator: amount, denominator: "3" },
+          currency: "USD",
+        },
+        latency_ms: 10,
+      };
+    }),
+  );
+
+const summary = (
+  profileRef = refs[0]!,
+  amount = { numerator: "1", denominator: "1" },
+): ProfileSummary => ({
+  profile: profileRef,
+  eligible_case_count: 2,
+  completed_count: 2,
+  failed_count: 0,
+  blocked_count: 0,
+  rejected_count: 0,
+  score: { numerator: 1, denominator: 1 },
+  dimensions: [],
+  abstention_passed: 0,
+  human_review_required_count: 0,
+  usage_totals: { input_tokens: 1, output_tokens: 1, total_tokens: 2 },
+  exact_cost: { cost_contract_version: "1.0.0", amount, currency: "USD" },
+  latency: { total_ms: 20, maximum_ms: 10 },
+  failure_reasons: [],
+  suite_hash: "suite",
+  profile_hash: "profile",
+  coverage_complete: true,
+});
+
+describe("AI-77 exact rational benchmark aggregation", () => {
+  it("validates identities and hashes campaigns deterministically", () => {
+    validateBenchmarkCampaign(campaign());
+    assert.equal(
+      benchmarkCampaignHash(campaign()),
+      benchmarkCampaignHash({
+        ...campaign(),
+        profiles: refs.map((reference) => ({ ...reference })),
+      }),
+    );
+    assert.throws(
+      () => validateBenchmarkCampaign(campaign({ concurrency_limit: 0 })),
+      BenchmarkError,
+    );
+  });
+
+  it("aggregates rational costs exactly and ranks deterministically", async () => {
+    let calls = 0;
+    const events: BenchmarkAuditEvent[] = [];
+    const result = await new BenchmarkRunner({
+      profileResolver: profile,
+      gateway: {
+        execute: async () => {
+          calls += 1;
+          throw new Error("not called");
+        },
+      },
+      clock: () => new Date(0),
+      id: () => "fixed",
+      auditSink: (event) => events.push(event),
+    }).run({
+      campaign: campaign(),
+      suite,
+      rankingPolicy,
+      replayRecords: replay(),
+    });
+    assert.equal(calls, 0);
+    assert.deepEqual(result.profile_summaries[0]?.exact_cost?.amount, {
+      numerator: "2",
+      denominator: "3",
+    });
+    assert.deepEqual(result.profile_summaries[1]?.exact_cost?.amount, {
+      numerator: "4",
+      denominator: "3",
+    });
+    assert.equal(
+      result.ranking.entries[0]?.profile.profile_id,
+      "profile.alpha",
+    );
+    assert.ok(
+      events.every(
+        (event) => assertBenchmarkAuditMetadataOnly(event).length === 0,
+      ),
+    );
+  });
+
+  it("is stable across profile, case, and replay ordering", async () => {
+    const run = (
+      definition: BenchmarkCampaignDefinition,
+      selectedSuite: EvaluationSuite,
+      records: BenchmarkReplayRecord[],
+    ) =>
+      new BenchmarkRunner({
+        profileResolver: profile,
+        clock: () => new Date(0),
+        id: () => "fixed",
+      }).run({
+        campaign: definition,
+        suite: selectedSuite,
+        rankingPolicy,
+        replayRecords: records,
+      });
+    const first = await run(campaign(), suite, replay());
+    const reversedSuite = { ...suite, cases: [...suite.cases].reverse() };
+    const second = await run(
+      campaign({
+        profiles: [...refs].reverse(),
+        suite: {
+          ...campaign().suite,
+          hash: normalizeAndHash(reversedSuite).hash,
+        },
+      }),
+      reversedSuite,
+      [...replay([...refs].reverse())].reverse(),
+    );
+    assert.deepEqual(first.ranking, second.ranking);
+  });
+
+  it("compares equivalent and fractional rational costs without number arithmetic", () => {
+    assert.deepEqual(
+      rankProfiles(
+        [
+          summary(refs[0]!, { numerator: "1", denominator: "3" }),
+          summary(refs[1]!, { numerator: "1", denominator: "3" }),
+        ],
+        rankingPolicy,
+      ).entries.map((entry) => entry.rank),
+      [1, 1],
+    );
+    assert.equal(
+      rankProfiles(
+        [
+          summary(refs[0]!, { numerator: "1", denominator: "3" }),
+          summary(refs[1]!, { numerator: "1", denominator: "4" }),
+        ],
+        rankingPolicy,
+      ).entries[0]?.profile.profile_id,
+      "profile.beta",
+    );
+  });
+
+  it("fails mixed currencies and missing cost metadata closed", () => {
+    assert.throws(
+      () =>
+        rankProfiles(
+          [
+            summary(),
+            {
+              ...summary(refs[1]!),
+              exact_cost: { ...summary().exact_cost!, currency: "EUR" },
+            },
+          ],
+          rankingPolicy,
+        ),
+      /currencies incompatible/,
+    );
+    assert.throws(
+      () =>
+        rankProfiles(
+          [summary(), { ...summary(refs[1]!), exact_cost: undefined }],
+          rankingPolicy,
+        ),
+      /cost metadata missing/,
+    );
+  });
 });
