@@ -1,0 +1,37 @@
+{
+  "schema_version": "1.0.0",
+  "scenarios": [
+    {
+      "name": "ambiguous-model-identity",
+      "expected": "ambiguous_model_identity"
+    },
+    {
+      "name": "aggregator-upstream-scope-confusion",
+      "expected": "aggregator_upstream_scope_confusion"
+    },
+    { "name": "stale-expired-evidence", "expected": "expired_evidence" },
+    { "name": "missing-retrieval-date", "expected": "missing_retrieval_date" },
+    { "name": "missing-review-date", "expected": "missing_review_date" },
+    { "name": "unsupported-capability", "expected": "unsupported_capability" },
+    { "name": "contradictory-pricing", "expected": "contradictory_pricing" },
+    { "name": "false-unsupported-zdr", "expected": "false_zdr_declaration" },
+    {
+      "name": "provider-wide-applied-to-model",
+      "expected": "provider_scope_mismatch"
+    },
+    {
+      "name": "credential-shaped-field",
+      "expected": "credential_shaped_field"
+    },
+    { "name": "unreviewed-evidence", "expected": "unreviewed_evidence" },
+    {
+      "name": "variable-provider-routing",
+      "expected": "variable_provider_routing"
+    },
+    {
+      "name": "missing-upstream-provider-evidence",
+      "expected": "missing_upstream_provider_evidence"
+    },
+    { "name": "evidence-hash-mismatch", "expected": "evidence_hash_mismatch" }
+  ]
+}

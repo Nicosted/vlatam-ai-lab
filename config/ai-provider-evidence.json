@@ -1,65 +1,1414 @@
 {
-  "schema_version": "1.0.0",
+  "schema_version": "2.0.0",
   "evidence": [
     {
-      "evidence_id": "openrouter.unreviewed.placeholder.v1",
-      "provider_identity": {
-        "status": "supported",
-        "value": "openrouter",
-        "source_ref": "local-candidate-request-ai-81"
-      },
-      "model_identity": { "status": "unknown" },
-      "claims": {
-        "supported_capabilities": { "status": "unknown" },
-        "context_limits": { "status": "unknown" },
-        "structured_outputs": { "status": "unknown" },
-        "tool_calling": { "status": "unknown" },
-        "multimodal": { "status": "unknown" },
-        "prompt_caching": { "status": "unknown" },
-        "usage_reporting": { "status": "unknown" },
-        "processing_regions": { "status": "unknown" },
-        "retention": { "status": "unknown" },
-        "training_use": { "status": "unknown" },
-        "zdr_status": { "status": "unknown" },
-        "pricing": { "status": "unknown" }
-      },
+      "evidence_id": "openrouter.provider-identity.v2",
+      "provider_id": "openrouter",
+      "model_id": null,
+      "upstream_provider_id": null,
+      "category": "provider_identity",
+      "status": "accepted",
+      "value": "OpenRouter, Inc.",
       "source": {
-        "kind": "local_fixture",
-        "reference": "AI-81 requested candidate; not provider evidence",
-        "captured_at": "2026-07-12T00:00:00.000Z"
+        "title": "Privacy Policy",
+        "canonical_url": "https://openrouter.ai/privacy",
+        "publisher": "OpenRouter",
+        "retrieved_at": "2026-07-13T00:00:00.000Z",
+        "effective_at": "2026-07-06T00:00:00.000Z"
       },
-      "review": { "status": "pending" },
-      "expires_at": "2026-08-11T00:00:00.000Z"
+      "applicability": {
+        "scope": "provider_wide",
+        "exact_scope": "OpenRouter service and API router",
+        "route_mode": "not_applicable",
+        "route_provider_id": null
+      },
+      "review": {
+        "status": "reviewed_approved",
+        "reviewed_at": "2026-07-13T00:00:00.000Z",
+        "review_record_ref": "reports/ai-82-primary-provider-evidence-review-2026-07-13.md"
+      },
+      "expires_at": "2026-10-11T00:00:00.000Z",
+      "finding": "The router service is operated by OpenRouter, Inc.; it is distinct from model providers.",
+      "limitations": [
+        "Provider identity does not identify an upstream inference endpoint."
+      ],
+      "conflict_status": "none",
+      "conflicts_with": [],
+      "evidence_hash": "afb077600833e035c27cb537b75dfd621fd42c25b1c901283dd179a71861c117"
     },
     {
-      "evidence_id": "minimax-direct.unreviewed.placeholder.v1",
-      "provider_identity": {
-        "status": "supported",
-        "value": "minimax-direct",
-        "source_ref": "local-candidate-request-ai-81"
+      "evidence_id": "openrouter.model-identity.v2",
+      "provider_id": "openrouter",
+      "model_id": "minimax/minimax-m2.7",
+      "upstream_provider_id": "minimax",
+      "category": "model_identity",
+      "status": "accepted",
+      "value": "minimax/minimax-m2.7",
+      "source": {
+        "title": "MiniMax M2.7",
+        "canonical_url": "https://openrouter.ai/minimax/minimax-m2.7",
+        "publisher": "OpenRouter",
+        "retrieved_at": "2026-07-13T00:00:00.000Z",
+        "effective_at": "2026-03-18T00:00:00.000Z"
       },
-      "model_identity": { "status": "unknown" },
-      "claims": {
-        "supported_capabilities": { "status": "unknown" },
-        "context_limits": { "status": "unknown" },
-        "structured_outputs": { "status": "unknown" },
-        "tool_calling": { "status": "unknown" },
-        "multimodal": { "status": "unknown" },
-        "prompt_caching": { "status": "unknown" },
-        "usage_reporting": { "status": "unknown" },
-        "processing_regions": { "status": "unknown" },
-        "retention": { "status": "unknown" },
-        "training_use": { "status": "unknown" },
-        "zdr_status": { "status": "unknown" },
-        "pricing": { "status": "unknown" }
+      "applicability": {
+        "scope": "model",
+        "exact_scope": "OpenRouter model slug minimax/minimax-m2.7",
+        "route_mode": "variable",
+        "route_provider_id": "minimax"
+      },
+      "review": {
+        "status": "reviewed_approved",
+        "reviewed_at": "2026-07-13T00:00:00.000Z",
+        "review_record_ref": "reports/ai-82-primary-provider-evidence-review-2026-07-13.md"
+      },
+      "expires_at": "2026-10-11T00:00:00.000Z",
+      "finding": "OpenRouter publishes the exact model slug minimax/minimax-m2.7 and attributes the model family to MiniMax.",
+      "limitations": ["The slug does not pin the serving provider endpoint."],
+      "conflict_status": "none",
+      "conflicts_with": [],
+      "evidence_hash": "3fef07e37d2441127da103a74212d0ab0df538066c39fedbe35fab523258ba13"
+    },
+    {
+      "evidence_id": "openrouter.model-lifecycle.v2",
+      "provider_id": "openrouter",
+      "model_id": "minimax/minimax-m2.7",
+      "upstream_provider_id": "minimax",
+      "category": "model_lifecycle",
+      "status": "accepted",
+      "value": {
+        "released_at": "2026-03-18",
+        "available": true
       },
       "source": {
-        "kind": "local_fixture",
-        "reference": "AI-81 requested candidate; not provider evidence",
-        "captured_at": "2026-07-12T00:00:00.000Z"
+        "title": "MiniMax M2.7",
+        "canonical_url": "https://openrouter.ai/minimax/minimax-m2.7",
+        "publisher": "OpenRouter",
+        "retrieved_at": "2026-07-13T00:00:00.000Z",
+        "effective_at": "2026-03-18T00:00:00.000Z"
       },
-      "review": { "status": "pending" },
-      "expires_at": "2026-08-11T00:00:00.000Z"
+      "applicability": {
+        "scope": "model",
+        "exact_scope": "OpenRouter model catalog entry",
+        "route_mode": "variable",
+        "route_provider_id": "minimax"
+      },
+      "review": {
+        "status": "reviewed_approved",
+        "reviewed_at": "2026-07-13T00:00:00.000Z",
+        "review_record_ref": "reports/ai-82-primary-provider-evidence-review-2026-07-13.md"
+      },
+      "expires_at": "2026-10-11T00:00:00.000Z",
+      "finding": "The catalog lists the model as released and currently available.",
+      "limitations": [
+        "No contractual availability or deprecation notice period is published."
+      ],
+      "conflict_status": "none",
+      "conflicts_with": [],
+      "evidence_hash": "c146a43b660e7cc33caa762dc749f4cfa8994b0ee90c79ef041542909c58e16b"
+    },
+    {
+      "evidence_id": "openrouter.api-endpoint.v2",
+      "provider_id": "openrouter",
+      "model_id": "minimax/minimax-m2.7",
+      "upstream_provider_id": "minimax",
+      "category": "api_endpoint",
+      "status": "accepted",
+      "value": [
+        "/api/v1/chat/completions",
+        "/api/v1/responses",
+        "/api/v1/messages"
+      ],
+      "source": {
+        "title": "MiniMax M2.7",
+        "canonical_url": "https://openrouter.ai/minimax/minimax-m2.7",
+        "publisher": "OpenRouter",
+        "retrieved_at": "2026-07-13T00:00:00.000Z",
+        "effective_at": null
+      },
+      "applicability": {
+        "scope": "model",
+        "exact_scope": "OpenRouter APIs for minimax/minimax-m2.7",
+        "route_mode": "variable",
+        "route_provider_id": "minimax"
+      },
+      "review": {
+        "status": "reviewed_approved",
+        "reviewed_at": "2026-07-13T00:00:00.000Z",
+        "review_record_ref": "reports/ai-82-primary-provider-evidence-review-2026-07-13.md"
+      },
+      "expires_at": "2026-10-11T00:00:00.000Z",
+      "finding": "OpenRouter documents three compatible endpoint families for the exact model slug.",
+      "limitations": [
+        "Interface compatibility does not prove identical behavior across upstream endpoints."
+      ],
+      "conflict_status": "none",
+      "conflicts_with": [],
+      "evidence_hash": "3c31d1897b83d4fb40ad3deac11842ef973c53b1b6e0f7554d6915356c9850bb"
+    },
+    {
+      "evidence_id": "openrouter.context-limits.v2",
+      "provider_id": "openrouter",
+      "model_id": "minimax/minimax-m2.7",
+      "upstream_provider_id": "minimax",
+      "category": "context_limits",
+      "status": "accepted",
+      "value": {
+        "context_tokens": 204800,
+        "max_output_tokens": null
+      },
+      "source": {
+        "title": "MiniMax M2.7 Providers",
+        "canonical_url": "https://openrouter.ai/minimax/minimax-m2.7/providers",
+        "publisher": "OpenRouter",
+        "retrieved_at": "2026-07-13T00:00:00.000Z",
+        "effective_at": null
+      },
+      "applicability": {
+        "scope": "model",
+        "exact_scope": "OpenRouter aggregate model entry",
+        "route_mode": "variable",
+        "route_provider_id": "minimax"
+      },
+      "review": {
+        "status": "reviewed_approved",
+        "reviewed_at": "2026-07-13T00:00:00.000Z",
+        "review_record_ref": "reports/ai-82-primary-provider-evidence-review-2026-07-13.md"
+      },
+      "expires_at": "2026-10-11T00:00:00.000Z",
+      "finding": "The model entry reports approximately 205K context.",
+      "limitations": [
+        "A reviewed exact maximum output limit was not found; endpoint limits may differ."
+      ],
+      "conflict_status": "none",
+      "conflicts_with": [],
+      "evidence_hash": "fd373ae8aa3224bab15e2267662c377a9d3e955844e3ec587c8a19c339bff69f"
+    },
+    {
+      "evidence_id": "openrouter.structured-outputs.v2",
+      "provider_id": "openrouter",
+      "model_id": "minimax/minimax-m2.7",
+      "upstream_provider_id": "minimax",
+      "category": "structured_outputs",
+      "status": "accepted",
+      "value": {
+        "response_format": true,
+        "schema_constrained": false
+      },
+      "source": {
+        "title": "MiniMax M2.7",
+        "canonical_url": "https://openrouter.ai/minimax/minimax-m2.7",
+        "publisher": "OpenRouter",
+        "retrieved_at": "2026-07-13T00:00:00.000Z",
+        "effective_at": null
+      },
+      "applicability": {
+        "scope": "model",
+        "exact_scope": "OpenRouter normalized parameters for the model slug",
+        "route_mode": "variable",
+        "route_provider_id": "minimax"
+      },
+      "review": {
+        "status": "reviewed_approved",
+        "reviewed_at": "2026-07-13T00:00:00.000Z",
+        "review_record_ref": "reports/ai-82-primary-provider-evidence-review-2026-07-13.md"
+      },
+      "expires_at": "2026-10-11T00:00:00.000Z",
+      "finding": "The model page lists response_format, but does not explicitly prove strict JSON Schema enforcement.",
+      "limitations": [
+        "Schema-constrained output remains unproved for every route."
+      ],
+      "conflict_status": "none",
+      "conflicts_with": [],
+      "evidence_hash": "b7d977b173b19b535ab364ee4fabe334329849b7c0083bf917b41f143ee02f49"
+    },
+    {
+      "evidence_id": "openrouter.tool-calling.v2",
+      "provider_id": "openrouter",
+      "model_id": "minimax/minimax-m2.7",
+      "upstream_provider_id": "minimax",
+      "category": "tool_calling",
+      "status": "accepted",
+      "value": {
+        "tools": true,
+        "tool_choice": true,
+        "parallel_tool_calls": true
+      },
+      "source": {
+        "title": "MiniMax M2.7",
+        "canonical_url": "https://openrouter.ai/minimax/minimax-m2.7",
+        "publisher": "OpenRouter",
+        "retrieved_at": "2026-07-13T00:00:00.000Z",
+        "effective_at": null
+      },
+      "applicability": {
+        "scope": "model",
+        "exact_scope": "OpenRouter normalized tool parameters for the model slug",
+        "route_mode": "variable",
+        "route_provider_id": "minimax"
+      },
+      "review": {
+        "status": "reviewed_approved",
+        "reviewed_at": "2026-07-13T00:00:00.000Z",
+        "review_record_ref": "reports/ai-82-primary-provider-evidence-review-2026-07-13.md"
+      },
+      "expires_at": "2026-10-11T00:00:00.000Z",
+      "finding": "The exact model page lists tool, tool-choice, and parallel-tool-call parameters.",
+      "limitations": ["No local benchmark verifies tool-call correctness."],
+      "conflict_status": "none",
+      "conflicts_with": [],
+      "evidence_hash": "a66de77aa741d8925717d69040e7568a246f1c0f9d85ea7ebdcbde7bfe2ebe36"
+    },
+    {
+      "evidence_id": "openrouter.multimodal.v2",
+      "provider_id": "openrouter",
+      "model_id": "minimax/minimax-m2.7",
+      "upstream_provider_id": "minimax",
+      "category": "multimodal",
+      "status": "unknown",
+      "source": {
+        "title": "MiniMax M2.7",
+        "canonical_url": "https://openrouter.ai/minimax/minimax-m2.7",
+        "publisher": "OpenRouter",
+        "retrieved_at": "2026-07-13T00:00:00.000Z",
+        "effective_at": null
+      },
+      "applicability": {
+        "scope": "model",
+        "exact_scope": "OpenRouter model page",
+        "route_mode": "variable",
+        "route_provider_id": "minimax"
+      },
+      "review": {
+        "status": "reviewed_approved",
+        "reviewed_at": "2026-07-13T00:00:00.000Z",
+        "review_record_ref": "reports/ai-82-primary-provider-evidence-review-2026-07-13.md"
+      },
+      "expires_at": "2026-10-11T00:00:00.000Z",
+      "finding": "The reviewed model page did not provide sufficient exact multimodal input evidence.",
+      "limitations": ["No multimodal capability is accepted."],
+      "conflict_status": "none",
+      "conflicts_with": [],
+      "evidence_hash": "ce535da05c148e89b31a376ed1fdbafcecda26157fb8e74bf6e065d56f98df44"
+    },
+    {
+      "evidence_id": "openrouter.token-accounting.v2",
+      "provider_id": "openrouter",
+      "model_id": null,
+      "upstream_provider_id": "minimax",
+      "category": "token_accounting",
+      "status": "accepted",
+      "value": ["prompt_tokens", "completion_tokens", "total_tokens"],
+      "source": {
+        "title": "Usage Accounting",
+        "canonical_url": "https://openrouter.ai/docs/cookbook/administration/usage-accounting",
+        "publisher": "OpenRouter",
+        "retrieved_at": "2026-07-13T00:00:00.000Z",
+        "effective_at": null
+      },
+      "applicability": {
+        "scope": "provider_wide",
+        "exact_scope": "OpenRouter normalized response usage",
+        "route_mode": "not_applicable",
+        "route_provider_id": null
+      },
+      "review": {
+        "status": "reviewed_approved",
+        "reviewed_at": "2026-07-13T00:00:00.000Z",
+        "review_record_ref": "reports/ai-82-primary-provider-evidence-review-2026-07-13.md"
+      },
+      "expires_at": "2026-10-11T00:00:00.000Z",
+      "finding": "OpenRouter documents normalized prompt, completion, and total token usage.",
+      "limitations": [
+        "Provider-native accounting may be normalized by the router."
+      ],
+      "conflict_status": "none",
+      "conflicts_with": [],
+      "evidence_hash": "36c6a1bcc90eb7e1d25b728dae472aba6c869fbf71f542ab2f51ae1648ab7697"
+    },
+    {
+      "evidence_id": "openrouter.cached-reasoning-accounting.v2",
+      "provider_id": "openrouter",
+      "model_id": null,
+      "upstream_provider_id": "minimax",
+      "category": "cached_reasoning_token_accounting",
+      "status": "accepted",
+      "value": ["cached_tokens", "reasoning_tokens"],
+      "source": {
+        "title": "Usage Accounting",
+        "canonical_url": "https://openrouter.ai/docs/cookbook/administration/usage-accounting",
+        "publisher": "OpenRouter",
+        "retrieved_at": "2026-07-13T00:00:00.000Z",
+        "effective_at": null
+      },
+      "applicability": {
+        "scope": "provider_wide",
+        "exact_scope": "OpenRouter normalized usage details",
+        "route_mode": "not_applicable",
+        "route_provider_id": null
+      },
+      "review": {
+        "status": "reviewed_approved",
+        "reviewed_at": "2026-07-13T00:00:00.000Z",
+        "review_record_ref": "reports/ai-82-primary-provider-evidence-review-2026-07-13.md"
+      },
+      "expires_at": "2026-10-11T00:00:00.000Z",
+      "finding": "OpenRouter documents separate cached and reasoning token counts.",
+      "limitations": [
+        "Reasoning tokens are billed as output; route-specific cache semantics vary."
+      ],
+      "conflict_status": "none",
+      "conflicts_with": [],
+      "evidence_hash": "75766c78247cdee683a65301747f09708573460eaa59ecbb732610408a133d77"
+    },
+    {
+      "evidence_id": "openrouter.pricing.v2",
+      "provider_id": "openrouter",
+      "model_id": "minimax/minimax-m2.7",
+      "upstream_provider_id": "minimax",
+      "category": "pricing",
+      "status": "conflicting",
+      "source": {
+        "title": "MiniMax M2.7 Providers",
+        "canonical_url": "https://openrouter.ai/minimax/minimax-m2.7/providers",
+        "publisher": "OpenRouter",
+        "retrieved_at": "2026-07-13T00:00:00.000Z",
+        "effective_at": null
+      },
+      "applicability": {
+        "scope": "route",
+        "exact_scope": "Current OpenRouter endpoint offers for minimax/minimax-m2.7",
+        "route_mode": "variable",
+        "route_provider_id": "minimax"
+      },
+      "review": {
+        "status": "reviewed_approved",
+        "reviewed_at": "2026-07-13T00:00:00.000Z",
+        "review_record_ref": "reports/ai-82-primary-provider-evidence-review-2026-07-13.md"
+      },
+      "expires_at": "2026-08-12T00:00:00.000Z",
+      "finding": "Multiple upstream endpoints publish different input, output, and cache prices, so one model-level price is not deterministic without a pinned route.",
+      "limitations": [
+        "Rolling effective-pricing charts are not contractual list prices."
+      ],
+      "conflict_status": "unresolved",
+      "conflicts_with": ["openrouter.provider-routing.v2"],
+      "evidence_hash": "a7ab6947ed90f0093844abe056a26d2004ace3c1b7599767c82f37242c21b032"
+    },
+    {
+      "evidence_id": "openrouter.provider-routing.v2",
+      "provider_id": "openrouter",
+      "model_id": "minimax/minimax-m2.7",
+      "upstream_provider_id": "minimax",
+      "category": "provider_routing",
+      "status": "accepted",
+      "value": "variable_by_default",
+      "source": {
+        "title": "Provider Routing",
+        "canonical_url": "https://openrouter.ai/docs/guides/routing/provider-selection",
+        "publisher": "OpenRouter",
+        "retrieved_at": "2026-07-13T00:00:00.000Z",
+        "effective_at": null
+      },
+      "applicability": {
+        "scope": "route",
+        "exact_scope": "Default OpenRouter routing for a model slug",
+        "route_mode": "variable",
+        "route_provider_id": "minimax"
+      },
+      "review": {
+        "status": "reviewed_approved",
+        "reviewed_at": "2026-07-13T00:00:00.000Z",
+        "review_record_ref": "reports/ai-82-primary-provider-evidence-review-2026-07-13.md"
+      },
+      "expires_at": "2026-08-12T00:00:00.000Z",
+      "finding": "Default requests are load-balanced among available providers with fallbacks; provider preferences can constrain but this candidate does not define an evidenced fixed route.",
+      "limitations": [
+        "No exact endpoint allowlist, order, or fallback prohibition is approved."
+      ],
+      "conflict_status": "none",
+      "conflicts_with": [],
+      "evidence_hash": "868d9dcf15676869d6b8375e6a877fa5bfa8011cbe0b2a2008487f4ef0fece6e"
+    },
+    {
+      "evidence_id": "openrouter.rate-limits.v2",
+      "provider_id": "openrouter",
+      "model_id": null,
+      "upstream_provider_id": "minimax",
+      "category": "rate_concurrency_limits",
+      "status": "unknown",
+      "source": {
+        "title": "Limits",
+        "canonical_url": "https://openrouter.ai/docs/api/reference/limits",
+        "publisher": "OpenRouter",
+        "retrieved_at": "2026-07-13T00:00:00.000Z",
+        "effective_at": null
+      },
+      "applicability": {
+        "scope": "provider_wide",
+        "exact_scope": "OpenRouter account and free-tier limits",
+        "route_mode": "not_applicable",
+        "route_provider_id": null
+      },
+      "review": {
+        "status": "reviewed_approved",
+        "reviewed_at": "2026-07-13T00:00:00.000Z",
+        "review_record_ref": "reports/ai-82-primary-provider-evidence-review-2026-07-13.md"
+      },
+      "expires_at": "2026-08-12T00:00:00.000Z",
+      "finding": "Limits vary by model and account; no exact paid-account concurrency limit for this candidate is public.",
+      "limitations": [
+        "A live key lookup would be account-specific and is prohibited in AI-82."
+      ],
+      "conflict_status": "none",
+      "conflicts_with": [],
+      "evidence_hash": "d4ffbe5caaf6470f7c47972a647e34bfc72fe30c4abe7f51c41b654794f4515c"
+    },
+    {
+      "evidence_id": "openrouter.processing-regions.v2",
+      "provider_id": "openrouter",
+      "model_id": "minimax/minimax-m2.7",
+      "upstream_provider_id": "minimax",
+      "category": "processing_regions",
+      "status": "unknown",
+      "source": {
+        "title": "Provider Logging",
+        "canonical_url": "https://openrouter.ai/docs/guides/privacy/provider-logging/",
+        "publisher": "OpenRouter",
+        "retrieved_at": "2026-07-13T00:00:00.000Z",
+        "effective_at": null
+      },
+      "applicability": {
+        "scope": "route",
+        "exact_scope": "OpenRouter and upstream processing for the candidate route",
+        "route_mode": "variable",
+        "route_provider_id": "minimax"
+      },
+      "review": {
+        "status": "reviewed_approved",
+        "reviewed_at": "2026-07-13T00:00:00.000Z",
+        "review_record_ref": "reports/ai-82-primary-provider-evidence-review-2026-07-13.md"
+      },
+      "expires_at": "2026-08-12T00:00:00.000Z",
+      "finding": "EU routing is an enterprise option, but no exact region is established for the unconfigured candidate route.",
+      "limitations": [
+        "OpenRouter region and upstream endpoint region must both be evidenced."
+      ],
+      "conflict_status": "none",
+      "conflicts_with": [],
+      "evidence_hash": "b7bf1955aac7ddf9f166602809d300c184fdaf481d735d6ab9f5d11c27947232"
+    },
+    {
+      "evidence_id": "openrouter.retention.v2",
+      "provider_id": "openrouter",
+      "model_id": "minimax/minimax-m2.7",
+      "upstream_provider_id": "minimax",
+      "category": "retention",
+      "status": "unknown",
+      "source": {
+        "title": "Provider Logging",
+        "canonical_url": "https://openrouter.ai/docs/guides/privacy/provider-logging/",
+        "publisher": "OpenRouter",
+        "retrieved_at": "2026-07-13T00:00:00.000Z",
+        "effective_at": null
+      },
+      "applicability": {
+        "scope": "route",
+        "exact_scope": "OpenRouter plus selected upstream endpoint",
+        "route_mode": "variable",
+        "route_provider_id": "minimax"
+      },
+      "review": {
+        "status": "reviewed_approved",
+        "reviewed_at": "2026-07-13T00:00:00.000Z",
+        "review_record_ref": "reports/ai-82-primary-provider-evidence-review-2026-07-13.md"
+      },
+      "expires_at": "2026-08-12T00:00:00.000Z",
+      "finding": "OpenRouter and each upstream endpoint have distinct retention behavior; the variable candidate route is not sufficiently scoped.",
+      "limitations": [
+        "Provider-wide declarations cannot prove endpoint behavior."
+      ],
+      "conflict_status": "none",
+      "conflicts_with": [],
+      "evidence_hash": "5b749a8b0536627c59ca2cca0257852cb1e1b0d7fe1dba6ae0f571317ae018e1"
+    },
+    {
+      "evidence_id": "openrouter.training-use.v2",
+      "provider_id": "openrouter",
+      "model_id": "minimax/minimax-m2.7",
+      "upstream_provider_id": "minimax",
+      "category": "training_use",
+      "status": "unknown",
+      "source": {
+        "title": "Provider Logging",
+        "canonical_url": "https://openrouter.ai/docs/guides/privacy/provider-logging/",
+        "publisher": "OpenRouter",
+        "retrieved_at": "2026-07-13T00:00:00.000Z",
+        "effective_at": null
+      },
+      "applicability": {
+        "scope": "route",
+        "exact_scope": "Selected OpenRouter upstream endpoint",
+        "route_mode": "variable",
+        "route_provider_id": "minimax"
+      },
+      "review": {
+        "status": "reviewed_approved",
+        "reviewed_at": "2026-07-13T00:00:00.000Z",
+        "review_record_ref": "reports/ai-82-primary-provider-evidence-review-2026-07-13.md"
+      },
+      "expires_at": "2026-08-12T00:00:00.000Z",
+      "finding": "Data-collection filtering exists, but no fixed candidate endpoint and applicable upstream policy are approved.",
+      "limitations": [
+        "OpenRouter controls do not prove every upstream provider's independent behavior."
+      ],
+      "conflict_status": "none",
+      "conflicts_with": [],
+      "evidence_hash": "9cb0cf3bc72ba54501ec38aa9ff2d762138b16ec4aa114e3f90d02e86dfb97fe"
+    },
+    {
+      "evidence_id": "openrouter.zdr.v2",
+      "provider_id": "openrouter",
+      "model_id": "minimax/minimax-m2.7",
+      "upstream_provider_id": "minimax",
+      "category": "zdr_status",
+      "status": "unknown",
+      "source": {
+        "title": "Zero Data Retention",
+        "canonical_url": "https://openrouter.ai/docs/guides/features/zdr",
+        "publisher": "OpenRouter",
+        "retrieved_at": "2026-07-13T00:00:00.000Z",
+        "effective_at": null
+      },
+      "applicability": {
+        "scope": "route",
+        "exact_scope": "Per-request ZDR filtering across OpenRouter and an eligible endpoint",
+        "route_mode": "variable",
+        "route_provider_id": "minimax"
+      },
+      "review": {
+        "status": "reviewed_approved",
+        "reviewed_at": "2026-07-13T00:00:00.000Z",
+        "review_record_ref": "reports/ai-82-primary-provider-evidence-review-2026-07-13.md"
+      },
+      "expires_at": "2026-08-12T00:00:00.000Z",
+      "finding": "OpenRouter can filter to endpoints it labels ZDR, but this is not proof for a fixed MiniMax M2.7 endpoint or an AI-73 profile scope.",
+      "limitations": [
+        "No ZDR claim is accepted; in-memory caching is treated as non-retention by OpenRouter."
+      ],
+      "conflict_status": "none",
+      "conflicts_with": [],
+      "evidence_hash": "1a76cc388b02b67cef75a35f106e67686c243422fa3fdd6b01def7dfd06afd48"
+    },
+    {
+      "evidence_id": "openrouter.security-compliance.v2",
+      "provider_id": "openrouter",
+      "model_id": null,
+      "upstream_provider_id": "minimax",
+      "category": "security_compliance",
+      "status": "unknown",
+      "source": {
+        "title": "Privacy Policy",
+        "canonical_url": "https://openrouter.ai/privacy",
+        "publisher": "OpenRouter",
+        "retrieved_at": "2026-07-13T00:00:00.000Z",
+        "effective_at": "2026-07-06T00:00:00.000Z"
+      },
+      "applicability": {
+        "scope": "provider_wide",
+        "exact_scope": "OpenRouter service security statements",
+        "route_mode": "not_applicable",
+        "route_provider_id": null
+      },
+      "review": {
+        "status": "reviewed_approved",
+        "reviewed_at": "2026-07-13T00:00:00.000Z",
+        "review_record_ref": "reports/ai-82-primary-provider-evidence-review-2026-07-13.md"
+      },
+      "expires_at": "2026-10-11T00:00:00.000Z",
+      "finding": "The policy states general security measures, but no reviewed public certification or exact upstream security scope was found.",
+      "limitations": [
+        "A general security statement is not compliance certification."
+      ],
+      "conflict_status": "none",
+      "conflicts_with": [],
+      "evidence_hash": "1050ba23e637bec4abc2d90d69442a265129edd9226b31a313af340fa88a7e5b"
+    },
+    {
+      "evidence_id": "openrouter.normative-extraction.v2",
+      "provider_id": "openrouter",
+      "model_id": "minimax/minimax-m2.7",
+      "upstream_provider_id": "minimax",
+      "category": "normative_claim_extraction",
+      "status": "unknown",
+      "source": {
+        "title": "MiniMax M2.7",
+        "canonical_url": "https://openrouter.ai/minimax/minimax-m2.7",
+        "publisher": "OpenRouter",
+        "retrieved_at": "2026-07-13T00:00:00.000Z",
+        "effective_at": null
+      },
+      "applicability": {
+        "scope": "model",
+        "exact_scope": "Published model capabilities",
+        "route_mode": "variable",
+        "route_provider_id": "minimax"
+      },
+      "review": {
+        "status": "reviewed_approved",
+        "reviewed_at": "2026-07-13T00:00:00.000Z",
+        "review_record_ref": "reports/ai-82-primary-provider-evidence-review-2026-07-13.md"
+      },
+      "expires_at": "2026-10-11T00:00:00.000Z",
+      "finding": "General document and tool capability claims do not prove the repository's normative-claim extraction contract.",
+      "limitations": [
+        "AI-75 through AI-77 evaluation evidence is required before capability acceptance."
+      ],
+      "conflict_status": "none",
+      "conflicts_with": [],
+      "evidence_hash": "ad6b844d4ed8718e44de3ca49142c04db650b9508e32198e7af95067d370a34c"
+    },
+    {
+      "evidence_id": "openrouter.restrictions.v2",
+      "provider_id": "openrouter",
+      "model_id": null,
+      "upstream_provider_id": "minimax",
+      "category": "contractual_operational_restrictions",
+      "status": "accepted",
+      "value": [
+        "human_review_required",
+        "upstream_terms_apply",
+        "no_provider_warranty"
+      ],
+      "source": {
+        "title": "Terms of Service",
+        "canonical_url": "https://openrouter.ai/terms",
+        "publisher": "OpenRouter",
+        "retrieved_at": "2026-07-13T00:00:00.000Z",
+        "effective_at": "2026-07-06T00:00:00.000Z"
+      },
+      "applicability": {
+        "scope": "provider_wide",
+        "exact_scope": "OpenRouter service terms",
+        "route_mode": "not_applicable",
+        "route_provider_id": null
+      },
+      "review": {
+        "status": "reviewed_approved",
+        "reviewed_at": "2026-07-13T00:00:00.000Z",
+        "review_record_ref": "reports/ai-82-primary-provider-evidence-review-2026-07-13.md"
+      },
+      "expires_at": "2026-10-11T00:00:00.000Z",
+      "finding": "Terms place output evaluation and safeguards on the user and disclaim warranties for upstream privacy, retention, training, security, and availability.",
+      "limitations": ["Contract review by counsel has not occurred."],
+      "conflict_status": "none",
+      "conflicts_with": [],
+      "evidence_hash": "e5a722e0015f266b4d3b06ee69974cb08cebc1740b7eb47277bbba8c18d8d063"
+    },
+    {
+      "evidence_id": "minimax-direct.provider-identity.v2",
+      "provider_id": "minimax-direct",
+      "model_id": null,
+      "upstream_provider_id": null,
+      "category": "provider_identity",
+      "status": "accepted",
+      "value": "Nanonoble Pte. Ltd. and affiliates",
+      "source": {
+        "title": "MiniMax API Privacy Policy",
+        "canonical_url": "https://platform.minimax.io/protocol/privacy-policy",
+        "publisher": "MiniMax",
+        "retrieved_at": "2026-07-13T00:00:00.000Z",
+        "effective_at": "2026-03-30T00:00:00.000Z"
+      },
+      "applicability": {
+        "scope": "provider_wide",
+        "exact_scope": "MiniMax Open Platform API service",
+        "route_mode": "not_applicable",
+        "route_provider_id": null
+      },
+      "review": {
+        "status": "reviewed_approved",
+        "reviewed_at": "2026-07-13T00:00:00.000Z",
+        "review_record_ref": "reports/ai-82-primary-provider-evidence-review-2026-07-13.md"
+      },
+      "expires_at": "2026-10-11T00:00:00.000Z",
+      "finding": "The API privacy policy identifies Nanonoble Pte. Ltd. and affiliates as the service provider.",
+      "limitations": [
+        "Corporate affiliate allocation is not further resolved."
+      ],
+      "conflict_status": "none",
+      "conflicts_with": [],
+      "evidence_hash": "0e65e59a0d83a80ab6b44aa5104c146749c7a8d154141d211cda39ebb080fed4"
+    },
+    {
+      "evidence_id": "minimax-direct.model-identity.v2",
+      "provider_id": "minimax-direct",
+      "model_id": "MiniMax-M2.7",
+      "upstream_provider_id": null,
+      "category": "model_identity",
+      "status": "accepted",
+      "value": "MiniMax-M2.7",
+      "source": {
+        "title": "Text Generation",
+        "canonical_url": "https://platform.minimax.io/docs/guides/text-generation",
+        "publisher": "MiniMax",
+        "retrieved_at": "2026-07-13T00:00:00.000Z",
+        "effective_at": "2026-03-18T00:00:00.000Z"
+      },
+      "applicability": {
+        "scope": "model",
+        "exact_scope": "MiniMax Direct model identifier MiniMax-M2.7",
+        "route_mode": "fixed",
+        "route_provider_id": "minimax-direct"
+      },
+      "review": {
+        "status": "reviewed_approved",
+        "reviewed_at": "2026-07-13T00:00:00.000Z",
+        "review_record_ref": "reports/ai-82-primary-provider-evidence-review-2026-07-13.md"
+      },
+      "expires_at": "2026-10-11T00:00:00.000Z",
+      "finding": "MiniMax documents the exact direct API model identifier MiniMax-M2.7.",
+      "limitations": ["This evidence does not apply to aggregator routes."],
+      "conflict_status": "none",
+      "conflicts_with": [],
+      "evidence_hash": "847e45f3a78fe7aff1cbbf22cabbbf6076833dfb67057fcd03351bccd6575fb1"
+    },
+    {
+      "evidence_id": "minimax-direct.model-lifecycle.v2",
+      "provider_id": "minimax-direct",
+      "model_id": "MiniMax-M2.7",
+      "upstream_provider_id": null,
+      "category": "model_lifecycle",
+      "status": "accepted",
+      "value": {
+        "released_at": "2026-03-18",
+        "available": true
+      },
+      "source": {
+        "title": "Models Release Notes",
+        "canonical_url": "https://platform.minimax.io/docs/release-notes/models",
+        "publisher": "MiniMax",
+        "retrieved_at": "2026-07-13T00:00:00.000Z",
+        "effective_at": "2026-03-18T00:00:00.000Z"
+      },
+      "applicability": {
+        "scope": "model",
+        "exact_scope": "MiniMax-M2.7 release and current docs listing",
+        "route_mode": "fixed",
+        "route_provider_id": "minimax-direct"
+      },
+      "review": {
+        "status": "reviewed_approved",
+        "reviewed_at": "2026-07-13T00:00:00.000Z",
+        "review_record_ref": "reports/ai-82-primary-provider-evidence-review-2026-07-13.md"
+      },
+      "expires_at": "2026-10-11T00:00:00.000Z",
+      "finding": "Official release notes date M2.7 to March 18, 2026 and current API docs list it.",
+      "limitations": ["No contractual deprecation notice period is public."],
+      "conflict_status": "none",
+      "conflicts_with": [],
+      "evidence_hash": "d3934e79d2516ac6753ce8d462ecad19e7fd1d3fdcc663ef9ae9d0f29588a6bf"
+    },
+    {
+      "evidence_id": "minimax-direct.api-endpoint.v2",
+      "provider_id": "minimax-direct",
+      "model_id": "MiniMax-M2.7",
+      "upstream_provider_id": null,
+      "category": "api_endpoint",
+      "status": "accepted",
+      "value": [
+        "https://api.minimax.io/v1",
+        "https://api.minimax.io/anthropic"
+      ],
+      "source": {
+        "title": "Compatible OpenAI API",
+        "canonical_url": "https://platform.minimax.io/docs/api-reference/text-openai-api",
+        "publisher": "MiniMax",
+        "retrieved_at": "2026-07-13T00:00:00.000Z",
+        "effective_at": null
+      },
+      "applicability": {
+        "scope": "endpoint",
+        "exact_scope": "International MiniMax OpenAI- and Anthropic-compatible text endpoints",
+        "route_mode": "fixed",
+        "route_provider_id": "minimax-direct"
+      },
+      "review": {
+        "status": "reviewed_approved",
+        "reviewed_at": "2026-07-13T00:00:00.000Z",
+        "review_record_ref": "reports/ai-82-primary-provider-evidence-review-2026-07-13.md"
+      },
+      "expires_at": "2026-10-11T00:00:00.000Z",
+      "finding": "MiniMax publishes direct OpenAI-compatible and Anthropic-compatible API base URLs.",
+      "limitations": ["No endpoint was called and no credential was created."],
+      "conflict_status": "none",
+      "conflicts_with": [],
+      "evidence_hash": "24285dec3b984c0f4f4a08d761216fab087e65253b474d42a46b0b2500093bd6"
+    },
+    {
+      "evidence_id": "minimax-direct.context-limits.v2",
+      "provider_id": "minimax-direct",
+      "model_id": "MiniMax-M2.7",
+      "upstream_provider_id": null,
+      "category": "context_limits",
+      "status": "accepted",
+      "value": {
+        "context_tokens": 204800,
+        "max_output_tokens": null
+      },
+      "source": {
+        "title": "Text Generation",
+        "canonical_url": "https://platform.minimax.io/docs/guides/text-generation",
+        "publisher": "MiniMax",
+        "retrieved_at": "2026-07-13T00:00:00.000Z",
+        "effective_at": null
+      },
+      "applicability": {
+        "scope": "model",
+        "exact_scope": "MiniMax-M2.7 direct API",
+        "route_mode": "fixed",
+        "route_provider_id": "minimax-direct"
+      },
+      "review": {
+        "status": "reviewed_approved",
+        "reviewed_at": "2026-07-13T00:00:00.000Z",
+        "review_record_ref": "reports/ai-82-primary-provider-evidence-review-2026-07-13.md"
+      },
+      "expires_at": "2026-10-11T00:00:00.000Z",
+      "finding": "The official model overview publishes a 204,800-token context window.",
+      "limitations": [
+        "The reviewed page does not publish a distinct exact maximum output limit."
+      ],
+      "conflict_status": "none",
+      "conflicts_with": [],
+      "evidence_hash": "e153a283a7ca2433795655f8cd2a4a653837e92a8c5b68342c782ae93c614225"
+    },
+    {
+      "evidence_id": "minimax-direct.structured-outputs.v2",
+      "provider_id": "minimax-direct",
+      "model_id": "MiniMax-M2.7",
+      "upstream_provider_id": null,
+      "category": "structured_outputs",
+      "status": "unknown",
+      "source": {
+        "title": "Compatible OpenAI API",
+        "canonical_url": "https://platform.minimax.io/docs/api-reference/text-openai-api",
+        "publisher": "MiniMax",
+        "retrieved_at": "2026-07-13T00:00:00.000Z",
+        "effective_at": null
+      },
+      "applicability": {
+        "scope": "model",
+        "exact_scope": "MiniMax-M2.7 OpenAI-compatible endpoint",
+        "route_mode": "fixed",
+        "route_provider_id": "minimax-direct"
+      },
+      "review": {
+        "status": "reviewed_approved",
+        "reviewed_at": "2026-07-13T00:00:00.000Z",
+        "review_record_ref": "reports/ai-82-primary-provider-evidence-review-2026-07-13.md"
+      },
+      "expires_at": "2026-08-12T00:00:00.000Z",
+      "finding": "Current M2.7 compatibility docs do not explicitly establish strict JSON Schema-constrained output for M2.7.",
+      "limitations": [
+        "Older standard API docs limit response_format to a different model; no inference is made."
+      ],
+      "conflict_status": "none",
+      "conflicts_with": [],
+      "evidence_hash": "638be58bf9197cd206f27c3ed2542286a5206cd56e9193d926716d0d7c17c8e8"
+    },
+    {
+      "evidence_id": "minimax-direct.tool-calling.v2",
+      "provider_id": "minimax-direct",
+      "model_id": "MiniMax-M2.7",
+      "upstream_provider_id": null,
+      "category": "tool_calling",
+      "status": "accepted",
+      "value": {
+        "tools": true,
+        "interleaved_thinking": true
+      },
+      "source": {
+        "title": "Compatible OpenAI API",
+        "canonical_url": "https://platform.minimax.io/docs/api-reference/text-openai-api",
+        "publisher": "MiniMax",
+        "retrieved_at": "2026-07-13T00:00:00.000Z",
+        "effective_at": null
+      },
+      "applicability": {
+        "scope": "model",
+        "exact_scope": "MiniMax-M2.7 direct OpenAI-compatible API",
+        "route_mode": "fixed",
+        "route_provider_id": "minimax-direct"
+      },
+      "review": {
+        "status": "reviewed_approved",
+        "reviewed_at": "2026-07-13T00:00:00.000Z",
+        "review_record_ref": "reports/ai-82-primary-provider-evidence-review-2026-07-13.md"
+      },
+      "expires_at": "2026-10-11T00:00:00.000Z",
+      "finding": "The compatible API documents tool-call conversation handling for M2.7.",
+      "limitations": ["No local correctness benchmark was run."],
+      "conflict_status": "none",
+      "conflicts_with": [],
+      "evidence_hash": "ec81073386c869983b6292220769c59650df64cb791cfea5743ec41bb54aebe2"
+    },
+    {
+      "evidence_id": "minimax-direct.multimodal.v2",
+      "provider_id": "minimax-direct",
+      "model_id": "MiniMax-M2.7",
+      "upstream_provider_id": null,
+      "category": "multimodal",
+      "status": "rejected",
+      "source": {
+        "title": "Compatible OpenAI API",
+        "canonical_url": "https://platform.minimax.io/docs/api-reference/text-openai-api",
+        "publisher": "MiniMax",
+        "retrieved_at": "2026-07-13T00:00:00.000Z",
+        "effective_at": null
+      },
+      "applicability": {
+        "scope": "model",
+        "exact_scope": "MiniMax-M2.7 OpenAI-compatible text API",
+        "route_mode": "fixed",
+        "route_provider_id": "minimax-direct"
+      },
+      "review": {
+        "status": "reviewed_approved",
+        "reviewed_at": "2026-07-13T00:00:00.000Z",
+        "review_record_ref": "reports/ai-82-primary-provider-evidence-review-2026-07-13.md"
+      },
+      "expires_at": "2026-10-11T00:00:00.000Z",
+      "finding": "The compatible text API states that image and audio inputs are not currently supported.",
+      "limitations": [
+        "This does not evaluate MiniMax's separate media generation models."
+      ],
+      "conflict_status": "none",
+      "conflicts_with": [],
+      "evidence_hash": "1a0343efe3666dff39bf3c3b8e329398c450502d300f89dc81ed1456b9650c84"
+    },
+    {
+      "evidence_id": "minimax-direct.token-accounting.v2",
+      "provider_id": "minimax-direct",
+      "model_id": "MiniMax-M2.7",
+      "upstream_provider_id": null,
+      "category": "token_accounting",
+      "status": "accepted",
+      "value": ["prompt_tokens", "completion_tokens", "total_tokens"],
+      "source": {
+        "title": "Compatible OpenAI API",
+        "canonical_url": "https://platform.minimax.io/docs/api-reference/text-openai-api",
+        "publisher": "MiniMax",
+        "retrieved_at": "2026-07-13T00:00:00.000Z",
+        "effective_at": null
+      },
+      "applicability": {
+        "scope": "endpoint",
+        "exact_scope": "MiniMax direct OpenAI-compatible response usage",
+        "route_mode": "fixed",
+        "route_provider_id": "minimax-direct"
+      },
+      "review": {
+        "status": "reviewed_approved",
+        "reviewed_at": "2026-07-13T00:00:00.000Z",
+        "review_record_ref": "reports/ai-82-primary-provider-evidence-review-2026-07-13.md"
+      },
+      "expires_at": "2026-10-11T00:00:00.000Z",
+      "finding": "The compatible response exposes normalized token totals.",
+      "limitations": ["No live reconciliation against billing was performed."],
+      "conflict_status": "none",
+      "conflicts_with": [],
+      "evidence_hash": "d2d94e3378e5e2b948c069df7ec9b84716c31c2735ec9fd719fe3a86e749de1d"
+    },
+    {
+      "evidence_id": "minimax-direct.cached-reasoning-accounting.v2",
+      "provider_id": "minimax-direct",
+      "model_id": "MiniMax-M2.7",
+      "upstream_provider_id": null,
+      "category": "cached_reasoning_token_accounting",
+      "status": "accepted",
+      "value": [
+        "cache_read_input_tokens",
+        "cache_creation_input_tokens",
+        "reasoning_details"
+      ],
+      "source": {
+        "title": "Prompt Caching",
+        "canonical_url": "https://platform.minimax.io/docs/api-reference/text-prompt-caching",
+        "publisher": "MiniMax",
+        "retrieved_at": "2026-07-13T00:00:00.000Z",
+        "effective_at": null
+      },
+      "applicability": {
+        "scope": "model",
+        "exact_scope": "MiniMax-M2.7 direct compatible APIs",
+        "route_mode": "fixed",
+        "route_provider_id": "minimax-direct"
+      },
+      "review": {
+        "status": "reviewed_approved",
+        "reviewed_at": "2026-07-13T00:00:00.000Z",
+        "review_record_ref": "reports/ai-82-primary-provider-evidence-review-2026-07-13.md"
+      },
+      "expires_at": "2026-10-11T00:00:00.000Z",
+      "finding": "MiniMax documents cache read/create usage and separate reasoning details for M2.7-compatible APIs.",
+      "limitations": ["Cache expiry for passive caching is load-dependent."],
+      "conflict_status": "none",
+      "conflicts_with": [],
+      "evidence_hash": "275dc636e9789a0d648cca23d79346ecdae73f39d8e7bf62ac7ce52e28ede296"
+    },
+    {
+      "evidence_id": "minimax-direct.pricing.v2",
+      "provider_id": "minimax-direct",
+      "model_id": "MiniMax-M2.7",
+      "upstream_provider_id": null,
+      "category": "pricing",
+      "status": "accepted",
+      "value": {
+        "currency": "USD",
+        "denominator_tokens": 1000000,
+        "input": 0.3,
+        "output": 1.2,
+        "cache_read": 0.06,
+        "cache_write": 0.375
+      },
+      "source": {
+        "title": "Pay as You Go",
+        "canonical_url": "https://platform.minimax.io/docs/guides/pricing-paygo",
+        "publisher": "MiniMax",
+        "retrieved_at": "2026-07-13T00:00:00.000Z",
+        "effective_at": null
+      },
+      "applicability": {
+        "scope": "model",
+        "exact_scope": "MiniMax-M2.7 standard-priority direct pay-as-you-go API",
+        "route_mode": "fixed",
+        "route_provider_id": "minimax-direct"
+      },
+      "review": {
+        "status": "reviewed_approved",
+        "reviewed_at": "2026-07-13T00:00:00.000Z",
+        "review_record_ref": "reports/ai-82-primary-provider-evidence-review-2026-07-13.md"
+      },
+      "expires_at": "2026-08-12T00:00:00.000Z",
+      "finding": "The official pay-as-you-go table publishes input, output, cache-read, and cache-write USD prices per million tokens.",
+      "limitations": [
+        "Taxes, enterprise terms, and future price changes are excluded; AI-74 catalog is not modified."
+      ],
+      "conflict_status": "none",
+      "conflicts_with": [],
+      "evidence_hash": "0700746379924aa1a0e2715b51ecec742edff491fc0b5645f5f8fd87bc14cfbc"
+    },
+    {
+      "evidence_id": "minimax-direct.provider-routing.v2",
+      "provider_id": "minimax-direct",
+      "model_id": "MiniMax-M2.7",
+      "upstream_provider_id": null,
+      "category": "provider_routing",
+      "status": "accepted",
+      "value": "direct_provider_endpoint",
+      "source": {
+        "title": "Compatible OpenAI API",
+        "canonical_url": "https://platform.minimax.io/docs/api-reference/text-openai-api",
+        "publisher": "MiniMax",
+        "retrieved_at": "2026-07-13T00:00:00.000Z",
+        "effective_at": null
+      },
+      "applicability": {
+        "scope": "endpoint",
+        "exact_scope": "Direct api.minimax.io endpoint",
+        "route_mode": "fixed",
+        "route_provider_id": "minimax-direct"
+      },
+      "review": {
+        "status": "reviewed_approved",
+        "reviewed_at": "2026-07-13T00:00:00.000Z",
+        "review_record_ref": "reports/ai-82-primary-provider-evidence-review-2026-07-13.md"
+      },
+      "expires_at": "2026-10-11T00:00:00.000Z",
+      "finding": "The candidate is scoped to MiniMax's own API domain rather than an aggregator.",
+      "limitations": [
+        "Internal infrastructure and subprocessors are not identified by this endpoint evidence."
+      ],
+      "conflict_status": "none",
+      "conflicts_with": [],
+      "evidence_hash": "0e2a4e010373026d7ac0b758dc05cae4c639057dc1c1c73b16d929c44752bcfb"
+    },
+    {
+      "evidence_id": "minimax-direct.rate-limits.v2",
+      "provider_id": "minimax-direct",
+      "model_id": null,
+      "upstream_provider_id": null,
+      "category": "rate_concurrency_limits",
+      "status": "unknown",
+      "source": {
+        "title": "Rate Limits",
+        "canonical_url": "https://platform.minimax.io/docs/guides/rate-limits",
+        "publisher": "MiniMax",
+        "retrieved_at": "2026-07-13T00:00:00.000Z",
+        "effective_at": null
+      },
+      "applicability": {
+        "scope": "provider_wide",
+        "exact_scope": "Published MiniMax text API limits",
+        "route_mode": "not_applicable",
+        "route_provider_id": null
+      },
+      "review": {
+        "status": "reviewed_approved",
+        "reviewed_at": "2026-07-13T00:00:00.000Z",
+        "review_record_ref": "reports/ai-82-primary-provider-evidence-review-2026-07-13.md"
+      },
+      "expires_at": "2026-08-12T00:00:00.000Z",
+      "finding": "The current public table is account/model dependent and does not publish an exact M2.7 concurrency limit.",
+      "limitations": [
+        "Older M2-family RPM/TPM figures are not applied to M2.7."
+      ],
+      "conflict_status": "none",
+      "conflicts_with": [],
+      "evidence_hash": "66a26df90d93346b5df264a9266404b066cf0362d11e8d040ce8959bcad7a088"
+    },
+    {
+      "evidence_id": "minimax-direct.processing-regions.v2",
+      "provider_id": "minimax-direct",
+      "model_id": null,
+      "upstream_provider_id": null,
+      "category": "processing_regions",
+      "status": "unknown",
+      "source": {
+        "title": "MiniMax API Privacy Policy",
+        "canonical_url": "https://platform.minimax.io/protocol/privacy-policy",
+        "publisher": "MiniMax",
+        "retrieved_at": "2026-07-13T00:00:00.000Z",
+        "effective_at": "2026-03-30T00:00:00.000Z"
+      },
+      "applicability": {
+        "scope": "provider_wide",
+        "exact_scope": "MiniMax API personal-data storage and processing",
+        "route_mode": "not_applicable",
+        "route_provider_id": null
+      },
+      "review": {
+        "status": "reviewed_approved",
+        "reviewed_at": "2026-07-13T00:00:00.000Z",
+        "review_record_ref": "reports/ai-82-primary-provider-evidence-review-2026-07-13.md"
+      },
+      "expires_at": "2026-10-11T00:00:00.000Z",
+      "finding": "The policy says personal data is stored in the United States and may be processed by vendors, but does not prove exclusive inference processing regions for M2.7.",
+      "limitations": [
+        "Storage location is not treated as complete inference-region evidence."
+      ],
+      "conflict_status": "none",
+      "conflicts_with": [],
+      "evidence_hash": "caecc35f2e392b3600baa7788a4ac1d82431b6fd2946427e7f0cfdd0ca20ede0"
+    },
+    {
+      "evidence_id": "minimax-direct.retention.v2",
+      "provider_id": "minimax-direct",
+      "model_id": null,
+      "upstream_provider_id": null,
+      "category": "retention",
+      "status": "unknown",
+      "source": {
+        "title": "MiniMax API Privacy Policy",
+        "canonical_url": "https://platform.minimax.io/protocol/privacy-policy",
+        "publisher": "MiniMax",
+        "retrieved_at": "2026-07-13T00:00:00.000Z",
+        "effective_at": "2026-03-30T00:00:00.000Z"
+      },
+      "applicability": {
+        "scope": "provider_wide",
+        "exact_scope": "MiniMax API personal information",
+        "route_mode": "not_applicable",
+        "route_provider_id": null
+      },
+      "review": {
+        "status": "reviewed_approved",
+        "reviewed_at": "2026-07-13T00:00:00.000Z",
+        "review_record_ref": "reports/ai-82-primary-provider-evidence-review-2026-07-13.md"
+      },
+      "expires_at": "2026-10-11T00:00:00.000Z",
+      "finding": "Retention is described by necessity, legal, quality, and consent criteria without a bounded prompt/output duration.",
+      "limitations": [
+        "No fixed API input/output retention period is accepted."
+      ],
+      "conflict_status": "none",
+      "conflicts_with": [],
+      "evidence_hash": "3ed6e16155cdd2e788304501dc8671e020f8584c919cff333ad60b5e30b289f2"
+    },
+    {
+      "evidence_id": "minimax-direct.training-use.v2",
+      "provider_id": "minimax-direct",
+      "model_id": null,
+      "upstream_provider_id": null,
+      "category": "training_use",
+      "status": "unknown",
+      "source": {
+        "title": "MiniMax API Privacy Policy",
+        "canonical_url": "https://platform.minimax.io/protocol/privacy-policy",
+        "publisher": "MiniMax",
+        "retrieved_at": "2026-07-13T00:00:00.000Z",
+        "effective_at": "2026-03-30T00:00:00.000Z"
+      },
+      "applicability": {
+        "scope": "provider_wide",
+        "exact_scope": "MiniMax API personal information and messages/content",
+        "route_mode": "not_applicable",
+        "route_provider_id": null
+      },
+      "review": {
+        "status": "reviewed_approved",
+        "reviewed_at": "2026-07-13T00:00:00.000Z",
+        "review_record_ref": "reports/ai-82-primary-provider-evidence-review-2026-07-13.md"
+      },
+      "expires_at": "2026-10-11T00:00:00.000Z",
+      "finding": "The policy limits use of input personal data for profiling/targeting, but does not explicitly prohibit model training on all API inputs and outputs.",
+      "limitations": [
+        "A narrow personal-data statement is not a provider-wide no-training commitment."
+      ],
+      "conflict_status": "none",
+      "conflicts_with": [],
+      "evidence_hash": "b5c28d240a2252885e698f6038b432820d5bf50e82860c581f232cf146ebeca0"
+    },
+    {
+      "evidence_id": "minimax-direct.zdr.v2",
+      "provider_id": "minimax-direct",
+      "model_id": null,
+      "upstream_provider_id": null,
+      "category": "zdr_status",
+      "status": "unknown",
+      "source": {
+        "title": "MiniMax API Privacy Policy",
+        "canonical_url": "https://platform.minimax.io/protocol/privacy-policy",
+        "publisher": "MiniMax",
+        "retrieved_at": "2026-07-13T00:00:00.000Z",
+        "effective_at": "2026-03-30T00:00:00.000Z"
+      },
+      "applicability": {
+        "scope": "provider_wide",
+        "exact_scope": "MiniMax API service",
+        "route_mode": "not_applicable",
+        "route_provider_id": null
+      },
+      "review": {
+        "status": "reviewed_approved",
+        "reviewed_at": "2026-07-13T00:00:00.000Z",
+        "review_record_ref": "reports/ai-82-primary-provider-evidence-review-2026-07-13.md"
+      },
+      "expires_at": "2026-08-12T00:00:00.000Z",
+      "finding": "No explicit applicable zero-data-retention commitment was found in the reviewed public API policy.",
+      "limitations": [
+        "ZDR remains unknown and cannot populate AI-73 verified evidence."
+      ],
+      "conflict_status": "none",
+      "conflicts_with": [],
+      "evidence_hash": "b12fb81d9cfd9c217d0bc46a30b4f6258a63021ef758d8a14e88707cf3324fda"
+    },
+    {
+      "evidence_id": "minimax-direct.security-compliance.v2",
+      "provider_id": "minimax-direct",
+      "model_id": null,
+      "upstream_provider_id": null,
+      "category": "security_compliance",
+      "status": "unknown",
+      "source": {
+        "title": "MiniMax API Privacy Policy",
+        "canonical_url": "https://platform.minimax.io/protocol/privacy-policy",
+        "publisher": "MiniMax",
+        "retrieved_at": "2026-07-13T00:00:00.000Z",
+        "effective_at": "2026-03-30T00:00:00.000Z"
+      },
+      "applicability": {
+        "scope": "provider_wide",
+        "exact_scope": "MiniMax API service security statements",
+        "route_mode": "not_applicable",
+        "route_provider_id": null
+      },
+      "review": {
+        "status": "reviewed_approved",
+        "reviewed_at": "2026-07-13T00:00:00.000Z",
+        "review_record_ref": "reports/ai-82-primary-provider-evidence-review-2026-07-13.md"
+      },
+      "expires_at": "2026-10-11T00:00:00.000Z",
+      "finding": "The policy describes reasonable safeguards but no reviewed public certification or audit report was located.",
+      "limitations": [
+        "A general safeguards statement is not independent compliance evidence."
+      ],
+      "conflict_status": "none",
+      "conflicts_with": [],
+      "evidence_hash": "b43d80b150096c017e91289b4ff1ad2a773ac87fb8510dd12244fc46b8d8ce1d"
+    },
+    {
+      "evidence_id": "minimax-direct.normative-extraction.v2",
+      "provider_id": "minimax-direct",
+      "model_id": "MiniMax-M2.7",
+      "upstream_provider_id": null,
+      "category": "normative_claim_extraction",
+      "status": "unknown",
+      "source": {
+        "title": "Text Generation",
+        "canonical_url": "https://platform.minimax.io/docs/guides/text-generation",
+        "publisher": "MiniMax",
+        "retrieved_at": "2026-07-13T00:00:00.000Z",
+        "effective_at": null
+      },
+      "applicability": {
+        "scope": "model",
+        "exact_scope": "Published MiniMax-M2.7 capabilities",
+        "route_mode": "fixed",
+        "route_provider_id": "minimax-direct"
+      },
+      "review": {
+        "status": "reviewed_approved",
+        "reviewed_at": "2026-07-13T00:00:00.000Z",
+        "review_record_ref": "reports/ai-82-primary-provider-evidence-review-2026-07-13.md"
+      },
+      "expires_at": "2026-10-11T00:00:00.000Z",
+      "finding": "Published programming, tool, search, and office claims do not prove the repository's regulatory extraction capability.",
+      "limitations": [
+        "AI-83 live benchmark work is required after all privacy gates are satisfied."
+      ],
+      "conflict_status": "none",
+      "conflicts_with": [],
+      "evidence_hash": "80a7512ed57473bf05fa484250a4cf780798a4c128290779890d146b1d1dcfce"
+    },
+    {
+      "evidence_id": "minimax-direct.restrictions.v2",
+      "provider_id": "minimax-direct",
+      "model_id": null,
+      "upstream_provider_id": null,
+      "category": "contractual_operational_restrictions",
+      "status": "accepted",
+      "value": [
+        "service_rules_apply",
+        "content_controls",
+        "usage_limits",
+        "human_legal_review_required"
+      ],
+      "source": {
+        "title": "Terms of Service",
+        "canonical_url": "https://platform.minimax.io/protocol/terms-of-service",
+        "publisher": "MiniMax",
+        "retrieved_at": "2026-07-13T00:00:00.000Z",
+        "effective_at": "2026-03-30T00:00:00.000Z"
+      },
+      "applicability": {
+        "scope": "provider_wide",
+        "exact_scope": "MiniMax Open Platform service",
+        "route_mode": "not_applicable",
+        "route_provider_id": null
+      },
+      "review": {
+        "status": "reviewed_approved",
+        "reviewed_at": "2026-07-13T00:00:00.000Z",
+        "review_record_ref": "reports/ai-82-primary-provider-evidence-review-2026-07-13.md"
+      },
+      "expires_at": "2026-10-11T00:00:00.000Z",
+      "finding": "Use is subject to current platform service rules, pricing, privacy, security, and content restrictions.",
+      "limitations": ["Public review is not legal or procurement approval."],
+      "conflict_status": "none",
+      "conflicts_with": [],
+      "evidence_hash": "6179e923551572a7db4ac320190f3726e56c01d8cc42fefadc8d3652191e336b"
     }
   ]
 }

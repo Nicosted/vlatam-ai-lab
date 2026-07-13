@@ -1,34 +1,83 @@
 {
-  "schema_version": "1.0.0",
+  "schema_version": "2.0.0",
+  "evaluated_at": "2026-07-13T00:00:00.000Z",
   "profiles": [
     {
-      "profile_id": "normative-claims.openrouter.pending.v1",
+      "profile_id": "normative-claims.openrouter.minimax-m2.7.v1",
       "provider_id": "openrouter",
-      "model_id": null,
+      "model_id": "minimax/minimax-m2.7",
+      "upstream_provider_id": "minimax",
       "lifecycle_status": "candidate",
       "enabled": false,
-      "evidence_refs": ["openrouter.unreviewed.placeholder.v1"],
+      "evidence_refs": [
+        "openrouter.provider-identity.v2",
+        "openrouter.model-identity.v2",
+        "openrouter.model-lifecycle.v2",
+        "openrouter.api-endpoint.v2",
+        "openrouter.context-limits.v2",
+        "openrouter.structured-outputs.v2",
+        "openrouter.tool-calling.v2",
+        "openrouter.multimodal.v2",
+        "openrouter.token-accounting.v2",
+        "openrouter.cached-reasoning-accounting.v2",
+        "openrouter.pricing.v2",
+        "openrouter.provider-routing.v2",
+        "openrouter.rate-limits.v2",
+        "openrouter.processing-regions.v2",
+        "openrouter.retention.v2",
+        "openrouter.training-use.v2",
+        "openrouter.zdr.v2",
+        "openrouter.security-compliance.v2",
+        "openrouter.normative-extraction.v2",
+        "openrouter.restrictions.v2"
+      ],
       "runtime_eligibility": "blocked",
       "blocking_reasons": [
-        "unreviewed_evidence",
-        "unknown_model_identity",
+        "unsupported_capability",
         "privacy_unknown",
-        "pricing_unknown"
+        "variable_provider_routing",
+        "missing_upstream_provider_evidence",
+        "rate_limits_unknown",
+        "security_compliance_unknown",
+        "human_decision_required"
       ]
     },
     {
-      "profile_id": "normative-claims.minimax-direct.pending.v1",
+      "profile_id": "normative-claims.minimax-direct.m2.7.v1",
       "provider_id": "minimax-direct",
-      "model_id": null,
+      "model_id": "MiniMax-M2.7",
+      "upstream_provider_id": null,
       "lifecycle_status": "candidate",
       "enabled": false,
-      "evidence_refs": ["minimax-direct.unreviewed.placeholder.v1"],
+      "evidence_refs": [
+        "minimax-direct.provider-identity.v2",
+        "minimax-direct.model-identity.v2",
+        "minimax-direct.model-lifecycle.v2",
+        "minimax-direct.api-endpoint.v2",
+        "minimax-direct.context-limits.v2",
+        "minimax-direct.structured-outputs.v2",
+        "minimax-direct.tool-calling.v2",
+        "minimax-direct.multimodal.v2",
+        "minimax-direct.token-accounting.v2",
+        "minimax-direct.cached-reasoning-accounting.v2",
+        "minimax-direct.pricing.v2",
+        "minimax-direct.provider-routing.v2",
+        "minimax-direct.rate-limits.v2",
+        "minimax-direct.processing-regions.v2",
+        "minimax-direct.retention.v2",
+        "minimax-direct.training-use.v2",
+        "minimax-direct.zdr.v2",
+        "minimax-direct.security-compliance.v2",
+        "minimax-direct.normative-extraction.v2",
+        "minimax-direct.restrictions.v2"
+      ],
       "runtime_eligibility": "blocked",
       "blocking_reasons": [
-        "unreviewed_evidence",
-        "unknown_model_identity",
+        "unsupported_capability",
         "privacy_unknown",
-        "pricing_unknown"
+        "rate_limits_unknown",
+        "security_compliance_unknown",
+        "human_decision_required"
       ]
     }
   ]

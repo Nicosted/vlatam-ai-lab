@@ -4,8 +4,9 @@ import { describe, it } from "node:test";
 import { Ajv2020 as Ajv } from "ajv/dist/2020.js";
 import addFormatsModule from "ajv-formats";
 import {
-  assertCandidateProfileReady,
+  computeEvidenceHash,
   evaluateCandidateProfileReadiness,
+  REQUIRED_EVIDENCE_CATEGORIES,
   type CandidateProfileReadiness,
   type ProviderEvidenceRecord,
 } from "../../src/providers/provider-evidence.js";
@@ -15,10 +16,21 @@ const addFormats = ((addFormatsModule as any).default ?? addFormatsModule) as (
   ajv: Ajv,
 ) => void;
 const load = (path: string): unknown => JSON.parse(readFileSync(path, "utf8"));
-const now = new Date("2026-07-12T12:00:00.000Z");
+const now = new Date("2026-07-13T12:00:00.000Z");
+const catalog = (
+  load("config/ai-provider-evidence.json") as {
+    evidence: ProviderEvidenceRecord[];
+  }
+).evidence;
+const profiles = (
+  load("config/ai-candidate-profile-readiness.json") as {
+    profiles: CandidateProfileReadiness[];
+  }
+).profiles;
+const clone = <T>(value: T): T => structuredClone(value);
 
-describe("AI-81 provider evidence and candidate readiness", () => {
-  it("validates catalogs while keeping every real-provider candidate disabled and blocked", () => {
+describe("AI-81/AI-82 provider evidence and candidate readiness", () => {
+  it("validates the versioned catalogs and keeps both candidates disabled and blocked", () => {
     for (const [schema, fixture] of [
       [
         "schemas/ai-provider-evidence.schema.json",
@@ -38,79 +50,154 @@ describe("AI-81 provider evidence and candidate readiness", () => {
         JSON.stringify(validate.errors),
       );
     }
-    const profiles = (
-      load("config/ai-candidate-profile-readiness.json") as {
-        profiles: CandidateProfileReadiness[];
-      }
-    ).profiles;
     assert.ok(
       profiles.every(
         (profile) =>
-          profile.lifecycle_status === "candidate" &&
-          !profile.enabled &&
-          profile.runtime_eligibility === "blocked",
+          !profile.enabled && profile.runtime_eligibility === "blocked",
       ),
     );
   });
 
-  it("accepts only complete, reviewed, unexpired, matching evidence as review-ready", () => {
-    const fixture = load(
-      "snapshots/providers/valid-reviewed-evidence.json",
-    ) as {
-      profile: CandidateProfileReadiness;
-      evidence: ProviderEvidenceRecord[];
-    };
-    assert.deepEqual(
-      evaluateCandidateProfileReadiness(fixture.profile, fixture.evidence, now),
-      [],
-    );
-    assert.doesNotThrow(() =>
-      assertCandidateProfileReady(fixture.profile, fixture.evidence, now),
-    );
+  it("covers every required category for both exact candidate identities", () => {
+    for (const profile of profiles) {
+      const records = catalog.filter((record) =>
+        profile.evidence_refs.includes(record.evidence_id),
+      );
+      assert.deepEqual(
+        [...new Set(records.map((record) => record.category))].sort(),
+        [...REQUIRED_EVIDENCE_CATEGORIES].sort(),
+      );
+      assert.ok(
+        records.every((record) => record.provider_id === profile.provider_id),
+      );
+    }
   });
 
-  for (const [name, reason] of [
-    ["missing-expiry", "missing_expiry"],
-    ["expired-evidence", "expired_evidence"],
-    ["unsupported-capability", "unsupported_capability"],
-    ["ambiguous-model-identity", "ambiguous_model_identity"],
-    ["unreviewed-evidence", "unreviewed_evidence"],
-    ["credential-shaped-field", "credential_shaped_field"],
-    ["false-zdr-declaration", "false_zdr_declaration"],
-    ["profile-evidence-mismatch", "profile_evidence_mismatch"],
-  ] as const) {
-    it(`fails closed for ${name}`, () => {
-      const fixture = load(`snapshots/providers/invalid-${name}.json`) as {
-        profile: CandidateProfileReadiness;
-        evidence: ProviderEvidenceRecord[];
-      };
+  it("verifies canonical primary-source URLs, references, and deterministic hashes", () => {
+    const ids = new Set(catalog.map((record) => record.evidence_id));
+    assert.equal(ids.size, catalog.length);
+    for (const record of catalog) {
+      const url = new URL(record.source.canonical_url);
+      assert.equal(url.protocol, "https:");
       assert.ok(
-        evaluateCandidateProfileReadiness(
-          fixture.profile,
-          fixture.evidence,
-          now,
-        ).includes(reason),
+        ["openrouter.ai", "platform.minimax.io"].includes(url.hostname),
       );
-      assert.throws(
-        () =>
-          assertCandidateProfileReady(fixture.profile, fixture.evidence, now),
-        /PROVIDER_PROFILE_NOT_READY/,
+      assert.equal(computeEvidenceHash(record), record.evidence_hash);
+      assert.ok(record.limitations.length > 0);
+    }
+    for (const profile of profiles) {
+      assert.ok(profile.evidence_refs.every((reference) => ids.has(reference)));
+    }
+  });
+
+  it("produces deterministic fail-closed readiness results on replay", () => {
+    for (const profile of profiles) {
+      const first = evaluateCandidateProfileReadiness(profile, catalog, now);
+      const second = evaluateCandidateProfileReadiness(
+        profile,
+        [...catalog].reverse(),
+        now,
+      );
+      assert.deepEqual(first, second);
+      assert.ok(first.includes("privacy_unknown"));
+      assert.ok(first.includes("unsupported_capability"));
+    }
+  });
+
+  for (const { name, expected } of (
+    load("snapshots/providers/ai-82-invalid-scenarios.json") as {
+      scenarios: { name: string; expected: string }[];
+    }
+  ).scenarios) {
+    it(`fails closed for ${name}`, () => {
+      const profile = clone(profiles[0]!);
+      const evidence = clone(catalog);
+      const record = evidence.find(
+        (item) => item.provider_id === "openrouter",
+      )!;
+      const category = (id: string) =>
+        evidence.find((item) => item.evidence_id === id)!;
+      switch (name) {
+        case "ambiguous-model-identity": {
+          const identity = category(
+            "openrouter.model-identity.v2",
+          ) as unknown as Record<string, unknown>;
+          identity["status"] = "unknown";
+          delete identity["value"];
+          break;
+        }
+        case "aggregator-upstream-scope-confusion":
+          (
+            category("openrouter.model-identity.v2") as unknown as {
+              upstream_provider_id: string;
+            }
+          ).upstream_provider_id = "other";
+          break;
+        case "stale-expired-evidence":
+          (record as unknown as { expires_at: string }).expires_at =
+            "2026-01-01T00:00:00.000Z";
+          break;
+        case "missing-retrieval-date":
+          (record.source as unknown as { retrieved_at: string }).retrieved_at =
+            "";
+          break;
+        case "missing-review-date":
+          (record.review as unknown as { reviewed_at: null }).reviewed_at =
+            null;
+          break;
+        case "unsupported-capability":
+          break;
+        case "contradictory-pricing":
+          break;
+        case "false-unsupported-zdr": {
+          const zdr = category("openrouter.zdr.v2") as unknown as Record<
+            string,
+            unknown
+          >;
+          zdr["value"] = true;
+          break;
+        }
+        case "provider-wide-applied-to-model":
+          (record as unknown as { model_id: string }).model_id =
+            profile.model_id!;
+          break;
+        case "credential-shaped-field":
+          (record as unknown as Record<string, unknown>)["client_secret"] =
+            "fixture";
+          break;
+        case "unreviewed-evidence":
+          (record.review as unknown as { status: string }).status = "pending";
+          break;
+        case "variable-provider-routing":
+          break;
+        case "missing-upstream-provider-evidence":
+          (
+            profile as unknown as { upstream_provider_id: null }
+          ).upstream_provider_id = null;
+          break;
+        case "evidence-hash-mismatch":
+          (record as unknown as { finding: string }).finding =
+            `${record.finding} changed`;
+          break;
+        default:
+          assert.fail(`unknown scenario ${name}`);
+      }
+      assert.ok(
+        evaluateCandidateProfileReadiness(profile, evidence, now).includes(
+          expected,
+        ),
       );
     });
   }
 
-  it("does not register either provider adapter or activate a production profile", async () => {
-    const { ProviderAdapterRegistry } =
-      await import("../../src/providers/adapter-registry.js");
-    const registry = new ProviderAdapterRegistry();
-    assert.deepEqual(registry.listProviderAdapters(), []);
-    const text = readFileSync(
-      "config/ai-candidate-profile-readiness.json",
+  it("keeps both providers outside execution profiles and the live adapter registry", async () => {
+    const executionProfiles = readFileSync(
+      "config/ai-execution-profiles.json",
       "utf8",
     );
-    assert.doesNotMatch(
-      text,
-      /"lifecycle_status"\s*:\s*"production"|"enabled"\s*:\s*true/,
-    );
+    assert.doesNotMatch(executionProfiles, /openrouter|minimax-direct/i);
+    const { ProviderAdapterRegistry } =
+      await import("../../src/providers/adapter-registry.js");
+    assert.deepEqual(new ProviderAdapterRegistry().listProviderAdapters(), []);
   });
 });

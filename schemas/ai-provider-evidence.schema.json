@@ -1,130 +1,137 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://vlatam-ai-lab.local/schemas/ai-provider-evidence.schema.json",
-  "title": "AI-81 reviewed provider evidence catalog",
+  "title": "AI-82 primary-source provider evidence catalog",
   "type": "object",
   "additionalProperties": false,
   "required": ["schema_version", "evidence"],
   "properties": {
-    "schema_version": { "const": "1.0.0" },
+    "schema_version": { "const": "2.0.0" },
     "evidence": {
       "type": "array",
+      "minItems": 1,
       "items": { "$ref": "#/$defs/evidence_record" }
     }
   },
   "$defs": {
-    "claim": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["status"],
-      "properties": {
-        "status": { "enum": ["supported", "unsupported", "unknown"] },
-        "value": {},
-        "source_ref": { "type": "string", "minLength": 1 }
-      },
-      "allOf": [
-        {
-          "if": {
-            "properties": { "status": { "enum": ["supported", "unsupported"] } }
-          },
-          "then": {
-            "required": ["value", "source_ref"],
-            "properties": { "value": {}, "source_ref": { "type": "string" } }
-          }
-        },
-        {
-          "if": { "properties": { "status": { "const": "unknown" } } },
-          "then": {
-            "not": { "required": ["value"] },
-            "properties": { "value": {} }
-          }
-        }
-      ]
-    },
     "evidence_record": {
       "type": "object",
       "additionalProperties": false,
       "required": [
         "evidence_id",
-        "provider_identity",
-        "model_identity",
-        "claims",
+        "provider_id",
+        "model_id",
+        "upstream_provider_id",
+        "category",
+        "status",
         "source",
+        "applicability",
         "review",
-        "expires_at"
+        "expires_at",
+        "finding",
+        "limitations",
+        "conflict_status",
+        "conflicts_with",
+        "evidence_hash"
       ],
       "properties": {
         "evidence_id": {
           "type": "string",
           "pattern": "^[a-z0-9][a-z0-9._-]+$"
         },
-        "provider_identity": { "$ref": "#/$defs/claim" },
-        "model_identity": { "$ref": "#/$defs/claim" },
-        "claims": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "supported_capabilities",
+        "provider_id": { "enum": ["openrouter", "minimax-direct"] },
+        "model_id": { "type": ["string", "null"], "minLength": 1 },
+        "upstream_provider_id": { "type": ["string", "null"], "minLength": 1 },
+        "category": {
+          "enum": [
+            "provider_identity",
+            "model_identity",
+            "model_lifecycle",
+            "api_endpoint",
             "context_limits",
             "structured_outputs",
             "tool_calling",
             "multimodal",
-            "prompt_caching",
-            "usage_reporting",
+            "token_accounting",
+            "cached_reasoning_token_accounting",
+            "pricing",
+            "provider_routing",
+            "rate_concurrency_limits",
             "processing_regions",
             "retention",
             "training_use",
             "zdr_status",
-            "pricing"
-          ],
-          "properties": {
-            "supported_capabilities": { "$ref": "#/$defs/claim" },
-            "context_limits": { "$ref": "#/$defs/claim" },
-            "structured_outputs": { "$ref": "#/$defs/claim" },
-            "tool_calling": { "$ref": "#/$defs/claim" },
-            "multimodal": { "$ref": "#/$defs/claim" },
-            "prompt_caching": { "$ref": "#/$defs/claim" },
-            "usage_reporting": { "$ref": "#/$defs/claim" },
-            "processing_regions": { "$ref": "#/$defs/claim" },
-            "retention": { "$ref": "#/$defs/claim" },
-            "training_use": { "$ref": "#/$defs/claim" },
-            "zdr_status": { "$ref": "#/$defs/claim" },
-            "pricing": { "$ref": "#/$defs/claim" }
-          }
+            "security_compliance",
+            "normative_claim_extraction",
+            "contractual_operational_restrictions"
+          ]
         },
+        "status": {
+          "enum": ["accepted", "rejected", "conflicting", "unknown"]
+        },
+        "value": {},
         "source": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["kind", "reference", "captured_at"],
+          "required": [
+            "title",
+            "canonical_url",
+            "publisher",
+            "retrieved_at",
+            "effective_at"
+          ],
           "properties": {
-            "kind": {
-              "enum": [
-                "provider_declaration",
-                "independent_review",
-                "contract_review",
-                "local_fixture"
-              ]
+            "title": { "type": "string", "minLength": 1 },
+            "canonical_url": {
+              "type": "string",
+              "format": "uri",
+              "pattern": "^https://"
             },
-            "reference": { "type": "string", "minLength": 1 },
-            "captured_at": { "type": "string", "format": "date-time" }
+            "publisher": { "enum": ["OpenRouter", "MiniMax"] },
+            "retrieved_at": { "type": "string", "format": "date-time" },
+            "effective_at": {
+              "type": ["string", "null"],
+              "format": "date-time"
+            }
+          }
+        },
+        "applicability": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scope",
+            "exact_scope",
+            "route_mode",
+            "route_provider_id"
+          ],
+          "properties": {
+            "scope": {
+              "enum": ["provider_wide", "model", "endpoint", "route"]
+            },
+            "exact_scope": { "type": "string", "minLength": 1 },
+            "route_mode": { "enum": ["fixed", "variable", "not_applicable"] },
+            "route_provider_id": { "type": ["string", "null"], "minLength": 1 }
           }
         },
         "review": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["status"],
+          "required": ["status", "reviewed_at", "review_record_ref"],
           "properties": {
             "status": { "enum": ["reviewed_approved", "pending", "rejected"] },
-            "reviewed_at": { "type": "string", "format": "date-time" },
-            "review_record_ref": { "type": "string", "minLength": 1 }
+            "reviewed_at": {
+              "type": ["string", "null"],
+              "format": "date-time"
+            },
+            "review_record_ref": { "type": ["string", "null"], "minLength": 1 }
           },
           "allOf": [
             {
               "if": {
-                "properties": { "status": { "const": "reviewed_approved" } }
+                "properties": { "status": { "const": "reviewed_approved" } },
+                "required": ["status"]
               },
               "then": {
-                "required": ["reviewed_at", "review_record_ref"],
                 "properties": {
                   "reviewed_at": { "type": "string" },
                   "review_record_ref": { "type": "string" }
@@ -133,8 +140,41 @@
             }
           ]
         },
-        "expires_at": { "type": "string", "format": "date-time" }
-      }
+        "expires_at": { "type": "string", "format": "date-time" },
+        "finding": { "type": "string", "minLength": 1 },
+        "limitations": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "conflict_status": { "enum": ["none", "unresolved", "resolved"] },
+        "conflicts_with": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "evidence_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "status": { "const": "accepted" } },
+            "required": ["status"]
+          },
+          "then": { "required": ["value"], "properties": { "value": {} } }
+        },
+        {
+          "if": {
+            "properties": { "conflict_status": { "const": "unresolved" } },
+            "required": ["conflict_status"]
+          },
+          "then": {
+            "properties": {
+              "conflicts_with": { "type": "array", "minItems": 1 }
+            }
+          }
+        }
+      ]
     }
   }
 }

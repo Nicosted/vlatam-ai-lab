@@ -1,17 +1,27 @@
-# AI-81 provider evidence and candidate readiness
+# AI-82 primary-source provider evidence readiness
 
-AI-81 separates three states that must never be conflated:
+AI-81 established disabled candidate placeholders and the fail-closed distinction between declarations, reviewed evidence, and runtime eligibility. AI-81.1 is the corrective contract evolution captured in AI-82: schema version `2.0.0` closes provenance, scope, routing, conflict, review-date, and stable-hash gaps that could not be added honestly without replacing the incomplete `1.0.0` record shape.
 
-1. A **provider declaration** is a sourced claim. It is not proof.
-2. **Reviewed evidence** is explicit, scoped, current, and human-approved.
-3. **Runtime eligibility** is a later gateway decision and requires all prior privacy, pricing, routing, authorization, and consumption gates.
+Every evidence claim now binds an exact provider and model scope, upstream-provider scope where applicable, official publisher/title/canonical URL, retrieval and effective dates, category, applicability and route mode, review state, re-review date, finding, limitations, conflicts, and a canonical SHA-256 hash. `unknown`, `rejected`, conflicting, stale, unreviewed, incorrectly scoped, or hash-invalid evidence fails closed.
 
-`config/ai-provider-evidence.json` contains honest local placeholders for the requested OpenRouter and MiniMax candidates. No provider documentation or contractual evidence was approved for collection in this change, so model identity, capabilities, limits, structured output, tools, multimodal behavior, caching, usage, regions, retention, training use, ZDR, and pricing remain `unknown`.
+## Candidate results
 
-`config/ai-candidate-profile-readiness.json` consequently marks both definitions `candidate`, `enabled: false`, and `runtime_eligibility: blocked`. They are deliberately separate from `config/ai-execution-profiles.json`; no adapter is registered and no live call is possible.
+| Candidate      | Exact identity                                                                  | Accepted evidence                                                                      | Blocking evidence                                                                                                                                                                          | AI-82 result         |
+| -------------- | ------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------- |
+| OpenRouter     | router `openrouter`; model `minimax/minimax-m2.7`; upstream model owner MiniMax | exact model slug, endpoints, context, response-format support, tools, normalized usage | default route is variable; endpoint pricing conflicts; exact upstream retention/training/ZDR/region evidence is missing; normative extraction is unevaluated                               | disabled and blocked |
+| MiniMax Direct | provider `minimax-direct`; model `MiniMax-M2.7`                                 | direct endpoints, context, tools, usage/cache accounting, direct pay-as-you-go pricing | strict schema-constrained output, exact rate/concurrency limits, bounded retention, no-training, ZDR, processing region, compliance certification, and normative extraction remain unknown | disabled and blocked |
 
-The deterministic evaluator fails closed for missing or expired evidence, pending review, ambiguous identity, unsupported capability, credential-shaped fields, false ZDR claims, and profile/evidence mismatches. Evidence expiry is evaluated against an injected clock so tests require no network or provider credentials.
+OpenRouter evidence is never reused as proof of MiniMax Direct behavior. MiniMax Direct evidence is never treated as proof for a particular OpenRouter endpoint. Provider-wide evidence cannot be silently narrowed to a model, and an OpenRouter model slug does not pin an upstream serving endpoint.
 
-## Limitations and human decision
+## Deterministic lifecycle
 
-Provider terms, exact model IDs, pricing, regions, retention, training use, and ZDR require separately reviewed primary evidence. Until that review exists, AI-82 and AI-83 cannot safely select exact models or assert privacy and budget compatibility.
+1. JSON Schema validates structural provenance and review metadata.
+2. Evidence hashes are recomputed over canonical JSON excluding `evidence_hash`.
+3. Profile references, exact identities, categories, source scope, conflicts, expiry, and review state are evaluated.
+4. Privacy categories and normative-extraction capabilities must be explicitly accepted; no branding inference is allowed.
+5. OpenRouter additionally requires an exact fixed route and applicable upstream-provider evidence.
+6. The result is decision support only. No automatic approval, profile promotion, adapter registration, or provider call exists.
+
+## AI-83 entry gate
+
+AI-83 may begin controlled adapter and live benchmark work only after a human approves one exact candidate and route; all required evidence is reviewed, unexpired, non-conflicting, and hash-valid; AI-73-compatible retention, training, region, and explicit ZDR evidence is approved for the exact profile/capability/classification scope; AI-74-compatible exact pricing and accounting units are approved; required structured output is proven; and the candidate remains behind a separately reviewed, disabled-by-default adapter/profile change. AI-82 does not satisfy that gate.
