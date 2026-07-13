@@ -35,7 +35,7 @@
       "invalid_fixtures": [],
       "test_file": "tests/providers/provider-evidence.test.ts",
       "status": "implemented",
-      "purpose": "Records disabled OpenRouter and MiniMax candidate definitions and fail-closed readiness.",
+      "purpose": "Records the one-route MiniMax Direct evaluation, the unselected OpenRouter block, exact readiness result, evidence gaps, and zero-call controls.",
       "downstream_role": "Review surface only; no adapter registration, production promotion or execution.",
       "requires_human_review_semantics": true,
       "requires_traceability": true,

@@ -1,4 +1,22 @@
-# AI-82 primary-source provider evidence readiness
+# AI-83 governed provider candidate readiness
+
+## Current controlled decision
+
+Exactly one route was selected for revalidation on 2026-07-13: MiniMax Direct
+provider `minimax-direct`, model `MiniMax-M2.7`, fixed international
+OpenAI-compatible base endpoint `https://api.minimax.io/v1`. This route has the
+strongest exact evidence already represented locally because the direct endpoint,
+model identity, route ownership, and USD pricing are publisher-scoped and do not
+depend on an aggregator's variable routing.
+
+The deterministic result is `BLOCKED_EVIDENCE_INCOMPLETE`. The candidate remains
+`candidate`, `enabled: false`, runtime-blocked, absent from
+`config/ai-execution-profiles.json`, and absent from adapter registration. No
+adapter, execution profile, provider call, or live benchmark was added.
+
+OpenRouter `minimax/minimax-m2.7` was not evaluated in this work. Its existing
+variable-route evidence remains fail-closed; no endpoint is pinned and it remains
+disabled and blocked.
 
 AI-81 established disabled candidate placeholders and the fail-closed distinction between declarations, reviewed evidence, and runtime eligibility. AI-81.1 is the corrective contract evolution captured in AI-82: schema version `2.0.0` closes provenance, scope, routing, conflict, review-date, and stable-hash gaps that could not be added honestly without replacing the incomplete `1.0.0` record shape.
 
@@ -22,6 +40,19 @@ OpenRouter evidence is never reused as proof of MiniMax Direct behavior. MiniMax
 5. OpenRouter additionally requires an exact fixed route and applicable upstream-provider evidence.
 6. The result is decision support only. No automatic approval, profile promotion, adapter registration, or provider call exists.
 
-## AI-83 entry gate
+## Remaining adapter entry gate
 
-AI-83 may begin controlled adapter and live benchmark work only after a human approves one exact candidate and route; all required evidence is reviewed, unexpired, non-conflicting, and hash-valid; AI-73-compatible retention, training, region, and explicit ZDR evidence is approved for the exact profile/capability/classification scope; AI-74-compatible exact pricing and accounting units are approved; required structured output is proven; and the candidate remains behind a separately reviewed, disabled-by-default adapter/profile change. AI-82 does not satisfy that gate.
+A disabled adapter may be proposed only after strict structured output and the exact
+output limit are proved; exact rate/concurrency limits are accepted; retention,
+training use, processing region, and ZDR are explicitly evidenced without
+inference; security/compliance evidence is accepted; and the exact capability is
+validated against registered public AI-76 fixtures. The AI-74 integer-minor-unit
+catalog also cannot currently encode MiniMax's exact USD 0.375 cache-write price
+per million tokens, so pricing resolution must be corrected without weakening
+durable budget semantics. Human review remains mandatory after those gaps close.
+
+Live execution additionally requires the existing explicit flag and server-side
+secret, current privacy and pricing approval, durable reservation, consumed AI-80
+authorization, registered public fixture identity, and hard campaign caps of 10
+requests, concurrency 2, and USD 1.00 reserved cost. This decision performed zero
+calls and cost USD 0.00; it did not inspect or request a secret.

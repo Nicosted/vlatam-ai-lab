@@ -1,52 +1,43 @@
 {
-  "schema_version": "2.0.0",
-  "evaluated_at": "2026-07-13T00:00:00.000Z",
+  "schema_version": "3.0.0",
+  "evaluated_at": "2026-07-13T12:00:00.000Z",
+  "evaluated_route_count": 1,
+  "selected_profile_id": "normative-claims.minimax-direct.m2.7.v1",
+  "readiness_result": "BLOCKED_EVIDENCE_INCOMPLETE",
+  "evidence_blockers": [
+    "max_output_limit_unknown",
+    "structured_output_unknown",
+    "pricing_catalog_unit_incompatible",
+    "rate_concurrency_limits_unknown",
+    "processing_region_unknown",
+    "retention_unknown",
+    "training_use_unknown",
+    "zdr_unknown",
+    "security_compliance_unknown",
+    "normative_claim_extraction_unevaluated"
+  ],
+  "controlled_execution": {
+    "adapter_status": "not_added",
+    "execution_profile_status": "not_added",
+    "live_execution_status": "blocked_readiness",
+    "request_count": 0,
+    "actual_cost_minor": "0",
+    "currency": "USD",
+    "limits": {
+      "max_requests": 10,
+      "max_concurrency": 2,
+      "max_reserved_cost_minor": "100"
+    }
+  },
   "profiles": [
-    {
-      "profile_id": "normative-claims.openrouter.minimax-m2.7.v1",
-      "provider_id": "openrouter",
-      "model_id": "minimax/minimax-m2.7",
-      "upstream_provider_id": "minimax",
-      "lifecycle_status": "candidate",
-      "enabled": false,
-      "evidence_refs": [
-        "openrouter.provider-identity.v2",
-        "openrouter.model-identity.v2",
-        "openrouter.model-lifecycle.v2",
-        "openrouter.api-endpoint.v2",
-        "openrouter.context-limits.v2",
-        "openrouter.structured-outputs.v2",
-        "openrouter.tool-calling.v2",
-        "openrouter.multimodal.v2",
-        "openrouter.token-accounting.v2",
-        "openrouter.cached-reasoning-accounting.v2",
-        "openrouter.pricing.v2",
-        "openrouter.provider-routing.v2",
-        "openrouter.rate-limits.v2",
-        "openrouter.processing-regions.v2",
-        "openrouter.retention.v2",
-        "openrouter.training-use.v2",
-        "openrouter.zdr.v2",
-        "openrouter.security-compliance.v2",
-        "openrouter.normative-extraction.v2",
-        "openrouter.restrictions.v2"
-      ],
-      "runtime_eligibility": "blocked",
-      "blocking_reasons": [
-        "unsupported_capability",
-        "privacy_unknown",
-        "variable_provider_routing",
-        "missing_upstream_provider_evidence",
-        "rate_limits_unknown",
-        "security_compliance_unknown",
-        "human_decision_required"
-      ]
-    },
     {
       "profile_id": "normative-claims.minimax-direct.m2.7.v1",
       "provider_id": "minimax-direct",
       "model_id": "MiniMax-M2.7",
       "upstream_provider_id": null,
+      "endpoint": "https://api.minimax.io/v1",
+      "route_mode": "fixed",
+      "evaluation_status": "selected_evaluated",
       "lifecycle_status": "candidate",
       "enabled": false,
       "evidence_refs": [
@@ -79,6 +70,20 @@
         "security_compliance_unknown",
         "human_decision_required"
       ]
+    },
+    {
+      "profile_id": "normative-claims.openrouter.minimax-m2.7.v1",
+      "provider_id": "openrouter",
+      "model_id": "minimax/minimax-m2.7",
+      "upstream_provider_id": "minimax",
+      "endpoint": null,
+      "route_mode": "variable",
+      "evaluation_status": "not_selected",
+      "lifecycle_status": "candidate",
+      "enabled": false,
+      "evidence_refs": [],
+      "runtime_eligibility": "blocked",
+      "blocking_reasons": ["not_selected", "variable_provider_routing"]
     }
   ]
 }

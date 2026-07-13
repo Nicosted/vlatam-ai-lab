@@ -1,69 +1,209 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://vlatam-ai-lab.local/schemas/ai-candidate-profile-readiness.schema.json",
-  "title": "AI-82 disabled provider candidate readiness",
+  "title": "AI-83 controlled provider candidate readiness",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema_version", "evaluated_at", "profiles"],
+  "required": [
+    "schema_version",
+    "evaluated_at",
+    "evaluated_route_count",
+    "selected_profile_id",
+    "readiness_result",
+    "evidence_blockers",
+    "controlled_execution",
+    "profiles"
+  ],
   "properties": {
-    "schema_version": { "const": "2.0.0" },
+    "schema_version": { "const": "3.0.0" },
     "evaluated_at": { "type": "string", "format": "date-time" },
+    "evaluated_route_count": { "const": 1 },
+    "selected_profile_id": {
+      "const": "normative-claims.minimax-direct.m2.7.v1"
+    },
+    "readiness_result": {
+      "enum": [
+        "READY_FOR_DISABLED_ADAPTER",
+        "BLOCKED_EVIDENCE_INCOMPLETE",
+        "BLOCKED_ROUTE_NOT_PINNABLE",
+        "BLOCKED_PRIVACY",
+        "BLOCKED_PRICING",
+        "BLOCKED_CAPABILITY",
+        "BLOCKED_SECRET_ABSENT",
+        "BLOCKED_POLICY"
+      ]
+    },
+    "evidence_blockers": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "max_output_limit_unknown",
+          "structured_output_unknown",
+          "pricing_catalog_unit_incompatible",
+          "rate_concurrency_limits_unknown",
+          "processing_region_unknown",
+          "retention_unknown",
+          "training_use_unknown",
+          "zdr_unknown",
+          "security_compliance_unknown",
+          "normative_claim_extraction_unevaluated"
+        ]
+      }
+    },
+    "controlled_execution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "adapter_status",
+        "execution_profile_status",
+        "live_execution_status",
+        "request_count",
+        "actual_cost_minor",
+        "currency",
+        "limits"
+      ],
+      "properties": {
+        "adapter_status": { "const": "not_added" },
+        "execution_profile_status": { "const": "not_added" },
+        "live_execution_status": { "const": "blocked_readiness" },
+        "request_count": { "const": 0 },
+        "actual_cost_minor": { "const": "0" },
+        "currency": { "const": "USD" },
+        "limits": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "max_requests",
+            "max_concurrency",
+            "max_reserved_cost_minor"
+          ],
+          "properties": {
+            "max_requests": { "const": 10 },
+            "max_concurrency": { "const": 2 },
+            "max_reserved_cost_minor": { "const": "100" }
+          }
+        }
+      }
+    },
     "profiles": {
       "type": "array",
       "minItems": 2,
       "maxItems": 2,
-      "items": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": [
-          "profile_id",
-          "provider_id",
-          "model_id",
-          "upstream_provider_id",
-          "lifecycle_status",
-          "enabled",
-          "evidence_refs",
-          "runtime_eligibility",
-          "blocking_reasons"
-        ],
-        "properties": {
-          "profile_id": {
-            "type": "string",
-            "pattern": "^[a-z0-9][a-z0-9._-]+$"
+      "items": { "$ref": "#/$defs/profile" },
+      "allOf": [
+        {
+          "contains": {
+            "type": "object",
+            "properties": {
+              "evaluation_status": { "const": "selected_evaluated" }
+            },
+            "required": ["evaluation_status"]
           },
-          "provider_id": { "enum": ["openrouter", "minimax-direct"] },
-          "model_id": { "type": "string", "minLength": 1 },
-          "upstream_provider_id": {
-            "type": ["string", "null"],
-            "minLength": 1
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "properties": { "evaluation_status": { "const": "not_selected" } },
+            "required": ["evaluation_status"]
           },
-          "lifecycle_status": { "const": "candidate" },
-          "enabled": { "const": false },
-          "evidence_refs": {
-            "type": "array",
-            "minItems": 20,
-            "uniqueItems": true,
-            "items": { "type": "string", "minLength": 1 }
+          "minContains": 1,
+          "maxContains": 1
+        }
+      ]
+    }
+  },
+  "$defs": {
+    "profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profile_id",
+        "provider_id",
+        "model_id",
+        "upstream_provider_id",
+        "endpoint",
+        "route_mode",
+        "evaluation_status",
+        "lifecycle_status",
+        "enabled",
+        "evidence_refs",
+        "runtime_eligibility",
+        "blocking_reasons"
+      ],
+      "properties": {
+        "profile_id": { "type": "string", "minLength": 1 },
+        "provider_id": { "enum": ["openrouter", "minimax-direct"] },
+        "model_id": { "type": "string", "minLength": 1 },
+        "upstream_provider_id": { "type": ["string", "null"] },
+        "endpoint": { "type": ["string", "null"], "format": "uri" },
+        "route_mode": { "enum": ["fixed", "variable"] },
+        "evaluation_status": { "enum": ["selected_evaluated", "not_selected"] },
+        "lifecycle_status": { "const": "candidate" },
+        "enabled": { "const": false },
+        "evidence_refs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "runtime_eligibility": { "const": "blocked" },
+        "blocking_reasons": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "unsupported_capability",
+              "privacy_unknown",
+              "variable_provider_routing",
+              "rate_limits_unknown",
+              "security_compliance_unknown",
+              "human_decision_required",
+              "not_selected"
+            ]
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "type": "object",
+            "properties": {
+              "evaluation_status": { "const": "selected_evaluated" }
+            },
+            "required": ["evaluation_status"]
           },
-          "runtime_eligibility": { "const": "blocked" },
-          "blocking_reasons": {
-            "type": "array",
-            "minItems": 1,
-            "uniqueItems": true,
-            "items": {
-              "enum": [
-                "unsupported_capability",
-                "privacy_unknown",
-                "variable_provider_routing",
-                "missing_upstream_provider_evidence",
-                "rate_limits_unknown",
-                "security_compliance_unknown",
-                "human_decision_required"
-              ]
+          "then": {
+            "properties": {
+              "provider_id": { "const": "minimax-direct" },
+              "model_id": { "const": "MiniMax-M2.7" },
+              "upstream_provider_id": { "const": null },
+              "endpoint": { "const": "https://api.minimax.io/v1" },
+              "route_mode": { "const": "fixed" },
+              "evidence_refs": { "type": "array", "minItems": 20 }
+            }
+          }
+        },
+        {
+          "if": {
+            "type": "object",
+            "properties": { "evaluation_status": { "const": "not_selected" } },
+            "required": ["evaluation_status"]
+          },
+          "then": {
+            "properties": {
+              "provider_id": { "const": "openrouter" },
+              "model_id": { "const": "minimax/minimax-m2.7" },
+              "endpoint": { "const": null },
+              "route_mode": { "const": "variable" },
+              "evidence_refs": { "type": "array", "maxItems": 0 }
             }
           }
         }
-      }
+      ]
     }
   }
 }

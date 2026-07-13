@@ -58,19 +58,22 @@ describe("AI-81/AI-82 provider evidence and candidate readiness", () => {
     );
   });
 
-  it("covers every required category for both exact candidate identities", () => {
-    for (const profile of profiles) {
-      const records = catalog.filter((record) =>
-        profile.evidence_refs.includes(record.evidence_id),
-      );
-      assert.deepEqual(
-        [...new Set(records.map((record) => record.category))].sort(),
-        [...REQUIRED_EVIDENCE_CATEGORIES].sort(),
-      );
-      assert.ok(
-        records.every((record) => record.provider_id === profile.provider_id),
-      );
-    }
+  it("covers every required category for the one selected candidate identity", () => {
+    const selected = profiles.find(
+      (profile) =>
+        (profile as CandidateProfileReadiness & { evaluation_status?: string })
+          .evaluation_status === "selected_evaluated",
+    )!;
+    const records = catalog.filter((record) =>
+      selected.evidence_refs.includes(record.evidence_id),
+    );
+    assert.deepEqual(
+      [...new Set(records.map((record) => record.category))].sort(),
+      [...REQUIRED_EVIDENCE_CATEGORIES].sort(),
+    );
+    assert.ok(
+      records.every((record) => record.provider_id === selected.provider_id),
+    );
   });
 
   it("verifies canonical primary-source URLs, references, and deterministic hashes", () => {
@@ -85,13 +88,17 @@ describe("AI-81/AI-82 provider evidence and candidate readiness", () => {
       assert.equal(computeEvidenceHash(record), record.evidence_hash);
       assert.ok(record.limitations.length > 0);
     }
-    for (const profile of profiles) {
+    for (const profile of profiles.filter(
+      (item) => item.evidence_refs.length > 0,
+    )) {
       assert.ok(profile.evidence_refs.every((reference) => ids.has(reference)));
     }
   });
 
   it("produces deterministic fail-closed readiness results on replay", () => {
-    for (const profile of profiles) {
+    for (const profile of profiles.filter(
+      (item) => item.evidence_refs.length > 0,
+    )) {
       const first = evaluateCandidateProfileReadiness(profile, catalog, now);
       const second = evaluateCandidateProfileReadiness(
         profile,
@@ -110,7 +117,12 @@ describe("AI-81/AI-82 provider evidence and candidate readiness", () => {
     }
   ).scenarios) {
     it(`fails closed for ${name}`, () => {
-      const profile = clone(profiles[0]!);
+      const profile = clone(
+        profiles.find((item) => item.provider_id === "openrouter")!,
+      ) as CandidateProfileReadiness & { evidence_refs: string[] };
+      profile.evidence_refs = catalog
+        .filter((item) => item.provider_id === "openrouter")
+        .map((item) => item.evidence_id);
       const evidence = clone(catalog);
       const record = evidence.find(
         (item) => item.provider_id === "openrouter",
