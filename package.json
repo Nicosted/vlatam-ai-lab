@@ -5,7 +5,7 @@
   "description": "Experimental AI operations and regulatory intelligence lab for vLatamGlobal (production-isolated sandbox).",
   "type": "module",
   "engines": {
-    "node": ">=20"
+    "node": ">=22.5"
   },
   "scripts": {
     "ai:extract": "tsx scripts/run-extraction.ts",
@@ -48,6 +48,7 @@
     "ai:handoff:concurrency": "tsx scripts/handoff.ts concurrency",
     "ai:handoff:reusable": "tsx scripts/handoff.ts reusable",
     "ai:handoff:profile-version-mismatch": "tsx scripts/handoff.ts profile-version-mismatch",
+    "ai:authorization-store": "tsx scripts/authorization-store.ts",
     "lint": "eslint .",
     "format": "prettier --check .",
     "format:write": "prettier --write .",

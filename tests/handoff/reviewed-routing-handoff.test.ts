@@ -1,4 +1,7 @@
 import assert from "node:assert/strict";
+import { mkdtempSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { describe, it } from "node:test";
 import { normalizeAndHash } from "../../src/evaluation/index.js";
 import type {
@@ -8,6 +11,7 @@ import type {
 import {
   assertHandoffAuditMetadataOnly,
   InMemoryAuthorizationStateStore,
+  SqliteAuthorizationStateStore,
   ReviewedRoutingDecisionHandoff,
   handoffPolicyHash,
   type HandoffAuthorizationPolicy,
@@ -628,5 +632,108 @@ describe("AI-79 reviewed routing decision handoff", () => {
       "AUTHORIZATION_ALREADY_CONSUMED",
     );
     assert.equal(calls, 1);
+  });
+  it("fails closed on durable duplicate, binding conflict, restart, and store failure", async () => {
+    const path = join(
+      mkdtempSync(join(tmpdir(), "ai-80-handoff-")),
+      "store.sqlite",
+    );
+    const durable = new SqliteAuthorizationStateStore({ databasePath: path });
+    durable.initialize();
+    let calls = 0;
+    const make = (store: SqliteAuthorizationStateStore) =>
+      new ReviewedRoutingDecisionHandoff({
+        policy,
+        clock: () => new Date(now),
+        profileResolver: () => profile,
+        authorizationStore: store,
+        gateway: {
+          execute: async () => {
+            calls++;
+            return outcome();
+          },
+        },
+      });
+    const parallel = new SqliteAuthorizationStateStore({ databasePath: path });
+    const results = await Promise.all([
+      make(durable).execute(request()),
+      make(parallel).execute(request()),
+    ]);
+    assert.deepEqual(results.map((value) => value.execution_status).sort(), [
+      "rejected",
+      "succeeded",
+    ]);
+    parallel.close();
+    durable.close();
+    const restarted = new SqliteAuthorizationStateStore({ databasePath: path });
+    assert.equal(
+      (await make(restarted).execute(request())).rejection_reason,
+      "AUTHORIZATION_ALREADY_CONSUMED",
+    );
+    const changed = request();
+    const conflicting = {
+      ...changed,
+      authorization: {
+        ...changed.authorization,
+        handoff_policy_hash: "c".repeat(64),
+      },
+    };
+    // Policy binding validation precedes the store and therefore does not mutate it.
+    assert.equal(
+      (await make(restarted).execute(conflicting)).rejection_reason,
+      "HANDOFF_POLICY_MISMATCH",
+    );
+    assert.equal(calls, 1);
+    const unavailable = new SqliteAuthorizationStateStore({
+      databasePath: "/missing-ai-80-parent/store.sqlite",
+    });
+    assert.equal(
+      (
+        await make(unavailable).execute({
+          ...request(),
+          authorization: {
+            ...request().authorization,
+            authorization_id: "authorization.two",
+          },
+        })
+      ).rejection_reason,
+      "AUTHORIZATION_STORE_UNAVAILABLE",
+    );
+    assert.equal(calls, 1);
+    restarted.close();
+  });
+  it("maps store-level invalid bindings before gateway execution", async () => {
+    let calls = 0;
+    const events: HandoffAuditEvent[] = [];
+    const handoff = new ReviewedRoutingDecisionHandoff({
+      policy,
+      clock: () => new Date(now),
+      profileResolver: () => profile,
+      authorizationStore: { consume: () => "invalid_binding" },
+      auditSink: (event) => events.push(event),
+      gateway: {
+        execute: async () => {
+          calls++;
+          return outcome();
+        },
+      },
+    });
+    const result = await handoff.execute(request());
+    assert.equal(
+      result.rejection_reason,
+      "AUTHORIZATION_STORE_BINDING_INVALID",
+    );
+    assert.equal(calls, 0);
+    assert.equal(
+      events.some(
+        ({ event_type }) =>
+          event_type === "authorization_store_binding_invalid",
+      ),
+      true,
+    );
+    assert.deepEqual(
+      events.flatMap((event) => assertHandoffAuditMetadataOnly(event)),
+      [],
+    );
   });
 });

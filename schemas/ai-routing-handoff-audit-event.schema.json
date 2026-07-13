@@ -27,7 +27,14 @@
         "execution_started",
         "execution_completed",
         "execution_failed",
-        "duplicate_execution_blocked"
+        "duplicate_execution_blocked",
+        "authorization_store_consume_started",
+        "authorization_store_consumed",
+        "authorization_store_duplicate",
+        "authorization_store_binding_conflict",
+        "authorization_store_binding_invalid",
+        "authorization_store_unavailable",
+        "authorization_store_failed"
       ]
     },
     "occurred_at": { "type": "string", "format": "date-time" },

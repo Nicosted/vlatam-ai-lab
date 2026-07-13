@@ -45,9 +45,18 @@ describe("AI-79 handoff schemas", () => {
       "ai-routing-authorization-provenance",
       "ai-routing-handoff-rejection-reason",
       "ai-routing-handoff-audit-event",
+      "ai-authorization-consumption-record",
+      "ai-authorization-store-inspection-result",
+      "ai-authorization-store-schema-metadata",
     ]) {
       const ajv = new Ajv({ strict: false });
       addFormats(ajv);
+      if (file !== "ai-authorization-consumption-record")
+        ajv.addSchema(
+          load(
+            "schemas/ai-authorization-consumption-record.schema.json",
+          ) as object,
+        );
       assert.doesNotThrow(() =>
         ajv.compile(load(`schemas/${file}.schema.json`) as object),
       );

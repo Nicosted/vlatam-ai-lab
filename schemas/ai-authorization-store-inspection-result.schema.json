@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam.local/schemas/ai-authorization-store-inspection-result.schema.json",
+  "title": "AI-80 authorization store inspection result v1",
+  "oneOf": [
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status"],
+      "properties": {
+        "status": { "const": "ok" },
+        "record": { "$ref": "ai-authorization-consumption-record.schema.json" }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "error"],
+      "properties": {
+        "status": { "enum": ["store_unavailable", "store_error"] },
+        "error": { "type": "string" }
+      }
+    }
+  ]
+}

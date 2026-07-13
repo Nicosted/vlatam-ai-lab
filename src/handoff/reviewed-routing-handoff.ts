@@ -123,18 +123,60 @@ export class ReviewedRoutingDecisionHandoff {
     if (!validated.valid)
       return this.result(request, "rejected", validated.rejection_reason);
     if (this.options.policy.authorization_mode === "single_use") {
-      const consumed = this.store.consume(
-        request.authorization.authorization_id,
-        request.authorization.superseded_by !== undefined,
-      );
+      this.audit(request, "authorization_store_consume_started");
+      let consumed: ReturnType<AuthorizationStateStore["consume"]>;
+      try {
+        consumed = this.store.consume({
+          authorization_id: request.authorization.authorization_id,
+          handoff_policy_id: request.authorization.handoff_policy_id,
+          handoff_policy_version: request.authorization.handoff_policy_version,
+          handoff_policy_hash: request.authorization.handoff_policy_hash,
+          decision_hash: request.decision.decision_hash,
+          authorization_mode: this.options.policy.authorization_mode,
+          execution_correlation_id: request.execution_correlation_id,
+          audit_correlation_id: request.audit_correlation_id,
+          ...(request.authorization.superseded_by
+            ? { superseded_by: request.authorization.superseded_by }
+            : {}),
+          consumed_at: this.clock().toISOString(),
+        });
+      } catch {
+        consumed = "store_error";
+      }
       if (consumed !== "consumed") {
-        const reason =
-          consumed === "superseded"
-            ? "AUTHORIZATION_SUPERSEDED"
-            : "AUTHORIZATION_ALREADY_CONSUMED";
-        this.audit(request, "duplicate_execution_blocked", reason);
+        const mapping = {
+          already_consumed: [
+            "AUTHORIZATION_ALREADY_CONSUMED",
+            "authorization_store_duplicate",
+          ],
+          binding_conflict: [
+            "AUTHORIZATION_BINDING_CONFLICT",
+            "authorization_store_binding_conflict",
+          ],
+          invalid_binding: [
+            "AUTHORIZATION_STORE_BINDING_INVALID",
+            "authorization_store_binding_invalid",
+          ],
+          superseded: [
+            "AUTHORIZATION_SUPERSEDED",
+            "authorization_store_failed",
+          ],
+          store_unavailable: [
+            "AUTHORIZATION_STORE_UNAVAILABLE",
+            "authorization_store_unavailable",
+          ],
+          store_error: [
+            "AUTHORIZATION_STORE_ERROR",
+            "authorization_store_failed",
+          ],
+        } as const;
+        const [reason, event] = mapping[consumed];
+        this.audit(request, event, reason);
+        if (consumed === "already_consumed")
+          this.audit(request, "duplicate_execution_blocked", reason);
         return this.result(request, "rejected", reason);
       }
+      this.audit(request, "authorization_store_consumed");
       this.audit(request, "authorization_consumed");
     }
     this.audit(request, "execution_started");
