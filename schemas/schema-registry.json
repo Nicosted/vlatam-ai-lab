@@ -1,6 +1,32 @@
 {
   "contracts": [
     {
+      "contract_name": "ai_provider_evidence",
+      "schema_file": "schemas/ai-provider-evidence.schema.json",
+      "valid_fixture": "config/ai-provider-evidence.json",
+      "invalid_fixtures": [],
+      "test_file": "tests/providers/provider-evidence.test.ts",
+      "status": "implemented",
+      "purpose": "Separates provider declarations, reviewed evidence and expiring claim scope for AI-81.",
+      "downstream_role": "Evidence input to candidate readiness only; never direct runtime eligibility.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": false
+    },
+    {
+      "contract_name": "ai_candidate_profile_readiness",
+      "schema_file": "schemas/ai-candidate-profile-readiness.schema.json",
+      "valid_fixture": "config/ai-candidate-profile-readiness.json",
+      "invalid_fixtures": [],
+      "test_file": "tests/providers/provider-evidence.test.ts",
+      "status": "implemented",
+      "purpose": "Records disabled OpenRouter and MiniMax candidate definitions and fail-closed readiness.",
+      "downstream_role": "Review surface only; no adapter registration, production promotion or execution.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": false
+    },
+    {
       "contract_name": "ai_handoff_authorization_policy",
       "schema_file": "schemas/ai-handoff-authorization-policy.schema.json",
       "valid_fixture": "config/ai-handoff-authorization-policy.json",

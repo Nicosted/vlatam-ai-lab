@@ -1,0 +1,4 @@
+{
+  "profile": { "profile_id": "fixture.openrouter.v1", "provider_id": "openrouter", "model_id": "fixture/model-v2", "lifecycle_status": "candidate", "enabled": false, "evidence_refs": ["fixture.evidence.v1"], "runtime_eligibility": "reviewed_candidate", "blocking_reasons": [] },
+  "evidence": [{ "evidence_id": "fixture.evidence.v1", "provider_identity": { "status": "supported", "value": "minimax-direct" }, "model_identity": { "status": "supported", "value": "fixture/model-v1" }, "claims": { "supported_capabilities": { "status": "supported" } }, "review": { "status": "reviewed_approved" }, "expires_at": "2026-12-31T00:00:00.000Z" }]
+}

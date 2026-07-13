@@ -1,6 +1,9 @@
 # AI Capability Map (AI-70)
 
-Status: documentation-only inventory. Pairs with
+Status: maintained architecture inventory. AI-79 reviewed handoff and AI-80
+durable single-use authorization are delivered. AI-81 adds a review-only
+provider-evidence layer; its OpenRouter and MiniMax definitions remain disabled
+candidates and are not runtime profiles. Pairs with
 `docs/architecture/ai-system-architecture.md` and the declarative catalog at
 `config/ai-capabilities.json`. No runtime code is added by this document.
 

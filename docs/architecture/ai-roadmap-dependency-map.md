@@ -18,7 +18,10 @@ prior layer.
 | **AI-75** | Evaluation framework | Evaluator contracts (deterministic + LLM-as-judge), per-capability metric set | AI-71 contracts; AI-72 adapter output shapes; existing `tests/` schema-validation pattern | enables AI-76 (gold cases) and AI-77 (benchmarks) |
 | **AI-76** | Gold cases | Reviewed, versioned gold-case fixtures, per capability | AI-75 evaluator contracts; existing `snapshots/pcram/` review manifest schema | enables AI-77 (benchmarks) |
 | **AI-77** | Benchmark runner | Reproducible benchmark runs that produce evaluation records per profile | AI-72 adapters; AI-73 privacy; AI-74 budget; AI-75 evaluators; AI-76 gold cases | enables AI-78 (router uses evaluation records) |
-| **AI-78** | Best-profile router | Capability-based selection with policy filtering, evaluation-based ranking, lifecycle state enforcement, shadow execution | All prior PRs; AI-71 contracts; AI-72 adapters; AI-73 privacy; AI-74 budget; AI-75 evaluators; AI-77 evaluation records | n/a — final stage |
+| **AI-78** | Best-profile router (delivered) | Capability-based selection with policy filtering, evaluation-based ranking, lifecycle state enforcement | All prior PRs | enables AI-79 |
+| **AI-79** | Reviewed routing decision handoff (delivered) | Human-authorized, gateway-only routing handoff | AI-78 decisions | enables AI-80 |
+| **AI-80** | Durable authorization consumption (delivered) | Repository-owned single-use authorization consumption | AI-79 authorization | enables AI-81 |
+| **AI-81** | Provider evidence and candidate readiness (current) | Expiring reviewed evidence contracts and disabled candidate readiness | AI-73 privacy; AI-74 pricing; AI-78 routing; AI-80 consumption | enables reviewed adapter work only after evidence decisions |
 
 ## 2. Why AI-78 is not a "cheapest model" selector
 
