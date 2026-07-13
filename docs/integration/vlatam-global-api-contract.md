@@ -266,7 +266,15 @@ Synthetic and demo artifacts can never become downstream-allowed and therefore
 must never be exported or served. Governance flags and reviewer metadata are
 validated before export and deliberately removed from the consumer payload.
 The API additionally validates the clean export contract before returning a
-response.
+response. Before serving, it also loads the repository-local reviewed source
+artifact, verifies its internal review binding against the current review
+policy, and reconstructs the expected external export for an exact structural
+comparison. Missing, stale, malformed, copied, or content-mismatched bindings
+return a sanitized fail-closed response. Internal hashes, reason details,
+reviewer identity, and raw reviewable content are not exposed.
+
+The external approved-export schema is unchanged. `review_binding`, content
+hashes, policy metadata, and reviewer identity remain internal to AI Lab.
 
 ## Consumer Responsibilities
 

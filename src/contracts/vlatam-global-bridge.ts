@@ -1,3 +1,8 @@
+import {
+  isReviewBinding,
+  type ReviewBinding,
+} from "../review/review-artifact-binding.js";
+
 export const ALLOWED_CLAIM_TYPES = [
   "tariff",
   "intervention",
@@ -87,6 +92,7 @@ export interface ClassifierIntelligenceArtifact {
   readonly reviewed_at?: string;
   readonly classifier_approval_reference?: string;
   readonly downstream_eligibility_reason?: string;
+  readonly review_binding?: ReviewBinding;
 }
 
 export interface ContractValidationResult<T> {
@@ -151,12 +157,41 @@ const EXPORTED_CLAIM_ALLOWED_KEYS = [
   "confidence",
   "affected_ncm",
 ] as const;
+const INTERNAL_CANDIDATE_ALLOWED_KEYS = [
+  "ncm_code",
+  "description",
+  "confidence",
+  "status",
+] as const;
+const INTERNAL_CLAIM_ALLOWED_KEYS = [
+  "claim_id",
+  "claim_type",
+  "text",
+  "source_ref",
+  "confidence",
+  "affected_ncm",
+  "requires_review",
+] as const;
+const GOVERNANCE_ALLOWED_KEYS = [
+  "human_review_required",
+  "downstream_allowed",
+  "review_only",
+  "not_final_classification",
+] as const;
 
 function validateClassificationCandidate(value: unknown): string[] {
   const errors: string[] = [];
   if (!isRecord(value)) {
     return ["classification_candidate must be an object"];
   }
+
+  errors.push(
+    ...unknownKeyErrors(
+      value,
+      INTERNAL_CANDIDATE_ALLOWED_KEYS,
+      "classification_candidate",
+    ),
+  );
 
   if (value["status"] !== "candidate")
     errors.push("classification_candidate.status must be candidate");
@@ -184,6 +219,14 @@ function validateEvidenceClaim(value: unknown, index: number): string[] {
   if (!isRecord(value)) {
     return [`extracted_evidence[${index}] must be an object`];
   }
+
+  errors.push(
+    ...unknownKeyErrors(
+      value,
+      INTERNAL_CLAIM_ALLOWED_KEYS,
+      `extracted_evidence[${index}]`,
+    ),
+  );
 
   if (typeof value["claim_id"] !== "string" || value["claim_id"].length === 0) {
     errors.push(`extracted_evidence[${index}].claim_id must be string`);
@@ -337,6 +380,31 @@ export function validateClassifierIntelligenceArtifact(
     return { ok: false, errors: ["artifact must be an object"] };
   }
 
+  errors.push(
+    ...unknownKeyErrors(
+      artifact,
+      [
+        "artifact_id",
+        "extraction_result_id",
+        "source_id",
+        "generated_at",
+        "classification_candidate",
+        "extracted_evidence",
+        "governance",
+        "schema_version",
+        "source_authority",
+        "origin",
+        "review_status",
+        "reviewer",
+        "reviewed_at",
+        "classifier_approval_reference",
+        "downstream_eligibility_reason",
+        "review_binding",
+      ],
+      "Classifier intelligence artifact",
+    ),
+  );
+
   if (
     typeof artifact["artifact_id"] !== "string" ||
     artifact["artifact_id"].length === 0
@@ -379,6 +447,9 @@ export function validateClassifierIntelligenceArtifact(
     errors.push("governance is required");
   } else {
     const governance = artifact["governance"];
+    errors.push(
+      ...unknownKeyErrors(governance, GOVERNANCE_ALLOWED_KEYS, "governance"),
+    );
     for (const field of [
       "human_review_required",
       "downstream_allowed",
@@ -429,6 +500,13 @@ export function validateClassifierIntelligenceArtifact(
           "downstream_allowed=true requires classifier_approval_reference",
         );
       }
+      if (artifact["review_binding"] === undefined) {
+        errors.push("review_revalidation_required");
+      } else if (!isReviewBinding(artifact["review_binding"])) {
+        errors.push(
+          "review_binding must satisfy the closed review-binding contract",
+        );
+      }
     }
 
     const sourceAuthority = artifact["source_authority"];
@@ -471,6 +549,21 @@ export function validateClassifierIntelligenceArtifact(
   validateOptionalString(artifact, "reviewed_at", errors);
   validateOptionalString(artifact, "classifier_approval_reference", errors);
   validateOptionalString(artifact, "downstream_eligibility_reason", errors);
+
+  if (
+    (artifact["review_status"] === "reviewed_approved" ||
+      artifact["review_status"] === "reviewed_rejected") &&
+    artifact["review_binding"] === undefined
+  ) {
+    errors.push("review_revalidation_required");
+  } else if (
+    artifact["review_binding"] !== undefined &&
+    !isReviewBinding(artifact["review_binding"])
+  ) {
+    errors.push(
+      "review_binding must satisfy the closed review-binding contract",
+    );
+  }
 
   if (
     "reviewed_at" in artifact &&

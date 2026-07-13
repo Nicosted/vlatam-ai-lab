@@ -1,0 +1,13 @@
+{
+  "binding_schema_version": "1.0.0",
+  "artifact_id": "artifact--infoleg--review-001",
+  "artifact_schema_version": "1.0.0",
+  "artifact_content_hash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "canonicalization_version": "review-json-v1",
+  "review_decision": "approved",
+  "reviewed_at": "2026-07-13T12:00:00.000Z",
+  "review_policy_id": "classifier-human-review",
+  "review_policy_version": "1.0.0",
+  "review_binding_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+  "prompt": "forbidden"
+}

@@ -680,6 +680,26 @@
       "downstream_allowed_field_present": false
     },
     {
+      "contract_name": "review_artifact_binding",
+      "schema_file": "schemas/review-artifact-binding.schema.json",
+      "valid_fixture": "snapshots/review/valid-review-binding.json",
+      "invalid_fixtures": [
+        "snapshots/review/invalid-review-binding-missing-content-hash.json",
+        "snapshots/review/invalid-review-binding-malformed-hash.json",
+        "snapshots/review/invalid-review-binding-unknown-field.json",
+        "snapshots/review/invalid-review-binding-reviewer-leakage.json",
+        "snapshots/review/invalid-review-binding-provider-leakage.json",
+        "snapshots/review/invalid-review-binding-prompt-leakage.json"
+      ],
+      "test_file": "tests/review/review-artifact-binding.test.ts",
+      "status": "implemented",
+      "purpose": "Binds an exact reviewable classifier artifact, schema version, human decision, review timestamp, and review policy with versioned SHA-256 hashes.",
+      "downstream_role": "Internal governance only; the binding is verified before export or serving and is not emitted through the approved-export contract.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": false
+    },
+    {
       "contract_name": "ai_privacy_policies",
       "schema_file": "schemas/ai-privacy-policies.schema.json",
       "valid_fixture": "config/ai-privacy-policies.json",

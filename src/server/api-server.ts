@@ -2,12 +2,20 @@ import { createHash, timingSafeEqual } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import path from "node:path";
+import { isDeepStrictEqual } from "node:util";
 
 import { renderRegulatoryResearchWorkspaceHtml } from "../advisory/regulatory-research-workspace.js";
+import { buildVerifiedExportArtifact } from "../agents/export-contract.js";
 import {
   type ClassifierApprovedArtifactExport,
+  validateClassifierIntelligenceArtifact,
   validateExportArtifact,
 } from "../contracts/vlatam-global-bridge.js";
+import {
+  CURRENT_REVIEW_POLICY,
+  ReviewBindingError,
+  type ReviewPolicyExpectation,
+} from "../review/review-artifact-binding.js";
 
 export interface ApiRequest {
   method: string;
@@ -30,6 +38,8 @@ export type RequestHandler = (
 
 export interface ApiServerOptions {
   data_root?: string;
+  review_policy?: ReviewPolicyExpectation;
+  clock?: () => Date;
 }
 
 interface RateLimitEntry {
@@ -281,5 +291,50 @@ export async function handleClassifierRequest(
 
   const validatedArtifact: ClassifierApprovedArtifactExport =
     validationResult.artifact;
+
+  const intelligencePath = path.resolve(
+    dataRoot,
+    "intelligence",
+    sourceId,
+    `${artifactId}.json`,
+  );
+  let reviewedArtifact: unknown;
+  try {
+    reviewedArtifact = JSON.parse(
+      readFileSync(intelligencePath, "utf-8"),
+    ) as unknown;
+    const reviewedValidation =
+      validateClassifierIntelligenceArtifact(reviewedArtifact);
+    if (!reviewedValidation.ok || reviewedValidation.artifact === undefined) {
+      throw new ReviewBindingError(
+        reviewedValidation.errors.includes("review_revalidation_required")
+          ? "review_revalidation_required"
+          : "review_binding_malformed",
+      );
+    }
+    const expectedExport = buildVerifiedExportArtifact(
+      { source_id: sourceId, artifact_id: artifactId },
+      reviewedValidation.artifact,
+      reviewedValidation.artifact.reviewed_at!,
+      options?.review_policy ?? CURRENT_REVIEW_POLICY,
+      options?.clock?.() ?? new Date(),
+    );
+    if (!isDeepStrictEqual(validatedArtifact, expectedExport)) {
+      throw new ReviewBindingError("artifact_content_hash_mismatch");
+    }
+  } catch (error: unknown) {
+    const reasonCode =
+      error instanceof ReviewBindingError
+        ? error.reason_code
+        : "review_binding_malformed";
+    console.error(
+      `Approved artifact serving blocked for ${sourceId}/${artifactId}: ${reasonCode}`,
+    );
+    sendJson(res, 409, {
+      error: "Conflict",
+      message: "Approved artifact is not eligible for serving",
+    });
+    return;
+  }
   sendJson(res, 200, validatedArtifact);
 }

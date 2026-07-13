@@ -1,0 +1,12 @@
+{
+  "binding_schema_version": "1.0.0",
+  "artifact_id": "artifact--infoleg--review-001",
+  "artifact_schema_version": "1.0.0",
+  "artifact_content_hash": "sha256:8e28a4f0875bc24829f41a3ca4a7556589bf16c9e0b95e3827088662244c0caa",
+  "canonicalization_version": "review-json-v1",
+  "review_decision": "approved",
+  "reviewed_at": "2026-07-13T12:00:00.000Z",
+  "review_policy_id": "classifier-human-review",
+  "review_policy_version": "1.0.0",
+  "review_binding_hash": "sha256:5b35e56aa98037684cb4809dff21b68c53eebd7803be4bd9da17d7fefa91d672"
+}

@@ -1,5 +1,11 @@
 import assert from "node:assert/strict";
-import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
+import {
+  mkdtempSync,
+  mkdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -10,6 +16,7 @@ import {
   getRateLimitStoreSize,
   handleClassifierRequest,
 } from "../../src/server/api-server.js";
+import { createReviewBinding } from "../../src/review/review-artifact-binding.js";
 
 const SOURCE_ID = "infoleg";
 const ARTIFACT_ID = "artifact--infoleg--extraction-001";
@@ -25,6 +32,8 @@ interface HttpResult {
 interface RequestOptions {
   readonly apiKey?: string | null;
   readonly ip?: string;
+  readonly maximumReviewAgeSeconds?: number;
+  readonly now?: string;
 }
 
 let testRoot = "";
@@ -62,6 +71,66 @@ function validExport(): Record<string, unknown> {
 function writeExport(content: string): void {
   mkdirSync(path.dirname(exportPath()), { recursive: true });
   writeFileSync(exportPath(), content, "utf-8");
+  const reviewed = reviewedArtifact();
+  const intelligencePath = path.join(
+    testRoot,
+    "data",
+    "intelligence",
+    SOURCE_ID,
+    `${ARTIFACT_ID}.json`,
+  );
+  mkdirSync(path.dirname(intelligencePath), { recursive: true });
+  writeFileSync(
+    intelligencePath,
+    JSON.stringify(reviewed, null, 2) + "\n",
+    "utf-8",
+  );
+}
+
+function reviewedArtifact(): Record<string, unknown> {
+  const artifact = {
+    artifact_id: ARTIFACT_ID,
+    extraction_result_id: "extraction-001",
+    source_id: SOURCE_ID,
+    generated_at: "2026-06-16T00:00:00Z",
+    classification_candidate: {
+      ncm_code: "42029200110V",
+      confidence: 0.82,
+      status: "candidate",
+    },
+    extracted_evidence: [
+      {
+        claim_id: "claim-001",
+        claim_type: "classification",
+        text: "Classification evidence",
+        confidence: 0.82,
+        requires_review: true,
+      },
+    ],
+    governance: {
+      human_review_required: false,
+      downstream_allowed: true,
+      review_only: false,
+      not_final_classification: false,
+    },
+    review_status: "reviewed_approved",
+    reviewer: "internal-reviewer",
+    reviewed_at: "2026-06-16T20:00:00Z",
+    classifier_approval_reference: "approval-ref--001",
+    downstream_eligibility_reason: "Verified",
+    source_authority: "official_regulation",
+    origin: "ai_assisted_extraction",
+    schema_version: "1.0.0",
+  };
+  return {
+    ...artifact,
+    review_binding: createReviewBinding(artifact, {
+      review_decision: "approved",
+      reviewed_at: artifact.reviewed_at,
+      review_policy_id: "classifier-human-review",
+      review_policy_version: "1.0.0",
+    }),
+  };
 }
 
 async function request(
@@ -105,6 +174,14 @@ async function request(
 
   await handleClassifierRequest(incomingRequest, response, {
     data_root: testRoot,
+    ...(options.maximumReviewAgeSeconds !== undefined && {
+      review_policy: {
+        policy_id: "classifier-human-review",
+        policy_version: "1.0.0",
+        maximum_review_age_seconds: options.maximumReviewAgeSeconds,
+      },
+    }),
+    ...(options.now !== undefined && { clock: () => new Date(options.now!) }),
   });
 
   return {
@@ -232,6 +309,50 @@ describe("handleClassifierRequest", () => {
     assert.equal(response.statusCode, 200);
     assert.equal(response.contentType, "application/json");
     assert.deepEqual(response.body, artifact);
+  });
+
+  it("refuses to serve when the reviewed artifact changed after approval", async () => {
+    writeExport(JSON.stringify(validExport()));
+    const intelligencePath = path.join(
+      testRoot,
+      "data",
+      "intelligence",
+      SOURCE_ID,
+      `${ARTIFACT_ID}.json`,
+    );
+    const mutated = JSON.parse(
+      readFileSync(intelligencePath, "utf-8"),
+    ) as Record<string, unknown>;
+    (mutated["classification_candidate"] as Record<string, unknown>)[
+      "confidence"
+    ] = 0.5;
+    writeFileSync(intelligencePath, JSON.stringify(mutated), "utf-8");
+
+    const response = await request(
+      `/api/classifier/${SOURCE_ID}/${ARTIFACT_ID}`,
+    );
+    assert.equal(response.statusCode, 409);
+    assert.deepEqual(response.body, {
+      error: "Conflict",
+      message: "Approved artifact is not eligible for serving",
+    });
+    assert.doesNotMatch(
+      response.rawBody,
+      /hash|reviewer|payload|classification/i,
+    );
+  });
+
+  it("refuses to serve a binding stale under the configured review policy", async () => {
+    writeExport(JSON.stringify(validExport()));
+    const response = await request(
+      `/api/classifier/${SOURCE_ID}/${ARTIFACT_ID}`,
+      {
+        maximumReviewAgeSeconds: 60,
+        now: "2026-06-16T20:02:00Z",
+      },
+    );
+    assert.equal(response.statusCode, 409);
+    assert.doesNotMatch(response.rawBody, /hash|reviewer|payload/i);
   });
 
   it("accepts every configured comma-separated API key", async () => {

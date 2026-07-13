@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/review-artifact-binding.schema.json",
+  "title": "Review Artifact Binding",
+  "description": "Internal cryptographic binding between an exact reviewable classifier artifact, a human decision, and the review policy in force.",
+  "type": "object",
+  "required": [
+    "binding_schema_version",
+    "artifact_id",
+    "artifact_schema_version",
+    "artifact_content_hash",
+    "canonicalization_version",
+    "review_decision",
+    "reviewed_at",
+    "review_policy_id",
+    "review_policy_version",
+    "review_binding_hash"
+  ],
+  "properties": {
+    "binding_schema_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "artifact_id": {
+      "type": "string",
+      "pattern": "^artifact--[a-z0-9_-]+--[a-z0-9_-]+$"
+    },
+    "artifact_schema_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "artifact_content_hash": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "canonicalization_version": { "type": "string", "minLength": 1 },
+    "review_decision": { "type": "string", "enum": ["approved", "rejected"] },
+    "reviewed_at": { "type": "string", "format": "date-time" },
+    "review_policy_id": { "type": "string", "minLength": 1 },
+    "review_policy_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "review_binding_hash": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    }
+  },
+  "additionalProperties": false
+}
