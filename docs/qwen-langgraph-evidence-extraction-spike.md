@@ -1,5 +1,12 @@
 # Qwen + LangGraph Evidence Extraction Spike
 
+> **RETIRED / HISTORICAL (2026-07-13).** This spike was never wired into the
+> runtime and its capability rows are now `retired` in
+> `config/ai-capabilities.json`. The sanitized recorded fixtures under
+> `snapshots/qwen/` remain as historical evidence. Any future Qwen/DashScope
+> execution must go through the governed gateway's adapter layer; the
+> commands referenced below no longer exist.
+
 This spike adds the first controlled AI-assisted extraction workflow on top of
 `extractable_evidence_packet` fixtures. It is intentionally a local AI Lab
 foundation, not a production agent and not approved classifier intelligence.

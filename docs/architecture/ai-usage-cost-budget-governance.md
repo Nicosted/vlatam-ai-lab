@@ -6,6 +6,11 @@
 
 AI-74 governs only `MultiProviderGateway`. Legacy `src/ai/ai-gateway.ts`, extraction scripts, embedding scripts, and worker rate limiting remain outside enforcement; the legacy gateway also retains its own floating-point cost/cache/fallback metadata. This is not repository-wide governance coverage.
 
+> **Update (2026-07-13, governed-execution-boundary PR):** the legacy paths
+> named above were retired and removed. Every remaining provider execution
+> path runs through `MultiProviderGateway`, so AI-74 budget governance now
+> covers all provider execution in the repository.
+
 ## Contracts and arithmetic
 
 Normalized usage records input, output, total, cached-input and reasoning tokens, request count, duration, source, status, and confidence. Unknown usage remains unavailable. Replay declares fixture origin as synthetic or sanitized-recorded. Pre-execution estimation is deterministic: UTF-8 serialized privacy-cleared request bytes are divided by four with ceiling, then the profile output bound (or the documented 2,048-token compatibility default) is added. Estimation inputs never enter audits.

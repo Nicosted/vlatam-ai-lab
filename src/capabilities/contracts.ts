@@ -39,8 +39,8 @@ import type {
   ExecutionRequirement,
   HumanReviewPolicy,
   PrivacyRequirement,
-} from './policy.js';
-import { CAPABILITY_ID_PATTERN, SEMVER_PATTERN } from './version.js';
+} from "./policy.js";
+import { CAPABILITY_ID_PATTERN, SEMVER_PATTERN } from "./version.js";
 
 /**
  * Allowed values for the `status` field of a `CapabilityDefinition`.
@@ -48,7 +48,13 @@ import { CAPABILITY_ID_PATTERN, SEMVER_PATTERN } from './version.js';
  * Mirrors the catalog's `allowed_status` enum
  * (`config/ai-capabilities.json`).
  */
-export const CAPABILITY_STATUSES = ['existing', 'partial', 'planned', 'out_of_scope'] as const;
+export const CAPABILITY_STATUSES = [
+  "existing",
+  "partial",
+  "planned",
+  "out_of_scope",
+  "retired",
+] as const;
 export type CapabilityStatus = (typeof CAPABILITY_STATUSES)[number];
 
 /**
@@ -56,7 +62,7 @@ export type CapabilityStatus = (typeof CAPABILITY_STATUSES)[number];
  *
  * Mirrors the catalog's `allowed_risk_tier` enum.
  */
-export const CAPABILITY_RISK_TIERS = ['low', 'medium', 'high'] as const;
+export const CAPABILITY_RISK_TIERS = ["low", "medium", "high"] as const;
 export type CapabilityRiskTier = (typeof CAPABILITY_RISK_TIERS)[number];
 
 /**
@@ -65,7 +71,11 @@ export type CapabilityRiskTier = (typeof CAPABILITY_RISK_TIERS)[number];
  *
  * Mirrors the catalog's `allowed_provider_execution` enum.
  */
-export const PROVIDER_EXECUTION_VALUES = ['required', 'optional', 'none'] as const;
+export const PROVIDER_EXECUTION_VALUES = [
+  "required",
+  "optional",
+  "none",
+] as const;
 export type ProviderExecution = (typeof PROVIDER_EXECUTION_VALUES)[number];
 
 /**
@@ -73,15 +83,15 @@ export type ProviderExecution = (typeof PROVIDER_EXECUTION_VALUES)[number];
  * `domain` enum in the AI-70 catalog schema.
  */
 export const CAPABILITY_DOMAINS = [
-  'source',
-  'evidence',
-  'review',
-  'export',
-  'advisory',
-  'provider',
-  'governance',
-  'evaluation',
-  'routing',
+  "source",
+  "evidence",
+  "review",
+  "export",
+  "advisory",
+  "provider",
+  "governance",
+  "evaluation",
+  "routing",
 ] as const;
 export type CapabilityDomain = (typeof CAPABILITY_DOMAINS)[number];
 
@@ -98,14 +108,21 @@ export type CapabilityDomain = (typeof CAPABILITY_DOMAINS)[number];
  *   - `cloudflare.deepseek-production` (vendor + environment)
  *   - `qwen-plus.normative-extraction` (model + action)
  */
-export type CapabilityId = string & { readonly __capabilityIdBrand: unique symbol };
+export type CapabilityId = string & {
+  readonly __capabilityIdBrand: unique symbol;
+};
 
 /**
  * Outcome of a `CapabilityResult`. The contract deliberately uses a
  * closed set so that downstream consumers can branch safely.
  */
-export const CAPABILITY_RESULT_STATUSES = ['succeeded', 'failed', 'blocked'] as const;
-export type CapabilityResultStatus = (typeof CAPABILITY_RESULT_STATUSES)[number];
+export const CAPABILITY_RESULT_STATUSES = [
+  "succeeded",
+  "failed",
+  "blocked",
+] as const;
+export type CapabilityResultStatus =
+  (typeof CAPABILITY_RESULT_STATUSES)[number];
 
 /**
  * Allowed values for the `data_classification` field of
@@ -118,11 +135,11 @@ export type CapabilityResultStatus = (typeof CAPABILITY_RESULT_STATUSES)[number]
  * classification and fails closed on missing or unknown values.
  */
 export const DATA_CLASSIFICATIONS = [
-  'public',
-  'internal',
-  'confidential',
-  'regulated',
-  'restricted',
+  "public",
+  "internal",
+  "confidential",
+  "regulated",
+  "restricted",
 ] as const;
 export type DataClassification = (typeof DATA_CLASSIFICATIONS)[number];
 
@@ -133,11 +150,11 @@ export type DataClassification = (typeof DATA_CLASSIFICATIONS)[number];
  * the use, and they are not used to make routing decisions in AI-71.
  */
 export const DOWNSTREAM_USE_VALUES = [
-  'none',
-  'evidence_packet',
-  'classifier_candidate',
-  'advisory_draft',
-  'approved_export',
+  "none",
+  "evidence_packet",
+  "classifier_candidate",
+  "advisory_draft",
+  "approved_export",
 ] as const;
 export type DownstreamUse = (typeof DOWNSTREAM_USE_VALUES)[number];
 
@@ -146,38 +163,47 @@ export type DownstreamUse = (typeof DOWNSTREAM_USE_VALUES)[number];
  * capability identifier.
  */
 export function isCapabilityId(value: unknown): value is CapabilityId {
-  return typeof value === 'string' && CAPABILITY_ID_PATTERN.test(value);
+  return typeof value === "string" && CAPABILITY_ID_PATTERN.test(value);
 }
 
 /**
  * Type guard: returns `true` if the value is a valid semver string.
  */
 export function isSchemaVersion(value: unknown): value is string {
-  return typeof value === 'string' && SEMVER_PATTERN.test(value);
+  return typeof value === "string" && SEMVER_PATTERN.test(value);
 }
 
 /**
  * Type guard: returns `true` if the value is a `CapabilityStatus`.
  */
 export function isCapabilityStatus(value: unknown): value is CapabilityStatus {
-  return typeof value === 'string' && (CAPABILITY_STATUSES as readonly string[]).includes(value);
+  return (
+    typeof value === "string" &&
+    (CAPABILITY_STATUSES as readonly string[]).includes(value)
+  );
 }
 
 /**
  * Type guard: returns `true` if the value is a `CapabilityRiskTier`.
  */
-export function isCapabilityRiskTier(value: unknown): value is CapabilityRiskTier {
+export function isCapabilityRiskTier(
+  value: unknown,
+): value is CapabilityRiskTier {
   return (
-    typeof value === 'string' && (CAPABILITY_RISK_TIERS as readonly string[]).includes(value)
+    typeof value === "string" &&
+    (CAPABILITY_RISK_TIERS as readonly string[]).includes(value)
   );
 }
 
 /**
  * Type guard: returns `true` if the value is a `ProviderExecution`.
  */
-export function isProviderExecution(value: unknown): value is ProviderExecution {
+export function isProviderExecution(
+  value: unknown,
+): value is ProviderExecution {
   return (
-    typeof value === 'string' && (PROVIDER_EXECUTION_VALUES as readonly string[]).includes(value)
+    typeof value === "string" &&
+    (PROVIDER_EXECUTION_VALUES as readonly string[]).includes(value)
   );
 }
 
@@ -185,24 +211,33 @@ export function isProviderExecution(value: unknown): value is ProviderExecution 
  * Type guard: returns `true` if the value is a `CapabilityDomain`.
  */
 export function isCapabilityDomain(value: unknown): value is CapabilityDomain {
-  return typeof value === 'string' && (CAPABILITY_DOMAINS as readonly string[]).includes(value);
+  return (
+    typeof value === "string" &&
+    (CAPABILITY_DOMAINS as readonly string[]).includes(value)
+  );
 }
 
 /**
  * Type guard: returns `true` if the value is a `CapabilityResultStatus`.
  */
-export function isCapabilityResultStatus(value: unknown): value is CapabilityResultStatus {
+export function isCapabilityResultStatus(
+  value: unknown,
+): value is CapabilityResultStatus {
   return (
-    typeof value === 'string' && (CAPABILITY_RESULT_STATUSES as readonly string[]).includes(value)
+    typeof value === "string" &&
+    (CAPABILITY_RESULT_STATUSES as readonly string[]).includes(value)
   );
 }
 
 /**
  * Type guard: returns `true` if the value is a `DataClassification`.
  */
-export function isDataClassification(value: unknown): value is DataClassification {
+export function isDataClassification(
+  value: unknown,
+): value is DataClassification {
   return (
-    typeof value === 'string' && (DATA_CLASSIFICATIONS as readonly string[]).includes(value)
+    typeof value === "string" &&
+    (DATA_CLASSIFICATIONS as readonly string[]).includes(value)
   );
 }
 
@@ -211,7 +246,8 @@ export function isDataClassification(value: unknown): value is DataClassificatio
  */
 export function isDownstreamUse(value: unknown): value is DownstreamUse {
   return (
-    typeof value === 'string' && (DOWNSTREAM_USE_VALUES as readonly string[]).includes(value)
+    typeof value === "string" &&
+    (DOWNSTREAM_USE_VALUES as readonly string[]).includes(value)
   );
 }
 
@@ -322,7 +358,7 @@ export interface ResultGovernance {
    *     `reviewed_rejected` decision has been applied. The result is
    *     downstream-allowed: false.
    */
-  readonly approval_state: 'not_required' | 'pending' | 'approved' | 'rejected';
+  readonly approval_state: "not_required" | "pending" | "approved" | "rejected";
 }
 
 /**
@@ -351,7 +387,7 @@ export interface CapabilityResult<TOutput = unknown> {
   readonly schema_version: string;
   readonly status: CapabilityResultStatus;
   readonly output?: TOutput;
-  readonly error?: import('./error.js').CapabilityError;
+  readonly error?: import("./error.js").CapabilityError;
   readonly governance: ResultGovernance;
 }
 
@@ -368,7 +404,7 @@ export interface CapabilityResult<TOutput = unknown> {
  *    check lives in `validation.ts`.
  */
 export interface DownstreamPolicy {
-  readonly downstream_allowed: boolean | 'conditional';
+  readonly downstream_allowed: boolean | "conditional";
   readonly reason: string;
 }
 
@@ -397,7 +433,7 @@ export interface CapabilityDefinition {
    * `CapabilityRequest.input`. `null` means "the schema is not yet
    * declared; this capability has not been bound to a concrete input
    * shape in the binding layer". A `null` value is allowed for
-   * `partial` / `planned` / `out_of_scope` capabilities.
+   * `partial` / `planned` / `out_of_scope` / `retired` capabilities.
    */
   readonly input_schema_ref: string | null;
   /**

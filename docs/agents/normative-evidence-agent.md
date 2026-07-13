@@ -1,5 +1,13 @@
 # Normative Evidence Agent
 
+> **RETIRED (2026-07-13).** `src/agents/normative-evidence-agent.ts` and
+> `scripts/run-extraction.ts` (`pnpm ai:extract`) were removed by the
+> governed-execution-boundary PR. The `evidence.extraction.normative_claims`
+> capability now executes only through the MultiProviderGateway
+> (`src/execution/multi-provider-gateway.ts` +
+> `src/execution/normative-claims-mapper.ts`). This document is retained as
+> historical documentation only.
+
 ## Purpose
 
 DeepSeek-powered reasoning layer that extracts normative claims from evidence packets following strict governance rules. It is NOT a source of truth — it only reasons over official documents provided in context.

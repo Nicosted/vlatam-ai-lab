@@ -8,7 +8,6 @@
     "node": ">=22.5"
   },
   "scripts": {
-    "ai:extract": "tsx scripts/run-extraction.ts",
     "ai:validate-packet": "tsx scripts/validate-packet.ts",
     "ai:validate-extraction": "tsx scripts/validate-extraction.ts",
     "crawler:arca": "tsx src/crawlers/arca-crawler.ts",
@@ -18,9 +17,6 @@
     "crawler:vuce-extract": "tsx src/crawlers/vuce-extractor.ts",
     "crawler:vuce-notes": "tsx src/crawlers/vuce-notes-parser.ts",
     "crawler:unified-packet": "tsx src/crawlers/generate-unified-packet.ts",
-    "sync:kv": "tsx scripts/sync-kv.ts",
-    "dev:worker": "wrangler dev",
-    "deploy:worker": "wrangler deploy",
     "build": "tsc -p tsconfig.build.json",
     "agents:snapshot-writer": "tsx src/cli/snapshot-writer.ts",
     "agents:source-monitor": "tsx src/cli/source-monitor.ts",
@@ -51,11 +47,7 @@
     "ai:authorization-store": "tsx scripts/authorization-store.ts",
     "lint": "eslint .",
     "format": "prettier --check .",
-    "format:write": "prettier --write .",
-    "embed:arca": "tsx scripts/generate-arca-embeddings.ts",
-    "embed:infoleg": "tsx scripts/generate-infoleg-embeddings.ts",
-    "embed:vuce": "tsx scripts/generate-vuce-embeddings.ts",
-    "embed:all": "pnpm embed:arca && pnpm embed:infoleg && pnpm embed:vuce"
+    "format:write": "prettier --write ."
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260613.1",

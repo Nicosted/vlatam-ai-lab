@@ -53,6 +53,15 @@ Audit records contain identifiers, lifecycle/mode, timestamps, duration, normali
 | Qwen docs and snapshots | DashScope/Qwen | Fixture/spike only; runtime source absent | Replay plus disabled adapter | Restore only through reviewed gateway invocation |
 | embedding scripts and Worker binding | Cloudflare Workers AI | Specialized embedding paths | Out of scope; unchanged | Consider a separate embedding adapter |
 
+> **Resolution (2026-07-13, governed-execution-boundary PR):** every row in
+> the inventory above was retired rather than migrated. The direct DeepSeek
+> agents, the extraction CLI, the Cloudflare AI Gateway wrapper (and its
+> fallback chain), the legacy Worker, and the Workers AI embedding paths were
+> removed from the repository. The Qwen/DashScope spike remains
+> documentation and sanitized fixtures only. Provider execution now exists
+> exclusively through this gateway and its adapter layer, enforced by
+> `tests/architecture/execution-boundary.test.ts`.
+
 ## Deferred roadmap
 
 AI-73 privacy/ZDR, AI-74 budget governance, AI-75 evaluation, AI-76 gold cases, AI-77 benchmarks, and AI-78 ranking/automatic routing remain unimplemented. Approved artifact/export semantics and `vlatam-global` are unchanged.

@@ -1,5 +1,10 @@
 # Cloudflare Regulatory Intelligence Pipeline Plan
 
+> **RETIRED (2026-07-13).** The Worker, queues, embedding consumer, and AI
+> Gateway wrapper this plan builds on were removed by the
+> governed-execution-boundary PR. Retained as historical planning
+> documentation only.
+
 **Date:** 2026-06-15  
 **Version:** v1 (foundation)  
 **Scope:** vlatam-ai-lab — Layer 1 (ingestion, validation, evidence extraction, review artifacts)  

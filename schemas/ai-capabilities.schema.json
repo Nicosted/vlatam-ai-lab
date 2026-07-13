@@ -35,7 +35,7 @@
       "type": "array",
       "items": {
         "type": "string",
-        "enum": ["existing", "partial", "planned", "out_of_scope"]
+        "enum": ["existing", "partial", "planned", "out_of_scope", "retired"]
       }
     },
     "allowed_risk_tier": {
@@ -101,7 +101,13 @@
           },
           "status": {
             "type": "string",
-            "enum": ["existing", "partial", "planned", "out_of_scope"]
+            "enum": [
+              "existing",
+              "partial",
+              "planned",
+              "out_of_scope",
+              "retired"
+            ]
           },
           "risk_tier": {
             "type": "string",
