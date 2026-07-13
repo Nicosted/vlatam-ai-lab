@@ -1,5 +1,5 @@
 export const EXECUTION_ERROR_CODES = [
-  'UNKNOWN_PROVIDER', 'UNKNOWN_PROFILE', 'PROFILE_DISABLED', 'PROFILE_RETIRED',
+  'UNKNOWN_PROVIDER', 'UNKNOWN_PROFILE', 'PROFILE_DISABLED', 'PROFILE_RETIRED', 'EXECUTION_PROFILE_VERSION_MISMATCH',
   'PROFILE_CAPABILITY_MISMATCH', 'LIVE_EXECUTION_DISABLED', 'CREDENTIALS_UNAVAILABLE',
   'PROVIDER_RATE_LIMITED', 'PROVIDER_TIMEOUT', 'PROVIDER_UNAVAILABLE',
   'PROVIDER_RESPONSE_INVALID', 'REQUEST_SCHEMA_INVALID', 'OUTPUT_SCHEMA_INVALID', 'EXECUTION_ABORTED',
@@ -17,6 +17,7 @@ const SAFE_MESSAGES: Record<ExecutionErrorCode, string> = {
   UNKNOWN_PROFILE: 'The requested execution profile is unknown.',
   PROFILE_DISABLED: 'The requested execution profile is disabled.',
   PROFILE_RETIRED: 'The requested execution profile is retired.',
+  EXECUTION_PROFILE_VERSION_MISMATCH: 'The execution profile contract version does not match the required version.',
   PROFILE_CAPABILITY_MISMATCH: 'The execution profile does not match the requested capability.',
   LIVE_EXECUTION_DISABLED: 'Live provider execution is disabled.',
   CREDENTIALS_UNAVAILABLE: 'Provider credentials are unavailable.',

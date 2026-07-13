@@ -23,6 +23,21 @@ import {
 const ID = /^[a-z0-9][a-z0-9._-]{1,127}$/;
 const SEMVER = /^\d+\.\d+\.\d+$/;
 const HASH = /^[a-f0-9]{64}$/;
+const LIFECYCLES = new Set(["production", "candidate", "shadow", "retired"]);
+const CLASSIFICATIONS = new Set([
+  "public",
+  "internal",
+  "confidential",
+  "regulated",
+  "restricted",
+]);
+const BUDGET_CLASSES = new Set(["development", "unclassified"]);
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+const nonEmpty = (value: unknown): value is string =>
+  typeof value === "string" && value.length > 0;
+const unique = (values: readonly string[]) =>
+  new Set(values).size === values.length;
 const time = (s: string | undefined) =>
   s === undefined ? undefined : Date.parse(s);
 const decisionHash = (decision: RoutingDecision) => {
@@ -31,6 +46,24 @@ const decisionHash = (decision: RoutingDecision) => {
   );
   return normalizeAndHash(base).hash;
 };
+export const handoffPolicyHash = (policy: HandoffAuthorizationPolicy) =>
+  normalizeAndHash({
+    schema_version: policy.schema_version,
+    policy_id: policy.policy_id,
+    policy_version: policy.policy_version,
+    authorizer_roles: [...policy.allowed_authorizer_roles].sort(),
+    routing_policies: [...policy.allowed_routing_policies].sort((a, b) =>
+      `${a.id}@${a.version}`.localeCompare(`${b.id}@${b.version}`),
+    ),
+    profile_lifecycle_states: [
+      ...policy.allowed_profile_lifecycle_states,
+    ].sort(),
+    data_classifications: [...policy.allowed_data_classifications].sort(),
+    budget_classes: [...policy.allowed_budget_classes].sort(),
+    maximum_age_seconds: policy.maximum_authorization_age_seconds,
+    enforce_decision_ttl: policy.enforce_decision_ttl,
+    mode: policy.authorization_mode,
+  }).hash;
 export interface ReviewedRoutingHandoffOptions {
   readonly gateway: Pick<MultiProviderGateway, "execute">;
   readonly policy: HandoffAuthorizationPolicy;
@@ -57,7 +90,8 @@ export class ReviewedRoutingDecisionHandoff {
     const reason = this.reason(request);
     const authorizationFailure =
       reason?.startsWith("AUTHORIZATION") ||
-      reason === "AUTHORIZER_ROLE_UNAUTHORIZED";
+      reason === "AUTHORIZER_ROLE_UNAUTHORIZED" ||
+      reason === "HANDOFF_POLICY_MISMATCH";
     this.audit(
       request,
       reason && !authorizationFailure
@@ -108,6 +142,8 @@ export class ReviewedRoutingDecisionHandoff {
       const outcome = await this.options.gateway.execute({
         capability_request: request.capability_request,
         execution_profile_id: request.decision.selected_profile_id!,
+        expected_profile_contract_version:
+          request.decision.selected_profile_version!,
       });
       const status =
         outcome.result.status === "succeeded"
@@ -138,17 +174,66 @@ export class ReviewedRoutingDecisionHandoff {
       d = r?.decision,
       a = r?.authorization,
       p = this.options.policy;
+    if (!isRecord(r) || !isRecord(d) || !isRecord(a) || !isRecord(p))
+      return "INVALID_REQUEST";
     if (
-      !r ||
       r.schema_version !== HANDOFF_CONTRACT_VERSION ||
+      d.schema_version !== HANDOFF_CONTRACT_VERSION ||
+      a.schema_version !== HANDOFF_CONTRACT_VERSION ||
+      p.schema_version !== HANDOFF_CONTRACT_VERSION
+    )
+      return "UNSUPPORTED_CONTRACT_VERSION";
+    if (!this.validPolicy(p)) return "INVALID_POLICY";
+    if (
       !ID.test(r.handoff_id) ||
-      !d ||
-      !a ||
+      !ID.test(r.execution_correlation_id) ||
+      !ID.test(r.audit_correlation_id) ||
+      !isRecord(r.capability_request) ||
+      !ID.test(String(r.capability_request.request_id)) ||
+      !ID.test(String(r.capability_request.capability_id)) ||
+      !nonEmpty(r.budget_class) ||
+      !isRecord(d.policy) ||
+      !ID.test(String(d.capability_id)) ||
+      !ID.test(String(d.policy.policy_id)) ||
+      !SEMVER.test(String(d.policy.policy_version)) ||
+      !HASH.test(String(d.policy.policy_hash)) ||
+      !ID.test(String(d.execution_correlation_id)) ||
+      !ID.test(String(d.audit_correlation_id)) ||
+      !HASH.test(String(d.decision_hash)) ||
+      !isRecord(d.benchmark_evidence) ||
+      !ID.test(String(d.benchmark_evidence.campaign_execution_id)) ||
+      !isRecord(d.review_attestation) ||
+      !ID.test(String(d.review_attestation.attestation_id)) ||
+      !ID.test(String(a.authorization_id)) ||
+      !ID.test(String(a.authorizer_role)) ||
+      !["approved", "rejected"].includes(String(a.authorization_decision)) ||
+      !ID.test(String(a.routing_policy_id)) ||
+      !SEMVER.test(String(a.routing_policy_version)) ||
+      !ID.test(String(a.capability_id)) ||
+      !ID.test(String(a.selected_profile_id)) ||
+      !SEMVER.test(String(a.selected_profile_version)) ||
+      !ID.test(String(a.execution_correlation_id)) ||
+      !ID.test(String(a.audit_correlation_id)) ||
+      !ID.test(String(a.benchmark_evidence_reference)) ||
+      !ID.test(String(a.review_attestation_reference)) ||
+      !ID.test(String(a.handoff_policy_id)) ||
+      !SEMVER.test(String(a.handoff_policy_version)) ||
+      !HASH.test(String(a.handoff_policy_hash))
+    )
+      return "MALFORMED_IDENTITY";
+    if (a.superseded_by !== undefined && !ID.test(String(a.superseded_by)))
+      return "MALFORMED_IDENTITY";
+    if (
       r.execution_correlation_id !== d.execution_correlation_id ||
       r.audit_correlation_id !== d.audit_correlation_id
     )
       return "INVALID_REQUEST";
-    if (!this.validPolicy(p)) return "INVALID_REQUEST";
+    if (
+      a.handoff_policy_id !== p.policy_id ||
+      a.handoff_policy_version !== p.policy_version ||
+      a.handoff_policy_hash !== handoffPolicyHash(p)
+    )
+      return "HANDOFF_POLICY_MISMATCH";
     if (!["selected", "fallback_selected"].includes(d.status))
       return "DECISION_STATUS_NOT_EXECUTABLE";
     const created = time(d.created_at);
@@ -156,11 +241,12 @@ export class ReviewedRoutingDecisionHandoff {
       return "INVALID_DECISION";
     if (created > now) return "DECISION_FUTURE_DATED";
     const expiry = time(d.expiry_at);
-    if (
-      p.enforce_decision_ttl &&
-      (expiry === undefined || !Number.isFinite(expiry) || expiry < now)
-    )
-      return "DECISION_EXPIRED";
+    if (p.enforce_decision_ttl) {
+      if (expiry === undefined || !Number.isFinite(expiry))
+        return "DECISION_EXPIRY_INVALID";
+      if (expiry <= created) return "DECISION_EXPIRY_INVALID";
+      if (expiry <= now) return "DECISION_EXPIRED";
+    }
     if (!HASH.test(d.decision_hash) || decisionHash(d) !== d.decision_hash)
       return "DECISION_HASH_MISMATCH";
     if (
@@ -172,8 +258,8 @@ export class ReviewedRoutingDecisionHandoff {
       return "POLICY_NOT_ALLOWED";
     const key = `${d.selected_profile_id}@${d.selected_profile_version}`;
     if (
-      !d.selected_profile_id ||
-      !d.selected_profile_version ||
+      !ID.test(String(d.selected_profile_id)) ||
+      !SEMVER.test(String(d.selected_profile_version)) ||
       d.canonical_profile_key !== key
     )
       return "PROFILE_REFERENCE_CONFLICT";
@@ -202,8 +288,9 @@ export class ReviewedRoutingDecisionHandoff {
       return "BUDGET_CLASS_NOT_ELIGIBLE";
     const authorized = time(a.authorized_at);
     if (authorized === undefined || !Number.isFinite(authorized))
-      return "AUTHORIZATION_MISSING";
+      return "INVALID_AUTHORIZATION";
     if (authorized > now) return "AUTHORIZATION_FUTURE_DATED";
+    if (authorized < created) return "AUTHORIZATION_BEFORE_DECISION";
     if (now - authorized > p.maximum_authorization_age_seconds * 1000)
       return "AUTHORIZATION_EXPIRED";
     if (a.authorization_decision !== "approved")
@@ -231,15 +318,42 @@ export class ReviewedRoutingDecisionHandoff {
     return undefined;
   }
   private validPolicy(p: HandoffAuthorizationPolicy) {
+    const routingKeys = p.allowed_routing_policies?.map(
+      (ref) => `${ref.id}@${ref.version}`,
+    );
     return (
       p.schema_version === HANDOFF_CONTRACT_VERSION &&
       ID.test(p.policy_id) &&
       SEMVER.test(p.policy_version) &&
+      Array.isArray(p.allowed_authorizer_roles) &&
       p.allowed_authorizer_roles.length > 0 &&
+      p.allowed_authorizer_roles.every((x) => ID.test(x)) &&
+      unique(p.allowed_authorizer_roles) &&
+      Array.isArray(p.allowed_routing_policies) &&
       p.allowed_routing_policies.length > 0 &&
+      p.allowed_routing_policies.every(
+        (x) =>
+          isRecord(x) &&
+          ID.test(String(x.id)) &&
+          SEMVER.test(String(x.version)),
+      ) &&
+      unique(routingKeys) &&
+      Array.isArray(p.allowed_profile_lifecycle_states) &&
       p.allowed_profile_lifecycle_states.length > 0 &&
+      p.allowed_profile_lifecycle_states.every((x) => LIFECYCLES.has(x)) &&
+      unique(p.allowed_profile_lifecycle_states) &&
+      Array.isArray(p.allowed_data_classifications) &&
+      p.allowed_data_classifications.length > 0 &&
+      p.allowed_data_classifications.every((x) => CLASSIFICATIONS.has(x)) &&
+      unique(p.allowed_data_classifications) &&
+      Array.isArray(p.allowed_budget_classes) &&
+      p.allowed_budget_classes.length > 0 &&
+      p.allowed_budget_classes.every((x) => BUDGET_CLASSES.has(x)) &&
+      unique(p.allowed_budget_classes) &&
       Number.isSafeInteger(p.maximum_authorization_age_seconds) &&
-      p.maximum_authorization_age_seconds >= 0
+      p.maximum_authorization_age_seconds >= 0 &&
+      typeof p.enforce_decision_ttl === "boolean" &&
+      ["single_use", "reusable"].includes(p.authorization_mode)
     );
   }
   private result(
@@ -291,6 +405,9 @@ export class ReviewedRoutingDecisionHandoff {
         : {}),
       ...(r?.authorization?.authorization_id
         ? { authorization_id: r.authorization.authorization_id }
+        : {}),
+      ...(r?.authorization?.handoff_policy_hash
+        ? { handoff_policy_hash: r.authorization.handoff_policy_hash }
         : {}),
       ...(r?.decision?.capability_id
         ? { capability_id: r.decision.capability_id }

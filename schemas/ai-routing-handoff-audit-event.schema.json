@@ -34,6 +34,10 @@
     "handoff_id": { "type": "string" },
     "decision_hash": { "type": "string" },
     "authorization_id": { "type": "string" },
+    "handoff_policy_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
     "capability_id": { "type": "string" },
     "profile_key": { "type": "string" },
     "execution_correlation_id": { "type": "string" },

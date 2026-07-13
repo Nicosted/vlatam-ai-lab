@@ -9,6 +9,7 @@ import {
   assertHandoffAuditMetadataOnly,
   InMemoryAuthorizationStateStore,
   ReviewedRoutingDecisionHandoff,
+  handoffPolicyHash,
   type HandoffAuthorizationPolicy,
   type HandoffAuditEvent,
   type HandoffRequest,
@@ -104,6 +105,7 @@ const makeDecision = (
 };
 const request = (
   status: RoutingDecision["status"] = "selected",
+  authorizationPolicy: HandoffAuthorizationPolicy = policy,
 ): HandoffRequest => {
   const decision = makeDecision(status);
   return {
@@ -127,6 +129,9 @@ const request = (
       authorization_decision: "approved",
       authorized_at: "2026-07-12T11:45:00.000Z",
       review_attestation_reference: "review.attestation",
+      handoff_policy_id: authorizationPolicy.policy_id,
+      handoff_policy_version: authorizationPolicy.policy_version,
+      handoff_policy_hash: handoffPolicyHash(authorizationPolicy),
       decision_hash: decision.decision_hash,
       routing_policy_id: decision.policy.policy_id,
       routing_policy_version: decision.policy.policy_version,
@@ -181,11 +186,14 @@ const setup = (
   p = profile,
   mode = policy.authorization_mode,
   result: GatewayOutcome = outcome(),
+  policyOverride?: HandoffAuthorizationPolicy,
 ) => {
   let calls = 0;
   const events: HandoffAuditEvent[] = [];
+  const effectivePolicy =
+    policyOverride ?? ({ ...policy, authorization_mode: mode } as const);
   const handoff = new ReviewedRoutingDecisionHandoff({
-    policy: { ...policy, authorization_mode: mode },
+    policy: effectivePolicy,
     clock: () => new Date(now),
     id: (() => {
       let n = 0;
@@ -198,11 +206,36 @@ const setup = (
       execute: async (invocation) => {
         calls++;
         assert.equal(invocation.execution_profile_id, "profile.reviewed");
+        assert.equal(invocation.expected_profile_contract_version, "1.1.0");
         return result;
       },
     },
   });
-  return { handoff, events, calls: () => calls };
+  return { handoff, events, calls: () => calls, policy: effectivePolicy };
+};
+const rebindDecision = (
+  value: HandoffRequest,
+  patch: Partial<RoutingDecision>,
+): HandoffRequest => {
+  const base = Object.fromEntries(
+    Object.entries({ ...value.decision, ...patch }).filter(
+      ([key]) => key !== "decision_hash",
+    ),
+  );
+  const decision = {
+    ...base,
+    decision_hash: normalizeAndHash(base).hash,
+  } as RoutingDecision;
+  return {
+    ...value,
+    decision,
+    authorization: {
+      ...value.authorization,
+      decision_hash: decision.decision_hash,
+      decision_created_at: decision.created_at,
+      ...(decision.expiry_at ? { decision_expiry_at: decision.expiry_at } : {}),
+    },
+  };
 };
 
 describe("AI-79 reviewed routing decision handoff", () => {
@@ -312,8 +345,8 @@ describe("AI-79 reviewed routing decision handoff", () => {
     );
     const reusable = setup(profile, "reusable");
     await Promise.all([
-      reusable.handoff.execute(request()),
-      reusable.handoff.execute(request()),
+      reusable.handoff.execute(request("selected", reusable.policy)),
+      reusable.handoff.execute(request("selected", reusable.policy)),
     ]);
     assert.equal(reusable.calls(), 2);
   });
@@ -356,5 +389,244 @@ describe("AI-79 reviewed routing decision handoff", () => {
       "BUDGET_CLASS_NOT_ELIGIBLE",
     );
     assert.equal(s2.calls(), 0);
+  });
+  it("binds authorization to the exact canonical handoff policy", async () => {
+    assert.equal(
+      request().authorization.handoff_policy_hash,
+      handoffPolicyHash(policy),
+    );
+    const mutations: Array<[string, HandoffAuthorizationPolicy]> = [
+      ["wrong-id", { ...policy, policy_id: "handoff.other" }],
+      ["wrong-version", { ...policy, policy_version: "1.0.1" }],
+      ["changed-mode", { ...policy, authorization_mode: "reusable" }],
+      [
+        "changed-role",
+        {
+          ...policy,
+          allowed_authorizer_roles: [
+            "ai-governance-authorizer",
+            "second-authorizer",
+          ],
+        },
+      ],
+      [
+        "changed-lifecycle",
+        {
+          ...policy,
+          allowed_profile_lifecycle_states: ["candidate", "production"],
+        },
+      ],
+    ];
+    for (const [, effective] of mutations) {
+      const s = setup(
+        profile,
+        effective.authorization_mode,
+        outcome(),
+        effective,
+      );
+      const result = await s.handoff.execute(request());
+      assert.equal(result.rejection_reason, "HANDOFF_POLICY_MISMATCH");
+      assert.equal(s.calls(), 0);
+    }
+    const wrongHash = request();
+    const s = setup();
+    assert.equal(
+      (
+        await s.handoff.execute({
+          ...wrongHash,
+          authorization: {
+            ...wrongHash.authorization,
+            handoff_policy_hash: "0".repeat(64),
+          },
+        })
+      ).rejection_reason,
+      "HANDOFF_POLICY_MISMATCH",
+    );
+    assert.equal(s.calls(), 0);
+  });
+  it("rejects every unsupported public contract version before consumption", async () => {
+    const variants = [
+      { ...request(), schema_version: "2.0.0" },
+      {
+        ...request(),
+        decision: { ...request().decision, schema_version: "2.0.0" },
+      },
+      {
+        ...request(),
+        authorization: { ...request().authorization, schema_version: "2.0.0" },
+      },
+    ] as unknown as HandoffRequest[];
+    for (const variant of variants) {
+      const s = setup();
+      assert.equal(
+        (await s.handoff.execute(variant)).rejection_reason,
+        "UNSUPPORTED_CONTRACT_VERSION",
+      );
+      assert.equal(s.calls(), 0);
+      assert.equal(
+        (await s.handoff.execute(request())).execution_status,
+        "succeeded",
+      );
+    }
+    const invalidPolicy = {
+      ...policy,
+      schema_version: "2.0.0",
+    } as unknown as HandoffAuthorizationPolicy;
+    const s = setup(profile, "single_use", outcome(), invalidPolicy);
+    assert.equal(
+      (await s.handoff.execute(request())).rejection_reason,
+      "UNSUPPORTED_CONTRACT_VERSION",
+    );
+    assert.equal(s.calls(), 0);
+  });
+  it("validates malformed nested identities and policy allowlists at runtime", async () => {
+    const malformed = request();
+    const s = setup();
+    assert.equal(
+      (
+        await s.handoff.execute({
+          ...malformed,
+          authorization: {
+            ...malformed.authorization,
+            routing_policy_version: "v1",
+          },
+        })
+      ).rejection_reason,
+      "MALFORMED_IDENTITY",
+    );
+    assert.equal(s.calls(), 0);
+    const duplicatePolicy = {
+      ...policy,
+      allowed_authorizer_roles: [
+        "ai-governance-authorizer",
+        "ai-governance-authorizer",
+      ],
+    };
+    const duplicate = setup(profile, "single_use", outcome(), duplicatePolicy);
+    assert.equal(
+      (await duplicate.handoff.execute(request("selected", duplicatePolicy)))
+        .rejection_reason,
+      "INVALID_POLICY",
+    );
+    assert.equal(duplicate.calls(), 0);
+  });
+  it("enforces temporal ordering and exact millisecond boundaries", async () => {
+    const equalExpiry = rebindDecision(request(), { expiry_at: now });
+    assert.equal(
+      (await setup().handoff.execute(equalExpiry)).rejection_reason,
+      "DECISION_EXPIRED",
+    );
+    const beforeExpiry = rebindDecision(request(), {
+      expiry_at: "2026-07-12T11:59:59.999Z",
+    });
+    assert.equal(
+      (await setup().handoff.execute(beforeExpiry)).rejection_reason,
+      "DECISION_EXPIRED",
+    );
+    const invalidExpiry = rebindDecision(request(), { expiry_at: "invalid" });
+    assert.equal(
+      (await setup().handoff.execute(invalidExpiry)).rejection_reason,
+      "DECISION_EXPIRY_INVALID",
+    );
+    const sameAsCreated = rebindDecision(request(), {
+      expiry_at: "2026-07-12T11:30:00.000Z",
+    });
+    assert.equal(
+      (await setup().handoff.execute(sameAsCreated)).rejection_reason,
+      "DECISION_EXPIRY_INVALID",
+    );
+    const earlyAuthorization = request();
+    assert.equal(
+      (
+        await setup().handoff.execute({
+          ...earlyAuthorization,
+          authorization: {
+            ...earlyAuthorization.authorization,
+            authorized_at: "2026-07-12T11:29:59.999Z",
+          },
+        })
+      ).rejection_reason,
+      "AUTHORIZATION_BEFORE_DECISION",
+    );
+    const invalidAuthorization = request();
+    assert.equal(
+      (
+        await setup().handoff.execute({
+          ...invalidAuthorization,
+          authorization: {
+            ...invalidAuthorization.authorization,
+            authorized_at: "invalid",
+          },
+        })
+      ).rejection_reason,
+      "INVALID_AUTHORIZATION",
+    );
+    const expiryMismatch = request();
+    assert.equal(
+      (
+        await setup().handoff.execute({
+          ...expiryMismatch,
+          authorization: {
+            ...expiryMismatch.authorization,
+            decision_expiry_at: "2026-07-12T12:30:00.001Z",
+          },
+        })
+      ).rejection_reason,
+      "AUTHORIZATION_MISMATCH",
+    );
+    const oldDecision = rebindDecision(request(), {
+      created_at: "2026-07-12T10:00:00.000Z",
+    });
+    const exactAge = {
+      ...oldDecision,
+      authorization: {
+        ...oldDecision.authorization,
+        authorized_at: "2026-07-12T11:00:00.000Z",
+      },
+    };
+    assert.equal(
+      (await setup().handoff.execute(exactAge)).execution_status,
+      "succeeded",
+    );
+    const beyond = {
+      ...oldDecision,
+      authorization: {
+        ...oldDecision.authorization,
+        authorized_at: "2026-07-12T10:59:59.999Z",
+      },
+    };
+    assert.equal(
+      (await setup().handoff.execute(beyond)).rejection_reason,
+      "AUTHORIZATION_EXPIRED",
+    );
+  });
+  it("does not restore a consumed authorization after gateway failure or throw", async () => {
+    const failed = setup(profile, "single_use", outcome("failed"));
+    assert.equal(
+      (await failed.handoff.execute(request())).execution_status,
+      "failed",
+    );
+    assert.equal(
+      (await failed.handoff.execute(request())).rejection_reason,
+      "AUTHORIZATION_ALREADY_CONSUMED",
+    );
+    let calls = 0;
+    const thrown = new ReviewedRoutingDecisionHandoff({
+      policy,
+      clock: () => new Date(now),
+      profileResolver: () => profile,
+      gateway: {
+        execute: async () => {
+          calls++;
+          throw new Error("fixture failure");
+        },
+      },
+    });
+    assert.equal((await thrown.execute(request())).execution_status, "failed");
+    assert.equal(
+      (await thrown.execute(request())).rejection_reason,
+      "AUTHORIZATION_ALREADY_CONSUMED",
+    );
+    assert.equal(calls, 1);
   });
 });

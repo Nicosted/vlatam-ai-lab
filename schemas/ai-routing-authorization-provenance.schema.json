@@ -9,7 +9,10 @@
     "authorizer_role",
     "authorization_decision",
     "authorized_at",
-    "review_attestation_reference"
+    "review_attestation_reference",
+    "handoff_policy_id",
+    "handoff_policy_version",
+    "handoff_policy_hash"
   ],
   "properties": {
     "authorization_id": { "type": "string" },
@@ -17,6 +20,15 @@
     "authorization_decision": { "enum": ["approved", "rejected"] },
     "authorized_at": { "type": "string", "format": "date-time" },
     "review_attestation_reference": { "type": "string" },
+    "handoff_policy_id": { "type": "string" },
+    "handoff_policy_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "handoff_policy_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
     "superseded_by": { "type": "string" }
   }
 }

@@ -19,14 +19,17 @@ AI-79 adds versioned handoff contracts, schemas, deterministic authorization sta
 
 ## Validation evidence
 
-- Focused AI-79 tests: 8 passed, 0 failed.
-- Full suite: 575 passed, 0 failed.
+- Focused AI-79 tests: 13 passed, 0 failed. Focused AI-79 plus gateway/privacy/budget/AI-78 regression set: 46 passed, 0 failed.
+- Full suite: 581 passed, 0 failed.
 - Typecheck: passed.
 - Build: passed.
 - Targeted ESLint: passed.
 - Policy, authorization, and AI-78 decision schema validation: passed.
 - Deterministic, concurrency, privacy-block, budget-block, and render commands: passed.
 - Single-use concurrency: three competing calls produced one gateway invocation and two pre-gateway duplicate rejections.
+- Handoff policy binding: canonical hash `cc1feda0beb0b6dd715371793a5368af482872c6c11884e3def06d865770ff94`; ID, version, mode, role, lifecycle, and hash mismatches produced zero gateway calls.
+- Temporal boundaries: expiry equal to now was rejected; exact maximum authorization age was accepted; one millisecond beyond was rejected.
+- Gateway version boundary: mismatched expected profile version produced zero privacy, budget-reservation, and adapter calls; matching and legacy calls passed.
 - Direct provider/adapter calls in `src/handoff`: zero.
 - Credential/personal-data pattern scan: no findings.
 - `git diff --check`: passed.

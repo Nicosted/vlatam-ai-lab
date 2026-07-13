@@ -15,7 +15,7 @@ import { ExecutionError, executionError, sanitizeProviderError, type ExecutionEr
 import { assertExecutionProfile } from './profile-catalog.js';
 import { BudgetEnforcer, GovernanceError, calculateCost, normalizeUsage, type BudgetAuditRecord, type GovernanceReservation, type UsageAuditRecord } from '../governance/index.js';
 
-export interface GatewayInvocation { readonly capability_request: CapabilityRequest; readonly execution_profile_id: string; readonly signal?: AbortSignal; }
+export interface GatewayInvocation { readonly capability_request: CapabilityRequest; readonly execution_profile_id: string; readonly expected_profile_contract_version?: string; readonly signal?: AbortSignal; }
 export interface GatewayOutcome { readonly result: CapabilityResult; readonly audit: ExecutionAuditRecord; readonly privacy_audit?: PrivacyAuditRecord | undefined; readonly usage_audit?: UsageAuditRecord | undefined; readonly budget_audit?: BudgetAuditRecord | undefined; }
 export interface GatewayOptions { readonly registry: ProviderAdapterRegistry; readonly clock?: () => Date; readonly executionId?: () => string; readonly profileResolver?: (id: string) => ExecutionProfile; readonly privacyEnforcer?: PrivacyEnforcer; readonly budgetEnforcer?: BudgetEnforcer; }
 
@@ -29,7 +29,7 @@ function capabilityError(error: ExecutionError): CapabilityError {
   if (error instanceof PrivacyBlockedExecutionError) { const mapped = mapPrivacyReasonToCapabilityError(error.reason_code); return { category: mapped.category, code: mapped.code, message: mapped.message }; }
   if (error.code === 'REQUEST_SCHEMA_INVALID') return { category: 'contract', code: 'INVALID_REQUEST', message: error.message };
   const policy = ['PROFILE_DISABLED','PROFILE_RETIRED','LIVE_EXECUTION_DISABLED','CREDENTIALS_UNAVAILABLE'].includes(error.code) || error instanceof GovernanceError;
-  const contract = ['UNKNOWN_PROFILE','UNKNOWN_PROVIDER','PROFILE_CAPABILITY_MISMATCH','OUTPUT_SCHEMA_INVALID','PROVIDER_RESPONSE_INVALID'].includes(error.code);
+  const contract = ['UNKNOWN_PROFILE','UNKNOWN_PROVIDER','PROFILE_CAPABILITY_MISMATCH','EXECUTION_PROFILE_VERSION_MISMATCH','OUTPUT_SCHEMA_INVALID','PROVIDER_RESPONSE_INVALID'].includes(error.code);
   return { category: policy ? 'policy' : contract ? 'contract' : error.code === 'INTERNAL_EXECUTION_ERROR' ? 'internal' : 'execution', code: policy ? 'EXECUTION_UNAVAILABLE' : contract ? 'INVALID_RESULT' : error.code === 'PROVIDER_TIMEOUT' ? 'TIMEOUT' : error.code === 'INTERNAL_EXECUTION_ERROR' ? 'INTERNAL_ERROR' : 'PROVIDER_ERROR', message: error.message };
 }
 interface SafeRequestFields { readonly request_id: string; readonly capability_id: CapabilityRequest['capability_id']; readonly schema_version: string; }
@@ -60,6 +60,7 @@ export class MultiProviderGateway {
       if (invocation.signal?.aborted) { abortCause = 'caller'; throw executionError('EXECUTION_ABORTED'); }
       const definition = assertCapabilitySupported(invocation.capability_request.capability_id);
       profile = this.profileResolver(invocation.execution_profile_id);
+      if (invocation.expected_profile_contract_version !== undefined && profile.contract_version !== invocation.expected_profile_contract_version) throw executionError('EXECUTION_PROFILE_VERSION_MISMATCH');
       if (validateExecutionProfile(profile).length) throw executionError('INTERNAL_EXECUTION_ERROR');
       if (profile.capability_id !== invocation.capability_request.capability_id) throw executionError('PROFILE_CAPABILITY_MISMATCH');
       if (!profile.enabled) throw executionError('PROFILE_DISABLED');

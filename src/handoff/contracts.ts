@@ -17,6 +17,13 @@ export type HandoffRejectionReason =
   | "DECISION_EXPIRED"
   | "DECISION_FUTURE_DATED"
   | "DECISION_HASH_MISMATCH"
+  | "HANDOFF_POLICY_MISMATCH"
+  | "UNSUPPORTED_CONTRACT_VERSION"
+  | "MALFORMED_IDENTITY"
+  | "INVALID_POLICY"
+  | "INVALID_AUTHORIZATION"
+  | "AUTHORIZATION_BEFORE_DECISION"
+  | "DECISION_EXPIRY_INVALID"
   | "POLICY_NOT_ALLOWED"
   | "PROFILE_REFERENCE_CONFLICT"
   | "PROFILE_NOT_FOUND"
@@ -57,6 +64,9 @@ export interface AuthorizationProvenance {
   readonly authorization_decision: AuthorizationDecision;
   readonly authorized_at: string;
   readonly review_attestation_reference: string;
+  readonly handoff_policy_id: string;
+  readonly handoff_policy_version: string;
+  readonly handoff_policy_hash: string;
   readonly superseded_by?: string;
 }
 export interface RoutingDecisionExecutionAuthorization extends AuthorizationProvenance {
@@ -90,6 +100,7 @@ export interface HandoffValidationResult {
   readonly valid: boolean;
   readonly decision_hash?: string;
   readonly authorization_id?: string;
+  readonly handoff_policy_hash?: string;
   readonly canonical_profile_key?: string;
   readonly rejection_reason?: HandoffRejectionReason;
 }
