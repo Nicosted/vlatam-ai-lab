@@ -19,16 +19,16 @@ Only reviewed and approved artifacts cross the export boundary. Internal governa
 
 ## Agents
 
-| Stage | Name | Input | Output | Command |
-| --- | --- | --- | --- | --- |
-| 1 | Source Monitor | External sources | Snapshots | `pnpm agents:source-monitor` |
-| 2 | Snapshot Writer | Raw data | Versioned snapshots | `pnpm agents:snapshot-writer` |
-| 3 | Delta Analyzer | Snapshots | Evidence packets | `pnpm agents:delta-analyzer` |
-| 4 | AI Extraction | Evidence | Extraction results | Fixture-based |
-| 5 | Evidence Writer | Extractions | Intelligence artifacts | `pnpm agents:evidence-writer` |
-| 6 | Human Review Gate | Artifacts | Approved artifacts | `pnpm agents:human-review` |
-| 7 | Export Contract | Approved artifacts | Clean exports | `pnpm agents:export-contract` |
-| 8 | API Server | Exports | HTTP responses | `pnpm agents:api-server` |
+| Stage | Name              | Input              | Output                 | Command                       |
+| ----- | ----------------- | ------------------ | ---------------------- | ----------------------------- |
+| 1     | Source Monitor    | External sources   | Snapshots              | `pnpm agents:source-monitor`  |
+| 2     | Snapshot Writer   | Raw data           | Versioned snapshots    | `pnpm agents:snapshot-writer` |
+| 3     | Delta Analyzer    | Snapshots          | Evidence packets       | `pnpm agents:delta-analyzer`  |
+| 4     | AI Extraction     | Evidence           | Extraction results     | Fixture-based                 |
+| 5     | Evidence Writer   | Extractions        | Intelligence artifacts | `pnpm agents:evidence-writer` |
+| 6     | Human Review Gate | Artifacts          | Approved artifacts     | `pnpm agents:human-review`    |
+| 7     | Export Contract   | Approved artifacts | Clean exports          | `pnpm agents:export-contract` |
+| 8     | API Server        | Exports            | HTTP responses         | `pnpm agents:api-server`      |
 
 ## Quick start
 
@@ -115,6 +115,7 @@ Consumers must validate `schema_version`, fail closed on unsupported or invalid 
 
 ### Reference
 
+- [Technical & Security Audit — 2026-07-13](reports/ai-lab-technical-security-audit-2026-07-13.md)
 - [vlatam-global API Contract](docs/integration/vlatam-global-api-contract.md)
 - [Classifier Intelligence Artifact P1](docs/classifier-intelligence-artifact-p1.md)
 - [Phase 6 Evidence Writer](docs/agents/evidence-writer.md)
