@@ -11,6 +11,13 @@ any future downstream classifier consumption. It does not infer approval. It onl
 records a provided human decision, reviewer, timestamp, and approval metadata,
 then validates the result before writing it back to the same artifact file.
 
+Every recorded outcome also receives an internal `review_binding` contract
+(`1.0.0`). The binding uses canonicalization `review-json-v1` and two
+domain-separated SHA-256 operations to bind the exact pre-review artifact,
+artifact schema version, decision, timestamp, and policy
+`classifier-human-review@1.0.0`. Reviewer identity remains internal and is not
+part of the binding payload or the approved export.
+
 ## P1 Invariants
 
 Downstream use is allowed only when all of these are true:
@@ -23,6 +30,8 @@ Downstream use is allowed only when all of these are true:
 - `reviewer` is present
 - `reviewed_at` is explicitly provided
 - `classifier_approval_reference` is present
+- `review_binding` is structurally valid and cryptographically matches the
+  artifact, decision, timestamp, schema, and current review policy
 
 Synthetic/demo artifacts are never downstream-safe. If `source_authority` or
 `origin` is `synthetic_demo`, validation rejects any attempt to set
@@ -35,6 +44,27 @@ Rejected artifacts remain restrictive:
 - `governance.downstream_allowed` is `false`
 - `governance.review_only` is `true`
 - `governance.not_final_classification` is `true`
+
+Rejected outcomes are also bound, but a valid binding never turns a rejected
+decision into downstream eligibility. Historical reviewed artifacts without a
+binding fail closed with `review_revalidation_required`; a new explicit human
+review is required. Bindings are never backfilled automatically.
+
+## Canonical reviewable content
+
+Object keys are sorted lexicographically and array order is preserved. JSON
+scalars retain JSON semantics. Unsupported values (`undefined`, functions,
+symbols, bigint, cycles, non-finite numbers, dates, maps, sets, and other
+non-plain objects) are rejected.
+
+The content hash includes artifact identity, schema version, source identity,
+provenance, classification candidate, evidence, timestamps created before
+review, and all other business content. It excludes only fields necessarily
+created or changed by review: `review_status`, `reviewer`, `reviewed_at`,
+`classifier_approval_reference`, `downstream_eligibility_reason`,
+`review_binding`, and the four review-controlled `governance` flags. These
+exclusions prevent the approval operation from hashing itself; they do not
+exclude reviewable business content.
 
 ## CLI Usage
 
@@ -72,5 +102,7 @@ The Human Review Gate does not:
 - scrape runtime sources
 - import `vlatam-global` runtime code
 - read secrets or environment files
-- generate random identifiers
+- generate domain or artifact identifiers (the atomic temporary filename is
+  process-unique and is not contract data)
+- auto-bind historical approvals without a new review
 - write an artifact when existing or updated validation fails

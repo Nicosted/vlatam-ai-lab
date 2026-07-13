@@ -1,0 +1,49 @@
+{
+  "artifact_id": "artifact--infoleg--review-001",
+  "extraction_result_id": "review-001",
+  "source_id": "infoleg",
+  "generated_at": "2026-07-13T10:00:00.000Z",
+  "classification_candidate": {
+    "ncm_code": "42029200110V",
+    "description": "Reviewed classification candidate",
+    "confidence": 0.82,
+    "status": "candidate"
+  },
+  "extracted_evidence": [
+    {
+      "claim_id": "claim-001",
+      "claim_type": "classification",
+      "text": "Evidence A",
+      "source_ref": "data/evidence/infoleg/example.json#/claims/0",
+      "confidence": 0.82,
+      "affected_ncm": ["42029200110V", "42029200900X"],
+      "requires_review": true
+    }
+  ],
+  "governance": {
+    "human_review_required": false,
+    "downstream_allowed": true,
+    "review_only": false,
+    "not_final_classification": false
+  },
+  "source_authority": "official_regulation",
+  "origin": "ai_assisted_extraction",
+  "schema_version": "1.0.0",
+  "review_status": "reviewed_approved",
+  "reviewer": "internal-reviewer",
+  "reviewed_at": "2026-07-13T12:00:00.000Z",
+  "classifier_approval_reference": "approval-ref--001",
+  "downstream_eligibility_reason": "Verified",
+  "review_binding": {
+    "binding_schema_version": "1.0.0",
+    "artifact_id": "artifact--infoleg--review-001",
+    "artifact_schema_version": "1.0.0",
+    "artifact_content_hash": "sha256:8e28a4f0875bc24829f41a3ca4a7556589bf16c9e0b95e3827088662244c0caa",
+    "canonicalization_version": "review-json-v1",
+    "review_decision": "approved",
+    "reviewed_at": "2026-07-13T12:00:00.000Z",
+    "review_policy_id": "classifier-human-review",
+    "review_policy_version": "1.0.0",
+    "review_binding_hash": "sha256:5b35e56aa98037684cb4809dff21b68c53eebd7803be4bd9da17d7fefa91d672"
+  }
+}

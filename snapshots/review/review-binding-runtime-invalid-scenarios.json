@@ -1,0 +1,41 @@
+{
+  "schema_version": "1.0.0",
+  "scenarios": [
+    {
+      "scenario_id": "unsupported_canonicalization_version",
+      "expected_reason_code": "review_canonicalization_unsupported"
+    },
+    {
+      "scenario_id": "artifact_id_substitution",
+      "expected_reason_code": "artifact_id_mismatch"
+    },
+    {
+      "scenario_id": "artifact_schema_substitution",
+      "expected_reason_code": "artifact_schema_version_mismatch"
+    },
+    {
+      "scenario_id": "review_policy_substitution",
+      "expected_reason_code": "review_policy_mismatch"
+    },
+    {
+      "scenario_id": "decision_substitution",
+      "expected_reason_code": "review_decision_mismatch"
+    },
+    {
+      "scenario_id": "binding_hash_substitution",
+      "expected_reason_code": "review_binding_hash_mismatch"
+    },
+    {
+      "scenario_id": "copied_approval",
+      "expected_reason_code": "artifact_id_mismatch"
+    },
+    {
+      "scenario_id": "post_review_artifact_mutation",
+      "expected_reason_code": "artifact_content_hash_mismatch"
+    },
+    {
+      "scenario_id": "historical_unbound_review",
+      "expected_reason_code": "review_revalidation_required"
+    }
+  ]
+}

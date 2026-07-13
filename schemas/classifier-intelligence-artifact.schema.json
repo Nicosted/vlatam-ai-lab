@@ -51,7 +51,13 @@
           "claim_id": { "type": "string", "minLength": 1 },
           "claim_type": {
             "type": "string",
-            "enum": ["tariff", "intervention", "norm", "legal", "classification"]
+            "enum": [
+              "tariff",
+              "intervention",
+              "norm",
+              "legal",
+              "classification"
+            ]
           },
           "text": { "type": "string", "minLength": 1 },
           "source_ref": { "type": "string" },
@@ -100,6 +106,9 @@
       "type": "string",
       "minLength": 1
     },
+    "review_binding": {
+      "$ref": "#/$defs/review_binding"
+    },
     "source_authority": {
       "type": "string",
       "enum": ["official_regulation", "internal_review", "synthetic_demo"]
@@ -110,6 +119,57 @@
     "schema_version": {
       "type": "string",
       "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    }
+  },
+  "$defs": {
+    "review_binding": {
+      "type": "object",
+      "required": [
+        "binding_schema_version",
+        "artifact_id",
+        "artifact_schema_version",
+        "artifact_content_hash",
+        "canonicalization_version",
+        "review_decision",
+        "reviewed_at",
+        "review_policy_id",
+        "review_policy_version",
+        "review_binding_hash"
+      ],
+      "properties": {
+        "binding_schema_version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$"
+        },
+        "artifact_id": {
+          "type": "string",
+          "pattern": "^artifact--[a-z0-9_-]+--[a-z0-9_-]+$"
+        },
+        "artifact_schema_version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$"
+        },
+        "artifact_content_hash": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "canonicalization_version": { "type": "string", "minLength": 1 },
+        "review_decision": {
+          "type": "string",
+          "enum": ["approved", "rejected"]
+        },
+        "reviewed_at": { "type": "string", "format": "date-time" },
+        "review_policy_id": { "type": "string", "minLength": 1 },
+        "review_policy_version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$"
+        },
+        "review_binding_hash": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        }
+      },
+      "additionalProperties": false
     }
   },
   "allOf": [
@@ -129,7 +189,13 @@
       },
       "then": {
         "type": "object",
-        "required": ["review_status", "reviewer", "reviewed_at", "classifier_approval_reference"],
+        "required": [
+          "review_status",
+          "reviewer",
+          "reviewed_at",
+          "classifier_approval_reference",
+          "review_binding"
+        ],
         "properties": {
           "review_status": { "const": "reviewed_approved" },
           "reviewer": {
@@ -144,6 +210,9 @@
             "type": "string",
             "minLength": 1
           },
+          "review_binding": {
+            "$ref": "#/$defs/review_binding"
+          },
           "governance": {
             "type": "object",
             "properties": {
@@ -156,6 +225,24 @@
             "type": "string",
             "enum": ["official_regulation", "internal_review"]
           }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": ["review_status"],
+        "properties": {
+          "review_status": {
+            "enum": ["reviewed_approved", "reviewed_rejected"]
+          }
+        }
+      },
+      "then": {
+        "required": ["reviewer", "reviewed_at", "review_binding"],
+        "properties": {
+          "reviewer": { "type": "string", "minLength": 1 },
+          "reviewed_at": { "type": "string", "format": "date-time" },
+          "review_binding": { "$ref": "#/$defs/review_binding" }
         }
       }
     },

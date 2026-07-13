@@ -446,7 +446,10 @@ and are not deferred to later PRs.
 9. Regulatory conclusions require evidence provenance and the appropriate
    review status. Every claim that affects a regulated decision must cite
    a source from an evidence packet, and the artifact must be
-   `reviewed_approved` before export.
+   `reviewed_approved` before export. The approval must carry a valid internal,
+   domain-separated review binding over the exact reviewable artifact, schema,
+   decision, review timestamp, and policy; modified or substituted artifacts
+   fail closed.
 10. Shadow outputs must never influence production responses. Shadow runs
     are auditable side effects; the operational response always comes from
     the selected production profile.
