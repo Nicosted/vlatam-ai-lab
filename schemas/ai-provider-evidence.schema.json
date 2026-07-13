@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/ai-provider-evidence.schema.json",
+  "title": "AI-81 reviewed provider evidence catalog",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "evidence"],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "evidence": { "type": "array", "items": { "$ref": "#/$defs/evidence_record" } }
+  },
+  "$defs": {
+    "claim": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status"],
+      "properties": {
+        "status": { "enum": ["supported", "unsupported", "unknown"] },
+        "value": {},
+        "source_ref": { "type": "string", "minLength": 1 }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "status": { "enum": ["supported", "unsupported"] } } },
+          "then": { "required": ["value", "source_ref"], "properties": { "value": {}, "source_ref": { "type": "string" } } }
+        },
+        {
+          "if": { "properties": { "status": { "const": "unknown" } } },
+          "then": { "not": { "required": ["value"] }, "properties": { "value": {} } }
+        }
+      ]
+    },
+    "evidence_record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["evidence_id", "provider_identity", "model_identity", "claims", "source", "review", "expires_at"],
+      "properties": {
+        "evidence_id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]+$" },
+        "provider_identity": { "$ref": "#/$defs/claim" },
+        "model_identity": { "$ref": "#/$defs/claim" },
+        "claims": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["supported_capabilities", "context_limits", "structured_outputs", "tool_calling", "multimodal", "prompt_caching", "usage_reporting", "processing_regions", "retention", "training_use", "zdr_status", "pricing"],
+          "properties": {
+            "supported_capabilities": { "$ref": "#/$defs/claim" },
+            "context_limits": { "$ref": "#/$defs/claim" },
+            "structured_outputs": { "$ref": "#/$defs/claim" },
+            "tool_calling": { "$ref": "#/$defs/claim" },
+            "multimodal": { "$ref": "#/$defs/claim" },
+            "prompt_caching": { "$ref": "#/$defs/claim" },
+            "usage_reporting": { "$ref": "#/$defs/claim" },
+            "processing_regions": { "$ref": "#/$defs/claim" },
+            "retention": { "$ref": "#/$defs/claim" },
+            "training_use": { "$ref": "#/$defs/claim" },
+            "zdr_status": { "$ref": "#/$defs/claim" },
+            "pricing": { "$ref": "#/$defs/claim" }
+          }
+        },
+        "source": {
+          "type": "object", "additionalProperties": false,
+          "required": ["kind", "reference", "captured_at"],
+          "properties": {
+            "kind": { "enum": ["provider_declaration", "independent_review", "contract_review", "local_fixture"] },
+            "reference": { "type": "string", "minLength": 1 },
+            "captured_at": { "type": "string", "format": "date-time" }
+          }
+        },
+        "review": {
+          "type": "object", "additionalProperties": false,
+          "required": ["status"],
+          "properties": {
+            "status": { "enum": ["reviewed_approved", "pending", "rejected"] },
+            "reviewed_at": { "type": "string", "format": "date-time" },
+            "review_record_ref": { "type": "string", "minLength": 1 }
+          },
+          "allOf": [{ "if": { "properties": { "status": { "const": "reviewed_approved" } } }, "then": { "required": ["reviewed_at", "review_record_ref"], "properties": { "reviewed_at": { "type": "string" }, "review_record_ref": { "type": "string" } } } }]
+        },
+        "expires_at": { "type": "string", "format": "date-time" }
+      }
+    }
+  }
+}
