@@ -12,6 +12,7 @@ import { PrivacyPolicyCatalog } from '../../src/privacy/privacy-policy.js';
 import type { PrivacyProfileDeclaration } from '../../src/privacy/privacy-policy.js';
 import { ZdrEvidenceStore } from '../../src/privacy/zdr-evidence.js';
 import { assertPrivacyAuditMetadataOnly } from '../../src/privacy/privacy-audit.js';
+import { BudgetEnforcer, InMemoryBudgetLedger } from '../../src/governance/index.js';
 import { LOCAL_REPLAY_PRIVACY } from '../helpers/privacy.js';
 
 const root = process.cwd();
@@ -101,6 +102,7 @@ function gateway(profile: ExecutionProfile, adapters: readonly ProviderAdapter[]
     clock: (() => { let n = 0; return () => new Date(NOW.getTime() + n++ * 10); })(),
     executionId: () => 'execution-privacy-001',
     privacyEnforcer: enforcer ?? new PrivacyEnforcer({ zdrEvidence: evidenceStore, clock: () => NOW }),
+    budgetEnforcer: new BudgetEnforcer({ ledger: new InMemoryBudgetLedger() }),
   });
 }
 
@@ -223,6 +225,7 @@ describe('AI-73 gateway privacy integration', () => {
       registry,
       profileResolver: () => profileWith(LOCAL_REPLAY_PRIVACY),
       clock: () => NOW,
+      budgetEnforcer: new BudgetEnforcer({ ledger: new InMemoryBudgetLedger() }),
       executionId: () => executionIds.shift()!,
       privacyEnforcer: sharedEnforcer,
     });

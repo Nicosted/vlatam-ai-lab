@@ -5,6 +5,7 @@ import type { ExecutionProfile } from '../../src/execution/execution-profile.js'
 import { MultiProviderGateway } from '../../src/execution/multi-provider-gateway.js';
 import { ProviderAdapterRegistry } from '../../src/providers/adapter-registry.js';
 import type { ProviderAdapter } from '../../src/providers/provider-adapter.js';
+import { BudgetEnforcer, InMemoryBudgetLedger } from '../../src/governance/index.js';
 import { LOCAL_REPLAY_PRIVACY } from '../helpers/privacy.js';
 
 const request: CapabilityRequest = { request_id: 'request-hardening-001', capability_id: 'evidence.extraction.normative_claims' as never, schema_version: '1.0.0', input: { packet_id: 'packet-hardening-001', evidence_refs: [{ source_id: 'source-001', snapshot_id: 'snapshot-001', section_label: 'section-1', excerpt: 'Synthetic evidence only.' }] }, context: { data_classification: 'public' } };
@@ -27,7 +28,7 @@ function countingAdapter(provider: string): CountingAdapter {
 function gateway(profile: ExecutionProfile, adapters: readonly ProviderAdapter[]) {
   const registry = new ProviderAdapterRegistry();
   for (const adapter of adapters) registry.registerProviderAdapter(adapter);
-  return new MultiProviderGateway({ registry, profileResolver: () => profile, clock: (() => { let n = 0; return () => new Date(n++ * 10); })(), executionId: () => 'execution-hardening-001' });
+  return new MultiProviderGateway({ registry, profileResolver: () => profile, clock: (() => { let n = 0; return () => new Date(n++ * 10); })(), executionId: () => 'execution-hardening-001', budgetEnforcer: new BudgetEnforcer({ ledger: new InMemoryBudgetLedger() }) });
 }
 async function expectNoWait<T>(work: Promise<T>): Promise<T> {
   let timer: NodeJS.Timeout | undefined;
