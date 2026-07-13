@@ -1,14 +1,17 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://vlatam-ai-lab.local/schemas/ai-candidate-profile-readiness.schema.json",
+  "title": "AI-82 disabled provider candidate readiness",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema_version", "profiles"],
+  "required": ["schema_version", "evaluated_at", "profiles"],
   "properties": {
-    "schema_version": { "const": "1.0.0" },
+    "schema_version": { "const": "2.0.0" },
+    "evaluated_at": { "type": "string", "format": "date-time" },
     "profiles": {
       "type": "array",
-      "minItems": 1,
+      "minItems": 2,
+      "maxItems": 2,
       "items": {
         "type": "object",
         "additionalProperties": false,
@@ -16,6 +19,7 @@
           "profile_id",
           "provider_id",
           "model_id",
+          "upstream_provider_id",
           "lifecycle_status",
           "enabled",
           "evidence_refs",
@@ -28,58 +32,37 @@
             "pattern": "^[a-z0-9][a-z0-9._-]+$"
           },
           "provider_id": { "enum": ["openrouter", "minimax-direct"] },
-          "model_id": { "type": ["string", "null"], "minLength": 1 },
+          "model_id": { "type": "string", "minLength": 1 },
+          "upstream_provider_id": {
+            "type": ["string", "null"],
+            "minLength": 1
+          },
           "lifecycle_status": { "const": "candidate" },
           "enabled": { "const": false },
           "evidence_refs": {
             "type": "array",
-            "minItems": 1,
+            "minItems": 20,
             "uniqueItems": true,
             "items": { "type": "string", "minLength": 1 }
           },
-          "runtime_eligibility": { "enum": ["blocked", "reviewed_candidate"] },
+          "runtime_eligibility": { "const": "blocked" },
           "blocking_reasons": {
             "type": "array",
+            "minItems": 1,
             "uniqueItems": true,
             "items": {
               "enum": [
-                "missing_evidence",
-                "expired_evidence",
-                "unreviewed_evidence",
-                "unknown_model_identity",
                 "unsupported_capability",
-                "profile_evidence_mismatch",
                 "privacy_unknown",
-                "pricing_unknown"
+                "variable_provider_routing",
+                "missing_upstream_provider_evidence",
+                "rate_limits_unknown",
+                "security_compliance_unknown",
+                "human_decision_required"
               ]
             }
           }
-        },
-        "allOf": [
-          {
-            "if": {
-              "properties": { "runtime_eligibility": { "const": "blocked" } }
-            },
-            "then": {
-              "properties": {
-                "blocking_reasons": { "type": "array", "minItems": 1 }
-              }
-            }
-          },
-          {
-            "if": {
-              "properties": {
-                "runtime_eligibility": { "const": "reviewed_candidate" }
-              }
-            },
-            "then": {
-              "properties": {
-                "model_id": { "type": "string" },
-                "blocking_reasons": { "type": "array", "maxItems": 0 }
-              }
-            }
-          }
-        ]
+        }
       }
     }
   }
