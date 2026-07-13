@@ -103,8 +103,8 @@ describe('AI-71 contract — version constants and enums', () => {
     assert.deepEqual([...SUPPORTED_CAPABILITY_CONTRACT_MAJORS], [1]);
   });
 
-  it('exposes the four status values, three risk tiers, three provider execution values, and the nine domains', () => {
-    assert.deepEqual([...CAPABILITY_STATUSES], ['existing', 'partial', 'planned', 'out_of_scope']);
+  it('exposes the five status values, three risk tiers, three provider execution values, and the nine domains', () => {
+    assert.deepEqual([...CAPABILITY_STATUSES], ['existing', 'partial', 'planned', 'out_of_scope', 'retired']);
     assert.deepEqual([...CAPABILITY_RISK_TIERS], ['low', 'medium', 'high']);
     assert.deepEqual([...PROVIDER_EXECUTION_VALUES], ['required', 'optional', 'none']);
     assert.deepEqual(
@@ -179,6 +179,7 @@ describe('AI-71 contract — type guards', () => {
     assert.equal(isCapabilityStatus('partial'), true);
     assert.equal(isCapabilityStatus('planned'), true);
     assert.equal(isCapabilityStatus('out_of_scope'), true);
+    assert.equal(isCapabilityStatus('retired'), true);
     assert.equal(isCapabilityStatus('enabled'), false);
     assert.equal(isCapabilityRiskTier('low'), true);
     assert.equal(isCapabilityRiskTier('critical'), false);

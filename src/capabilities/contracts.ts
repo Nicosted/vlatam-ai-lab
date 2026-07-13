@@ -48,7 +48,7 @@ import { CAPABILITY_ID_PATTERN, SEMVER_PATTERN } from './version.js';
  * Mirrors the catalog's `allowed_status` enum
  * (`config/ai-capabilities.json`).
  */
-export const CAPABILITY_STATUSES = ['existing', 'partial', 'planned', 'out_of_scope'] as const;
+export const CAPABILITY_STATUSES = ['existing', 'partial', 'planned', 'out_of_scope', 'retired'] as const;
 export type CapabilityStatus = (typeof CAPABILITY_STATUSES)[number];
 
 /**
@@ -397,7 +397,7 @@ export interface CapabilityDefinition {
    * `CapabilityRequest.input`. `null` means "the schema is not yet
    * declared; this capability has not been bound to a concrete input
    * shape in the binding layer". A `null` value is allowed for
-   * `partial` / `planned` / `out_of_scope` capabilities.
+   * `partial` / `planned` / `out_of_scope` / `retired` capabilities.
    */
   readonly input_schema_ref: string | null;
   /**

@@ -292,3 +292,41 @@ No premature optimization performed.
 - `pnpm audit` was not run (network-dependent registry query; lockfile-based advisory review was manual).
 - Gitignored local data (`data/raw/`, PDFs, CSVs, local `.env`) was checked only for tracking status and history presence, not content-audited beyond identifier-pattern scans.
 - Confidence labels: findings marked CONFIRMED were verified in code and, where applicable, against tests; NEEDS_VALIDATION items (SCHEMA-01 registry scope) require owner intent.
+
+## 19. Follow-up status — 2026-07-13 (governed-execution-boundary PR)
+
+Remediation item 4 of §16 (legacy provider path decision) was executed on
+branch `refactor/ai-lab-governed-execution-boundary`:
+
+- **ARCH-01 (HIGH) — resolved by retirement.** Every §5 legacy direct
+  execution path (rows 4–8 and 10) was removed rather than migrated: the
+  direct DeepSeek agents (`src/agents/{arca,infoleg,vuce,critic,router}-agent.ts`),
+  the normative evidence agent and its CLI
+  (`src/agents/normative-evidence-agent.ts`, `scripts/run-extraction.ts`),
+  the legacy Cloudflare Worker (`src/worker/index.ts`, `wrangler.toml`),
+  the Cloudflare AI Gateway wrapper (`src/ai/ai-gateway.ts`), the Workers AI
+  embedding paths (`src/utils/embedding-service.ts`,
+  `src/workers/embedding-consumer.ts`, `scripts/generate-*-embeddings.ts`),
+  and the KV sync script (`scripts/sync-kv.ts`). The corresponding package
+  scripts were removed. `evidence.extraction.normative_claims` executes only
+  through the MultiProviderGateway.
+- **SEC-02 (MEDIUM), SEC-04 (LOW), SEC-05 (LOW) — resolved by removal** of
+  the legacy Worker they lived in.
+- **PRIV-01 (INFORMATIONAL) — resolved:** no execution path outside the
+  gateway's privacy enforcement remains.
+- **Regression guard added:** `tests/architecture/execution-boundary.test.ts`
+  fails the suite if runtime source reintroduces a provider SDK import, a
+  provider/model endpoint literal, a non-type import of the adapter layer
+  outside `src/providers/`, an automatic-fallback identifier, a retired
+  entry point, or a retired package script.
+- **Catalog updated:** nine capability rows are now `retired` in
+  `config/ai-capabilities.json` (new status value added to the schema and
+  contracts). Qwen/DashScope spike documentation and sanitized fixtures are
+  retained as historical evidence only.
+- Invariant table §17 row 5 now **HOLDS**: domain workflows cannot call
+  provider SDKs directly; the boundary is test-enforced.
+- Deferred to the dependency-cleanup PR: removal of `@langchain/langgraph`,
+  `@types/ajv`, `hono`, `wrangler`, `@cloudflare/workers-types`, and the
+  `xlsx` decision (DEP items, §11), plus Node 22 runtime alignment (DEP-05).
+  Most of the 115 baseline lint errors lived in the removed files; the
+  remaining lint debt is re-measured in that PR.

@@ -1,5 +1,12 @@
 # Cloudflare Workers API Setup Guide
 
+> **RETIRED (2026-07-13).** The Cloudflare Worker (`src/worker/index.ts`),
+> `wrangler.toml`, the KV sync script, and the Workers AI embedding scripts
+> were removed by the governed-execution-boundary PR. This guide is retained
+> as historical documentation only; none of the commands below work in the
+> current repository, and re-deploying a direct-provider Worker is forbidden
+> by `tests/architecture/execution-boundary.test.ts`.
+
 This guide walks you through deploying the Normative Evidence Agent as a Cloudflare Workers REST API.
 
 ## Prerequisites

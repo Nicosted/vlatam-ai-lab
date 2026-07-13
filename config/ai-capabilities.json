@@ -4,7 +4,13 @@
   "generated_by": "AI-70",
   "generated_at": "2026-07-11T00:00:00.000Z",
   "description": "Declarative inventory of AI capabilities for vlatam-ai-lab. This file is documentation-level only. It is consumed by documentation checks and by the AI-71 capability contract work. It is not a runtime registry.",
-  "allowed_status": ["existing", "partial", "planned", "out_of_scope"],
+  "allowed_status": [
+    "existing",
+    "partial",
+    "planned",
+    "out_of_scope",
+    "retired"
+  ],
   "allowed_risk_tier": ["low", "medium", "high"],
   "allowed_provider_execution": ["required", "optional", "none"],
   "allowed_human_review": [true, false],
@@ -69,12 +75,12 @@
       "capability_id": "source.acquisition.cloudflare_pipeline_v1",
       "name": "Cloudflare pipeline source acquisition",
       "domain": "source",
-      "status": "partial",
+      "status": "retired",
       "risk_tier": "low",
       "human_review": false,
       "downstream_policy": {
         "downstream_allowed": false,
-        "reason": "Feature-flagged off; mechanical passthrough only."
+        "reason": "Retired 2026-07-13: legacy Worker, AI Gateway wrapper, and wrangler config removed; superseded by the governed gateway architecture. No runtime path remains."
       },
       "provider_execution": "none",
       "roadmap_owner": "ai-72"
@@ -139,12 +145,12 @@
       "capability_id": "evidence.extraction.qwen_dashscope",
       "name": "Qwen/DashScope extraction (spike)",
       "domain": "evidence",
-      "status": "partial",
+      "status": "retired",
       "risk_tier": "high",
       "human_review": true,
       "downstream_policy": {
         "downstream_allowed": false,
-        "reason": "Spike only; manual dry-run with recorded responses. Raw LLM output never crosses export boundary."
+        "reason": "Retired 2026-07-13: spike documentation and sanitized recorded fixtures are retained as historical evidence; no runtime path exists. Any future use must go through the governed gateway."
       },
       "provider_execution": "required",
       "roadmap_owner": "ai-72"
@@ -153,12 +159,12 @@
       "capability_id": "evidence.extraction.langgraph_workflow",
       "name": "LangGraph extractor/critic/validator",
       "domain": "evidence",
-      "status": "partial",
+      "status": "retired",
       "risk_tier": "high",
       "human_review": true,
       "downstream_policy": {
         "downstream_allowed": false,
-        "reason": "Workflow exists in tests; runtime path not wired. Draft/unreviewed output only."
+        "reason": "Retired 2026-07-13: no runtime implementation was ever wired; workflow-shaped stubs remain type/test-only. Any future workflow must invoke capabilities through the governed gateway."
       },
       "provider_execution": "required",
       "roadmap_owner": "ai-72"
@@ -167,12 +173,12 @@
       "capability_id": "evidence.extraction.critic_review",
       "name": "Critic review pass",
       "domain": "evidence",
-      "status": "existing",
+      "status": "retired",
       "risk_tier": "high",
       "human_review": true,
       "downstream_policy": {
         "downstream_allowed": false,
-        "reason": "Critic output feeds router; never exported on its own. Interpretation of regulated content requires review."
+        "reason": "Retired 2026-07-13: the direct-call critic agent was removed with the legacy router path. Any future critic pass must run as a governed capability with human review."
       },
       "provider_execution": "required",
       "roadmap_owner": "ai-78"
@@ -181,12 +187,12 @@
       "capability_id": "evidence.embedding.bge_m3",
       "name": "Multilingual embedding generation",
       "domain": "evidence",
-      "status": "existing",
+      "status": "retired",
       "risk_tier": "low",
       "human_review": false,
       "downstream_policy": {
         "downstream_allowed": false,
-        "reason": "Mechanical embedding; no interpretation. Internal indexes only."
+        "reason": "Retired 2026-07-13: legacy Workers AI embedding service, consumer, and scripts removed. Embeddings were never governed; any future embedding capability requires an explicit governed boundary before external execution."
       },
       "provider_execution": "required",
       "roadmap_owner": "ai-70-existing"
@@ -195,12 +201,12 @@
       "capability_id": "evidence.embedding.refresh",
       "name": "Embedding refresh on snapshot change",
       "domain": "evidence",
-      "status": "planned",
+      "status": "retired",
       "risk_tier": "low",
       "human_review": false,
       "downstream_policy": {
         "downstream_allowed": false,
-        "reason": "Mechanical index maintenance; not exported."
+        "reason": "Retired 2026-07-13: planned refresh depended on the retired embedding runtime; re-plan only behind the governed boundary."
       },
       "provider_execution": "optional",
       "roadmap_owner": "ai-72,ai-77"
@@ -335,12 +341,12 @@
       "capability_id": "provider.execution.cloudflare_ai_gateway",
       "name": "Cloudflare AI Gateway wrapper",
       "domain": "provider",
-      "status": "partial",
+      "status": "retired",
       "risk_tier": "medium",
       "human_review": false,
       "downstream_policy": {
         "downstream_allowed": false,
-        "reason": "Internal transport; never crosses export boundary."
+        "reason": "Retired 2026-07-13: wrapper removed; it allowed automatic model fallback, which the governed boundary forbids. Provider transport lives only in the governed adapter layer."
       },
       "provider_execution": "required",
       "roadmap_owner": "ai-72"
@@ -349,12 +355,12 @@
       "capability_id": "provider.execution.deepseek_direct",
       "name": "DeepSeek direct calls",
       "domain": "provider",
-      "status": "partial",
+      "status": "retired",
       "risk_tier": "high",
       "human_review": false,
       "downstream_policy": {
         "downstream_allowed": false,
-        "reason": "Internal transport; the calling capability (e.g. evidence.extraction.normative_claims) carries the human review requirement."
+        "reason": "Retired 2026-07-13: all direct provider calls from domain agents and scripts removed. Provider execution exists only through the governed gateway and its adapter layer."
       },
       "provider_execution": "required",
       "roadmap_owner": "ai-72,ai-78"
@@ -363,12 +369,12 @@
       "capability_id": "provider.execution.qwen_dashscope_runtime",
       "name": "DashScope/Qwen runtime",
       "domain": "provider",
-      "status": "partial",
+      "status": "retired",
       "risk_tier": "high",
       "human_review": false,
       "downstream_policy": {
         "downstream_allowed": false,
-        "reason": "Spike-only manual dry-run; not wired to runtime. The calling capability carries review."
+        "reason": "Retired 2026-07-13: no direct runtime will be built; the governed adapter layer already provides an equivalent disabled-by-default factory."
       },
       "provider_execution": "required",
       "roadmap_owner": "ai-72"

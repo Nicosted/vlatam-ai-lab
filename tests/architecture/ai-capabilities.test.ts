@@ -195,7 +195,7 @@ describe('AI-70 capabilities catalog', () => {
   it('declares the AI-70 metadata and the four allowed enums', () => {
     assert.equal(catalog.generated_by, 'AI-70');
     assert.ok(catalog.generated_at && catalog.generated_at.length > 0);
-    assert.deepEqual(catalog.allowed_status, ['existing', 'partial', 'planned', 'out_of_scope']);
+    assert.deepEqual(catalog.allowed_status, ['existing', 'partial', 'planned', 'out_of_scope', 'retired']);
     assert.deepEqual(catalog.allowed_risk_tier, ['low', 'medium', 'high']);
     assert.deepEqual(catalog.allowed_provider_execution, ['required', 'optional', 'none']);
     assert.deepEqual(catalog.allowed_human_review, [true, false]);
@@ -428,13 +428,14 @@ describe('AI-70 capabilities catalog — count derivation', () => {
     assert.equal(catalog.capabilities.length, 40);
   });
 
-  it('derives status counts: existing=12, partial=13, planned=14, out_of_scope=1', () => {
+  it('derives status counts: existing=10, partial=7, planned=13, out_of_scope=1, retired=9', () => {
     const counts = countByStatus();
     assert.deepEqual(counts, {
-      existing: 12,
-      partial: 13,
-      planned: 14,
+      existing: 10,
+      partial: 7,
+      planned: 13,
       out_of_scope: 1,
+      retired: 9,
     });
   });
 
@@ -501,10 +502,10 @@ describe('AI-70 capabilities catalog — count derivation', () => {
     }
 
     const expected: Record<1 | 2 | 3 | 4, Record<string, number>> = {
-      1: { existing: 3, partial: 5, planned: 0, out_of_scope: 0 },
-      2: { existing: 4, partial: 3, planned: 1, out_of_scope: 0 },
-      3: { existing: 5, partial: 2, planned: 0, out_of_scope: 0 },
-      4: { existing: 0, partial: 3, planned: 13, out_of_scope: 1 },
+      1: { existing: 3, partial: 4, planned: 0, out_of_scope: 0, retired: 1 },
+      2: { existing: 2, partial: 1, planned: 0, out_of_scope: 0, retired: 5 },
+      3: { existing: 5, partial: 2, planned: 0, out_of_scope: 0, retired: 0 },
+      4: { existing: 0, partial: 0, planned: 13, out_of_scope: 1, retired: 3 },
     };
 
     for (const g of [1, 2, 3, 4] as const) {
@@ -516,7 +517,7 @@ describe('AI-70 capabilities catalog — count derivation', () => {
         expectedTotal,
         `group ${g} total mismatch: expected ${expectedTotal}, got ${actualTotal}`
       );
-      for (const k of ['existing', 'partial', 'planned', 'out_of_scope']) {
+      for (const k of ['existing', 'partial', 'planned', 'out_of_scope', 'retired']) {
         assert.equal(
           actual[k] ?? 0,
           expected[g][k] ?? 0,

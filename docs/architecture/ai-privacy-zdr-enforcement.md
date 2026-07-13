@@ -294,6 +294,15 @@ Workers AI embedding paths (`src/utils/embedding-service.ts`,
 execution paths.** Migrating them onto the gateway is required follow-up
 work before any repository-wide privacy claim can be made.
 
+> **Resolution (2026-07-13, governed-execution-boundary PR):** all legacy
+> direct-provider execution paths listed above were retired (removed from
+> the repository) instead of migrated. Every remaining provider execution
+> path runs through the MultiProviderGateway and is therefore covered by
+> this privacy enforcement. `tests/architecture/execution-boundary.test.ts`
+> fails the build if a direct provider path is reintroduced. The
+> `src/workflows/pcram-workflow.ts` stubs no longer orchestrate any direct
+> agent; they are type/test-only.
+
 ## Deferred to AI-74 through AI-78
 
 Budget governance and cost/token metering (AI-74), the evaluation framework

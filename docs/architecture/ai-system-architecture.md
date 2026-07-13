@@ -31,6 +31,14 @@ intentionally out of scope, and which invariant each layer must enforce.
 
 ## 2. Existing surface (as audited on this branch)
 
+> **Update (2026-07-13, governed-execution-boundary PR):** the pre-AI-72
+> direct execution rows below (Normative Evidence Agent, Router Agent and
+> the specialized ARCA/VUCE/InfoLEG agents, and the Cloudflare AI Gateway
+> wrapper) were retired and removed from the repository. Provider execution
+> now exists only through the AI-72 MultiProviderGateway; the boundary is
+> enforced by `tests/architecture/execution-boundary.test.ts`. The table is
+> retained as the AI-70 point-in-time inventory.
+
 The current repository already contains the following components, which AI-70
 preserves and reorganizes rather than replaces. The "agent modules" count
 below is `12` — every file under `src/agents/` that defines an agent class

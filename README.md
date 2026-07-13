@@ -86,7 +86,7 @@ Consumers must validate `schema_version`, fail closed on unsupported or invalid 
 
 ## Current status
 
-- ✅ 618 tests passing
+- ✅ 621 tests passing
 - ✅ API-key authentication and in-memory per-IP rate limiting
 - ✅ 0 external dependencies in the native HTTP API path
 - ✅ Repo-first architecture
@@ -108,6 +108,7 @@ Consumers must validate `schema_version`, fail closed on unsupported or invalid 
 - ✅ AI-82 primary provider evidence review delivered (both candidates remain blocked)
 - ⛔ AI-83 controlled adapter and live benchmark — gated; no work until every stated gate is satisfied
 - ✅ AI-84 regulatory dossier evidence intake delivered
+- ✅ Governed execution boundary enforced — every pre-AI-72 direct provider path (DeepSeek agents, extraction CLI, legacy Worker, Cloudflare AI Gateway wrapper, Workers AI embeddings) retired 2026-07-13; provider execution exists only through the MultiProviderGateway, guarded by a repository-wide boundary test
 
 ## Documentation
 
