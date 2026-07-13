@@ -15,7 +15,7 @@ CapabilityRequest + explicit profile ID
   -> AI-71 CapabilityResult (pending review, downstream blocked)
 ```
 
-The gateway does not infer a profile. It contains no ranking, fallback, cross-provider retry, shadow execution, profile promotion, privacy enforcement, budget enforcement, evaluation, benchmark, or production persistence.
+The gateway does not infer a profile. It contains no ranking, fallback, cross-provider retry, shadow execution, profile promotion, evaluation, benchmark, or production persistence. Privacy enforcement and the durable AI-74 budget reservation are mandatory gates before adapter lookup or timeout creation.
 
 ## Execution profile catalog
 
@@ -45,13 +45,13 @@ Audit records contain identifiers, lifecycle/mode, timestamps, duration, normali
 
 ## Direct-provider migration inventory
 
-| Current module | Provider | Current status | AI-72 action | Future requirement |
-| --- | --- | --- | --- | --- |
-| `src/agents/normative-evidence-agent.ts` | DeepSeek/OpenAI SDK | Real direct credential-dependent path | Left unchanged; side-by-side adapter added | Migrate caller after workflow approval |
-| `scripts/run-extraction.ts` | DeepSeek/OpenAI SDK | Real manual CLI path | Left unchanged | Replace with explicit profile invocation |
-| `src/ai/ai-gateway.ts` | Cloudflare AI Gateway | Partial/gated; includes fallback | Not reused | Remove fallback before future adapter work |
-| Qwen docs and snapshots | DashScope/Qwen | Fixture/spike only; runtime source absent | Replay plus disabled adapter | Restore only through reviewed gateway invocation |
-| embedding scripts and Worker binding | Cloudflare Workers AI | Specialized embedding paths | Out of scope; unchanged | Consider a separate embedding adapter |
+| Current module                           | Provider              | Current status                            | AI-72 action                               | Future requirement                               |
+| ---------------------------------------- | --------------------- | ----------------------------------------- | ------------------------------------------ | ------------------------------------------------ |
+| `src/agents/normative-evidence-agent.ts` | DeepSeek/OpenAI SDK   | Real direct credential-dependent path     | Left unchanged; side-by-side adapter added | Migrate caller after workflow approval           |
+| `scripts/run-extraction.ts`              | DeepSeek/OpenAI SDK   | Real manual CLI path                      | Left unchanged                             | Replace with explicit profile invocation         |
+| `src/ai/ai-gateway.ts`                   | Cloudflare AI Gateway | Partial/gated; includes fallback          | Not reused                                 | Remove fallback before future adapter work       |
+| Qwen docs and snapshots                  | DashScope/Qwen        | Fixture/spike only; runtime source absent | Replay plus disabled adapter               | Restore only through reviewed gateway invocation |
+| embedding scripts and Worker binding     | Cloudflare Workers AI | Specialized embedding paths               | Out of scope; unchanged                    | Consider a separate embedding adapter            |
 
 > **Resolution (2026-07-13, governed-execution-boundary PR):** every row in
 > the inventory above was retired rather than migrated. The direct DeepSeek
@@ -62,6 +62,6 @@ Audit records contain identifiers, lifecycle/mode, timestamps, duration, normali
 > exclusively through this gateway and its adapter layer, enforced by
 > `tests/architecture/execution-boundary.test.ts`.
 
-## Deferred roadmap
+## Current governed boundary
 
-AI-73 privacy/ZDR, AI-74 budget governance, AI-75 evaluation, AI-76 gold cases, AI-77 benchmarks, and AI-78 ranking/automatic routing remain unimplemented. Approved artifact/export semantics and `vlatam-global` are unchanged.
+AI-73 privacy/ZDR and AI-74 durable budget governance now run before the single adapter invocation. AI-75 through AI-80 supply reviewed evaluation, routing, handoff, and authorization layers without adding retry, fallback, or automatic provider substitution. Approved artifact/export semantics and `vlatam-global` are unchanged. All live profiles remain disabled.

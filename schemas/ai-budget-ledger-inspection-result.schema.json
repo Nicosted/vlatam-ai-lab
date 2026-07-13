@@ -1,0 +1,112 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/ai-budget-ledger-inspection-result.schema.json",
+  "oneOf": [
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status"],
+      "properties": {
+        "status": { "const": "ok" },
+        "record": { "$ref": "#/$defs/record" }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "error"],
+      "properties": {
+        "status": { "enum": ["store_unavailable", "store_error"] },
+        "error": { "type": "string", "minLength": 1 }
+      }
+    }
+  ],
+  "$defs": {
+    "record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "execution_id",
+        "reservation_id",
+        "request_id",
+        "capability_id",
+        "profile_id",
+        "profile_version",
+        "budget_policy_id",
+        "budget_policy_version",
+        "pricing_id",
+        "pricing_evidence_id",
+        "pricing_evidence_hash",
+        "scope_id",
+        "currency",
+        "estimated_input_tokens",
+        "estimated_output_tokens",
+        "estimated_cost_minor",
+        "reserved_cost_minor",
+        "actual_usage_state",
+        "reservation_status",
+        "reconciliation_status",
+        "created_at",
+        "expires_at",
+        "schema_version",
+        "binding_hash",
+        "state",
+        "policy_id",
+        "reserved_tokens",
+        "released_cost_minor"
+      ],
+      "properties": {
+        "execution_id": { "$ref": "#/$defs/id" },
+        "reservation_id": { "$ref": "#/$defs/id" },
+        "request_id": { "$ref": "#/$defs/id" },
+        "capability_id": { "$ref": "#/$defs/id" },
+        "profile_id": { "$ref": "#/$defs/id" },
+        "profile_version": { "$ref": "#/$defs/version" },
+        "budget_policy_id": { "$ref": "#/$defs/id" },
+        "budget_policy_version": { "$ref": "#/$defs/version" },
+        "pricing_id": { "$ref": "#/$defs/id" },
+        "pricing_evidence_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "pricing_evidence_hash": { "$ref": "#/$defs/hash" },
+        "scope_id": { "$ref": "#/$defs/id" },
+        "currency": { "type": "string", "pattern": "^[A-Z]{3}$" },
+        "estimated_input_tokens": { "$ref": "#/$defs/nonnegativeInteger" },
+        "estimated_output_tokens": { "$ref": "#/$defs/nonnegativeInteger" },
+        "estimated_cost_minor": { "$ref": "#/$defs/minor" },
+        "reserved_cost_minor": { "$ref": "#/$defs/minor" },
+        "actual_usage_state": { "enum": ["unknown", "known", "unavailable"] },
+        "actual_input_tokens": { "$ref": "#/$defs/nonnegativeInteger" },
+        "actual_output_tokens": { "$ref": "#/$defs/nonnegativeInteger" },
+        "actual_cost_minor": { "$ref": "#/$defs/minor" },
+        "reservation_status": {
+          "enum": ["reserved", "released", "expired", "consumed"]
+        },
+        "reconciliation_status": {
+          "enum": ["pending", "reconciled", "unavailable"]
+        },
+        "created_at": { "type": "string", "format": "date-time" },
+        "expires_at": { "type": "string", "format": "date-time" },
+        "reconciled_at": { "type": "string", "format": "date-time" },
+        "released_at": { "type": "string", "format": "date-time" },
+        "schema_version": { "const": 1 },
+        "binding_hash": { "$ref": "#/$defs/hash" },
+        "state": { "enum": ["reserved", "released", "expired", "consumed"] },
+        "policy_id": { "$ref": "#/$defs/id" },
+        "reserved_tokens": { "$ref": "#/$defs/nonnegativeInteger" },
+        "released_cost_minor": { "$ref": "#/$defs/minor" }
+      }
+    },
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{0,127}$" },
+    "version": { "type": "string", "pattern": "^\\d+(?:\\.\\d+){0,2}$" },
+    "hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "minor": { "type": "string", "pattern": "^(0|[1-9][0-9]*)$" },
+    "nonnegativeInteger": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    }
+  }
+}

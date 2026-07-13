@@ -28,9 +28,10 @@ prior layer.
 | **AI-84**   | Regulatory dossier evidence intake (delivered 2026-07-13)                               | Versioned provider-neutral client-fact/evidence intake, AR/ES/EU scope, deterministic readiness, workspace/read-model integration                                                  | AI-82 delivered; AI-83 remains blocked; existing advisory and contract boundaries                            | enables reviewed local regulatory research intake    |
 
 Post-AI-84 governance hardening adds the internal review-artifact hash binding
-without changing the external approved-export contract. The exact next PR is
-**durable budget and usage ledger**. It must not begin until the review-binding
-PR is merged and `main` is synchronized.
+and the durable budget and usage ledger without changing the external
+approved-export contract. After both are merged and `main` is synchronized,
+the exact next PR is **governed provider readiness and controlled execution**.
+It remains blocked on the existing human evidence and disabled-profile gates.
 
 ## 2. Why AI-78 is not a "cheapest model" selector
 

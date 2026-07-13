@@ -8,6 +8,7 @@ import type { RoutingDecision } from "../routing/index.js";
 import { assertHandoffAuditMetadataOnly } from "./audit.js";
 import {
   InMemoryAuthorizationStateStore,
+  type AuthorizationConsumeResult,
   type AuthorizationStateStore,
 } from "./authorization-store.js";
 import {
@@ -65,7 +66,8 @@ export const handoffPolicyHash = (policy: HandoffAuthorizationPolicy) =>
     mode: policy.authorization_mode,
   }).hash;
 export interface ReviewedRoutingHandoffOptions {
-  readonly gateway: Pick<MultiProviderGateway, "execute">;
+  readonly gateway: Pick<MultiProviderGateway, "execute"> &
+    Partial<Pick<MultiProviderGateway, "executeAuthorized">>;
   readonly policy: HandoffAuthorizationPolicy;
   readonly clock?: () => Date;
   readonly id?: () => string;
@@ -122,71 +124,32 @@ export class ReviewedRoutingDecisionHandoff {
     const validated = this.validate(request);
     if (!validated.valid)
       return this.result(request, "rejected", validated.rejection_reason);
-    if (this.options.policy.authorization_mode === "single_use") {
-      this.audit(request, "authorization_store_consume_started");
-      let consumed: ReturnType<AuthorizationStateStore["consume"]>;
-      try {
-        consumed = this.store.consume({
-          authorization_id: request.authorization.authorization_id,
-          handoff_policy_id: request.authorization.handoff_policy_id,
-          handoff_policy_version: request.authorization.handoff_policy_version,
-          handoff_policy_hash: request.authorization.handoff_policy_hash,
-          decision_hash: request.decision.decision_hash,
-          authorization_mode: this.options.policy.authorization_mode,
-          execution_correlation_id: request.execution_correlation_id,
-          audit_correlation_id: request.audit_correlation_id,
-          ...(request.authorization.superseded_by
-            ? { superseded_by: request.authorization.superseded_by }
-            : {}),
-          consumed_at: this.clock().toISOString(),
-        });
-      } catch {
-        consumed = "store_error";
-      }
-      if (consumed !== "consumed") {
-        const mapping = {
-          already_consumed: [
-            "AUTHORIZATION_ALREADY_CONSUMED",
-            "authorization_store_duplicate",
-          ],
-          binding_conflict: [
-            "AUTHORIZATION_BINDING_CONFLICT",
-            "authorization_store_binding_conflict",
-          ],
-          invalid_binding: [
-            "AUTHORIZATION_STORE_BINDING_INVALID",
-            "authorization_store_binding_invalid",
-          ],
-          superseded: [
-            "AUTHORIZATION_SUPERSEDED",
-            "authorization_store_failed",
-          ],
-          store_unavailable: [
-            "AUTHORIZATION_STORE_UNAVAILABLE",
-            "authorization_store_unavailable",
-          ],
-          store_error: [
-            "AUTHORIZATION_STORE_ERROR",
-            "authorization_store_failed",
-          ],
-        } as const;
-        const [reason, event] = mapping[consumed];
-        this.audit(request, event, reason);
-        if (consumed === "already_consumed")
-          this.audit(request, "duplicate_execution_blocked", reason);
-        return this.result(request, "rejected", reason);
-      }
-      this.audit(request, "authorization_store_consumed");
-      this.audit(request, "authorization_consumed");
+    const singleUse = this.options.policy.authorization_mode === "single_use";
+    const deferred =
+      singleUse && this.options.gateway.executeAuthorized !== undefined;
+    let consumed: AuthorizationConsumeResult | undefined;
+    if (singleUse && !deferred) {
+      consumed = this.consumeAuthorization(request);
+      const rejected = this.consumptionFailure(request, consumed);
+      if (rejected) return rejected;
     }
     this.audit(request, "execution_started");
     try {
-      const outcome = await this.options.gateway.execute({
+      const invocation = {
         capability_request: request.capability_request,
         execution_profile_id: request.decision.selected_profile_id!,
         expected_profile_contract_version:
           request.decision.selected_profile_version!,
-      });
+      };
+      const outcome = deferred
+        ? await this.options.gateway.executeAuthorized!(invocation, () => {
+            consumed = this.consumeAuthorization(request);
+            if (consumed !== "consumed")
+              throw new Error("authorization consumption blocked");
+          })
+        : await this.options.gateway.execute(invocation);
+      if (deferred && consumed !== "consumed")
+        return this.consumptionFailure(request, consumed ?? "store_error")!;
       const status =
         outcome.result.status === "succeeded"
           ? "succeeded"
@@ -210,6 +173,66 @@ export class ReviewedRoutingDecisionHandoff {
       this.audit(request, "execution_failed", "GATEWAY_EXECUTION_FAILED");
       return this.result(request, "failed", "GATEWAY_EXECUTION_FAILED");
     }
+  }
+  private consumeAuthorization(
+    request: HandoffRequest,
+  ): AuthorizationConsumeResult {
+    this.audit(request, "authorization_store_consume_started");
+    let consumed: AuthorizationConsumeResult;
+    try {
+      consumed = this.store.consume({
+        authorization_id: request.authorization.authorization_id,
+        handoff_policy_id: request.authorization.handoff_policy_id,
+        handoff_policy_version: request.authorization.handoff_policy_version,
+        handoff_policy_hash: request.authorization.handoff_policy_hash,
+        decision_hash: request.decision.decision_hash,
+        authorization_mode: this.options.policy.authorization_mode,
+        execution_correlation_id: request.execution_correlation_id,
+        audit_correlation_id: request.audit_correlation_id,
+        ...(request.authorization.superseded_by
+          ? { superseded_by: request.authorization.superseded_by }
+          : {}),
+        consumed_at: this.clock().toISOString(),
+      });
+    } catch {
+      consumed = "store_error";
+    }
+    if (consumed === "consumed") {
+      this.audit(request, "authorization_store_consumed");
+      this.audit(request, "authorization_consumed");
+    }
+    return consumed;
+  }
+  private consumptionFailure(
+    request: HandoffRequest,
+    consumed: Exclude<AuthorizationConsumeResult, "consumed"> | "consumed",
+  ): HandoffExecutionResult | undefined {
+    if (consumed === "consumed") return undefined;
+    const mapping = {
+      already_consumed: [
+        "AUTHORIZATION_ALREADY_CONSUMED",
+        "authorization_store_duplicate",
+      ],
+      binding_conflict: [
+        "AUTHORIZATION_BINDING_CONFLICT",
+        "authorization_store_binding_conflict",
+      ],
+      invalid_binding: [
+        "AUTHORIZATION_STORE_BINDING_INVALID",
+        "authorization_store_binding_invalid",
+      ],
+      superseded: ["AUTHORIZATION_SUPERSEDED", "authorization_store_failed"],
+      store_unavailable: [
+        "AUTHORIZATION_STORE_UNAVAILABLE",
+        "authorization_store_unavailable",
+      ],
+      store_error: ["AUTHORIZATION_STORE_ERROR", "authorization_store_failed"],
+    } as const;
+    const [reason, event] = mapping[consumed];
+    this.audit(request, event, reason);
+    if (consumed === "already_consumed")
+      this.audit(request, "duplicate_execution_blocked", reason);
+    return this.result(request, "rejected", reason);
   }
   private reason(r: HandoffRequest): HandoffRejectionReason | undefined {
     const now = this.clock().getTime(),

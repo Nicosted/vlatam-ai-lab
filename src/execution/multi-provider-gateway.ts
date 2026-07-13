@@ -48,8 +48,17 @@ export class MultiProviderGateway {
   private readonly clock: () => Date; private readonly executionId: () => string; private readonly profileResolver: (id: string) => ExecutionProfile; private readonly privacyEnforcer: PrivacyEnforcer; private readonly budgetEnforcer: BudgetEnforcer;
   constructor(private readonly options: GatewayOptions) { this.clock = options.clock ?? (() => new Date()); this.executionId = options.executionId ?? randomUUID; this.profileResolver = options.profileResolver ?? assertExecutionProfile; this.privacyEnforcer = options.privacyEnforcer ?? new PrivacyEnforcer({ clock: this.clock }); this.budgetEnforcer = options.budgetEnforcer ?? new BudgetEnforcer({ clock: this.clock }); }
   async execute(invocation: GatewayInvocation): Promise<GatewayOutcome> {
+    return this.executeGoverned(invocation);
+  }
+  /** AI-80 integration hook: authorization is consumed only after the durable
+   * budget reservation and still before mapping, adapter lookup, or timeout. */
+  async executeAuthorized(invocation: GatewayInvocation, consumeAuthorization: () => void): Promise<GatewayOutcome> {
+    return this.executeGoverned(invocation, consumeAuthorization);
+  }
+  private async executeGoverned(invocation: GatewayInvocation, consumeAuthorization?: () => void): Promise<GatewayOutcome> {
     const started = this.clock(); const executionId = this.executionId(); const request = safeRequestFields(invocation.capability_request);
     let profile: ExecutionProfile | undefined; let providerResult: ProviderExecutionResult | undefined;
+    let adapterInvoked = false;
     let abortCause: 'caller' | 'timeout' | undefined;
     let privacyAudit: PrivacyAuditRecord | undefined;
     let governance: GovernanceReservation | undefined; let usageAudit: UsageAuditRecord | undefined; let budgetAudit: BudgetAuditRecord | undefined;
@@ -77,6 +86,7 @@ export class MultiProviderGateway {
       // AI-74: resolve, estimate and reserve before mapping, timeout creation,
       // adapter lookup or execution. The cleared request is used only in memory.
       governance = this.budgetEnforcer.reserve(executionId, invocation.capability_request, clearedRequest, profile);
+      consumeAuthorization?.();
       const mapped = mapNormativeClaimsRequest(clearedRequest);
       if (invocation.signal?.aborted) { abortCause = 'caller'; throw executionError('EXECUTION_ABORTED'); }
       const adapter = this.options.registry.assertProviderAdapterSupported(profile.provider_id);
@@ -85,19 +95,24 @@ export class MultiProviderGateway {
       const timeout = setTimeout(() => { abortCause = abortCause ?? 'timeout'; controller.abort(); }, profile.configuration.timeout_ms);
       const onCallerAbort = () => { abortCause = abortCause ?? 'caller'; controller.abort(); };
       invocation.signal?.addEventListener('abort', onCallerAbort, { once: true });
-      try { providerResult = await adapter.execute(mapped, profile, { execution_id: executionId, signal: controller.signal, timeout_ms: profile.configuration.timeout_ms }); }
+      try { adapterInvoked = true; providerResult = await adapter.execute(mapped, profile, { execution_id: executionId, signal: controller.signal, timeout_ms: profile.configuration.timeout_ms }); }
       finally { clearTimeout(timeout); invocation.signal?.removeEventListener('abort', onCallerAbort); }
       if (abortCause === 'timeout') throw executionError('PROVIDER_TIMEOUT');
       if (abortCause === 'caller') throw executionError('EXECUTION_ABORTED');
       if (providerResult.status !== 'succeeded' || !providerResult.content) throw providerResult.error ?? executionError('PROVIDER_RESPONSE_INVALID');
       const actualUsage = normalizeUsage(providerResult.usage, providerResult.duration_ms);
-      if (governance.policy.require_usage && actualUsage.status !== 'complete') throw new GovernanceError('USAGE_UNAVAILABLE');
       const actualCost = actualUsage.status === 'complete' ? calculateCost(actualUsage, governance.pricing, 'actual') : undefined;
-      if (actualUsage.total_tokens !== undefined && actualUsage.total_tokens > governance.policy.max_actual_tokens_per_request) throw new GovernanceError('REQUEST_TOKEN_LIMIT_EXCEEDED');
-      if (actualCost !== undefined && actualCost.total_cost_minor > BigInt(governance.policy.max_actual_cost_minor_per_request)) throw new GovernanceError('REQUEST_COST_LIMIT_EXCEEDED');
-      const reconciled = this.budgetEnforcer.ledger.reconcile(governance.reservation.reservation_id, executionId, actualUsage.total_tokens ?? governance.estimated_usage.total_tokens!, actualCost?.total_cost_minor ?? governance.estimated_cost.total_cost_minor, 'consumed');
+      const reconciled = this.budgetEnforcer.reconcile(governance, executionId, actualUsage.status === 'complete' ? {
+        actual_usage_state: 'known',
+        actual_input_tokens: actualUsage.input_tokens!,
+        actual_output_tokens: actualUsage.output_tokens!,
+        actual_cost_minor: actualCost!.total_cost_minor,
+      } : { actual_usage_state: 'unavailable' });
       usageAudit = { execution_id: executionId, request_id: request.request_id, capability_id: request.capability_id, profile_id: profile.profile_id, provider_id: profile.provider_id, model_id: profile.model_id, estimated_usage: governance.estimated_usage, actual_usage: actualUsage, pricing_id: governance.pricing.pricing_id, estimated_cost_minor: governance.estimated_cost.total_cost_minor.toString(), actual_cost_minor: actualCost?.total_cost_minor.toString(), currency: governance.pricing.currency, calculation_version: '1.0.0' };
       budgetAudit = { execution_id: executionId, reservation_id: reconciled.reservation_id, policy_id: reconciled.policy_id, scope_id: reconciled.scope_id, estimated_amount_minor: governance.estimated_cost.total_cost_minor.toString(), reserved_amount_minor: reconciled.reserved_cost_minor.toString(), actual_amount_minor: reconciled.actual_cost_minor?.toString(), released_amount_minor: reconciled.released_cost_minor?.toString(), final_state: reconciled.state, started_at: started.toISOString(), finished_at: this.clock().toISOString() };
+      if (governance.policy.require_usage && actualUsage.status !== 'complete') throw new GovernanceError('USAGE_UNAVAILABLE');
+      if (actualUsage.total_tokens !== undefined && actualUsage.total_tokens > governance.policy.max_actual_tokens_per_request) throw new GovernanceError('REQUEST_TOKEN_LIMIT_EXCEEDED');
+      if (actualCost !== undefined && actualCost.total_cost_minor > BigInt(governance.policy.max_actual_cost_minor_per_request)) throw new GovernanceError('REQUEST_COST_LIMIT_EXCEEDED');
       const output = parseNormativeClaimsOutput(providerResult.content, clearedRequest);
       result = capabilityResult(clearedRequest, output);
       const resultValidation = validateCapabilityResult(result);
@@ -106,9 +121,10 @@ export class MultiProviderGateway {
       // The recorded abort cause wins over whatever the adapter threw: a timeout is never
       // mislabeled as a caller abort (or vice versa) based on a generic AbortError.
       error = abortCause === 'timeout' ? executionError('PROVIDER_TIMEOUT') : abortCause === 'caller' ? executionError('EXECUTION_ABORTED') : caught instanceof ExecutionError ? caught : sanitizeProviderError(caught);
-      if (governance !== undefined && governance.reservation.state === 'reserved') {
-        const released = this.budgetEnforcer.ledger.reconcile(governance.reservation.reservation_id, executionId, 0, 0n, 'failed');
-        budgetAudit = { execution_id: executionId, reservation_id: released.reservation_id, policy_id: released.policy_id, scope_id: released.scope_id, estimated_amount_minor: governance.estimated_cost.total_cost_minor.toString(), reserved_amount_minor: released.reserved_cost_minor.toString(), released_amount_minor: released.released_cost_minor?.toString(), final_state: released.state, reason_code: error instanceof GovernanceError ? error.governance_code : undefined, started_at: started.toISOString(), finished_at: this.clock().toISOString() };
+      const currentReservation = governance === undefined ? undefined : this.budgetEnforcer.ledger.get(governance.reservation.reservation_id);
+      if (governance !== undefined && currentReservation?.reservation_status === 'reserved') {
+        const finalized = adapterInvoked ? this.budgetEnforcer.reconcile(governance, executionId, { actual_usage_state: 'unavailable' }) : this.budgetEnforcer.release(governance, executionId);
+        budgetAudit = { execution_id: executionId, reservation_id: finalized.reservation_id, policy_id: finalized.policy_id, scope_id: finalized.scope_id, estimated_amount_minor: governance.estimated_cost.total_cost_minor.toString(), reserved_amount_minor: finalized.reserved_cost_minor.toString(), actual_amount_minor: finalized.actual_cost_minor?.toString(), released_amount_minor: finalized.released_cost_minor?.toString(), final_state: finalized.state, reason_code: error instanceof GovernanceError ? error.governance_code : undefined, started_at: started.toISOString(), finished_at: this.clock().toISOString() };
         usageAudit = { execution_id: executionId, request_id: request.request_id, capability_id: request.capability_id, profile_id: profile?.profile_id, provider_id: profile?.provider_id, model_id: profile?.model_id, estimated_usage: governance.estimated_usage, ...(providerResult === undefined ? {} : { actual_usage: normalizeUsage(providerResult.usage, providerResult.duration_ms) }), pricing_id: governance.pricing.pricing_id, estimated_cost_minor: governance.estimated_cost.total_cost_minor.toString(), currency: governance.pricing.currency, calculation_version: '1.0.0' };
       } else if (error instanceof GovernanceError) {
         budgetAudit = { execution_id: executionId, final_state: 'blocked', reason_code: error.governance_code, started_at: started.toISOString(), finished_at: this.clock().toISOString() };

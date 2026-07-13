@@ -6,11 +6,12 @@ import { MultiProviderGateway } from '../../src/execution/multi-provider-gateway
 import { ProviderAdapterRegistry } from '../../src/providers/adapter-registry.js';
 import type { ProviderAdapter } from '../../src/providers/provider-adapter.js';
 import { ReplayProviderAdapter } from '../../src/providers/replay-adapter.js';
+import { BudgetEnforcer, InMemoryBudgetLedger } from '../../src/governance/index.js';
 import { LOCAL_REPLAY_PRIVACY } from '../helpers/privacy.js';
 
 const request: CapabilityRequest = { request_id: 'request-replay-001', capability_id: 'evidence.extraction.normative_claims' as never, schema_version: '1.0.0', input: { packet_id: 'packet-replay-001', evidence_refs: [{ source_id: 'source-001', snapshot_id: 'snapshot-001', section_label: 'section-1', excerpt: 'Synthetic evidence only.' }] }, context: { data_classification: 'public' } };
 const baseProfile: ExecutionProfile = { profile_id: 'test.replay' as never, capability_id: request.capability_id, provider_id: 'replay' as never, model_id: 'fixture' as never, mode: 'replay', lifecycle_status: 'candidate', enabled: true, contract_version: '1.0.0', configuration: { timeout_ms: 1000, response_format: 'json' }, eligibility: { privacy_compatibility: 'declared_not_enforced', budget_class: 'development', evaluation_status: 'fixture_verified' }, privacy: LOCAL_REPLAY_PRIVACY, fixture_id: 'normative-claims-success' };
-function gateway(profile = baseProfile, adapter: ProviderAdapter = new ReplayProviderAdapter()) { const registry = new ProviderAdapterRegistry(); registry.registerProviderAdapter(adapter); return new MultiProviderGateway({ registry, profileResolver: () => profile, clock: (() => { let n = 0; return () => new Date(n++ * 10); })(), executionId: () => 'execution-001' }); }
+function gateway(profile = baseProfile, adapter: ProviderAdapter = new ReplayProviderAdapter()) { const registry = new ProviderAdapterRegistry(); registry.registerProviderAdapter(adapter); return new MultiProviderGateway({ registry, profileResolver: () => profile, clock: (() => { let n = 0; return () => new Date(n++ * 10); })(), executionId: () => 'execution-001', budgetEnforcer: new BudgetEnforcer({ ledger: new InMemoryBudgetLedger() }) }); }
 
 describe('AI-72 multi-provider gateway', () => {
   it('fails closed for an unknown explicit profile ID', async () => { const registry = new ProviderAdapterRegistry(); registry.registerProviderAdapter(new ReplayProviderAdapter()); const outcome = await new MultiProviderGateway({ registry, clock: () => new Date(0), executionId: () => 'execution-unknown' }).execute({ capability_request: request, execution_profile_id: 'missing.profile' }); assert.equal(outcome.audit.error_code, 'UNKNOWN_PROFILE'); assert.equal(outcome.result.status, 'blocked'); });

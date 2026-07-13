@@ -17,15 +17,17 @@ Normalized usage records input, output, total, cached-input and reasoning tokens
 
 `config/ai-pricing.json` is repository-owned. Monetary values are integer minor units with an integer token denominator. Calculations use `bigint` multiplication and deterministic ceiling division; estimated and actual costs remain separate. Missing, ambiguous, expired, incompatible, or insufficiently evidenced pricing fails closed. Live prices are explicitly unknown; test wildcard entries are fixtures, not provider claims.
 
-## Policy, reservation, and concurrency
+## Policy, durable reservation, and concurrency
 
 `config/ai-budget-policies.json` matches capability, explicit profile or profile class, mode, classification, and opaque environment/project/tenant/scope placeholders with deterministic priority. Missing and tied matches fail closed. Limits cover per-request and rolling requests, tokens, and cost.
 
-The in-memory ledger atomically checks and reserves before mapping, timeout creation, or adapter invocation. It records opaque execution-correlated reservations, releases failures/aborts/timeouts, reconciles actual usage once, releases unused reservation, records overage, rejects cross-execution reconciliation, and makes duplicate reconciliation idempotent. JavaScript's synchronous reservation critical section prevents concurrent overspend; scopes use independent counters. It provides no production persistence.
+The governed default is `SqliteBudgetLedger`, stored at the repository-local `.local/ai-budget-usage-ledger.sqlite` path. The in-memory implementation remains only as an explicitly injected test adapter. SQLite uses WAL, a bounded busy timeout, `BEGIN IMMEDIATE`, schema version `1`, deterministic DDL validation, integrity checks, and primary-key uniqueness on `execution_id`. Reservations and reconciliations survive restart and coordinate independent local processes sharing the database. Store unavailability, locking, corruption, malformed rows, schema mismatch, DDL mismatch, duplicate execution, and binding conflict all fail closed.
+
+Each reservation binds execution/request/capability, exact profile ID/version, exact budget-policy ID/version, pricing ID and evidence ID/hash, scope, currency, estimated input/output tokens, estimated and reserved minor-unit cost, and store schema version. A versioned-domain SHA-256 hash makes any change fail closed. Rolling windows are explicit policy metadata (`rolling_window_seconds`); abandoned reservations expire after `reservation_ttl_seconds`. Scope and currency are isolated in every rolling aggregate.
 
 ## Gateway order and audits
 
-The order is validation, pre-abort rejection, capability/profile validation, privacy enforcement, budget policy, usage estimate, pricing/cost, reservation, request mapping, timeout, exactly one adapter, actual usage/cost, reconciliation, output validation, and correlated audits. Budget blocks invoke no adapter and start no provider timeout. Privacy blocks create no reservation. No routing, ranking, retry, fallback, shadow execution, or alternate profile selection was added.
+The order is validation, pre-abort rejection, capability/profile validation, privacy enforcement, budget policy, usage estimate, pricing/cost, durable reservation, request mapping, timeout, exactly one adapter, actual usage/cost, reconciliation, output validation, and correlated audits. Budget-store failures happen before mapping, adapter lookup, timeout creation, provider request construction, or execution. Privacy blocks create no reservation. No routing, ranking, retry, fallback, shadow execution, or alternate profile selection was added.
 
 Usage and budget audits contain IDs, normalized counts, integer monetary strings, state, safe reason codes, and timestamps only. They exclude payloads, prompts, excerpts, PII, credentials, raw responses, reviewer identity, and legal text.
 
@@ -33,4 +35,4 @@ Usage and budget audits contain IDs, normalized counts, integer monetary strings
 
 Replay is budget-governed and is not zero-cost by default; fixture usage/pricing must be labeled. Unknown fixture usage can be blocked by certainty-requiring policies. DeepSeek and DashScope remain disabled, their pricing evidence remains unknown, and AI-74 makes no live call or production activation.
 
-AI-75 through AI-78, production billing/persistence, distributed quotas, legacy-provider migration, approved-artifact changes, and export-contract changes are deferred.
+The store is local SQLite coordination, not distributed or multi-region consensus. Historical in-memory reservations are not migrated or assumed consumed; after upgrade, only durable records participate in rolling limits. Production billing, balances, invoices, payments, managed storage, approved-artifact changes, and export-contract changes remain out of scope.
