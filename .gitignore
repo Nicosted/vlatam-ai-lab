@@ -32,3 +32,18 @@ data/sources/organismos_sectoriales/**/*.pdf
 # Original download folder (after migration)
 vlatam_normativa_ar_2026_06_14/
 .wrangler/
+
+# Local durable stores (AI-80 authorization consumption uses node:sqlite)
+*.db
+*.sqlite
+*.sqlite3
+*.db-wal
+*.db-shm
+*.db.*.ready
+*.db.*.result
+*.db.barrier
+
+# Local tooling and session state
+.claude/
+.worktrees/
+graphify-out/
