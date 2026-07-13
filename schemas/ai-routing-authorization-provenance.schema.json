@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam.local/schemas/ai-routing-authorization-provenance.schema.json",
+  "title": "AI-79 authorization provenance v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "authorization_id",
+    "authorizer_role",
+    "authorization_decision",
+    "authorized_at",
+    "review_attestation_reference",
+    "handoff_policy_id",
+    "handoff_policy_version",
+    "handoff_policy_hash"
+  ],
+  "properties": {
+    "authorization_id": { "type": "string" },
+    "authorizer_role": { "type": "string" },
+    "authorization_decision": { "enum": ["approved", "rejected"] },
+    "authorized_at": { "type": "string", "format": "date-time" },
+    "review_attestation_reference": { "type": "string" },
+    "handoff_policy_id": { "type": "string" },
+    "handoff_policy_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "handoff_policy_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "superseded_by": { "type": "string" }
+  }
+}

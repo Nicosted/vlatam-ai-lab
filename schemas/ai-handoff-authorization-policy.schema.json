@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam.local/schemas/ai-handoff-authorization-policy.schema.json",
+  "title": "AI-79 handoff authorization policy v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "policy_id",
+    "policy_version",
+    "allowed_authorizer_roles",
+    "allowed_routing_policies",
+    "allowed_profile_lifecycle_states",
+    "allowed_data_classifications",
+    "allowed_budget_classes",
+    "maximum_authorization_age_seconds",
+    "enforce_decision_ttl",
+    "authorization_mode"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "policy_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{1,127}$"
+    },
+    "policy_version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "allowed_authorizer_roles": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "type": "string" }
+    },
+    "allowed_routing_policies": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "version"],
+        "properties": {
+          "id": { "type": "string" },
+          "version": { "type": "string" }
+        }
+      }
+    },
+    "allowed_profile_lifecycle_states": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "enum": ["production", "candidate", "shadow", "retired"] }
+    },
+    "allowed_data_classifications": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "type": "string" }
+    },
+    "allowed_budget_classes": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "type": "string" }
+    },
+    "maximum_authorization_age_seconds": { "type": "integer", "minimum": 0 },
+    "enforce_decision_ttl": { "type": "boolean" },
+    "authorization_mode": { "enum": ["single_use", "reusable"] }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "schema_version": "1.0.0",
+  "fixtures": [
+    "valid_selected_decision",
+    "valid_fallback_selected_decision",
+    "blocked_decision",
+    "human_review_required_decision",
+    "expired_decision",
+    "future_dated_decision",
+    "rejected_authorization",
+    "unauthorized_role",
+    "decision_hash_mismatch",
+    "capability_mismatch",
+    "profile_version_mismatch",
+    "handoff_policy_id_mismatch",
+    "handoff_policy_version_mismatch",
+    "handoff_policy_hash_mismatch",
+    "handoff_policy_mode_changed",
+    "handoff_policy_role_allowlist_changed",
+    "handoff_policy_lifecycle_changed",
+    "unsupported_contract_versions",
+    "temporal_boundaries",
+    "disabled_profile",
+    "lifecycle_mismatch",
+    "privacy_block",
+    "budget_block",
+    "successful_gateway_execution",
+    "gateway_failure",
+    "concurrent_single_use_authorization_consumption"
+  ],
+  "execution": "Deterministic variants are constructed and exercised in tests/handoff/reviewed-routing-handoff.test.ts with an injected gateway and profile resolver."
+}

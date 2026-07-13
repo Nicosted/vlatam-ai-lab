@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam.local/schemas/ai-routing-decision-execution-authorization.schema.json",
+  "title": "AI-79 routing decision execution authorization v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "authorization_id",
+    "authorizer_role",
+    "authorization_decision",
+    "authorized_at",
+    "review_attestation_reference",
+    "handoff_policy_id",
+    "handoff_policy_version",
+    "handoff_policy_hash",
+    "decision_hash",
+    "routing_policy_id",
+    "routing_policy_version",
+    "capability_id",
+    "selected_profile_id",
+    "selected_profile_version",
+    "canonical_profile_key",
+    "benchmark_evidence_reference",
+    "decision_created_at",
+    "execution_correlation_id",
+    "audit_correlation_id"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "authorization_id": { "type": "string" },
+    "authorizer_role": { "type": "string" },
+    "authorization_decision": { "enum": ["approved", "rejected"] },
+    "authorized_at": { "type": "string", "format": "date-time" },
+    "review_attestation_reference": { "type": "string" },
+    "handoff_policy_id": { "type": "string" },
+    "handoff_policy_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "handoff_policy_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "superseded_by": { "type": "string" },
+    "decision_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "routing_policy_id": { "type": "string" },
+    "routing_policy_version": { "type": "string" },
+    "capability_id": { "type": "string" },
+    "selected_profile_id": { "type": "string" },
+    "selected_profile_version": { "type": "string" },
+    "canonical_profile_key": {
+      "type": "string",
+      "pattern": "^.+@\\d+\\.\\d+\\.\\d+$"
+    },
+    "benchmark_evidence_reference": { "type": "string" },
+    "decision_created_at": { "type": "string", "format": "date-time" },
+    "decision_expiry_at": { "type": "string", "format": "date-time" },
+    "execution_correlation_id": { "type": "string" },
+    "audit_correlation_id": { "type": "string" }
+  }
+}
