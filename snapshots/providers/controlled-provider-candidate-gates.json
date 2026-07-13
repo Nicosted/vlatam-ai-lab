@@ -1,0 +1,35 @@
+{
+  "schema_version": "1.0.0",
+  "selected_profile_id": "normative-claims.minimax-direct.m2.7.v1",
+  "provider_id": "minimax-direct",
+  "model_id": "MiniMax-M2.7",
+  "endpoint": "https://api.minimax.io/v1",
+  "capability_id": "evidence.extraction.normative_claims",
+  "data_classification": "public",
+  "expected_readiness_result": "BLOCKED_EVIDENCE_INCOMPLETE",
+  "live_execution": {
+    "authorized": false,
+    "request_count": 0,
+    "actual_cost_minor": "0",
+    "currency": "USD"
+  },
+  "campaign_limits": {
+    "max_requests": 10,
+    "max_concurrency": 2,
+    "max_reserved_cost_minor": "100"
+  },
+  "pre_transport_failures": [
+    "candidate_disabled",
+    "secret_absent",
+    "privacy_not_approved",
+    "pricing_not_current",
+    "durable_budget_not_reserved",
+    "authorization_not_consumed",
+    "route_mismatch",
+    "model_mismatch",
+    "fixture_not_registered",
+    "request_cap_exceeded",
+    "cost_cap_exceeded",
+    "concurrency_cap_exceeded"
+  ]
+}

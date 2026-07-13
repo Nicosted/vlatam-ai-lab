@@ -30,6 +30,20 @@ export type EvidenceClaimStatus =
   | "conflicting"
   | "unknown";
 
+export const PROVIDER_CANDIDATE_READINESS_RESULTS = [
+  "READY_FOR_DISABLED_ADAPTER",
+  "BLOCKED_EVIDENCE_INCOMPLETE",
+  "BLOCKED_ROUTE_NOT_PINNABLE",
+  "BLOCKED_PRIVACY",
+  "BLOCKED_PRICING",
+  "BLOCKED_CAPABILITY",
+  "BLOCKED_SECRET_ABSENT",
+  "BLOCKED_POLICY",
+] as const;
+
+export type ProviderCandidateReadinessResult =
+  (typeof PROVIDER_CANDIDATE_READINESS_RESULTS)[number];
+
 export interface ProviderEvidenceRecord {
   readonly evidence_id: string;
   readonly provider_id: "openrouter" | "minimax-direct";
@@ -291,4 +305,50 @@ export function assertCandidateProfileReady(
       `PROVIDER_PROFILE_NOT_READY:${reasons.join(",") || "profile_state"}`,
     );
   }
+}
+
+/** Maps the fail-closed evidence evaluation to one stable AI-83 decision.
+ * Evidence incompleteness intentionally wins when several independent
+ * evidence classes are unresolved; narrower results are reserved for an
+ * otherwise-complete candidate blocked by only that gate. */
+export function determineProviderCandidateReadinessResult(
+  reasons: readonly string[],
+): ProviderCandidateReadinessResult {
+  if (reasons.length === 0) return "READY_FOR_DISABLED_ADAPTER";
+
+  const unique = new Set(reasons);
+  const incomplete = [
+    "missing_evidence",
+    "missing_evidence_category",
+    "missing_retrieval_date",
+    "missing_review_date",
+    "missing_expiry",
+    "expired_evidence",
+    "unreviewed_evidence",
+    "evidence_hash_mismatch",
+    "ambiguous_model_identity",
+    "profile_evidence_mismatch",
+    "provider_scope_mismatch",
+    "aggregator_upstream_scope_confusion",
+    "missing_upstream_provider_evidence",
+    "rate_limits_unknown",
+    "security_compliance_unknown",
+  ].some((reason) => unique.has(reason));
+  const independentBlocks = [
+    "privacy_unknown",
+    "pricing_unknown",
+    "contradictory_pricing",
+    "unsupported_capability",
+    "variable_provider_routing",
+  ].filter((reason) => unique.has(reason));
+
+  if (incomplete || independentBlocks.length > 1)
+    return "BLOCKED_EVIDENCE_INCOMPLETE";
+  if (unique.has("variable_provider_routing"))
+    return "BLOCKED_ROUTE_NOT_PINNABLE";
+  if (unique.has("privacy_unknown")) return "BLOCKED_PRIVACY";
+  if (unique.has("pricing_unknown") || unique.has("contradictory_pricing"))
+    return "BLOCKED_PRICING";
+  if (unique.has("unsupported_capability")) return "BLOCKED_CAPABILITY";
+  return "BLOCKED_POLICY";
 }
