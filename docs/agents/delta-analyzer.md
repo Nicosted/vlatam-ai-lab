@@ -70,19 +70,19 @@ Expected success output:
 [delta-analyzer]   delta        : 2026-06-10_to_2026-06-17
 [delta-analyzer]   total_claims : 8
 [delta-analyzer]   by_type      : {"tariff":0,"intervention":0,"norm":6,"legal":0,"classification":2}
-[delta-analyzer]   output_path  : /Users/nicolasmatiasstedile/Developer/vlatam-ai-lab/data/evidence/infoleg/2026-06-10_to_2026-06-17--evidence-001.json
+[delta-analyzer]   output_path  : <repo-root>/data/evidence/infoleg/2026-06-10_to_2026-06-17--evidence-001.json
 [delta-analyzer]   schema_valid : true
 ```
 
 ## Programmatic Usage
 
 ```typescript
-import { analyzeDelta } from '../src/agents/delta-analyzer.js';
+import { analyzeDelta } from "../src/agents/delta-analyzer.js";
 
 const result = await analyzeDelta({
-  source_id: 'infoleg',
-  from_date: '2026-06-10',
-  to_date: '2026-06-17',
+  source_id: "infoleg",
+  from_date: "2026-06-10",
+  to_date: "2026-06-17",
 });
 
 console.log(result.packet.summary);
@@ -95,10 +95,10 @@ to `new Date().toISOString()`. Tests and controlled operations may pass
 
 ```typescript
 await analyzeDelta({
-  source_id: 'infoleg',
-  from_date: '2026-06-10',
-  to_date: '2026-06-17',
-  extracted_at: '2026-06-16T00:00:00Z',
+  source_id: "infoleg",
+  from_date: "2026-06-10",
+  to_date: "2026-06-17",
+  extracted_at: "2026-06-16T00:00:00Z",
 });
 ```
 
@@ -106,13 +106,13 @@ await analyzeDelta({
 
 Rules are evaluated in order against the lowercase JSON Pointer path.
 
-| Path contains | Claim type |
-| --- | --- |
-| `rate`, `tariff`, `arancel`, `duty`, `tax` | `tariff` |
-| `classification`, `ncm`, `hs_code`, `sh_code`, `codification` | `classification` |
-| `intervention`, `license`, `permit`, `sensors`, `anmat`, `enacom`, `sennir` | `intervention` |
-| `legal`, `law`, `decree`, `resolution`, `disposition`, `statute` | `legal` |
-| No match | `norm` |
+| Path contains                                                               | Claim type       |
+| --------------------------------------------------------------------------- | ---------------- |
+| `rate`, `tariff`, `arancel`, `duty`, `tax`                                  | `tariff`         |
+| `classification`, `ncm`, `hs_code`, `sh_code`, `codification`               | `classification` |
+| `intervention`, `license`, `permit`, `sensors`, `anmat`, `enacom`, `sennir` | `intervention`   |
+| `legal`, `law`, `decree`, `resolution`, `disposition`, `statute`            | `legal`          |
+| No match                                                                    | `norm`           |
 
 After mapping, each `claim_type` is validated with
 `src/contracts/vlatam-global-bridge.ts`. If validation fails, the agent throws
