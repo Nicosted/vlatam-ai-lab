@@ -41,6 +41,7 @@ export type HandoffRejectionReason =
   | "AUTHORIZATION_SUPERSEDED"
   | "AUTHORIZATION_ALREADY_CONSUMED"
   | "AUTHORIZATION_BINDING_CONFLICT"
+  | "AUTHORIZATION_STORE_BINDING_INVALID"
   | "AUTHORIZATION_STORE_UNAVAILABLE"
   | "AUTHORIZATION_STORE_ERROR"
   | "GATEWAY_EXECUTION_FAILED";
@@ -140,6 +141,7 @@ export const HANDOFF_AUDIT_EVENT_TYPES = [
   "authorization_store_consumed",
   "authorization_store_duplicate",
   "authorization_store_binding_conflict",
+  "authorization_store_binding_invalid",
   "authorization_store_unavailable",
   "authorization_store_failed",
 ] as const;

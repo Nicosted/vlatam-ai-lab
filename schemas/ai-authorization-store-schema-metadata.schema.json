@@ -4,9 +4,10 @@
   "title": "AI-80 authorization store schema metadata v1",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema_version", "initialized_at"],
+  "required": ["schema_version", "ddl_hash", "initialized_at"],
   "properties": {
-    "schema_version": { "const": 1 },
+    "schema_version": { "const": 2 },
+    "ddl_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
     "initialized_at": { "type": "string", "format": "date-time" }
   }
 }

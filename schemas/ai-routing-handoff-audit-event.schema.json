@@ -32,6 +32,7 @@
         "authorization_store_consumed",
         "authorization_store_duplicate",
         "authorization_store_binding_conflict",
+        "authorization_store_binding_invalid",
         "authorization_store_unavailable",
         "authorization_store_failed"
       ]

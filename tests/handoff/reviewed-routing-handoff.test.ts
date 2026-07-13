@@ -702,4 +702,38 @@ describe("AI-79 reviewed routing decision handoff", () => {
     assert.equal(calls, 1);
     restarted.close();
   });
+  it("maps store-level invalid bindings before gateway execution", async () => {
+    let calls = 0;
+    const events: HandoffAuditEvent[] = [];
+    const handoff = new ReviewedRoutingDecisionHandoff({
+      policy,
+      clock: () => new Date(now),
+      profileResolver: () => profile,
+      authorizationStore: { consume: () => "invalid_binding" },
+      auditSink: (event) => events.push(event),
+      gateway: {
+        execute: async () => {
+          calls++;
+          return outcome();
+        },
+      },
+    });
+    const result = await handoff.execute(request());
+    assert.equal(
+      result.rejection_reason,
+      "AUTHORIZATION_STORE_BINDING_INVALID",
+    );
+    assert.equal(calls, 0);
+    assert.equal(
+      events.some(
+        ({ event_type }) =>
+          event_type === "authorization_store_binding_invalid",
+      ),
+      true,
+    );
+    assert.deepEqual(
+      events.flatMap((event) => assertHandoffAuditMetadataOnly(event)),
+      [],
+    );
+  });
 });

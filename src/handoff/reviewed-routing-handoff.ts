@@ -153,6 +153,10 @@ export class ReviewedRoutingDecisionHandoff {
             "AUTHORIZATION_BINDING_CONFLICT",
             "authorization_store_binding_conflict",
           ],
+          invalid_binding: [
+            "AUTHORIZATION_STORE_BINDING_INVALID",
+            "authorization_store_binding_invalid",
+          ],
           superseded: [
             "AUTHORIZATION_SUPERSEDED",
             "authorization_store_failed",

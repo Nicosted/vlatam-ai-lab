@@ -9,7 +9,7 @@
 ## Transparent delta
 
 - Expanded the injectable authorization store binding and typed results.
-- Added a schema-versioned local SQLite implementation with atomic single-use consumption.
+- Added schema-versioned local SQLite atomic consumption, canonical DDL hashing, full schema integrity verification, store-level binding validation, controlled inspection, and real two-process fixtures.
 - Added metadata-only inspection, lifecycle fixtures, schemas, audit events, tests, and documentation.
 - Preserved the in-memory implementation for tests and composition.
 
