@@ -32,7 +32,7 @@ Only reviewed and approved artifacts cross the export boundary. Internal governa
 
 ## Quick start
 
-Requires Node.js 20+ and pnpm.
+Requires Node.js 22.5+ and pnpm.
 
 ```bash
 # Install
@@ -86,7 +86,7 @@ Consumers must validate `schema_version`, fail closed on unsupported or invalid 
 
 ## Current status
 
-- ✅ 213 tests passing
+- ✅ 618 tests passing
 - ✅ API-key authentication and in-memory per-IP rate limiting
 - ✅ 0 external dependencies in the native HTTP API path
 - ✅ Repo-first architecture
@@ -95,6 +95,19 @@ Consumers must validate `schema_version`, fail closed on unsupported or invalid 
 - ✅ Integration contract documented
 - ✅ AI-70 architecture, capability map, and capability catalog delivered
 - ✅ AI-71 provider-neutral capability contracts delivered
+- ✅ AI-72 multi-provider gateway with deterministic replay delivered
+- ✅ AI-73 privacy and ZDR enforcement delivered
+- ✅ AI-74 usage, cost, and budget governance delivered
+- ✅ AI-75 capability evaluation framework delivered
+- ✅ AI-76 regulatory Gold Cases v1 delivered
+- ✅ AI-77 benchmark runner and profile ranking delivered
+- ✅ AI-78 best-profile policy router delivered
+- ✅ AI-79 reviewed routing decision handoff delivered
+- ✅ AI-80 durable single-use authorization consumption store delivered
+- ✅ AI-81 / AI-81.1 provider evidence and candidate profile readiness delivered
+- ✅ AI-82 primary provider evidence review delivered (both candidates remain blocked)
+- ⛔ AI-83 controlled adapter and live benchmark — gated; no work until every stated gate is satisfied
+- ✅ AI-84 regulatory dossier evidence intake delivered
 
 ## Documentation
 
@@ -102,7 +115,7 @@ Consumers must validate `schema_version`, fail closed on unsupported or invalid 
 
 - [AI System Architecture](docs/architecture/ai-system-architecture.md) — target layered architecture and safety invariants.
 - [AI Capability Map](docs/architecture/ai-capability-map.md) — current and planned capability inventory.
-- [AI Roadmap Dependency Map](docs/architecture/ai-roadmap-dependency-map.md) — AI-70 through AI-78 sequence and gates.
+- [AI Roadmap Dependency Map](docs/architecture/ai-roadmap-dependency-map.md) — AI-70 through AI-84 sequence, delivery status, and gates.
 - [Regulatory dossier lifecycle](docs/advisory/regulatory-dossier-lifecycle.md) — AI-84 intake, evidence, jurisdiction, readiness, and review boundaries.
 - [Regulatory dossier operator guide](docs/advisory/regulatory-dossier-operator-guide.md) — client information required before research begins.
 - [AI Capability Contracts (AI-71)](docs/architecture/ai-capability-contracts.md) — provider-neutral request, result, policy, and error envelopes plus the typed definition registry.
