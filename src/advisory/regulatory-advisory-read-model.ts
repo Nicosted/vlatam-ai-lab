@@ -1,3 +1,10 @@
+import {
+  evaluateRegulatoryDossier,
+  type DossierReasonCode,
+  type DossierReadinessState,
+  type RegulatoryDossier,
+} from './regulatory-dossier-intake.js';
+
 const SCHEMA_VERSION = '1.0.0';
 const DEFAULT_GENERATED_AT = '1970-01-01T00:00:00.000Z';
 
@@ -196,6 +203,7 @@ export interface AdvisorySourceRecord {
 
 export interface RegulatoryAdvisoryReadinessBuildInput {
   readonly use_case: RegulatoryAdvisoryUseCaseInput;
+  readonly dossier?: RegulatoryDossier;
   readonly source_records?: readonly AdvisorySourceRecord[];
   readonly required_review_area_ids?: readonly RegulatoryReviewAreaId[];
   readonly fixture_status?: 'draft' | 'pending_review' | 'approved' | 'rejected';
@@ -265,6 +273,16 @@ export interface RegulatoryAdvisoryReadinessView {
     readonly hs_ncm_code: string | null;
     readonly classification_status: 'provided_unreviewed' | 'missing_or_uncertain';
   };
+  readonly dossier_intake: {
+    readonly dossier_id: string;
+    readonly case_id: string;
+    readonly case_version: string;
+    readonly readiness: DossierReadinessState;
+    readonly blocker_reason_codes: readonly DossierReasonCode[];
+    readonly missing_evidence_reason_codes: readonly DossierReasonCode[];
+    readonly human_review_required: true;
+    readonly downstream_allowed: false;
+  } | null;
   readonly source_coverage_summary: SourceCoverageSummary;
   readonly confirmed_reviewed_inputs: readonly ConfirmedReviewedInput[];
   readonly missing_or_unreviewed_inputs: readonly MissingOrUnreviewedInput[];
@@ -565,6 +583,9 @@ export function buildRegulatoryAdvisoryReadinessView(
   const sourceRecords = input.source_records ?? [];
   const requiredAreaIds = input.required_review_area_ids ?? DEFAULT_REGULATORY_REVIEW_AREA_IDS;
   const hsNcmCode = normalizeCode(useCase.hs_ncm_code);
+  const dossierEvaluation = input.dossier === undefined
+    ? null
+    : evaluateRegulatoryDossier(input.dossier);
 
   const requiredReviewAreas: RequiredReviewArea[] = requiredAreaIds.map((areaId) => ({
     area_id: areaId,
@@ -665,6 +686,7 @@ export function buildRegulatoryAdvisoryReadinessView(
   const fixtureStatusAllowsDownstream =
     input.fixture_status === undefined || input.fixture_status === 'approved';
   const downstreamAllowed =
+    dossierEvaluation === null &&
     fixtureStatusAllowsDownstream &&
     sourceCoverageSummary.has_reviewed_official_source &&
     missingJurisdictionCodes.length === 0 &&
@@ -706,6 +728,18 @@ export function buildRegulatoryAdvisoryReadinessView(
       hs_ncm_code: hsNcmCode,
       classification_status: productClassificationReady ? 'provided_unreviewed' : 'missing_or_uncertain',
     },
+    dossier_intake: input.dossier === undefined || dossierEvaluation === null
+      ? null
+      : {
+          dossier_id: input.dossier.dossier_id,
+          case_id: input.dossier.case.case_id,
+          case_version: input.dossier.case.case_version,
+          readiness: dossierEvaluation.readiness,
+          blocker_reason_codes: dossierEvaluation.blocker_reason_codes,
+          missing_evidence_reason_codes: dossierEvaluation.missing_evidence_reason_codes,
+          human_review_required: true,
+          downstream_allowed: false,
+        },
     source_coverage_summary: sourceCoverageSummary,
     confirmed_reviewed_inputs: confirmedReviewedInputs,
     missing_or_unreviewed_inputs: missingOrUnreviewedInputs,

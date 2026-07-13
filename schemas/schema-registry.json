@@ -1,6 +1,21 @@
 {
   "contracts": [
     {
+      "contract_name": "regulatory_dossier_intake",
+      "schema_file": "schemas/regulatory-dossier-intake.schema.json",
+      "valid_fixture": "data/fixtures/advisory/regulatory-dossier-intake-ar-es-ecological-agrochemicals.json",
+      "invalid_fixtures": [
+        "data/fixtures/advisory/regulatory-dossier-invalid-scenarios.json"
+      ],
+      "test_file": "tests/advisory/regulatory-dossier-intake.test.ts",
+      "status": "implemented",
+      "purpose": "Versioned client-fact, evidence-provenance, jurisdiction-scope and deterministic readiness intake for regulatory cases.",
+      "downstream_role": "Research intake only; never a legal conclusion, reviewed advisory, approved artifact or export.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": true
+    },
+    {
       "contract_name": "ai_provider_evidence",
       "schema_file": "schemas/ai-provider-evidence.schema.json",
       "valid_fixture": "config/ai-provider-evidence.json",

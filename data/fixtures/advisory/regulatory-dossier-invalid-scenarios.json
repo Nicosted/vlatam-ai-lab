@@ -1,0 +1,137 @@
+{
+  "base_fixture": "data/fixtures/advisory/regulatory-dossier-intake-ar-es-ecological-agrochemicals.json",
+  "scenarios": [
+    {
+      "scenario_id": "missing-intended-use",
+      "operation": "set",
+      "path": "product.intended_use",
+      "value": null,
+      "expected_reason": "MISSING_INTENDED_USE"
+    },
+    {
+      "scenario_id": "missing-active-ingredients",
+      "operation": "set",
+      "path": "product.active_ingredients",
+      "value": [],
+      "expected_reason": "MISSING_ACTIVE_INGREDIENTS"
+    },
+    {
+      "scenario_id": "missing-concentration",
+      "operation": "set",
+      "path": "product.active_ingredients",
+      "value": [
+        {
+          "ingredient_name": "Client-supplied ingredient placeholder",
+          "concentration": null,
+          "identifier": null
+        }
+      ],
+      "expected_reason": "MISSING_CONCENTRATION"
+    },
+    {
+      "scenario_id": "missing-sds-msds",
+      "operation": "set",
+      "path": "evidence.1.state",
+      "value": "missing",
+      "expected_reason": "MISSING_SDS_MSDS"
+    },
+    {
+      "scenario_id": "unsupported-ecological-claim",
+      "operation": "set",
+      "path": "claims.0.evidence_state",
+      "value": "reviewed_unsupported",
+      "expected_reason": "UNSUPPORTED_ENVIRONMENTAL_CLAIM"
+    },
+    {
+      "scenario_id": "conflicting-composition",
+      "operation": "append",
+      "path": "conflicting_evidence",
+      "value": {
+        "conflict_id": "conflict.composition.v1",
+        "evidence_ref_ids": [
+          "evidence.catalog.placeholder",
+          "evidence.sds.missing"
+        ],
+        "description": "Two supplied composition statements disagree."
+      },
+      "expected_reason": "CONFLICTING_COMPOSITION"
+    },
+    {
+      "scenario_id": "jurisdiction-scope-mismatch",
+      "operation": "set",
+      "path": "evidence.0.provenance.jurisdiction_codes",
+      "value": ["AR"],
+      "expected_reason": "JURISDICTION_SCOPE_MISMATCH"
+    },
+    {
+      "scenario_id": "unreviewed-treated-as-reviewed",
+      "operation": "set",
+      "path": "evidence.0.state",
+      "value": "reviewed_supported",
+      "expected_reason": "UNREVIEWED_EVIDENCE_MARKED_REVIEWED"
+    },
+    {
+      "scenario_id": "missing-importer",
+      "operation": "set",
+      "path": "product.importer",
+      "value": null,
+      "expected_reason": "MISSING_IMPORTER"
+    },
+    {
+      "scenario_id": "unsafe-downstream-approval",
+      "operation": "set",
+      "path": "downstream_eligibility.downstream_allowed",
+      "value": true,
+      "expected_reason": "UNSAFE_DOWNSTREAM_APPROVAL"
+    },
+    {
+      "scenario_id": "final-legal-conclusion",
+      "operation": "set",
+      "path": "final_legal_conclusion",
+      "value": "approved",
+      "expected_reason": "FINAL_LEGAL_CONCLUSION_FORBIDDEN"
+    },
+    {
+      "scenario_id": "provider-model-metadata",
+      "operation": "set",
+      "path": "model_id",
+      "value": "forbidden-model",
+      "expected_reason": "PROVIDER_MODEL_METADATA_FORBIDDEN"
+    },
+    {
+      "scenario_id": "credential-shaped-field",
+      "operation": "set",
+      "path": "api_key",
+      "value": "placeholder-only",
+      "expected_reason": "CREDENTIAL_SHAPED_FIELD_FORBIDDEN"
+    },
+    {
+      "scenario_id": "malformed-evidence-reference",
+      "operation": "set",
+      "path": "evidence.0.evidence_id",
+      "value": "INVALID REF",
+      "expected_reason": "MALFORMED_EVIDENCE_REFERENCE"
+    },
+    {
+      "scenario_id": "path-traversal",
+      "operation": "set",
+      "path": "evidence.0.repository_ref",
+      "value": "data/fixtures/../../private.txt",
+      "expected_reason": "PATH_TRAVERSAL_FORBIDDEN"
+    },
+    {
+      "scenario_id": "duplicate-evidence-id",
+      "operation": "set",
+      "path": "evidence.1.evidence_id",
+      "value": "evidence.catalog.placeholder",
+      "expected_reason": "DUPLICATE_EVIDENCE_ID"
+    },
+    {
+      "scenario_id": "duplicate-dossier-id",
+      "operation": "duplicate_dossier",
+      "path": "dossier_id",
+      "value": "dossier.ar-es-ecological-agrochemicals.v1",
+      "expected_reason": "DUPLICATE_DOSSIER_ID"
+    }
+  ]
+}

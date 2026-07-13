@@ -166,6 +166,10 @@ describe('handleClassifierRequest', () => {
     assert.match(response.rawBody, /It is not final legal\/customs advice/);
     assert.match(response.rawBody, /Missing Evidence/);
     assert.match(response.rawBody, /professional review/);
+    assert.match(response.rawBody, /Dossier identity/);
+    assert.match(response.rawBody, /Evidence Inventory/);
+    assert.match(response.rawBody, /Jurisdiction Coverage/);
+    assert.match(response.rawBody, /intake incomplete/);
   });
 
   it('returns 401 when the classifier API key is missing', async () => {

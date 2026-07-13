@@ -1,0 +1,179 @@
+{
+  "dossier_id": "dossier.ar-es-ecological-agrochemicals.v1",
+  "schema_version": "1.0.0",
+  "case": {
+    "case_id": "case.ar-es-ecological-agrochemicals",
+    "case_version": "1.0.0"
+  },
+  "trade_lane": {
+    "exporter_country": { "code": "AR", "name": "Argentina" },
+    "destination_country": { "code": "ES", "name": "Spain" },
+    "applicable_regional_jurisdictions": [
+      { "code": "EU", "name": "European Union" }
+    ]
+  },
+  "product": {
+    "category": "ecological agrochemical product (client description; unverified)",
+    "commercial_name": "Client product name pending",
+    "manufacturer": "Manufacturer details pending",
+    "exporter": "Exporter details pending",
+    "importer": null,
+    "intended_use": null,
+    "target_market": "Spain / European Union",
+    "formulation": null,
+    "active_ingredients": [],
+    "packaging_and_presentation": "Packaging and presentation pending",
+    "origin_details": "Argentina origin details pending"
+  },
+  "claims": [
+    {
+      "claim_id": "claim.ecological.client-description",
+      "claim_type": "ecological",
+      "claim_text": "Ecological product claim supplied as an unverified client description.",
+      "evidence_state": "provided_unreviewed",
+      "evidence_ref_ids": ["evidence.catalog.placeholder"]
+    }
+  ],
+  "requested_operation": "export_from_argentina_and_place_on_spain_eu_market",
+  "requested_regulatory_questions": [
+    "Which Argentina export and sector-authority evidence is required?",
+    "Which Spain and EU import, product, chemical, labeling, and market-placement requirements require research?",
+    "What evidence is required before an HS/NCM classification hypothesis can be professionally reviewed?",
+    "What reviewed evidence would be required to support ecological, biological, organic, or environmental claims?"
+  ],
+  "evidence": [
+    {
+      "evidence_id": "evidence.catalog.placeholder",
+      "evidence_type": "catalog",
+      "repository_ref": "data/fixtures/advisory/client-catalog-placeholder.pdf",
+      "state": "provided_unreviewed",
+      "provenance": {
+        "source_type": "repository_fixture",
+        "supplied_by_role": "operator",
+        "collected_at": "2026-07-13T00:00:00.000Z",
+        "jurisdiction_codes": ["AR", "ES", "EU"]
+      },
+      "notes": "Placeholder reference only; no private or raw document content is stored."
+    },
+    {
+      "evidence_id": "evidence.sds.missing",
+      "evidence_type": "sds_msds",
+      "repository_ref": null,
+      "state": "missing",
+      "provenance": {
+        "source_type": "repository_fixture",
+        "supplied_by_role": "operator",
+        "collected_at": "2026-07-13T00:00:00.000Z",
+        "jurisdiction_codes": ["AR", "ES", "EU"]
+      },
+      "notes": "SDS/MSDS has not been supplied."
+    }
+  ],
+  "jurisdiction_requirements": [
+    {
+      "requirement_id": "ar.export-customs",
+      "jurisdiction_code": "AR",
+      "category": "export_customs",
+      "state": "missing",
+      "evidence_ref_ids": [],
+      "required": true
+    },
+    {
+      "requirement_id": "ar.product-sector-authority",
+      "jurisdiction_code": "AR",
+      "category": "product_sector_authority",
+      "state": "missing",
+      "evidence_ref_ids": [],
+      "required": true
+    },
+    {
+      "requirement_id": "ar.hs-ncm",
+      "jurisdiction_code": "AR",
+      "category": "hs_ncm_classification",
+      "state": "missing",
+      "evidence_ref_ids": [],
+      "required": true
+    },
+    {
+      "requirement_id": "es.import-customs",
+      "jurisdiction_code": "ES",
+      "category": "import_customs",
+      "state": "missing",
+      "evidence_ref_ids": [],
+      "required": true
+    },
+    {
+      "requirement_id": "eu.chemical-product",
+      "jurisdiction_code": "EU",
+      "category": "chemical_product_regulation",
+      "state": "missing",
+      "evidence_ref_ids": [],
+      "required": true
+    },
+    {
+      "requirement_id": "eu.labeling-safety",
+      "jurisdiction_code": "EU",
+      "category": "labeling_safety",
+      "state": "missing",
+      "evidence_ref_ids": [],
+      "required": true
+    },
+    {
+      "requirement_id": "eu.environmental-claims",
+      "jurisdiction_code": "EU",
+      "category": "environmental_claims",
+      "state": "provided_unreviewed",
+      "evidence_ref_ids": ["evidence.catalog.placeholder"],
+      "required": true
+    },
+    {
+      "requirement_id": "es.importer-market-placement",
+      "jurisdiction_code": "ES",
+      "category": "importer_market_placement",
+      "state": "missing",
+      "evidence_ref_ids": [],
+      "required": true
+    },
+    {
+      "requirement_id": "ar-es.logistics",
+      "jurisdiction_code": "AR",
+      "category": "logistics_documentation",
+      "state": "missing",
+      "evidence_ref_ids": [],
+      "required": true
+    }
+  ],
+  "professional_review_requirements": [
+    {
+      "review_id": "review.trade-customs",
+      "review_area": "Argentina export and Spain import/customs",
+      "jurisdiction_codes": ["AR", "ES"],
+      "status": "required",
+      "reviewed_artifact_ref": null
+    },
+    {
+      "review_id": "review.eu-product",
+      "review_area": "EU product, chemical, labeling, safety, and environmental claims",
+      "jurisdiction_codes": ["EU"],
+      "status": "required",
+      "reviewed_artifact_ref": null
+    }
+  ],
+  "missing_evidence": [
+    "MISSING_INTENDED_USE",
+    "MISSING_ACTIVE_INGREDIENTS",
+    "MISSING_SDS_MSDS",
+    "MISSING_IMPORTER"
+  ],
+  "conflicting_evidence": [],
+  "readiness": "intake_incomplete",
+  "human_review_required": true,
+  "downstream_eligibility": {
+    "downstream_allowed": false,
+    "reason": "regulated_conclusions_require_reviewed_advisory_artifact"
+  },
+  "limitations": [
+    "This intake is not legal advice, customs clearance, product registration, market authorization, ecological certification, or a final HS/NCM classification.",
+    "Provided documents remain unreviewed until a separately reviewed repository artifact supports them."
+  ]
+}

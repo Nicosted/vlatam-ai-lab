@@ -1,3 +1,10 @@
+import {
+  ARGENTINA_SPAIN_ECOLOGICAL_AGROCHEMICAL_DOSSIER,
+  evaluateRegulatoryDossier,
+  type DossierEvaluation,
+  type RegulatoryDossier,
+} from './regulatory-dossier-intake.js';
+
 const WORKSPACE_SCHEMA_VERSION = '1.0.0';
 const DEMO_WORKSPACE_TIMESTAMP = '2026-07-02T00:00:00.000Z';
 
@@ -179,6 +186,8 @@ export interface HumanReviewRequirement {
 }
 
 export interface RegulatoryResearchWorkspace {
+  readonly dossier: RegulatoryDossier;
+  readonly dossier_evaluation: DossierEvaluation;
   readonly workspace_id: string;
   readonly case_title: string;
   readonly origin_country: JurisdictionSummary;
@@ -423,6 +432,10 @@ export function buildArgentinaSpainEcologicalAgrochemicalWorkspace(): Regulatory
   );
 
   return {
+    dossier: ARGENTINA_SPAIN_ECOLOGICAL_AGROCHEMICAL_DOSSIER,
+    dossier_evaluation: evaluateRegulatoryDossier(
+      ARGENTINA_SPAIN_ECOLOGICAL_AGROCHEMICAL_DOSSIER,
+    ),
     workspace_id: 'research-workspace--ar--es--ecological-agrochemicals',
     case_title: 'Export of ecological agrochemicals from Argentina to Spain',
     origin_country: {
@@ -519,6 +532,18 @@ export function renderRegulatoryResearchWorkspaceHtml(
   const blocLabels = workspace.destination_blocs
     .map((bloc) => bloc.name)
     .join(', ');
+  const dossier = workspace.dossier;
+  const evidenceInventory = dossier.evidence.map(
+    (item) => `${item.evidence_type}: ${sentenceCaseStatus(item.state)}`,
+  );
+  const jurisdictionCoverage = dossier.jurisdiction_requirements.map(
+    (item) => `${item.jurisdiction_code} / ${item.category}: ${sentenceCaseStatus(item.state)}`,
+  );
+  const blockerCodes = workspace.dossier_evaluation.blocker_reason_codes;
+  const missingCodes = workspace.dossier_evaluation.missing_evidence_reason_codes;
+  const requiredReviews = dossier.professional_review_requirements.map(
+    (item) => `${item.review_area}: ${item.status}`,
+  );
 
   return `<!doctype html>
 <html lang="en">
@@ -655,6 +680,10 @@ export function renderRegulatoryResearchWorkspaceHtml(
 
     <section class="grid" aria-label="Case summary">
       <div class="panel">
+        <div class="label">Dossier identity</div>
+        <div class="value">${escapeHtml(dossier.dossier_id)} / ${escapeHtml(dossier.case.case_id)} @ ${escapeHtml(dossier.case.case_version)}</div>
+      </div>
+      <div class="panel">
         <div class="label">Route / lane</div>
         <div class="value">${escapeHtml(routeLane)}${blocLabels.length > 0 ? ` (${escapeHtml(blocLabels)})` : ''}</div>
       </div>
@@ -668,7 +697,7 @@ export function renderRegulatoryResearchWorkspaceHtml(
       </div>
       <div class="panel">
         <div class="label">Status</div>
-        <div class="value status">${escapeHtml(sentenceCaseStatus(workspace.status))}</div>
+        <div class="value status">${escapeHtml(sentenceCaseStatus(workspace.dossier_evaluation.readiness))} (workspace: ${escapeHtml(sentenceCaseStatus(workspace.status))})</div>
       </div>
     </section>
 
@@ -676,6 +705,7 @@ export function renderRegulatoryResearchWorkspaceHtml(
       <div class="panel">
         <h2>Readiness Summary</h2>
         <p>${escapeHtml(workspace.readiness_summary.summary)}</p>
+        <p><strong>Dossier readiness:</strong> ${escapeHtml(sentenceCaseStatus(workspace.dossier_evaluation.readiness))}</p>
         <p><strong>Final answer:</strong> not generated</p>
         <p><strong>Downstream allowed:</strong> no</p>
       </div>
@@ -686,7 +716,37 @@ export function renderRegulatoryResearchWorkspaceHtml(
       <div class="panel">
         <h2>Human Review</h2>
         <p>${escapeHtml(workspace.human_review_requirement.reason)}</p>
-        <p><strong>Reviewer:</strong> ${escapeHtml(workspace.human_review_requirement.reviewer_profile)}</p>
+        <p><strong>Required professional review:</strong> yes</p>
+      </div>
+    </section>
+
+    <section class="grid" aria-label="Dossier evidence and jurisdiction coverage">
+      <div class="panel">
+        <h2>Product Context</h2>
+        <p><strong>Commercial name:</strong> ${escapeHtml(dossier.product.commercial_name)}</p>
+        <p><strong>Manufacturer:</strong> ${escapeHtml(dossier.product.manufacturer)}</p>
+        <p><strong>Intended use:</strong> ${escapeHtml(dossier.product.intended_use ?? 'missing')}</p>
+        <p><strong>Formulation:</strong> ${escapeHtml(dossier.product.formulation ?? 'missing')}</p>
+      </div>
+      <div class="panel">
+        <h2>Evidence Inventory</h2>
+        <ul>${listItems(evidenceInventory)}</ul>
+      </div>
+      <div class="panel">
+        <h2>Jurisdiction Coverage</h2>
+        <ul>${listItems(jurisdictionCoverage)}</ul>
+      </div>
+      <div class="panel">
+        <h2>Blockers</h2>
+        <ul>${listItems(blockerCodes.length > 0 ? blockerCodes : ['none'])}</ul>
+      </div>
+      <div class="panel">
+        <h2>Missing Evidence Codes</h2>
+        <ul>${listItems(missingCodes.length > 0 ? missingCodes : ['none'])}</ul>
+      </div>
+      <div class="panel">
+        <h2>Required Professional Reviews</h2>
+        <ul>${listItems(requiredReviews)}</ul>
       </div>
     </section>
 

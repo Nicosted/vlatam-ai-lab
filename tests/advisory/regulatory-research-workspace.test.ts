@@ -155,6 +155,12 @@ describe('regulatory research workspace', () => {
       /Answers require official sources and professional review/,
     );
     assert.match(html, /Missing evidence can block reliable conclusions/);
+    assert.match(html, /Dossier identity/);
+    assert.match(html, /Evidence Inventory/);
+    assert.match(html, /Jurisdiction Coverage/);
+    assert.match(html, /Required Professional Reviews/);
+    assert.match(html, /MISSING_ACTIVE_INGREDIENTS/);
+    assert.match(html, /Downstream allowed:<\/strong> no/);
   });
 
   it('does not add external AI provider or web scraping behavior', () => {
