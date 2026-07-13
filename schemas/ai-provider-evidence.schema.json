@@ -7,7 +7,10 @@
   "required": ["schema_version", "evidence"],
   "properties": {
     "schema_version": { "const": "1.0.0" },
-    "evidence": { "type": "array", "items": { "$ref": "#/$defs/evidence_record" } }
+    "evidence": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/evidence_record" }
+    }
   },
   "$defs": {
     "claim": {
@@ -21,27 +24,59 @@
       },
       "allOf": [
         {
-          "if": { "properties": { "status": { "enum": ["supported", "unsupported"] } } },
-          "then": { "required": ["value", "source_ref"], "properties": { "value": {}, "source_ref": { "type": "string" } } }
+          "if": {
+            "properties": { "status": { "enum": ["supported", "unsupported"] } }
+          },
+          "then": {
+            "required": ["value", "source_ref"],
+            "properties": { "value": {}, "source_ref": { "type": "string" } }
+          }
         },
         {
           "if": { "properties": { "status": { "const": "unknown" } } },
-          "then": { "not": { "required": ["value"] }, "properties": { "value": {} } }
+          "then": {
+            "not": { "required": ["value"] },
+            "properties": { "value": {} }
+          }
         }
       ]
     },
     "evidence_record": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["evidence_id", "provider_identity", "model_identity", "claims", "source", "review", "expires_at"],
+      "required": [
+        "evidence_id",
+        "provider_identity",
+        "model_identity",
+        "claims",
+        "source",
+        "review",
+        "expires_at"
+      ],
       "properties": {
-        "evidence_id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]+$" },
+        "evidence_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]+$"
+        },
         "provider_identity": { "$ref": "#/$defs/claim" },
         "model_identity": { "$ref": "#/$defs/claim" },
         "claims": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["supported_capabilities", "context_limits", "structured_outputs", "tool_calling", "multimodal", "prompt_caching", "usage_reporting", "processing_regions", "retention", "training_use", "zdr_status", "pricing"],
+          "required": [
+            "supported_capabilities",
+            "context_limits",
+            "structured_outputs",
+            "tool_calling",
+            "multimodal",
+            "prompt_caching",
+            "usage_reporting",
+            "processing_regions",
+            "retention",
+            "training_use",
+            "zdr_status",
+            "pricing"
+          ],
           "properties": {
             "supported_capabilities": { "$ref": "#/$defs/claim" },
             "context_limits": { "$ref": "#/$defs/claim" },
@@ -58,23 +93,45 @@
           }
         },
         "source": {
-          "type": "object", "additionalProperties": false,
+          "type": "object",
+          "additionalProperties": false,
           "required": ["kind", "reference", "captured_at"],
           "properties": {
-            "kind": { "enum": ["provider_declaration", "independent_review", "contract_review", "local_fixture"] },
+            "kind": {
+              "enum": [
+                "provider_declaration",
+                "independent_review",
+                "contract_review",
+                "local_fixture"
+              ]
+            },
             "reference": { "type": "string", "minLength": 1 },
             "captured_at": { "type": "string", "format": "date-time" }
           }
         },
         "review": {
-          "type": "object", "additionalProperties": false,
+          "type": "object",
+          "additionalProperties": false,
           "required": ["status"],
           "properties": {
             "status": { "enum": ["reviewed_approved", "pending", "rejected"] },
             "reviewed_at": { "type": "string", "format": "date-time" },
             "review_record_ref": { "type": "string", "minLength": 1 }
           },
-          "allOf": [{ "if": { "properties": { "status": { "const": "reviewed_approved" } } }, "then": { "required": ["reviewed_at", "review_record_ref"], "properties": { "reviewed_at": { "type": "string" }, "review_record_ref": { "type": "string" } } } }]
+          "allOf": [
+            {
+              "if": {
+                "properties": { "status": { "const": "reviewed_approved" } }
+              },
+              "then": {
+                "required": ["reviewed_at", "review_record_ref"],
+                "properties": {
+                  "reviewed_at": { "type": "string" },
+                  "review_record_ref": { "type": "string" }
+                }
+              }
+            }
+          ]
         },
         "expires_at": { "type": "string", "format": "date-time" }
       }

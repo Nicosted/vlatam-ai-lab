@@ -7,23 +7,78 @@
   "properties": {
     "schema_version": { "const": "1.0.0" },
     "profiles": {
-      "type": "array", "minItems": 1,
+      "type": "array",
+      "minItems": 1,
       "items": {
-        "type": "object", "additionalProperties": false,
-        "required": ["profile_id", "provider_id", "model_id", "lifecycle_status", "enabled", "evidence_refs", "runtime_eligibility", "blocking_reasons"],
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "profile_id",
+          "provider_id",
+          "model_id",
+          "lifecycle_status",
+          "enabled",
+          "evidence_refs",
+          "runtime_eligibility",
+          "blocking_reasons"
+        ],
         "properties": {
-          "profile_id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]+$" },
+          "profile_id": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9._-]+$"
+          },
           "provider_id": { "enum": ["openrouter", "minimax-direct"] },
           "model_id": { "type": ["string", "null"], "minLength": 1 },
           "lifecycle_status": { "const": "candidate" },
           "enabled": { "const": false },
-          "evidence_refs": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+          "evidence_refs": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": { "type": "string", "minLength": 1 }
+          },
           "runtime_eligibility": { "enum": ["blocked", "reviewed_candidate"] },
-          "blocking_reasons": { "type": "array", "uniqueItems": true, "items": { "enum": ["missing_evidence", "expired_evidence", "unreviewed_evidence", "unknown_model_identity", "unsupported_capability", "profile_evidence_mismatch", "privacy_unknown", "pricing_unknown"] } }
+          "blocking_reasons": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "enum": [
+                "missing_evidence",
+                "expired_evidence",
+                "unreviewed_evidence",
+                "unknown_model_identity",
+                "unsupported_capability",
+                "profile_evidence_mismatch",
+                "privacy_unknown",
+                "pricing_unknown"
+              ]
+            }
+          }
         },
         "allOf": [
-          { "if": { "properties": { "runtime_eligibility": { "const": "blocked" } } }, "then": { "properties": { "blocking_reasons": { "type": "array", "minItems": 1 } } } },
-          { "if": { "properties": { "runtime_eligibility": { "const": "reviewed_candidate" } } }, "then": { "properties": { "model_id": { "type": "string" }, "blocking_reasons": { "type": "array", "maxItems": 0 } } } }
+          {
+            "if": {
+              "properties": { "runtime_eligibility": { "const": "blocked" } }
+            },
+            "then": {
+              "properties": {
+                "blocking_reasons": { "type": "array", "minItems": 1 }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "runtime_eligibility": { "const": "reviewed_candidate" }
+              }
+            },
+            "then": {
+              "properties": {
+                "model_id": { "type": "string" },
+                "blocking_reasons": { "type": "array", "maxItems": 0 }
+              }
+            }
+          }
         ]
       }
     }

@@ -1,4 +1,22 @@
 {
-  "profile": { "profile_id": "fixture.openrouter.v1", "provider_id": "openrouter", "model_id": null, "lifecycle_status": "candidate", "enabled": false, "evidence_refs": ["fixture.evidence.v1"], "runtime_eligibility": "blocked", "blocking_reasons": ["unknown_model_identity"] },
-  "evidence": [{ "evidence_id": "fixture.evidence.v1", "provider_identity": { "status": "supported", "value": "openrouter" }, "model_identity": { "status": "unknown" }, "claims": { "supported_capabilities": { "status": "supported" } }, "review": { "status": "reviewed_approved" }, "expires_at": "2026-12-31T00:00:00.000Z" }]
+  "profile": {
+    "profile_id": "fixture.openrouter.v1",
+    "provider_id": "openrouter",
+    "model_id": null,
+    "lifecycle_status": "candidate",
+    "enabled": false,
+    "evidence_refs": ["fixture.evidence.v1"],
+    "runtime_eligibility": "blocked",
+    "blocking_reasons": ["unknown_model_identity"]
+  },
+  "evidence": [
+    {
+      "evidence_id": "fixture.evidence.v1",
+      "provider_identity": { "status": "supported", "value": "openrouter" },
+      "model_identity": { "status": "unknown" },
+      "claims": { "supported_capabilities": { "status": "supported" } },
+      "review": { "status": "reviewed_approved" },
+      "expires_at": "2026-12-31T00:00:00.000Z"
+    }
+  ]
 }
