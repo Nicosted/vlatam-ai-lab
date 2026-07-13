@@ -103,6 +103,8 @@ Consumers must validate `schema_version`, fail closed on unsupported or invalid 
 - [AI System Architecture](docs/architecture/ai-system-architecture.md) — target layered architecture and safety invariants.
 - [AI Capability Map](docs/architecture/ai-capability-map.md) — current and planned capability inventory.
 - [AI Roadmap Dependency Map](docs/architecture/ai-roadmap-dependency-map.md) — AI-70 through AI-78 sequence and gates.
+- [Regulatory dossier lifecycle](docs/advisory/regulatory-dossier-lifecycle.md) — AI-84 intake, evidence, jurisdiction, readiness, and review boundaries.
+- [Regulatory dossier operator guide](docs/advisory/regulatory-dossier-operator-guide.md) — client information required before research begins.
 - [AI Capability Contracts (AI-71)](docs/architecture/ai-capability-contracts.md) — provider-neutral request, result, policy, and error envelopes plus the typed definition registry.
 - [AI Multi-Provider Gateway (AI-72)](docs/architecture/ai-multi-provider-gateway.md) — explicit execution profiles, normalized adapters, deterministic replay, strict output validation, and safe audit metadata.
 - [AI Privacy and ZDR Enforcement (AI-73)](docs/architecture/ai-privacy-zdr-enforcement.md) — data classification, deterministic redaction, retention compatibility, ZDR evidence verification, replay fixture provenance, and the gateway privacy gate.

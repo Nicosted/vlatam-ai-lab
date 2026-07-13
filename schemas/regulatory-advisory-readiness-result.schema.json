@@ -10,6 +10,7 @@
     "use_case",
     "jurisdictions",
     "product_scope",
+    "dossier_intake",
     "source_coverage_summary",
     "confirmed_reviewed_inputs",
     "missing_or_unreviewed_inputs",
@@ -34,7 +35,10 @@
       "additionalProperties": false,
       "required": ["status", "summary", "requested_language"],
       "properties": {
-        "status": { "type": "string", "enum": ["draft", "pending_review", "approved", "rejected"] },
+        "status": {
+          "type": "string",
+          "enum": ["draft", "pending_review", "approved", "rejected"]
+        },
         "summary": { "type": "string", "minLength": 1, "maxLength": 2000 },
         "requested_language": { "type": "string", "enum": ["en", "es"] }
       }
@@ -60,13 +64,20 @@
       "additionalProperties": false,
       "required": ["product_family", "hs_ncm_code", "classification_status"],
       "properties": {
-        "product_family": { "type": "string", "minLength": 1, "maxLength": 400 },
+        "product_family": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 400
+        },
         "hs_ncm_code": { "type": ["string", "null"] },
         "classification_status": {
           "type": "string",
           "enum": ["provided_unreviewed", "missing_or_uncertain"]
         }
       }
+    },
+    "dossier_intake": {
+      "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/dossierIntake" }]
     },
     "source_coverage_summary": { "$ref": "#/$defs/sourceCoverageSummary" },
     "confirmed_reviewed_inputs": {
@@ -103,6 +114,69 @@
     "schema_version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" }
   },
   "$defs": {
+    "dossierIntake": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "dossier_id",
+        "case_id",
+        "case_version",
+        "readiness",
+        "blocker_reason_codes",
+        "missing_evidence_reason_codes",
+        "human_review_required",
+        "downstream_allowed"
+      ],
+      "properties": {
+        "dossier_id": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "case_id": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "case_version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+        "readiness": {
+          "enum": [
+            "intake_incomplete",
+            "ready_for_research",
+            "research_in_progress",
+            "ready_for_professional_review",
+            "blocked",
+            "reviewed_advisory_ready"
+          ]
+        },
+        "blocker_reason_codes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/dossierReasonCode" }
+        },
+        "missing_evidence_reason_codes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/dossierReasonCode" }
+        },
+        "human_review_required": { "const": true },
+        "downstream_allowed": { "const": false }
+      }
+    },
+    "dossierReasonCode": {
+      "enum": [
+        "MISSING_INTENDED_USE",
+        "MISSING_ACTIVE_INGREDIENTS",
+        "MISSING_CONCENTRATION",
+        "MISSING_SDS_MSDS",
+        "UNSUPPORTED_ENVIRONMENTAL_CLAIM",
+        "CONFLICTING_COMPOSITION",
+        "JURISDICTION_SCOPE_MISMATCH",
+        "UNREVIEWED_EVIDENCE_MARKED_REVIEWED",
+        "MISSING_IMPORTER",
+        "UNSAFE_DOWNSTREAM_APPROVAL",
+        "FINAL_LEGAL_CONCLUSION_FORBIDDEN",
+        "PROVIDER_MODEL_METADATA_FORBIDDEN",
+        "CREDENTIAL_SHAPED_FIELD_FORBIDDEN",
+        "MALFORMED_EVIDENCE_REFERENCE",
+        "PATH_TRAVERSAL_FORBIDDEN",
+        "DUPLICATE_DOSSIER_ID",
+        "DUPLICATE_EVIDENCE_ID",
+        "PROFESSIONAL_REVIEW_REQUIRED"
+      ]
+    },
     "jurisdiction": {
       "type": "object",
       "additionalProperties": false,
@@ -110,7 +184,10 @@
       "properties": {
         "code": { "type": "string", "minLength": 1, "maxLength": 16 },
         "name": { "type": "string", "minLength": 1, "maxLength": 200 },
-        "kind": { "type": "string", "enum": ["country", "bloc", "region", "global"] }
+        "kind": {
+          "type": "string",
+          "enum": ["country", "bloc", "region", "global"]
+        }
       }
     },
     "sourceCoverageSummary": {
@@ -174,7 +251,13 @@
     "confirmedReviewedInput": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["source_ref", "source_id", "coverage", "review_area_ids", "evidence_refs"],
+      "required": [
+        "source_ref",
+        "source_id",
+        "coverage",
+        "review_area_ids",
+        "evidence_refs"
+      ],
       "properties": {
         "source_ref": { "type": "string", "minLength": 1, "maxLength": 400 },
         "source_id": { "type": "string", "minLength": 1, "maxLength": 160 },
@@ -195,7 +278,14 @@
     "missingOrUnreviewedInput": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["review_area_id", "review_area", "coverage", "source_refs", "evidence_refs", "reason"],
+      "required": [
+        "review_area_id",
+        "review_area",
+        "coverage",
+        "source_refs",
+        "evidence_refs",
+        "reason"
+      ],
       "properties": {
         "review_area_id": { "$ref": "#/$defs/reviewAreaId" },
         "review_area": { "type": "string", "minLength": 1, "maxLength": 200 },
@@ -235,7 +325,15 @@
     "checklistItem": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["item_id", "label", "status", "coverage", "source_refs", "evidence_refs", "notes"],
+      "required": [
+        "item_id",
+        "label",
+        "status",
+        "coverage",
+        "source_refs",
+        "evidence_refs",
+        "notes"
+      ],
       "properties": {
         "item_id": { "$ref": "#/$defs/reviewAreaId" },
         "label": { "type": "string", "minLength": 1, "maxLength": 200 },

@@ -12,6 +12,7 @@ import {
   type RegulatoryAdvisoryReadinessBuildInput,
   type RegulatoryReviewAreaId,
 } from '../../src/advisory/regulatory-advisory-read-model.js';
+import { ARGENTINA_SPAIN_ECOLOGICAL_AGROCHEMICAL_DOSSIER } from '../../src/advisory/regulatory-dossier-intake.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, '..', '..');
@@ -110,6 +111,18 @@ function approvedPositiveControlInput(
 }
 
 describe('regulatory advisory read-model — Argentina to Spain/EU agrochemical readiness', () => {
+  it('consumes the canonical dossier summary without relaxing advisory safety', () => {
+    const view = buildRegulatoryAdvisoryReadinessView({
+      ...loadFixture(),
+      dossier: ARGENTINA_SPAIN_ECOLOGICAL_AGROCHEMICAL_DOSSIER,
+    });
+    assert.equal(view.dossier_intake?.dossier_id, 'dossier.ar-es-ecological-agrochemicals.v1');
+    assert.equal(view.dossier_intake?.readiness, 'intake_incomplete');
+    assert.equal(view.dossier_intake?.human_review_required, true);
+    assert.equal(view.dossier_intake?.downstream_allowed, false);
+    assert.equal(view.downstream_allowed, false);
+  });
+
   it('keeps the agrochemical fixture blocked from downstream use', () => {
     const view = buildRegulatoryAdvisoryReadinessView(loadFixture());
 

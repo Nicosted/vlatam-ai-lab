@@ -1,0 +1,413 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam.local/schemas/regulatory-dossier-intake.schema.json",
+  "title": "Regulatory dossier intake",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "dossier_id",
+    "schema_version",
+    "case",
+    "trade_lane",
+    "product",
+    "claims",
+    "requested_operation",
+    "requested_regulatory_questions",
+    "evidence",
+    "jurisdiction_requirements",
+    "professional_review_requirements",
+    "missing_evidence",
+    "conflicting_evidence",
+    "readiness",
+    "human_review_required",
+    "downstream_eligibility",
+    "limitations"
+  ],
+  "properties": {
+    "dossier_id": { "$ref": "#/$defs/id" },
+    "schema_version": { "const": "1.0.0" },
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["case_id", "case_version"],
+      "properties": {
+        "case_id": { "$ref": "#/$defs/id" },
+        "case_version": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]*\\.[0-9]+\\.[0-9]+$"
+        }
+      }
+    },
+    "trade_lane": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "exporter_country",
+        "destination_country",
+        "applicable_regional_jurisdictions"
+      ],
+      "properties": {
+        "exporter_country": { "$ref": "#/$defs/argentina" },
+        "destination_country": { "$ref": "#/$defs/spain" },
+        "applicable_regional_jurisdictions": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1,
+          "prefixItems": [{ "$ref": "#/$defs/eu" }],
+          "items": false
+        }
+      }
+    },
+    "product": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "category",
+        "commercial_name",
+        "manufacturer",
+        "exporter",
+        "importer",
+        "intended_use",
+        "target_market",
+        "formulation",
+        "active_ingredients",
+        "packaging_and_presentation",
+        "origin_details"
+      ],
+      "properties": {
+        "category": { "$ref": "#/$defs/nonEmpty" },
+        "commercial_name": { "$ref": "#/$defs/nonEmpty" },
+        "manufacturer": { "$ref": "#/$defs/nonEmpty" },
+        "exporter": { "$ref": "#/$defs/nonEmpty" },
+        "importer": { "$ref": "#/$defs/nullableNonEmpty" },
+        "intended_use": { "$ref": "#/$defs/nullableNonEmpty" },
+        "target_market": { "$ref": "#/$defs/nonEmpty" },
+        "formulation": { "$ref": "#/$defs/nullableNonEmpty" },
+        "active_ingredients": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["ingredient_name", "concentration", "identifier"],
+            "properties": {
+              "ingredient_name": { "$ref": "#/$defs/nonEmpty" },
+              "concentration": { "$ref": "#/$defs/nullableNonEmpty" },
+              "identifier": {
+                "oneOf": [
+                  { "type": "null" },
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["scheme", "value"],
+                    "properties": {
+                      "scheme": { "enum": ["CAS", "EC", "other"] },
+                      "value": { "$ref": "#/$defs/nonEmpty" }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "packaging_and_presentation": { "$ref": "#/$defs/nonEmpty" },
+        "origin_details": { "$ref": "#/$defs/nonEmpty" }
+      }
+    },
+    "claims": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "claim_id",
+          "claim_type",
+          "claim_text",
+          "evidence_state",
+          "evidence_ref_ids"
+        ],
+        "properties": {
+          "claim_id": { "$ref": "#/$defs/id" },
+          "claim_type": {
+            "enum": [
+              "ecological",
+              "organic",
+              "biological",
+              "sustainable",
+              "environmental"
+            ]
+          },
+          "claim_text": { "$ref": "#/$defs/nonEmpty" },
+          "evidence_state": { "$ref": "#/$defs/evidenceState" },
+          "evidence_ref_ids": { "$ref": "#/$defs/idArray" }
+        }
+      }
+    },
+    "requested_operation": {
+      "const": "export_from_argentina_and_place_on_spain_eu_market"
+    },
+    "requested_regulatory_questions": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/nonEmpty" }
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "evidence_id",
+          "evidence_type",
+          "repository_ref",
+          "state",
+          "provenance",
+          "notes"
+        ],
+        "properties": {
+          "evidence_id": { "$ref": "#/$defs/id" },
+          "evidence_type": {
+            "enum": [
+              "product_label",
+              "technical_data_sheet",
+              "sds_msds",
+              "invoice_or_proforma",
+              "catalog",
+              "photo",
+              "origin_detail",
+              "certificate",
+              "composition_declaration",
+              "importer_detail"
+            ]
+          },
+          "repository_ref": {
+            "oneOf": [
+              { "type": "null" },
+              {
+                "type": "string",
+                "pattern": "^(data|snapshots|reports|docs)/[A-Za-z0-9._/-]+$",
+                "not": { "pattern": "(?:^|/)\\.\\.(?:/|$)" }
+              }
+            ]
+          },
+          "state": { "$ref": "#/$defs/evidenceState" },
+          "provenance": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "source_type",
+              "supplied_by_role",
+              "collected_at",
+              "jurisdiction_codes"
+            ],
+            "properties": {
+              "source_type": {
+                "enum": [
+                  "client_supplied",
+                  "repository_fixture",
+                  "reviewed_repository_artifact"
+                ]
+              },
+              "supplied_by_role": {
+                "enum": ["client", "operator", "professional_reviewer"]
+              },
+              "collected_at": { "type": "string", "format": "date-time" },
+              "jurisdiction_codes": { "$ref": "#/$defs/jurisdictions" },
+              "reviewed_artifact_ref": {
+                "type": "string",
+                "pattern": "^(reports|snapshots)/[A-Za-z0-9._/-]+$"
+              }
+            }
+          },
+          "notes": { "type": "string" }
+        }
+      }
+    },
+    "jurisdiction_requirements": {
+      "type": "array",
+      "minItems": 9,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "requirement_id",
+          "jurisdiction_code",
+          "category",
+          "state",
+          "evidence_ref_ids",
+          "required"
+        ],
+        "properties": {
+          "requirement_id": { "$ref": "#/$defs/id" },
+          "jurisdiction_code": { "enum": ["AR", "ES", "EU"] },
+          "category": {
+            "enum": [
+              "export_customs",
+              "product_sector_authority",
+              "hs_ncm_classification",
+              "import_customs",
+              "chemical_product_regulation",
+              "labeling_safety",
+              "environmental_claims",
+              "importer_market_placement",
+              "logistics_documentation"
+            ]
+          },
+          "state": { "$ref": "#/$defs/evidenceState" },
+          "evidence_ref_ids": { "$ref": "#/$defs/idArray" },
+          "required": { "type": "boolean" }
+        }
+      }
+    },
+    "professional_review_requirements": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "review_id",
+          "review_area",
+          "jurisdiction_codes",
+          "status",
+          "reviewed_artifact_ref"
+        ],
+        "properties": {
+          "review_id": { "$ref": "#/$defs/id" },
+          "review_area": { "$ref": "#/$defs/nonEmpty" },
+          "jurisdiction_codes": { "$ref": "#/$defs/jurisdictions" },
+          "status": {
+            "enum": ["required", "completed_supported", "completed_unsupported"]
+          },
+          "reviewed_artifact_ref": {
+            "oneOf": [
+              { "type": "null" },
+              {
+                "type": "string",
+                "pattern": "^(reports|snapshots)/[A-Za-z0-9._/-]+$"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "missing_evidence": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/reasonCode" }
+    },
+    "conflicting_evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["conflict_id", "evidence_ref_ids", "description"],
+        "properties": {
+          "conflict_id": { "$ref": "#/$defs/id" },
+          "evidence_ref_ids": { "$ref": "#/$defs/idArray" },
+          "description": { "$ref": "#/$defs/nonEmpty" }
+        }
+      }
+    },
+    "readiness": {
+      "enum": [
+        "intake_incomplete",
+        "ready_for_research",
+        "research_in_progress",
+        "ready_for_professional_review",
+        "blocked",
+        "reviewed_advisory_ready"
+      ]
+    },
+    "human_review_required": { "const": true },
+    "downstream_eligibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["downstream_allowed", "reason"],
+      "properties": {
+        "downstream_allowed": { "const": false },
+        "reason": {
+          "const": "regulated_conclusions_require_reviewed_advisory_artifact"
+        }
+      }
+    },
+    "limitations": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/nonEmpty" }
+    }
+  },
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z0-9]+(?:[._-][a-z0-9]+)*$" },
+    "nonEmpty": { "type": "string", "minLength": 1 },
+    "nullableNonEmpty": {
+      "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/nonEmpty" }]
+    },
+    "evidenceState": {
+      "enum": [
+        "provided_unreviewed",
+        "reviewed_supported",
+        "reviewed_unsupported",
+        "missing",
+        "conflicting",
+        "not_applicable"
+      ]
+    },
+    "jurisdictions": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "enum": ["AR", "ES", "EU"] }
+    },
+    "idArray": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/id" }
+    },
+    "reasonCode": {
+      "enum": [
+        "MISSING_INTENDED_USE",
+        "MISSING_ACTIVE_INGREDIENTS",
+        "MISSING_CONCENTRATION",
+        "MISSING_SDS_MSDS",
+        "UNSUPPORTED_ENVIRONMENTAL_CLAIM",
+        "CONFLICTING_COMPOSITION",
+        "JURISDICTION_SCOPE_MISMATCH",
+        "UNREVIEWED_EVIDENCE_MARKED_REVIEWED",
+        "MISSING_IMPORTER",
+        "UNSAFE_DOWNSTREAM_APPROVAL",
+        "FINAL_LEGAL_CONCLUSION_FORBIDDEN",
+        "PROVIDER_MODEL_METADATA_FORBIDDEN",
+        "CREDENTIAL_SHAPED_FIELD_FORBIDDEN",
+        "MALFORMED_EVIDENCE_REFERENCE",
+        "PATH_TRAVERSAL_FORBIDDEN",
+        "DUPLICATE_DOSSIER_ID",
+        "DUPLICATE_EVIDENCE_ID",
+        "PROFESSIONAL_REVIEW_REQUIRED"
+      ]
+    },
+    "argentina": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "name"],
+      "properties": {
+        "code": { "const": "AR" },
+        "name": { "const": "Argentina" }
+      }
+    },
+    "spain": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "name"],
+      "properties": { "code": { "const": "ES" }, "name": { "const": "Spain" } }
+    },
+    "eu": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "name"],
+      "properties": {
+        "code": { "const": "EU" },
+        "name": { "const": "European Union" }
+      }
+    }
+  }
+}
