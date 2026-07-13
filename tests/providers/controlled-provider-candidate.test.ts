@@ -23,11 +23,14 @@ const readiness = load<{
     execution_profile_status: string;
     live_execution_status: string;
     request_count: number;
-    actual_cost_minor: string;
+    actual_exact_cost: { numerator: string; denominator: string };
+    accounting_scale: string;
+    actual_accounting_units: string;
+    rounding_policy: string;
     limits: {
       max_requests: number;
       max_concurrency: number;
-      max_reserved_cost_minor: string;
+      max_reserved_accounting_units: string;
     };
   };
   profiles: Array<
@@ -46,12 +49,15 @@ const gates = load<{
   live_execution: {
     authorized: boolean;
     request_count: number;
-    actual_cost_minor: string;
+    actual_exact_cost: { numerator: string; denominator: string };
+    accounting_scale: string;
+    actual_accounting_units: string;
+    rounding_policy: string;
   };
   campaign_limits: {
     max_requests: number;
     max_concurrency: number;
-    max_reserved_cost_minor: string;
+    max_reserved_accounting_units: string;
   };
   pre_transport_failures: string[];
 }>("snapshots/providers/controlled-provider-candidate-gates.json");
@@ -120,7 +126,7 @@ describe("AI-83 controlled provider candidate", () => {
     assert.deepEqual(readiness.evidence_blockers, [
       "max_output_limit_unknown",
       "structured_output_unknown",
-      "pricing_catalog_unit_incompatible",
+      "pricing_contract_not_reviewed_for_runtime",
       "rate_concurrency_limits_unknown",
       "processing_region_unknown",
       "retention_unknown",
@@ -171,10 +177,18 @@ describe("AI-83 controlled provider candidate", () => {
       "blocked_readiness",
     );
     assert.equal(readiness.controlled_execution.request_count, 0);
-    assert.equal(readiness.controlled_execution.actual_cost_minor, "0");
+    assert.deepEqual(readiness.controlled_execution.actual_exact_cost, {
+      numerator: "0",
+      denominator: "1",
+    });
+    assert.equal(readiness.controlled_execution.actual_accounting_units, "0");
     assert.equal(gates.live_execution.authorized, false);
     assert.equal(gates.live_execution.request_count, 0);
-    assert.equal(gates.live_execution.actual_cost_minor, "0");
+    assert.deepEqual(gates.live_execution.actual_exact_cost, {
+      numerator: "0",
+      denominator: "1",
+    });
+    assert.equal(gates.live_execution.actual_accounting_units, "0");
     assert.deepEqual(new ProviderAdapterRegistry().listProviderAdapters(), []);
 
     const executionProfiles = readFileSync(
@@ -200,7 +214,10 @@ describe("AI-83 controlled provider candidate", () => {
     );
     assert.equal(gates.campaign_limits.max_requests, 10);
     assert.equal(gates.campaign_limits.max_concurrency, 2);
-    assert.equal(gates.campaign_limits.max_reserved_cost_minor, "100");
+    assert.equal(
+      gates.campaign_limits.max_reserved_accounting_units,
+      "1000000",
+    );
   });
 
   it("keeps provider output outside reviewed and approved artifact contracts", () => {

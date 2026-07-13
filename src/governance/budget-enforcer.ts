@@ -5,13 +5,20 @@ import {
   BUDGET_LEDGER_SCHEMA_VERSION,
   SqliteBudgetLedger,
   defaultBudgetLedgerPath,
-  pricingEvidenceHash,
   type BudgetLedger,
   type BudgetReconciliation,
   type Reservation,
 } from "./budget-ledger.js";
-import { PricingCatalog, type PricingEntry } from "./pricing.js";
-import { calculateCost, type CostBreakdown } from "./cost.js";
+import {
+  PricingCatalog,
+  pricingContractHash,
+  type PricingEntry,
+} from "./pricing.js";
+import {
+  calculateCost,
+  costToAccountingUnits,
+  type CostBreakdown,
+} from "./cost.js";
 import { estimateUsage, type NormalizedUsage } from "./usage.js";
 import { governanceError } from "./errors.js";
 
@@ -58,6 +65,11 @@ export class BudgetEnforcer {
     if (pricing.currency !== policy.currency)
       throw governanceError("GOVERNANCE_CONFIGURATION_INVALID");
     const cost = calculateCost(usage, pricing, "estimated");
+    const accountingUnits = costToAccountingUnits(
+      cost,
+      policy.accounting_scale,
+      policy.reservation_rounding_policy,
+    );
     const reservation = this.ledger.reserve(
       {
         execution_id: executionId,
@@ -68,14 +80,23 @@ export class BudgetEnforcer {
         budget_policy_id: policy.policy_id,
         budget_policy_version: policy.schema_version,
         pricing_id: pricing.pricing_id,
-        pricing_evidence_id: pricing.evidence_ref,
-        pricing_evidence_hash: pricingEvidenceHash(pricing),
+        pricing_contract_version: pricing.pricing_contract_version,
+        pricing_contract_hash: pricingContractHash(pricing),
+        pricing_evidence_id: pricing.evidence.evidence_id,
+        pricing_evidence_hash: pricing.evidence.evidence_hash,
+        pricing_evidence_version: pricing.evidence.evidence_version,
+        pricing_evidence_reviewed_at: pricing.evidence.reviewed_at,
+        pricing_evidence_expires_at: pricing.evidence.expires_at,
         scope_id: policy.scope_id,
         currency: policy.currency,
+        accounting_scale: policy.accounting_scale,
+        reservation_rounding_policy: policy.reservation_rounding_policy,
+        reconciliation_rounding_policy: policy.reconciliation_rounding_policy,
         estimated_input_tokens: usage.input_tokens!,
         estimated_output_tokens: usage.output_tokens!,
-        estimated_cost_minor: cost.total_cost_minor,
-        reserved_cost_minor: cost.total_cost_minor,
+        estimated_exact_cost: cost.total_exact_cost,
+        estimated_accounting_units: accountingUnits,
+        reserved_accounting_units: accountingUnits,
         schema_version: BUDGET_LEDGER_SCHEMA_VERSION,
       },
       policy,
@@ -94,12 +115,26 @@ export class BudgetEnforcer {
     executionId: string,
     input: Omit<
       BudgetReconciliation,
-      "reservation_id" | "execution_id" | "reconciled_at"
+      | "reservation_id"
+      | "execution_id"
+      | "pricing_contract_version"
+      | "pricing_contract_hash"
+      | "pricing_evidence_hash"
+      | "accounting_scale"
+      | "reconciliation_rounding_policy"
+      | "reconciled_at"
     >,
   ): Reservation {
     return this.ledger.reconcile({
       reservation_id: reservation.reservation.reservation_id,
       execution_id: executionId,
+      pricing_contract_version:
+        reservation.reservation.pricing_contract_version,
+      pricing_contract_hash: reservation.reservation.pricing_contract_hash,
+      pricing_evidence_hash: reservation.reservation.pricing_evidence_hash,
+      accounting_scale: reservation.reservation.accounting_scale,
+      reconciliation_rounding_policy:
+        reservation.reservation.reconciliation_rounding_policy,
       ...input,
       reconciled_at: (this.options.clock ?? (() => new Date()))().toISOString(),
     });

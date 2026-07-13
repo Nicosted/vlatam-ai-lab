@@ -46,10 +46,11 @@ A disabled adapter may be proposed only after strict structured output and the e
 output limit are proved; exact rate/concurrency limits are accepted; retention,
 training use, processing region, and ZDR are explicitly evidenced without
 inference; security/compliance evidence is accepted; and the exact capability is
-validated against registered public AI-76 fixtures. The AI-74 integer-minor-unit
-catalog also cannot currently encode MiniMax's exact USD 0.375 cache-write price
-per million tokens, so pricing resolution must be corrected without weakening
-durable budget semantics. Human review remains mandatory after those gaps close.
+validated against registered public AI-76 fixtures. AI-74 pricing catalog `2.0.0`
+can now encode MiniMax's USD `3/8` cache-write price per million tokens exactly,
+but no MiniMax pricing contract has been reviewed or enabled for runtime use.
+Human review remains mandatory after the remaining evidence and runtime pricing
+identity gaps close.
 
 Live execution additionally requires the existing explicit flag and server-side
 secret, current privacy and pricing approval, durable reservation, consumed AI-80

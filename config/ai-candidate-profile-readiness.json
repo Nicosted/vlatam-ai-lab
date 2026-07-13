@@ -1,5 +1,5 @@
 {
-  "schema_version": "3.0.0",
+  "schema_version": "4.0.0",
   "evaluated_at": "2026-07-13T12:00:00.000Z",
   "evaluated_route_count": 1,
   "selected_profile_id": "normative-claims.minimax-direct.m2.7.v1",
@@ -7,7 +7,7 @@
   "evidence_blockers": [
     "max_output_limit_unknown",
     "structured_output_unknown",
-    "pricing_catalog_unit_incompatible",
+    "pricing_contract_not_reviewed_for_runtime",
     "rate_concurrency_limits_unknown",
     "processing_region_unknown",
     "retention_unknown",
@@ -21,12 +21,15 @@
     "execution_profile_status": "not_added",
     "live_execution_status": "blocked_readiness",
     "request_count": 0,
-    "actual_cost_minor": "0",
+    "actual_exact_cost": { "numerator": "0", "denominator": "1" },
+    "accounting_scale": "1000000",
+    "actual_accounting_units": "0",
+    "rounding_policy": "CEILING",
     "currency": "USD",
     "limits": {
       "max_requests": 10,
       "max_concurrency": 2,
-      "max_reserved_cost_minor": "100"
+      "max_reserved_accounting_units": "1000000"
     }
   },
   "profiles": [

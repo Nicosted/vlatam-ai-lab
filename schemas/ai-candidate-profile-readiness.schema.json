@@ -15,7 +15,7 @@
     "profiles"
   ],
   "properties": {
-    "schema_version": { "const": "3.0.0" },
+    "schema_version": { "const": "4.0.0" },
     "evaluated_at": { "type": "string", "format": "date-time" },
     "evaluated_route_count": { "const": 1 },
     "selected_profile_id": {
@@ -41,7 +41,7 @@
         "enum": [
           "max_output_limit_unknown",
           "structured_output_unknown",
-          "pricing_catalog_unit_incompatible",
+          "pricing_contract_not_reviewed_for_runtime",
           "rate_concurrency_limits_unknown",
           "processing_region_unknown",
           "retention_unknown",
@@ -60,7 +60,10 @@
         "execution_profile_status",
         "live_execution_status",
         "request_count",
-        "actual_cost_minor",
+        "actual_exact_cost",
+        "accounting_scale",
+        "actual_accounting_units",
+        "rounding_policy",
         "currency",
         "limits"
       ],
@@ -69,7 +72,18 @@
         "execution_profile_status": { "const": "not_added" },
         "live_execution_status": { "const": "blocked_readiness" },
         "request_count": { "const": 0 },
-        "actual_cost_minor": { "const": "0" },
+        "actual_exact_cost": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["numerator", "denominator"],
+          "properties": {
+            "numerator": { "const": "0" },
+            "denominator": { "const": "1" }
+          }
+        },
+        "accounting_scale": { "const": "1000000" },
+        "actual_accounting_units": { "const": "0" },
+        "rounding_policy": { "const": "CEILING" },
         "currency": { "const": "USD" },
         "limits": {
           "type": "object",
@@ -77,12 +91,12 @@
           "required": [
             "max_requests",
             "max_concurrency",
-            "max_reserved_cost_minor"
+            "max_reserved_accounting_units"
           ],
           "properties": {
             "max_requests": { "const": 10 },
             "max_concurrency": { "const": 2 },
-            "max_reserved_cost_minor": { "const": "100" }
+            "max_reserved_accounting_units": { "const": "1000000" }
           }
         }
       }

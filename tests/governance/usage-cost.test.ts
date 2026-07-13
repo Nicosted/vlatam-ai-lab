@@ -1,13 +1,293 @@
-import assert from 'node:assert/strict'; import { describe, it } from 'node:test';
-import { calculateCost, GovernanceError, normalizeUsage, PricingCatalog, type NormalizedUsage, type PricingEntry } from '../../src/governance/index.js';
-const price: PricingEntry = { pricing_id:'p',schema_version:'1',provider_id:'replay',model_id:'m',currency:'USD',input_price_minor:3,output_price_minor:7,cached_input_price_minor:1,reasoning_price_minor:11,pricing_denominator_tokens:1000,effective_from:'2020-01-01T00:00:00Z',evidence_status:'fixture',permitted_execution_modes:['replay'],evidence_ref:'repo:test' };
-const usage = (overrides: Partial<NormalizedUsage> = {}): NormalizedUsage => ({input_tokens:1000,output_tokens:1000,total_tokens:2000,request_count:1,source:'estimated',status:'complete',confidence:'high',...overrides});
-describe('AI-74 usage and exact cost',()=>{
-  it('normalizes provider, unavailable, and synthetic fixture usage without converting unknowns to zero',()=>{ assert.equal(normalizeUsage({input_tokens:1,output_tokens:2,total_tokens:3}).source,'provider_reported'); assert.equal(normalizeUsage(undefined).input_tokens,undefined); assert.equal(normalizeUsage({input_tokens:1,output_tokens:2,total_tokens:3,source:'fixture',fixture_origin:'synthetic'}).fixture_origin,'synthetic'); });
-  it('rejects negative, fractional, overflow, and inconsistent usage',()=>{ for(const value of [-1,1.2,Number.MAX_SAFE_INTEGER+1]) assert.throws(()=>normalizeUsage({input_tokens:value}),GovernanceError); assert.throws(()=>normalizeUsage({input_tokens:1,output_tokens:2,total_tokens:4}),GovernanceError); });
-  it('keeps estimates and actual provider usage distinct',()=>{ assert.notEqual(usage().source,normalizeUsage({input_tokens:2,output_tokens:3,total_tokens:5}).source); });
-  it('calculates differing input/output prices with exact integer ceiling',()=>{ const c=calculateCost(usage(),price,'estimated'); assert.equal(c.input_cost_minor,3n); assert.equal(c.output_cost_minor,7n); assert.equal(c.total_cost_minor,10n); });
-  it('supports cached and reasoning prices',()=>{ const c=calculateCost(usage({cached_input_tokens:500,reasoning_tokens:250}),price,'actual'); assert.deepEqual([c.input_cost_minor,c.cached_input_cost_minor,c.output_cost_minor,c.reasoning_cost_minor,c.total_cost_minor],[2n,1n,6n,3n,12n]); });
-  it('has no floating point drift and fails overflow closed',()=>{ assert.equal(calculateCost(usage({input_tokens:1,output_tokens:1,total_tokens:2}),price,'estimated').total_cost_minor,2n); assert.throws(()=>calculateCost(usage(),{...price,input_price_minor:Number.MAX_SAFE_INTEGER,output_price_minor:Number.MAX_SAFE_INTEGER},'actual'),GovernanceError); });
-  it('blocks missing, ambiguous, expired, and required-unverified pricing',()=>{ const profile={provider_id:'x',model_id:'m',mode:'replay'} as never; assert.throws(()=>new PricingCatalog({schema_version:'1',prices:[]}).resolve(profile,new Date(),false),/governance/); const base={...price,provider_id:'x'}; assert.throws(()=>new PricingCatalog({schema_version:'1',prices:[base,{...base,pricing_id:'q'}]}).resolve(profile,new Date(),false),GovernanceError); assert.throws(()=>new PricingCatalog({schema_version:'1',prices:[{...base,expires_at:'2021-01-01T00:00:00Z'}]}).resolve(profile,new Date('2022-01-01'),false),GovernanceError); assert.throws(()=>new PricingCatalog({schema_version:'1',prices:[{...base,evidence_status:'unknown'}]}).resolve(profile,new Date('2022-01-01'),true),GovernanceError); });
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
+import {
+  GovernanceError,
+  PricingCatalog,
+  addRational,
+  calculateCost,
+  calculateUsagePrice,
+  canonicalRationalJson,
+  compareRational,
+  convertRationalToInteger,
+  createRational,
+  deterministicRationalHash,
+  multiplyRational,
+  normalizeUsage,
+  parseRational,
+  pricingContractHash,
+  validateCostBreakdown,
+  validatePriceContract,
+  type NormalizedUsage,
+} from "../../src/governance/index.js";
+import { pricing, rate } from "../helpers/governance.js";
+
+const usage = (overrides: Partial<NormalizedUsage> = {}): NormalizedUsage => ({
+  input_tokens: 1000,
+  output_tokens: 1000,
+  total_tokens: 2000,
+  cached_input_tokens: 0,
+  cache_write_input_tokens: 0,
+  reasoning_tokens: 0,
+  request_count: 1,
+  source: "fixture",
+  status: "complete",
+  confidence: "high",
+  fixture_origin: "synthetic",
+  ...overrides,
+});
+
+describe("lossless rational pricing", () => {
+  it("accepts only canonical reduced unsigned rationals", () => {
+    assert.deepEqual(parseRational({ numerator: "0", denominator: "1" }), {
+      numerator: "0",
+      denominator: "1",
+    });
+    for (const invalid of [
+      { numerator: "1", denominator: "0" },
+      { numerator: "-1", denominator: "1" },
+      { numerator: "+1", denominator: "1" },
+      { numerator: "1.0", denominator: "1" },
+      { numerator: "1e3", denominator: "1" },
+      { numerator: " 1", denominator: "1" },
+      { numerator: "01", denominator: "1" },
+      { numerator: "2", denominator: "4" },
+      { numerator: "nope", denominator: "1" },
+      { numerator: "1", denominator: "1", extra: "x" },
+    ])
+      assert.throws(() => parseRational(invalid), GovernanceError);
+  });
+
+  it("normalizes equivalent fractions only at construction boundaries", () => {
+    assert.deepEqual(createRational(2n, 4n), {
+      numerator: "1",
+      denominator: "2",
+    });
+    assert.deepEqual(
+      createRational(150n, 1_000_000_000n),
+      createRational(3n, 20_000_000n),
+    );
+    assert.throws(
+      () => parseRational({ numerator: "150", denominator: "1000000000" }),
+      GovernanceError,
+    );
+  });
+
+  it("performs 10,000 deterministic additions and multiplications without drift", () => {
+    let sum = createRational(0n, 1n);
+    let product = createRational(1n, 1n);
+    for (let index = 0; index < 10_000; index += 1) {
+      sum = addRational(sum, { numerator: "1", denominator: "3" });
+      product = multiplyRational(product, { numerator: "1", denominator: "1" });
+    }
+    assert.deepEqual(sum, { numerator: "10000", denominator: "3" });
+    assert.deepEqual(product, { numerator: "1", denominator: "1" });
+  });
+
+  it("hashes object order and rate order deterministically", () => {
+    const first = { b: { numerator: "1", denominator: "3" }, a: "x" };
+    const second = { a: "x", b: { denominator: "3", numerator: "1" } };
+    assert.equal(
+      deterministicRationalHash("test", first),
+      deterministicRationalHash("test", second),
+    );
+    const price = pricing({ rates: [rate("output", "2"), rate("input", "1")] });
+    assert.equal(
+      pricingContractHash(price),
+      pricingContractHash({ ...price, rates: [...price.rates].reverse() }),
+    );
+    assert.equal(canonicalRationalJson(first), canonicalRationalJson(second));
+  });
+
+  it("represents MiniMax cache-write pricing and OpenRouter sub-cent token prices exactly", () => {
+    const minimax = rate("cache_write", "3", "8", "million_tokens");
+    assert.deepEqual(calculateUsagePrice("1000000", minimax), {
+      numerator: "3",
+      denominator: "8",
+    });
+    const openRouter = rate("input", "3", "20000000", "token");
+    assert.deepEqual(calculateUsagePrice("1", openRouter), {
+      numerator: "3",
+      denominator: "20000000",
+    });
+  });
+
+  it("keeps every usage category separate and totals independently of category order", () => {
+    const prices = pricing({
+      rates: [
+        rate("request", "1", "100", "request"),
+        rate("reasoning", "5"),
+        rate("cache_write", "3", "8"),
+        rate("cache_read", "3", "50"),
+        rate("output", "6", "5"),
+        rate("input", "3", "10"),
+      ],
+    });
+    const normalized = usage({
+      input_tokens: 10,
+      output_tokens: 10,
+      total_tokens: 20,
+      cached_input_tokens: 2,
+      cache_write_input_tokens: 3,
+      reasoning_tokens: 4,
+    });
+    const first = calculateCost(normalized, prices, "actual");
+    const second = calculateCost(
+      normalized,
+      { ...prices, rates: [...prices.rates].reverse() },
+      "actual",
+    );
+    assert.deepEqual(first.total_exact_cost, second.total_exact_cost);
+    assert.deepEqual(
+      first.charges.map((charge) => charge.usage_category),
+      ["cache_read", "cache_write", "input", "output", "reasoning", "request"],
+    );
+    assert.throws(
+      () =>
+        validateCostBreakdown(
+          {
+            ...first,
+            total_exact_cost: { numerator: "0", denominator: "1" },
+          },
+          prices,
+        ),
+      GovernanceError,
+      "runtime validation recomputes the exact category sum",
+    );
+  });
+
+  it("distinguishes absent pricing from explicitly free pricing", () => {
+    const absent = pricing({ rates: [rate("input", "1")] });
+    const free = pricing({
+      rates: [rate("input", "1"), rate("request", "0", "1", "request")],
+    });
+    assert.equal(
+      absent.rates.some((entry) => entry.usage_category === "request"),
+      false,
+    );
+    assert.deepEqual(
+      free.rates.find((entry) => entry.usage_category === "request")?.amount,
+      { numerator: "0", denominator: "1" },
+    );
+    assert.equal(
+      calculateCost(usage(), absent, "actual").charges.some(
+        (charge) => charge.usage_category === "request",
+      ),
+      false,
+      "absence stays absent and is not emitted as a zero charge",
+    );
+  });
+
+  it("keeps unknown optional usage unknown while deterministic fixtures can declare zero", () => {
+    const reported = normalizeUsage({
+      input_tokens: 1,
+      output_tokens: 2,
+      total_tokens: 3,
+    });
+    assert.equal(reported.cached_input_tokens, undefined);
+    const fixture = normalizeUsage({
+      input_tokens: 1,
+      output_tokens: 2,
+      total_tokens: 3,
+      source: "fixture",
+      fixture_origin: "synthetic",
+    });
+    assert.equal(fixture.cached_input_tokens, 0);
+    assert.equal(normalizeUsage(undefined).input_tokens, undefined);
+  });
+
+  it("rejects incompatible units, unknown versions, currencies, categories, and fields", () => {
+    const base = rate("input", "1");
+    for (const invalid of [
+      { ...base, contract_version: "2.0.0" },
+      { ...base, currency: "EUR" },
+      { ...base, usage_category: "unknown" },
+      { ...base, billing_unit: "request" },
+      { ...base, unknown: true },
+    ])
+      assert.equal(validatePriceContract(invalid), false);
+  });
+
+  it("ceil conversion never rounds down and HALF_EVEN remains display-only", () => {
+    const exact = { numerator: "3", denominator: "8" };
+    assert.equal(
+      convertRationalToInteger(exact, "1000000", "CEILING"),
+      375000n,
+    );
+    assert.equal(
+      convertRationalToInteger(
+        { numerator: "1", denominator: "3" },
+        "1",
+        "CEILING",
+      ),
+      1n,
+    );
+    assert.equal(
+      convertRationalToInteger(
+        { numerator: "1", denominator: "2" },
+        "1",
+        "HALF_EVEN",
+      ),
+      0n,
+    );
+  });
+
+  it("fails controlled when addition or multiplication resource bounds are exceeded", () => {
+    const huge = { numerator: "9".repeat(3000), denominator: "1" };
+    assert.throws(() => multiplyRational(huge, huge), GovernanceError);
+    assert.throws(
+      () =>
+        addRational(
+          { numerator: "1", denominator: `1${"0".repeat(2999)}` },
+          { numerator: "1", denominator: "9".repeat(3000) },
+        ),
+      GovernanceError,
+    );
+  });
+
+  it("fails legacy pricing closed without inferred decimal migration", () => {
+    const catalog = new PricingCatalog({
+      schema_version: "2.0.0",
+      prices: [
+        pricing({
+          provider_id: "*",
+          model_id: "*",
+          permitted_execution_modes: ["live"],
+        }),
+      ],
+      legacy_prices: [
+        {
+          pricing_id: "legacy",
+          provider_id: "legacy-provider",
+          model_id: "legacy-model",
+          permitted_execution_modes: ["live"],
+          price_per_million: 0.375,
+        },
+      ],
+    });
+    assert.throws(
+      () =>
+        catalog.resolve(
+          {
+            provider_id: "legacy-provider",
+            model_id: "legacy-model",
+            mode: "live",
+          } as never,
+          new Date("2026-07-13T00:00:00.000Z"),
+          true,
+        ),
+      (error) =>
+        error instanceof GovernanceError &&
+        error.governance_code === "PRICING_CONTRACT_MIGRATION_REQUIRED",
+    );
+  });
+
+  it("compares exact totals without floating point", () => {
+    assert.equal(
+      compareRational(
+        { numerator: "1", denominator: "3" },
+        createRational(2n, 6n),
+      ),
+      0,
+    );
+  });
 });

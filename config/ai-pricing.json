@@ -1,28 +1,179 @@
 {
-  "schema_version": "1.0.0",
+  "schema_version": "2.0.0",
   "prices": [
     {
-      "pricing_id": "live.test-fixture.v1", "schema_version": "1.0.0", "provider_id": "*", "model_id": "*", "currency": "USD",
-      "input_price_minor": 1, "output_price_minor": 2, "cached_input_price_minor": 1, "reasoning_price_minor": 2, "pricing_denominator_tokens": 1000,
-      "effective_from": "1970-01-01T00:00:00.000Z", "evidence_status": "fixture", "permitted_execution_modes": ["live"], "evidence_ref": "repo:test-adapter-fixtures"
+      "pricing_id": "live.test-fixture.v2",
+      "schema_version": "2.0.0",
+      "pricing_contract_version": "1.0.0",
+      "provider_id": "*",
+      "model_id": "*",
+      "currency": "USD",
+      "rates": [
+        {
+          "contract_version": "1.0.0",
+          "amount": { "numerator": "10", "denominator": "1" },
+          "currency": "USD",
+          "billing_unit": "million_tokens",
+          "usage_category": "input"
+        },
+        {
+          "contract_version": "1.0.0",
+          "amount": { "numerator": "20", "denominator": "1" },
+          "currency": "USD",
+          "billing_unit": "million_tokens",
+          "usage_category": "output"
+        },
+        {
+          "contract_version": "1.0.0",
+          "amount": { "numerator": "10", "denominator": "1" },
+          "currency": "USD",
+          "billing_unit": "million_tokens",
+          "usage_category": "cache_read"
+        },
+        {
+          "contract_version": "1.0.0",
+          "amount": { "numerator": "20", "denominator": "1" },
+          "currency": "USD",
+          "billing_unit": "million_tokens",
+          "usage_category": "reasoning"
+        }
+      ],
+      "effective_from": "1970-01-01T00:00:00.000Z",
+      "permitted_execution_modes": ["live"],
+      "evidence": {
+        "evidence_id": "repo:test-adapter-fixtures",
+        "evidence_hash": "48a1366cf46c41670c7653f42868399ead06359bc09714bcde8b5e3d0531d084",
+        "evidence_version": "2.0.0",
+        "reviewed_at": "2026-07-13",
+        "expires_at": "2099-01-01T00:00:00.000Z",
+        "status": "fixture"
+      }
     },
     {
-      "pricing_id": "replay.test-fixture.v1", "schema_version": "1.0.0", "provider_id": "*", "model_id": "*", "currency": "USD",
-      "input_price_minor": 1, "output_price_minor": 2, "cached_input_price_minor": 1, "reasoning_price_minor": 2, "pricing_denominator_tokens": 1000,
-      "effective_from": "1970-01-01T00:00:00.000Z", "evidence_status": "fixture", "permitted_execution_modes": ["replay"], "evidence_ref": "repo:test-adapter-fixtures"
+      "pricing_id": "replay.test-fixture.v2",
+      "schema_version": "2.0.0",
+      "pricing_contract_version": "1.0.0",
+      "provider_id": "*",
+      "model_id": "*",
+      "currency": "USD",
+      "rates": [
+        {
+          "contract_version": "1.0.0",
+          "amount": { "numerator": "10", "denominator": "1" },
+          "currency": "USD",
+          "billing_unit": "million_tokens",
+          "usage_category": "input"
+        },
+        {
+          "contract_version": "1.0.0",
+          "amount": { "numerator": "20", "denominator": "1" },
+          "currency": "USD",
+          "billing_unit": "million_tokens",
+          "usage_category": "output"
+        },
+        {
+          "contract_version": "1.0.0",
+          "amount": { "numerator": "10", "denominator": "1" },
+          "currency": "USD",
+          "billing_unit": "million_tokens",
+          "usage_category": "cache_read"
+        },
+        {
+          "contract_version": "1.0.0",
+          "amount": { "numerator": "20", "denominator": "1" },
+          "currency": "USD",
+          "billing_unit": "million_tokens",
+          "usage_category": "reasoning"
+        }
+      ],
+      "effective_from": "1970-01-01T00:00:00.000Z",
+      "permitted_execution_modes": ["replay"],
+      "evidence": {
+        "evidence_id": "repo:test-adapter-fixtures",
+        "evidence_hash": "48a1366cf46c41670c7653f42868399ead06359bc09714bcde8b5e3d0531d084",
+        "evidence_version": "2.0.0",
+        "reviewed_at": "2026-07-13",
+        "expires_at": "2099-01-01T00:00:00.000Z",
+        "status": "fixture"
+      }
     },
     {
-      "pricing_id": "replay.fixture.v1", "schema_version": "1.0.0", "provider_id": "replay", "model_id": "*", "currency": "USD",
-      "input_price_minor": 1, "output_price_minor": 2, "cached_input_price_minor": 1, "reasoning_price_minor": 2, "pricing_denominator_tokens": 1000,
-      "effective_from": "1970-01-01T00:00:00.000Z", "evidence_status": "fixture", "permitted_execution_modes": ["replay"], "evidence_ref": "repo:docs/architecture/ai-usage-cost-budget-governance.md"
+      "pricing_id": "replay.fixture.v2",
+      "schema_version": "2.0.0",
+      "pricing_contract_version": "1.0.0",
+      "provider_id": "replay",
+      "model_id": "*",
+      "currency": "USD",
+      "rates": [
+        {
+          "contract_version": "1.0.0",
+          "amount": { "numerator": "10", "denominator": "1" },
+          "currency": "USD",
+          "billing_unit": "million_tokens",
+          "usage_category": "input"
+        },
+        {
+          "contract_version": "1.0.0",
+          "amount": { "numerator": "20", "denominator": "1" },
+          "currency": "USD",
+          "billing_unit": "million_tokens",
+          "usage_category": "output"
+        },
+        {
+          "contract_version": "1.0.0",
+          "amount": { "numerator": "10", "denominator": "1" },
+          "currency": "USD",
+          "billing_unit": "million_tokens",
+          "usage_category": "cache_read"
+        },
+        {
+          "contract_version": "1.0.0",
+          "amount": { "numerator": "20", "denominator": "1" },
+          "currency": "USD",
+          "billing_unit": "million_tokens",
+          "usage_category": "reasoning"
+        }
+      ],
+      "effective_from": "1970-01-01T00:00:00.000Z",
+      "permitted_execution_modes": ["replay"],
+      "evidence": {
+        "evidence_id": "repo:docs/architecture/ai-usage-cost-budget-governance.md",
+        "evidence_hash": "b0c0e5d33dedddb8a7c16ec11214f17969ffc2693e9e092e433b57350c716d22",
+        "evidence_version": "2.0.0",
+        "reviewed_at": "2026-07-13",
+        "expires_at": "2099-01-01T00:00:00.000Z",
+        "status": "fixture"
+      }
+    }
+  ],
+  "legacy_prices": [
+    {
+      "pricing_id": "deepseek.unknown.v1",
+      "schema_version": "1.0.0",
+      "provider_id": "deepseek-openai-compatible",
+      "model_id": "deepseek-chat",
+      "currency": "USD",
+      "input_price_minor": 1,
+      "output_price_minor": 1,
+      "pricing_denominator_tokens": 1000,
+      "effective_from": "2025-01-01T00:00:00.000Z",
+      "evidence_status": "unknown",
+      "permitted_execution_modes": ["live"],
+      "evidence_ref": "repo:disabled-live-profile"
     },
     {
-      "pricing_id": "deepseek.unknown.v1", "schema_version": "1.0.0", "provider_id": "deepseek-openai-compatible", "model_id": "deepseek-chat", "currency": "USD",
-      "input_price_minor": 1, "output_price_minor": 1, "pricing_denominator_tokens": 1000, "effective_from": "2025-01-01T00:00:00.000Z", "evidence_status": "unknown", "permitted_execution_modes": ["live"], "evidence_ref": "repo:disabled-live-profile"
-    },
-    {
-      "pricing_id": "dashscope.unknown.v1", "schema_version": "1.0.0", "provider_id": "dashscope-openai-compatible", "model_id": "qwen-plus", "currency": "USD",
-      "input_price_minor": 1, "output_price_minor": 1, "pricing_denominator_tokens": 1000, "effective_from": "2025-01-01T00:00:00.000Z", "evidence_status": "unknown", "permitted_execution_modes": ["live"], "evidence_ref": "repo:disabled-live-profile"
+      "pricing_id": "dashscope.unknown.v1",
+      "schema_version": "1.0.0",
+      "provider_id": "dashscope-openai-compatible",
+      "model_id": "qwen-plus",
+      "currency": "USD",
+      "input_price_minor": 1,
+      "output_price_minor": 1,
+      "pricing_denominator_tokens": 1000,
+      "effective_from": "2025-01-01T00:00:00.000Z",
+      "evidence_status": "unknown",
+      "permitted_execution_modes": ["live"],
+      "evidence_ref": "repo:disabled-live-profile"
     }
   ]
 }
