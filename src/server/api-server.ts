@@ -1,3 +1,4 @@
+import { createHash, timingSafeEqual } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import path from 'node:path';
@@ -43,7 +44,12 @@ const CLEANUP_INTERVAL_MS = 60_000;
 const rateLimitStore = new Map<string, RateLimitEntry>();
 
 function sendJson(res: ServerResponse, statusCode: number, body: unknown, headers: Record<string, string> = {}): void {
-  res.writeHead(statusCode, { 'Content-Type': 'application/json', ...headers });
+  res.writeHead(statusCode, {
+    'Content-Type': 'application/json',
+    'X-Content-Type-Options': 'nosniff',
+    'Cache-Control': 'no-store',
+    ...headers
+  });
   res.end(JSON.stringify(body));
 }
 
@@ -61,6 +67,14 @@ function positiveInteger(value: string | undefined, fallback: number): number {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
 }
 
+// Constant-time comparison over fixed-length digests so the comparison
+// leaks neither key length nor a matching prefix.
+function keysMatch(candidate: string, configured: string): boolean {
+  const candidateDigest = createHash('sha256').update(candidate).digest();
+  const configuredDigest = createHash('sha256').update(configured).digest();
+  return timingSafeEqual(candidateDigest, configuredDigest);
+}
+
 function validateApiKey(req: IncomingMessage): boolean {
   const apiKey = req.headers['x-vlatam-ai-lab-key'];
   if (typeof apiKey !== 'string') {
@@ -74,11 +88,11 @@ function validateApiKey(req: IncomingMessage): boolean {
     .filter((key) => key.length > 0);
 
   if (validKeys !== undefined && validKeys.length > 0) {
-    return validKeys.includes(apiKey);
+    return validKeys.some((key) => keysMatch(apiKey, key));
   }
 
   const singleKey = process.env['AI_LAB_API_KEY'];
-  return singleKey !== undefined && singleKey.length > 0 && apiKey === singleKey;
+  return singleKey !== undefined && singleKey.length > 0 && keysMatch(apiKey, singleKey);
 }
 
 export function cleanupExpiredEntries(): void {

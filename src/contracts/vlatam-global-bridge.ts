@@ -108,6 +108,40 @@ function hasOptionalNumberInRange(value: unknown): boolean {
   return value === undefined || (typeof value === 'number' && value >= 0 && value <= 1);
 }
 
+// The export schema declares `additionalProperties: false` at every level.
+// The runtime validator must reject unknown keys too, so a tampered or
+// mis-written export file can never carry reviewer, provider, or other
+// internal governance metadata across the export boundary.
+function unknownKeyErrors(
+  value: Record<string, unknown>,
+  allowed: readonly string[],
+  context: string
+): string[] {
+  return Object.keys(value)
+    .filter((key) => !allowed.includes(key))
+    .map((key) => `${context} has unknown field: ${key}`);
+}
+
+const EXPORT_ARTIFACT_ALLOWED_KEYS = [
+  'export_id',
+  'artifact_id',
+  'source_id',
+  'exported_at',
+  'classification_candidate',
+  'extracted_evidence',
+  'schema_version',
+] as const;
+
+const EXPORTED_CANDIDATE_ALLOWED_KEYS = ['ncm_code', 'description', 'confidence'] as const;
+
+const EXPORTED_CLAIM_ALLOWED_KEYS = [
+  'claim_id',
+  'claim_type',
+  'text',
+  'confidence',
+  'affected_ncm',
+] as const;
+
 function validateClassificationCandidate(value: unknown): string[] {
   const errors: string[] = [];
   if (!isRecord(value)) {
@@ -168,6 +202,7 @@ function validateExportedClassificationCandidate(value: unknown): string[] {
     return ['classification_candidate must be an object'];
   }
 
+  errors.push(...unknownKeyErrors(value, EXPORTED_CANDIDATE_ALLOWED_KEYS, 'classification_candidate'));
   if (value['ncm_code'] !== undefined && typeof value['ncm_code'] !== 'string') {
     errors.push('classification_candidate.ncm_code must be string');
   }
@@ -187,6 +222,7 @@ function validateExportedEvidenceClaim(value: unknown, index: number): string[] 
     return [`extracted_evidence[${index}] must be an object`];
   }
 
+  errors.push(...unknownKeyErrors(value, EXPORTED_CLAIM_ALLOWED_KEYS, `extracted_evidence[${index}]`));
   if (typeof value['claim_id'] !== 'string' || value['claim_id'].length === 0) {
     errors.push(`extracted_evidence[${index}] missing claim_id`);
   }
@@ -353,6 +389,7 @@ export function validateExportArtifact(
     return { ok: false, errors: ['Export artifact must be an object'] };
   }
 
+  errors.push(...unknownKeyErrors(artifact, EXPORT_ARTIFACT_ALLOWED_KEYS, 'Export artifact'));
   if (typeof artifact['export_id'] !== 'string' || artifact['export_id'].length === 0) {
     errors.push('Missing export_id');
   }

@@ -382,4 +382,40 @@ describe('handleClassifierRequest', () => {
     assert.equal(response.rawBody.includes(testRoot), false);
     assert.equal(response.rawBody.includes(tmpdir()), false);
   });
+
+  it('never serves an export file carrying reviewer or governance metadata', async () => {
+    writeExport(
+      JSON.stringify({
+        ...validExport(),
+        reviewer: 'internal-reviewer-1',
+        governance: { downstream_allowed: true }
+      })
+    );
+
+    const response = await request(`/api/classifier/${SOURCE_ID}/${ARTIFACT_ID}`);
+
+    assert.equal(response.statusCode, 500);
+    assert.deepEqual(response.body, {
+      error: 'Internal Server Error',
+      message: 'Artifact validation failed'
+    });
+    assert.equal(response.rawBody.includes('internal-reviewer-1'), false);
+    assert.equal(response.rawBody.includes('downstream_allowed'), false);
+  });
+
+  it('sets hardening headers on JSON responses', async () => {
+    writeExport(JSON.stringify(validExport()));
+
+    const success = await request(`/api/classifier/${SOURCE_ID}/${ARTIFACT_ID}`);
+    assert.equal(success.statusCode, 200);
+    assert.equal(success.headers['X-Content-Type-Options'], 'nosniff');
+    assert.equal(success.headers['Cache-Control'], 'no-store');
+
+    const unauthorized = await request(`/api/classifier/${SOURCE_ID}/${ARTIFACT_ID}`, {
+      apiKey: null
+    });
+    assert.equal(unauthorized.statusCode, 401);
+    assert.equal(unauthorized.headers['X-Content-Type-Options'], 'nosniff');
+    assert.equal(unauthorized.headers['Cache-Control'], 'no-store');
+  });
 });
