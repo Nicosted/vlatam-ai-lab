@@ -8,7 +8,7 @@ This guide covers local Docker validation and documents a possible staging deplo
 
 - Docker
 - Approved export artifacts in `data/exports/`
-- Node.js 20+ and pnpm for local validation
+- Node.js 22.5+ and pnpm for local validation
 
 ## API Key Authentication
 

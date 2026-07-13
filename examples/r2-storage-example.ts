@@ -5,50 +5,54 @@
  * Illustrates how to use R2RegulatoryStorage in a Worker context.
  * This file contains NO live calls — all examples are illustrative.
  *
- * Actual usage requires:
- * 1. R2 bucket created: pnpm wrangler r2 bucket create regulatory-documents
- * 2. CLOUDFLARE_PIPELINE_V1_ENABLED = "true" in [vars]
+ * Actual usage requires an R2 bucket binding supplied by a separately approved
+ * deployment and CLOUDFLARE_PIPELINE_V1_ENABLED set by that environment.
  */
 
-import { R2Keys, createRegulatoryStorage, type DocumentMetadata } from '../src/storage/r2-storage.js';
+import {
+  R2Keys,
+  createRegulatoryStorage,
+  type DocumentMetadata,
+} from "../src/storage/r2-storage.js";
 
 /**
  * Example: Store a snapshot record in R2
  */
 export async function exampleStoreSnapshot(
   bucket: R2Bucket,
-  featureFlagEnabled: boolean
+  featureFlagEnabled: boolean,
 ): Promise<void> {
   const storage = createRegulatoryStorage(bucket, featureFlagEnabled);
   if (!storage) {
-    console.log('[R2 example] Pipeline flag disabled — storage not created');
+    console.log("[R2 example] Pipeline flag disabled — storage not created");
     return;
   }
 
   const snapshotId = `snap-arca-${Date.now()}`;
-  const key = R2Keys.snapshot('arca', snapshotId);
+  const key = R2Keys.snapshot("arca", snapshotId);
 
   const snapshotRecord = {
     snapshot_id: snapshotId,
-    source_id: 'arca-ar-official',
+    source_id: "arca-ar-official",
     captured_at: new Date().toISOString(),
-    capture_method: 'approved_fetch',
-    freshness_status: 'current',
-    review_status: 'not_reviewed',
-    extraction_status: 'not_started',
+    capture_method: "approved_fetch",
+    freshness_status: "current",
+    review_status: "not_reviewed",
+    extraction_status: "not_started",
     human_review_required: true,
     downstream_allowed: false,
-    schema_version: '1.0.0',
-    source_locator: 'https://www.afip.gob.ar/aduanas/aranceles/',
+    schema_version: "1.0.0",
+    source_locator: "https://www.afip.gob.ar/aduanas/aranceles/",
   };
 
-  const content = new TextEncoder().encode(JSON.stringify(snapshotRecord)).buffer as ArrayBuffer;
+  const content = new TextEncoder().encode(JSON.stringify(snapshotRecord))
+    .buffer as ArrayBuffer;
   const metadata: DocumentMetadata = {
-    sourceId: 'arca',
+    sourceId: "arca",
     snapshotId,
-    contentType: 'application/json',
+    contentType: "application/json",
     capturedAt: snapshotRecord.captured_at,
-    schemaVersion: '1.0.0',
+    schemaVersion: "1.0.0",
     humanReviewRequired: true,
     downstreamAllowed: false,
   };
@@ -63,14 +67,16 @@ export async function exampleStoreSnapshot(
 export async function exampleListSnapshots(
   bucket: R2Bucket,
   featureFlagEnabled: boolean,
-  sourceId: string
+  sourceId: string,
 ): Promise<string[]> {
   const storage = createRegulatoryStorage(bucket, featureFlagEnabled);
   if (!storage) return [];
 
   const prefix = `snapshots/${sourceId}/`;
   const keys = await storage.list(prefix);
-  console.log(`[R2 example] Found ${keys.length} snapshots for source ${sourceId}`);
+  console.log(
+    `[R2 example] Found ${keys.length} snapshots for source ${sourceId}`,
+  );
   return keys;
 }
 
@@ -80,7 +86,7 @@ export async function exampleListSnapshots(
 export async function exampleGetEvidencePacket(
   bucket: R2Bucket,
   featureFlagEnabled: boolean,
-  evidencePacketId: string
+  evidencePacketId: string,
 ): Promise<Record<string, unknown> | null> {
   const storage = createRegulatoryStorage(bucket, featureFlagEnabled);
   if (!storage) return null;
