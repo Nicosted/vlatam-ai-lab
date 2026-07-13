@@ -40,6 +40,9 @@ export type HandoffRejectionReason =
   | "AUTHORIZATION_MISMATCH"
   | "AUTHORIZATION_SUPERSEDED"
   | "AUTHORIZATION_ALREADY_CONSUMED"
+  | "AUTHORIZATION_BINDING_CONFLICT"
+  | "AUTHORIZATION_STORE_UNAVAILABLE"
+  | "AUTHORIZATION_STORE_ERROR"
   | "GATEWAY_EXECUTION_FAILED";
 
 export interface HandoffAuthorizationPolicy {
@@ -133,6 +136,12 @@ export const HANDOFF_AUDIT_EVENT_TYPES = [
   "execution_completed",
   "execution_failed",
   "duplicate_execution_blocked",
+  "authorization_store_consume_started",
+  "authorization_store_consumed",
+  "authorization_store_duplicate",
+  "authorization_store_binding_conflict",
+  "authorization_store_unavailable",
+  "authorization_store_failed",
 ] as const;
 export interface HandoffAuditEvent {
   readonly schema_version: "1.0.0";

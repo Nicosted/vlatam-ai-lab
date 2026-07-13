@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam.local/schemas/ai-authorization-store-schema-metadata.schema.json",
+  "title": "AI-80 authorization store schema metadata v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "initialized_at"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "initialized_at": { "type": "string", "format": "date-time" }
+  }
+}
