@@ -1,0 +1,767 @@
+{
+  "pack_contract_version": "1.0.0",
+  "pack_id": "openrouter.minimax-m2.7.normative-extraction.external-evidence.v1",
+  "pack_version": "1.0.0",
+  "canonicalization_version": "registry-json-v1",
+  "candidate_path": {
+    "dossier_id": "openrouter.minimax-m2.7.normative-extraction.v1",
+    "provider_id": "openrouter",
+    "openrouter_model_id": "minimax/minimax-m2.7",
+    "upstream_provider_id": "minimax",
+    "upstream_model_id": null,
+    "model_registry_entry_id": "openrouter.minimax-m2.7.variable.v1",
+    "route_record_id": "openrouter.minimax-m2.7.variable-route.v1",
+    "execution_profile_candidate_id": "openrouter.minimax-m2.7.normative-extraction.candidate",
+    "capability_id": "evidence.extraction.normative_claims"
+  },
+  "collected_at": "2026-07-14T12:00:00.000Z",
+  "records": [
+    {
+      "evidence_id": "openrouter.external.model-identity.v1",
+      "category": "exact_model_identifier",
+      "claim": "OpenRouter publishes the exact model identifier minimax/minimax-m2.7 and attributes the model to MiniMax.",
+      "source": {
+        "title": "MiniMax M2.7 - API Pricing & Benchmarks",
+        "publisher": "OpenRouter",
+        "canonical_url": "https://openrouter.ai/minimax/minimax-m2.7/providers",
+        "source_type": "official_openrouter_model_metadata",
+        "retrieved_at": "2026-07-14T12:00:00.000Z",
+        "published_or_effective_at": "2026-03-18T00:00:00.000Z"
+      },
+      "normalized_fact": "The official model page displays slug minimax/minimax-m2.7, publisher MiniMax, and release date 2026-03-18.",
+      "state": "unverified",
+      "reviewer_id": null,
+      "reviewed_at": null,
+      "re_review_at": "2026-08-13T12:00:00.000Z",
+      "integrity_hash": "485b4e999a5a44b2a4b53d805086c36585323b2e12c5cb24a171496095db9f7b",
+      "conflicts_with": [],
+      "limitations": [
+        "The OpenRouter slug does not prove an immutable upstream model revision or endpoint."
+      ],
+      "bindings": {
+        "dossier_id": "openrouter.minimax-m2.7.normative-extraction.v1",
+        "provider_id": "openrouter",
+        "openrouter_model_id": "minimax/minimax-m2.7",
+        "upstream_provider_id": "minimax",
+        "upstream_model_id": null,
+        "model_registry_entry_id": "openrouter.minimax-m2.7.variable.v1",
+        "route_record_id": "openrouter.minimax-m2.7.variable-route.v1",
+        "execution_profile_candidate_id": "openrouter.minimax-m2.7.normative-extraction.candidate",
+        "capability_id": "evidence.extraction.normative_claims"
+      },
+      "attributes": {
+        "exact_openrouter_model_id_proven": true,
+        "exact_upstream_revision_proven": false
+      }
+    },
+    {
+      "evidence_id": "openrouter.external.routing.v1",
+      "category": "exact_upstream_route",
+      "claim": "OpenRouter routes a model across multiple providers by default; order can be supplied and provider fallback defaults to enabled.",
+      "source": {
+        "title": "Provider Routing",
+        "publisher": "OpenRouter",
+        "canonical_url": "https://openrouter.ai/docs/guides/routing/provider-selection",
+        "source_type": "official_openrouter_documentation",
+        "retrieved_at": "2026-07-14T12:00:00.000Z",
+        "published_or_effective_at": null
+      },
+      "normalized_fact": "Default routing load-balances across providers. The provider object supports order and allow_fallbacks; allow_fallbacks defaults to true.",
+      "state": "unverified",
+      "reviewer_id": null,
+      "reviewed_at": null,
+      "re_review_at": "2026-08-13T12:00:00.000Z",
+      "integrity_hash": "d983aff46c57f618597efd619de0a641936f8bec51779c58e54bec796af1c017",
+      "conflicts_with": [],
+      "limitations": [
+        "No reviewed provider slug and endpoint revision pair proves an immutable MiniMax-hosted route.",
+        "The repository candidate route remains variable."
+      ],
+      "bindings": {
+        "dossier_id": "openrouter.minimax-m2.7.normative-extraction.v1",
+        "provider_id": "openrouter",
+        "openrouter_model_id": "minimax/minimax-m2.7",
+        "upstream_provider_id": "minimax",
+        "upstream_model_id": null,
+        "model_registry_entry_id": "openrouter.minimax-m2.7.variable.v1",
+        "route_record_id": "openrouter.minimax-m2.7.variable-route.v1",
+        "execution_profile_candidate_id": "openrouter.minimax-m2.7.normative-extraction.candidate",
+        "capability_id": "evidence.extraction.normative_claims"
+      },
+      "attributes": {
+        "routing_variable": true,
+        "provider_order_supported": true,
+        "allow_fallbacks_default": true,
+        "exact_endpoint_guaranteed": false,
+        "constrained_routing_proposal": {
+          "order": ["minimax"],
+          "allow_fallbacks": false,
+          "require_parameters": true,
+          "data_collection": "deny",
+          "zdr": true
+        },
+        "configuration_reviewed": false
+      }
+    },
+    {
+      "evidence_id": "openrouter.external.model-release.v1",
+      "category": "model_lifecycle_release",
+      "claim": "MiniMax documents the MiniMax-M2.7 release on 2026-03-18.",
+      "source": {
+        "title": "Models",
+        "publisher": "MiniMax",
+        "canonical_url": "https://platform.minimax.io/docs/release-notes/models",
+        "source_type": "official_upstream_documentation",
+        "retrieved_at": "2026-07-14T12:00:00.000Z",
+        "published_or_effective_at": "2026-03-18T00:00:00.000Z"
+      },
+      "normalized_fact": "MiniMax's release notes list MiniMax-M2.7 and MiniMax-M2.7-highspeed as released on 2026-03-18.",
+      "state": "unverified",
+      "reviewer_id": null,
+      "reviewed_at": null,
+      "re_review_at": "2026-10-12T12:00:00.000Z",
+      "integrity_hash": "290e1937091c0c6fefee958641a260872c2b85cfdb180b1b8036ed7ddcbca0e2",
+      "conflicts_with": [],
+      "limitations": [
+        "No immutable weights digest or exact served revision is published for the OpenRouter route."
+      ],
+      "bindings": {
+        "dossier_id": "openrouter.minimax-m2.7.normative-extraction.v1",
+        "provider_id": "openrouter",
+        "openrouter_model_id": "minimax/minimax-m2.7",
+        "upstream_provider_id": "minimax",
+        "upstream_model_id": null,
+        "model_registry_entry_id": "openrouter.minimax-m2.7.variable.v1",
+        "route_record_id": "openrouter.minimax-m2.7.variable-route.v1",
+        "execution_profile_candidate_id": "openrouter.minimax-m2.7.normative-extraction.candidate",
+        "capability_id": "evidence.extraction.normative_claims"
+      },
+      "attributes": {
+        "release_date": "2026-03-18",
+        "exact_upstream_revision_proven": false
+      }
+    },
+    {
+      "evidence_id": "openrouter.external.context-window.v1",
+      "category": "context_window_limits",
+      "claim": "MiniMax documents a 204,800-token context window for MiniMax-M2.7.",
+      "source": {
+        "title": "Text Generation",
+        "publisher": "MiniMax",
+        "canonical_url": "https://platform.minimax.io/docs/guides/text-generation",
+        "source_type": "official_upstream_documentation",
+        "retrieved_at": "2026-07-14T12:00:00.000Z",
+        "published_or_effective_at": null
+      },
+      "normalized_fact": "The upstream model table lists a context window of 204,800 tokens for MiniMax-M2.7.",
+      "state": "unverified",
+      "reviewer_id": null,
+      "reviewed_at": null,
+      "re_review_at": "2026-10-12T12:00:00.000Z",
+      "integrity_hash": "f9a31f024e0e4e4d864ead300db4fdb2b3f380b1a14a3fb159440ac82b9af4ca",
+      "conflicts_with": [],
+      "limitations": [
+        "An exact maximum output-token limit for every OpenRouter endpoint was not found."
+      ],
+      "bindings": {
+        "dossier_id": "openrouter.minimax-m2.7.normative-extraction.v1",
+        "provider_id": "openrouter",
+        "openrouter_model_id": "minimax/minimax-m2.7",
+        "upstream_provider_id": "minimax",
+        "upstream_model_id": null,
+        "model_registry_entry_id": "openrouter.minimax-m2.7.variable.v1",
+        "route_record_id": "openrouter.minimax-m2.7.variable-route.v1",
+        "execution_profile_candidate_id": "openrouter.minimax-m2.7.normative-extraction.candidate",
+        "capability_id": "evidence.extraction.normative_claims"
+      },
+      "attributes": {
+        "context_window_tokens": 204800,
+        "maximum_output_tokens": null
+      }
+    },
+    {
+      "evidence_id": "openrouter.external.modalities.v1",
+      "category": "modalities",
+      "claim": "Exact input and output modalities for every upstream endpoint are not independently proven.",
+      "source": {
+        "title": "MiniMax M2.7 - API Pricing & Benchmarks",
+        "publisher": "OpenRouter",
+        "canonical_url": "https://openrouter.ai/minimax/minimax-m2.7/providers",
+        "source_type": "official_openrouter_model_metadata",
+        "retrieved_at": "2026-07-14T12:00:00.000Z",
+        "published_or_effective_at": null
+      },
+      "normalized_fact": "The reviewed public metadata does not establish identical modality support across all listed providers.",
+      "state": "unverified",
+      "reviewer_id": null,
+      "reviewed_at": null,
+      "re_review_at": "2026-08-13T12:00:00.000Z",
+      "integrity_hash": "638e191de649294ddb17997fff75f4934270ca6aad3cbb3fced14e2a915fc397",
+      "conflicts_with": [],
+      "limitations": [
+        "No vision or other non-text modality is accepted for this candidate."
+      ],
+      "bindings": {
+        "dossier_id": "openrouter.minimax-m2.7.normative-extraction.v1",
+        "provider_id": "openrouter",
+        "openrouter_model_id": "minimax/minimax-m2.7",
+        "upstream_provider_id": "minimax",
+        "upstream_model_id": null,
+        "model_registry_entry_id": "openrouter.minimax-m2.7.variable.v1",
+        "route_record_id": "openrouter.minimax-m2.7.variable-route.v1",
+        "execution_profile_candidate_id": "openrouter.minimax-m2.7.normative-extraction.candidate",
+        "capability_id": "evidence.extraction.normative_claims"
+      },
+      "attributes": {
+        "accepted_input_modalities": ["text"],
+        "accepted_output_modalities": ["text"],
+        "cross_provider_equivalence_proven": false
+      }
+    },
+    {
+      "evidence_id": "openrouter.external.structured-output.v1",
+      "category": "structured_output_json_schema",
+      "claim": "Published response-format support does not prove strict JSON Schema enforcement for the exact route.",
+      "source": {
+        "title": "MiniMax M2.7",
+        "publisher": "OpenRouter",
+        "canonical_url": "https://openrouter.ai/minimax/minimax-m2.7",
+        "source_type": "official_openrouter_model_metadata",
+        "retrieved_at": "2026-07-14T12:00:00.000Z",
+        "published_or_effective_at": null
+      },
+      "normalized_fact": "OpenRouter lists normalized response-format support, but no authoritative exact-route reliability evidence proves strict schema adherence.",
+      "state": "unverified",
+      "reviewer_id": null,
+      "reviewed_at": null,
+      "re_review_at": "2026-08-13T12:00:00.000Z",
+      "integrity_hash": "083cfcb5b336a686e2d4a52d117f40f3b3d93a26057eb4aad3dff7a3eb165042",
+      "conflicts_with": [],
+      "limitations": [
+        "JSON object support and strict JSON Schema conformance are different claims."
+      ],
+      "bindings": {
+        "dossier_id": "openrouter.minimax-m2.7.normative-extraction.v1",
+        "provider_id": "openrouter",
+        "openrouter_model_id": "minimax/minimax-m2.7",
+        "upstream_provider_id": "minimax",
+        "upstream_model_id": null,
+        "model_registry_entry_id": "openrouter.minimax-m2.7.variable.v1",
+        "route_record_id": "openrouter.minimax-m2.7.variable-route.v1",
+        "execution_profile_candidate_id": "openrouter.minimax-m2.7.normative-extraction.candidate",
+        "capability_id": "evidence.extraction.normative_claims"
+      },
+      "attributes": {
+        "json_object_supported": true,
+        "strict_json_schema_proven": false
+      }
+    },
+    {
+      "evidence_id": "openrouter.external.tool-calling.v1",
+      "category": "tool_function_calling",
+      "claim": "OpenRouter publishes tool-related normalized parameters for the model slug.",
+      "source": {
+        "title": "MiniMax M2.7",
+        "publisher": "OpenRouter",
+        "canonical_url": "https://openrouter.ai/minimax/minimax-m2.7",
+        "source_type": "official_openrouter_model_metadata",
+        "retrieved_at": "2026-07-14T12:00:00.000Z",
+        "published_or_effective_at": null
+      },
+      "normalized_fact": "The model metadata lists tools, tool choice, and parallel tool calls as accepted normalized parameters.",
+      "state": "unverified",
+      "reviewer_id": null,
+      "reviewed_at": null,
+      "re_review_at": "2026-08-13T12:00:00.000Z",
+      "integrity_hash": "aecae2cda098a043375a10a0e5033651ba0a2f9ffca24e06ec20cf1d780e0857",
+      "conflicts_with": [],
+      "limitations": [
+        "Published parameter acceptance does not establish correctness or parity across upstream providers."
+      ],
+      "bindings": {
+        "dossier_id": "openrouter.minimax-m2.7.normative-extraction.v1",
+        "provider_id": "openrouter",
+        "openrouter_model_id": "minimax/minimax-m2.7",
+        "upstream_provider_id": "minimax",
+        "upstream_model_id": null,
+        "model_registry_entry_id": "openrouter.minimax-m2.7.variable.v1",
+        "route_record_id": "openrouter.minimax-m2.7.variable-route.v1",
+        "execution_profile_candidate_id": "openrouter.minimax-m2.7.normative-extraction.candidate",
+        "capability_id": "evidence.extraction.normative_claims"
+      },
+      "attributes": {
+        "tools": true,
+        "tool_choice": true,
+        "parallel_tool_calls": true,
+        "reliability_proven": false
+      }
+    },
+    {
+      "evidence_id": "openrouter.external.pricing.v1",
+      "category": "pricing",
+      "claim": "Pricing varies by upstream provider and route; no immutable exact-route rate is established.",
+      "source": {
+        "title": "MiniMax M2.7 - API Pricing & Benchmarks",
+        "publisher": "OpenRouter",
+        "canonical_url": "https://openrouter.ai/minimax/minimax-m2.7/providers",
+        "source_type": "official_openrouter_model_metadata",
+        "retrieved_at": "2026-07-14T12:00:00.000Z",
+        "published_or_effective_at": null
+      },
+      "normalized_fact": "The page displays a $0.25/$1.00 per-million-token headline and provider offers with different input, output, and cache-read rates.",
+      "state": "conflicting",
+      "reviewer_id": null,
+      "reviewed_at": null,
+      "re_review_at": "2026-07-21T12:00:00.000Z",
+      "integrity_hash": "aa0509ba054cab3c87634a2371eac1b9c5be81560eababb38f6644c2630a4b76",
+      "conflicts_with": [],
+      "limitations": [
+        "Prices are mutable and route-dependent.",
+        "Source update time is not published as a stable effective-date contract.",
+        "The metadata-only budget proposal bounds spend but does not resolve price identity."
+      ],
+      "bindings": {
+        "dossier_id": "openrouter.minimax-m2.7.normative-extraction.v1",
+        "provider_id": "openrouter",
+        "openrouter_model_id": "minimax/minimax-m2.7",
+        "upstream_provider_id": "minimax",
+        "upstream_model_id": null,
+        "model_registry_entry_id": "openrouter.minimax-m2.7.variable.v1",
+        "route_record_id": "openrouter.minimax-m2.7.variable-route.v1",
+        "execution_profile_candidate_id": "openrouter.minimax-m2.7.normative-extraction.candidate",
+        "capability_id": "evidence.extraction.normative_claims"
+      },
+      "attributes": {
+        "currency": "USD",
+        "billing_unit": "1000000_tokens",
+        "headline_input_price": "0.25",
+        "headline_output_price": "1.00",
+        "cached_input_price": null,
+        "variable": true
+      }
+    },
+    {
+      "evidence_id": "openrouter.external.privacy.v1",
+      "category": "privacy_policy",
+      "claim": "OpenRouter states that prompts and outputs are not stored by default, while metadata is stored and opt-in content logging/use settings exist.",
+      "source": {
+        "title": "Data Collection",
+        "publisher": "OpenRouter",
+        "canonical_url": "https://openrouter.ai/docs/guides/privacy/data-collection",
+        "source_type": "official_provider_policy",
+        "retrieved_at": "2026-07-14T12:00:00.000Z",
+        "published_or_effective_at": null
+      },
+      "normalized_fact": "Content logging and OpenRouter use of inputs/outputs are opt-in; request metadata such as tokens and latency is retained.",
+      "state": "unverified",
+      "reviewer_id": null,
+      "reviewed_at": null,
+      "re_review_at": "2026-08-13T12:00:00.000Z",
+      "integrity_hash": "cec22fb65dd0b34dbb399f81748040dfe49b2bcc93a3db939dca9adbec0ed018",
+      "conflicts_with": [],
+      "limitations": [
+        "Router-level policy does not replace exact upstream endpoint policy.",
+        "Account settings must be reviewed separately."
+      ],
+      "bindings": {
+        "dossier_id": "openrouter.minimax-m2.7.normative-extraction.v1",
+        "provider_id": "openrouter",
+        "openrouter_model_id": "minimax/minimax-m2.7",
+        "upstream_provider_id": "minimax",
+        "upstream_model_id": null,
+        "model_registry_entry_id": "openrouter.minimax-m2.7.variable.v1",
+        "route_record_id": "openrouter.minimax-m2.7.variable-route.v1",
+        "execution_profile_candidate_id": "openrouter.minimax-m2.7.normative-extraction.candidate",
+        "capability_id": "evidence.extraction.normative_claims"
+      },
+      "attributes": {
+        "content_storage_default": false,
+        "metadata_stored": true,
+        "account_settings_required": true
+      }
+    },
+    {
+      "evidence_id": "openrouter.external.retention.v1",
+      "category": "retention",
+      "claim": "Provider retention differs by endpoint and cannot be inferred solely from OpenRouter's own content-retention policy.",
+      "source": {
+        "title": "Provider Logging",
+        "publisher": "OpenRouter",
+        "canonical_url": "https://openrouter.ai/docs/guides/privacy/provider-logging",
+        "source_type": "official_provider_policy",
+        "retrieved_at": "2026-07-14T12:00:00.000Z",
+        "published_or_effective_at": null
+      },
+      "normalized_fact": "OpenRouter documents provider-specific logging and retention policies and exposes filters, but exact endpoint practices differ.",
+      "state": "unverified",
+      "reviewer_id": null,
+      "reviewed_at": null,
+      "re_review_at": "2026-08-13T12:00:00.000Z",
+      "integrity_hash": "5151ecd491307e4a437dea9fae55ae6fa1b85df1a0fd2f9c34a3e2d51aa90c14",
+      "conflicts_with": ["openrouter.external.minimax-privacy.v1"],
+      "limitations": [
+        "The exact selected endpoint is variable, so a single upstream retention promise cannot be bound."
+      ],
+      "bindings": {
+        "dossier_id": "openrouter.minimax-m2.7.normative-extraction.v1",
+        "provider_id": "openrouter",
+        "openrouter_model_id": "minimax/minimax-m2.7",
+        "upstream_provider_id": "minimax",
+        "upstream_model_id": null,
+        "model_registry_entry_id": "openrouter.minimax-m2.7.variable.v1",
+        "route_record_id": "openrouter.minimax-m2.7.variable-route.v1",
+        "execution_profile_candidate_id": "openrouter.minimax-m2.7.normative-extraction.candidate",
+        "capability_id": "evidence.extraction.normative_claims"
+      },
+      "attributes": {
+        "provider_specific": true,
+        "exact_route_retention_proven": false
+      }
+    },
+    {
+      "evidence_id": "openrouter.external.training-use.v1",
+      "category": "training_data_use",
+      "claim": "Training-use eligibility is controlled by provider policy and routing filters and is not unconditional for the variable route.",
+      "source": {
+        "title": "Provider Logging",
+        "publisher": "OpenRouter",
+        "canonical_url": "https://openrouter.ai/docs/guides/privacy/provider-logging",
+        "source_type": "official_provider_policy",
+        "retrieved_at": "2026-07-14T12:00:00.000Z",
+        "published_or_effective_at": null
+      },
+      "normalized_fact": "OpenRouter documents account and request filtering for providers that may train on prompts; providers retain their own policies.",
+      "state": "unverified",
+      "reviewer_id": null,
+      "reviewed_at": null,
+      "re_review_at": "2026-08-13T12:00:00.000Z",
+      "integrity_hash": "bc19c7448090e0ea60dddf4766f441e36037535b9e0def1b62527e2e0ad64469",
+      "conflicts_with": ["openrouter.external.minimax-privacy.v1"],
+      "limitations": [
+        "No exact endpoint allowlist with reviewed no-training terms is bound to the repository route."
+      ],
+      "bindings": {
+        "dossier_id": "openrouter.minimax-m2.7.normative-extraction.v1",
+        "provider_id": "openrouter",
+        "openrouter_model_id": "minimax/minimax-m2.7",
+        "upstream_provider_id": "minimax",
+        "upstream_model_id": null,
+        "model_registry_entry_id": "openrouter.minimax-m2.7.variable.v1",
+        "route_record_id": "openrouter.minimax-m2.7.variable-route.v1",
+        "execution_profile_candidate_id": "openrouter.minimax-m2.7.normative-extraction.candidate",
+        "capability_id": "evidence.extraction.normative_claims"
+      },
+      "attributes": {
+        "routing_filter_available": true,
+        "exact_route_no_training_proven": false
+      }
+    },
+    {
+      "evidence_id": "openrouter.external.zdr.v1",
+      "category": "zdr",
+      "claim": "ZDR can be enforced at account, guardrail, or request scope, but exact endpoint eligibility is conditional and mutable.",
+      "source": {
+        "title": "Zero Data Retention",
+        "publisher": "OpenRouter",
+        "canonical_url": "https://openrouter.ai/docs/guides/features/zdr",
+        "source_type": "official_provider_policy",
+        "retrieved_at": "2026-07-14T12:00:00.000Z",
+        "published_or_effective_at": null
+      },
+      "normalized_fact": "The provider preference supports zdr=true and account/guardrail controls; routing is restricted to endpoints OpenRouter classifies as ZDR.",
+      "state": "unverified",
+      "reviewer_id": null,
+      "reviewed_at": null,
+      "re_review_at": "2026-07-21T12:00:00.000Z",
+      "integrity_hash": "8b8dad3b55313bd043ff123e1ec1fe31b887a1f2cfec684f262cbfd551522bfb",
+      "conflicts_with": ["openrouter.external.minimax-privacy.v1"],
+      "limitations": [
+        "The exact MiniMax endpoint's current ZDR classification was not integrity-bound to this pack.",
+        "ZDR classification can differ from provider default and can change."
+      ],
+      "bindings": {
+        "dossier_id": "openrouter.minimax-m2.7.normative-extraction.v1",
+        "provider_id": "openrouter",
+        "openrouter_model_id": "minimax/minimax-m2.7",
+        "upstream_provider_id": "minimax",
+        "upstream_model_id": null,
+        "model_registry_entry_id": "openrouter.minimax-m2.7.variable.v1",
+        "route_record_id": "openrouter.minimax-m2.7.variable-route.v1",
+        "execution_profile_candidate_id": "openrouter.minimax-m2.7.normative-extraction.candidate",
+        "capability_id": "evidence.extraction.normative_claims"
+      },
+      "attributes": {
+        "conditional": true,
+        "unconditional": false,
+        "request_setting": { "provider": { "zdr": true } },
+        "exact_route_zdr_proven": false
+      }
+    },
+    {
+      "evidence_id": "openrouter.external.geography.v1",
+      "category": "geography_jurisdiction",
+      "claim": "EU in-region routing is an enterprise feature and does not establish the geography of the candidate's default variable route.",
+      "source": {
+        "title": "Provider Logging",
+        "publisher": "OpenRouter",
+        "canonical_url": "https://openrouter.ai/docs/guides/privacy/provider-logging",
+        "source_type": "official_provider_policy",
+        "retrieved_at": "2026-07-14T12:00:00.000Z",
+        "published_or_effective_at": null
+      },
+      "normalized_fact": "OpenRouter documents an enterprise EU base URL enabled by request; default-route processing geography remains provider-dependent.",
+      "state": "unverified",
+      "reviewer_id": null,
+      "reviewed_at": null,
+      "re_review_at": "2026-08-13T12:00:00.000Z",
+      "integrity_hash": "8b8c5648ec8395f0778ddcd0f8b414e732c6b5ae521914e40102fe59588ddf83",
+      "conflicts_with": ["openrouter.external.minimax-privacy.v1"],
+      "limitations": [
+        "No account entitlement or exact processing region was reviewed."
+      ],
+      "bindings": {
+        "dossier_id": "openrouter.minimax-m2.7.normative-extraction.v1",
+        "provider_id": "openrouter",
+        "openrouter_model_id": "minimax/minimax-m2.7",
+        "upstream_provider_id": "minimax",
+        "upstream_model_id": null,
+        "model_registry_entry_id": "openrouter.minimax-m2.7.variable.v1",
+        "route_record_id": "openrouter.minimax-m2.7.variable-route.v1",
+        "execution_profile_candidate_id": "openrouter.minimax-m2.7.normative-extraction.candidate",
+        "capability_id": "evidence.extraction.normative_claims"
+      },
+      "attributes": {
+        "eu_routing_conditional": true,
+        "exact_processing_region_proven": false
+      }
+    },
+    {
+      "evidence_id": "openrouter.external.terms.v1",
+      "category": "terms_acceptable_use",
+      "claim": "OpenRouter terms require compliance with applicable model terms; MiniMax terms include trade-compliance obligations.",
+      "source": {
+        "title": "Terms of Service",
+        "publisher": "OpenRouter",
+        "canonical_url": "https://openrouter.ai/terms/",
+        "source_type": "official_terms",
+        "retrieved_at": "2026-07-14T12:00:00.000Z",
+        "published_or_effective_at": "2026-07-06T00:00:00.000Z"
+      },
+      "normalized_fact": "OpenRouter terms flow applicable model terms to users and do not guarantee model availability; upstream terms require separate review.",
+      "state": "unverified",
+      "reviewer_id": null,
+      "reviewed_at": null,
+      "re_review_at": "2026-08-13T12:00:00.000Z",
+      "integrity_hash": "b522a2cb87132008739d01790ac76bdb3d2b0a1ad14e365548fa2998b257eef7",
+      "conflicts_with": [],
+      "limitations": [
+        "Legal review by Nicolas Stedile or designated counsel is pending.",
+        "Commercial-use, acceptable-use, export-control, and model-license applicability require human determination."
+      ],
+      "bindings": {
+        "dossier_id": "openrouter.minimax-m2.7.normative-extraction.v1",
+        "provider_id": "openrouter",
+        "openrouter_model_id": "minimax/minimax-m2.7",
+        "upstream_provider_id": "minimax",
+        "upstream_model_id": null,
+        "model_registry_entry_id": "openrouter.minimax-m2.7.variable.v1",
+        "route_record_id": "openrouter.minimax-m2.7.variable-route.v1",
+        "execution_profile_candidate_id": "openrouter.minimax-m2.7.normative-extraction.candidate",
+        "capability_id": "evidence.extraction.normative_claims"
+      },
+      "attributes": {
+        "legal_review_complete": false,
+        "openrouter_terms_effective": "2026-07-06",
+        "upstream_terms_url": "https://platform.minimax.io/protocol/terms-of-service",
+        "upstream_terms_effective": "2026-03-30"
+      }
+    },
+    {
+      "evidence_id": "openrouter.external.capability-benchmark.v1",
+      "category": "capability_benchmark",
+      "claim": "No primary benchmark was found for evidence.extraction.normative_claims.",
+      "source": {
+        "title": "MiniMax M2.7: Early Echoes of Self-Evolution",
+        "publisher": "MiniMax",
+        "canonical_url": "https://www.minimax.io/news/minimax-m27-en",
+        "source_type": "official_upstream_documentation",
+        "retrieved_at": "2026-07-14T12:00:00.000Z",
+        "published_or_effective_at": "2026-03-18T00:00:00.000Z"
+      },
+      "normalized_fact": "Vendor-reported software, terminal, office, and tool benchmarks are not evidence for citation-grounded normative-claim extraction.",
+      "state": "missing",
+      "reviewer_id": null,
+      "reviewed_at": null,
+      "re_review_at": "2026-08-13T12:00:00.000Z",
+      "integrity_hash": "0be228aa4cc4dd986a5bd7d9ab9530eb3aa028e7e30fb907a1587cb60fa788e8",
+      "conflicts_with": [],
+      "limitations": [
+        "Vendor-reported benchmarks have limited independent provenance for this use.",
+        "A local reviewed gold set and scoring method are required."
+      ],
+      "bindings": {
+        "dossier_id": "openrouter.minimax-m2.7.normative-extraction.v1",
+        "provider_id": "openrouter",
+        "openrouter_model_id": "minimax/minimax-m2.7",
+        "upstream_provider_id": "minimax",
+        "upstream_model_id": null,
+        "model_registry_entry_id": "openrouter.minimax-m2.7.variable.v1",
+        "route_record_id": "openrouter.minimax-m2.7.variable-route.v1",
+        "execution_profile_candidate_id": "openrouter.minimax-m2.7.normative-extraction.candidate",
+        "capability_id": "evidence.extraction.normative_claims"
+      },
+      "attributes": {
+        "benchmark_capability_id": "evidence.extraction.normative_claims",
+        "relevant_benchmark_found": false,
+        "vendor_benchmarks_rejected_as_substitute": true
+      }
+    },
+    {
+      "evidence_id": "openrouter.external.operations.v1",
+      "category": "latency_reliability",
+      "claim": "OpenRouter documents error shapes, usage/cost metadata, optional routing metadata, and account/model-dependent limits; no exact SLA is established.",
+      "source": {
+        "title": "Errors and Debugging",
+        "publisher": "OpenRouter",
+        "canonical_url": "https://openrouter.ai/docs/api/reference/errors-and-debugging",
+        "source_type": "official_openrouter_documentation",
+        "retrieved_at": "2026-07-14T12:00:00.000Z",
+        "published_or_effective_at": null
+      },
+      "normalized_fact": "Documented errors include 400, 401, 402, 403, 408, 429, 502, and 503; Retry-After may be present. Usage/cost and optional routing metadata are documented separately.",
+      "state": "unverified",
+      "reviewer_id": null,
+      "reviewed_at": null,
+      "re_review_at": "2026-08-13T12:00:00.000Z",
+      "integrity_hash": "0095fb35a0592f5df625fb20f12629aa51562deacedfc4be4966e1990bb62d07",
+      "conflicts_with": [],
+      "limitations": [
+        "Paid-model rate limits are account/model dependent.",
+        "No contractual timeout, latency, uptime, or retry guarantee was found.",
+        "The budget proposal forbids automatic retries."
+      ],
+      "bindings": {
+        "dossier_id": "openrouter.minimax-m2.7.normative-extraction.v1",
+        "provider_id": "openrouter",
+        "openrouter_model_id": "minimax/minimax-m2.7",
+        "upstream_provider_id": "minimax",
+        "upstream_model_id": null,
+        "model_registry_entry_id": "openrouter.minimax-m2.7.variable.v1",
+        "route_record_id": "openrouter.minimax-m2.7.variable-route.v1",
+        "execution_profile_candidate_id": "openrouter.minimax-m2.7.normative-extraction.candidate",
+        "capability_id": "evidence.extraction.normative_claims"
+      },
+      "attributes": {
+        "documented_error_codes": [400, 401, 402, 403, 408, 429, 502, 503],
+        "usage_metadata_available": true,
+        "cost_metadata_available": true,
+        "routing_metadata_opt_in": true,
+        "exact_rate_limit_proven": false,
+        "sla_proven": false
+      }
+    },
+    {
+      "evidence_id": "openrouter.external.known-limitations.v1",
+      "category": "known_limitations",
+      "claim": "The exact route remains variable and critical privacy, pricing, revision, schema, benchmark, and legal claims remain unresolved.",
+      "source": {
+        "title": "Provider Routing",
+        "publisher": "OpenRouter",
+        "canonical_url": "https://openrouter.ai/docs/guides/routing/provider-selection",
+        "source_type": "official_openrouter_documentation",
+        "retrieved_at": "2026-07-14T12:00:00.000Z",
+        "published_or_effective_at": null
+      },
+      "normalized_fact": "Default multi-provider behavior and mutable endpoint policy prevent treating aggregate model metadata as an exact upstream execution contract.",
+      "state": "unverified",
+      "reviewer_id": null,
+      "reviewed_at": null,
+      "re_review_at": "2026-08-13T12:00:00.000Z",
+      "integrity_hash": "4aa946529d358ca9245d819020602fc346bc337d71bea369dd7fc4b11b79dda9",
+      "conflicts_with": [],
+      "limitations": [
+        "No provider call was made, so runtime behavior is not locally observed.",
+        "No account settings or endpoint eligibility metadata were accessed."
+      ],
+      "bindings": {
+        "dossier_id": "openrouter.minimax-m2.7.normative-extraction.v1",
+        "provider_id": "openrouter",
+        "openrouter_model_id": "minimax/minimax-m2.7",
+        "upstream_provider_id": "minimax",
+        "upstream_model_id": null,
+        "model_registry_entry_id": "openrouter.minimax-m2.7.variable.v1",
+        "route_record_id": "openrouter.minimax-m2.7.variable-route.v1",
+        "execution_profile_candidate_id": "openrouter.minimax-m2.7.normative-extraction.candidate",
+        "capability_id": "evidence.extraction.normative_claims"
+      },
+      "attributes": { "execution_safe": false, "human_review_required": true }
+    },
+    {
+      "evidence_id": "openrouter.external.minimax-privacy.v1",
+      "category": "privacy_policy",
+      "claim": "MiniMax publishes an API privacy policy, but its applicability to every third-party OpenRouter endpoint is not established.",
+      "source": {
+        "title": "MiniMax API Privacy Policy",
+        "publisher": "MiniMax",
+        "canonical_url": "https://platform.minimax.io/protocol/privacy-policy",
+        "source_type": "official_provider_policy",
+        "retrieved_at": "2026-07-14T12:00:00.000Z",
+        "published_or_effective_at": "2026-03-30T00:00:00.000Z"
+      },
+      "normalized_fact": "The policy identifies Nanonoble Pte. Ltd. and affiliates and contains jurisdiction-specific provisions; exact OpenRouter endpoint applicability requires review.",
+      "state": "unverified",
+      "reviewer_id": null,
+      "reviewed_at": null,
+      "re_review_at": "2026-08-13T12:00:00.000Z",
+      "integrity_hash": "b9c0cfc796b4718294bf0e7e6c91ce176729908bf584b845c042b9838459cca7",
+      "conflicts_with": [
+        "openrouter.external.retention.v1",
+        "openrouter.external.training-use.v1",
+        "openrouter.external.zdr.v1",
+        "openrouter.external.geography.v1"
+      ],
+      "limitations": [
+        "The route can select non-MiniMax hosting providers with different policies.",
+        "A privacy/security reviewer must determine applicable controller, processor, subprocessors, retention, training use, and jurisdictions."
+      ],
+      "bindings": {
+        "dossier_id": "openrouter.minimax-m2.7.normative-extraction.v1",
+        "provider_id": "openrouter",
+        "openrouter_model_id": "minimax/minimax-m2.7",
+        "upstream_provider_id": "minimax",
+        "upstream_model_id": null,
+        "model_registry_entry_id": "openrouter.minimax-m2.7.variable.v1",
+        "route_record_id": "openrouter.minimax-m2.7.variable-route.v1",
+        "execution_profile_candidate_id": "openrouter.minimax-m2.7.normative-extraction.candidate",
+        "capability_id": "evidence.extraction.normative_claims"
+      },
+      "attributes": {
+        "exact_openrouter_endpoint_applicability_proven": false,
+        "privacy_conflict_unresolved": true
+      }
+    }
+  ],
+  "sandbox_budget_proposal": {
+    "metadata_only": true,
+    "maximum_requests": 10,
+    "maximum_input_tokens_per_request": 8000,
+    "maximum_output_tokens_per_request": 2000,
+    "maximum_total_sandbox_spend": "0.05",
+    "currency": "USD",
+    "permitted_model_id": "minimax/minimax-m2.7",
+    "permitted_upstream_provider_id": "minimax",
+    "no_fallback": true,
+    "automatic_retries": 0,
+    "invocation_mode": "manual_only",
+    "expires_at": "2026-08-13T12:00:00.000Z",
+    "kill_switch_required": true
+  },
+  "human_approval": {
+    "status": "pending",
+    "reviewer_id": null,
+    "decided_at": null
+  },
+  "execution_authorized": false,
+  "provider_call_performed": false,
+  "pack_hash": "5b5cc5337c3f8c0a47aef8f8ba8528dc245db7be3ae56ab3814a574a76cee906"
+}

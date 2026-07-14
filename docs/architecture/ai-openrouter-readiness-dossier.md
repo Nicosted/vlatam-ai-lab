@@ -47,6 +47,14 @@ locator, and SHA-256 integrity hash. Future externally reviewed sources use
 compact claims and metadata: no credentials, secrets, sensitive payloads, or
 full copyrighted documents. Tests are offline and never retrieve sources.
 
+The current dossier now binds every evidence section to the versioned external
+pack in `config/ai-openrouter-external-evidence-pack.json`. The evaluator
+resolves each `externally_reviewed_evidence` reference, verifies the record
+hash, category, dossier/model/upstream/model-entry/route/profile-candidate/
+capability identity, and fails closed on missing, relocated, tampered, or
+mismatched records. Collection does not imply verification: the pack records
+remain unverified unless a named human reviewer explicitly approves them.
+
 ## Mandatory and optional evidence
 
 Mandatory sections cover the exact model identifier and upstream route; model
@@ -93,6 +101,14 @@ The deterministic repository outcome is `blocked` because:
 - mandatory risks remain open; and
 - no OpenRouter execution profile exists, while model, route, and adapter stay
   disabled.
+
+The 2026-07-14 external collection adds authoritative source metadata for the
+model identifier/release/context, routing controls, provider-dependent
+pricing, router/privacy/ZDR behavior, terms, and operational errors/metadata.
+It does not close the blockers. Pricing remains `conflicting`; the route stays
+variable; exact endpoint revision, strict JSON Schema conformance, exact-route
+privacy/ZDR, a relevant normative-claim extraction benchmark, and legal review
+remain unproven. Human evidence review and dossier approval remain absent.
 
 These findings do not authorize provider-account access or live calls. Closing
 them requires separately approved, local-first evidence work and human review.

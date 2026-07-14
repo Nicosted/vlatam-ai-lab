@@ -808,6 +808,19 @@
       "requires_human_review_semantics": true,
       "requires_traceability": true,
       "downstream_allowed_field_present": false
+    },
+    {
+      "contract_name": "ai_openrouter_external_evidence_pack",
+      "schema_file": "schemas/ai-openrouter-external-evidence-pack.schema.json",
+      "valid_fixture": "config/ai-openrouter-external-evidence-pack.json",
+      "invalid_fixtures": [],
+      "test_file": "tests/providers/openrouter-external-evidence-pack.test.ts",
+      "status": "implemented",
+      "purpose": "Versioned, normalized, integrity-bound authoritative-source evidence for the exact disabled OpenRouter MiniMax candidate, including explicit uncertainty and a metadata-only sandbox budget proposal.",
+      "downstream_role": "Evidence input to the readiness dossier only; it cannot approve, enable, configure, or invoke a model, route, profile, gateway, adapter, secret, or provider.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": false
     }
   ]
 }

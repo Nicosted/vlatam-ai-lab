@@ -1,7 +1,12 @@
 import { createHash } from "node:crypto";
 
 import executionProfilesJson from "../../config/ai-execution-profiles.json" with { type: "json" };
+import externalEvidencePackJson from "../../config/ai-openrouter-external-evidence-pack.json" with { type: "json" };
 import providerEvidenceJson from "../../config/ai-provider-evidence.json" with { type: "json" };
+import {
+  computeOpenRouterExternalEvidenceRecordHash,
+  type OpenRouterExternalEvidenceRecord,
+} from "./openrouter-external-evidence-pack.js";
 import {
   OPENROUTER_MODEL_REGISTRY_CONTRACT_VERSION,
   OPENROUTER_REGISTRY_CANONICALIZATION_VERSION,
@@ -161,6 +166,7 @@ export interface OpenRouterReadinessResult {
 export interface OpenRouterReadinessDependencies {
   readonly registry: OpenRouterRegistry;
   readonly provider_evidence: readonly ProviderEvidenceRecord[];
+  readonly external_evidence: readonly OpenRouterExternalEvidenceRecord[];
   readonly execution_profiles: readonly {
     readonly profile_id: string;
     readonly provider_id: string;
@@ -210,6 +216,8 @@ export function defaultOpenRouterReadinessDependencies(
     registry: loadOpenRouterRegistry(evaluatedAt),
     provider_evidence:
       providerEvidenceJson.evidence as readonly ProviderEvidenceRecord[],
+    external_evidence:
+      externalEvidencePackJson.records as readonly OpenRouterExternalEvidenceRecord[],
     execution_profiles: executionProfilesJson.profiles,
   } as OpenRouterReadinessDependencies;
 }
@@ -397,7 +405,41 @@ function validateEvidence(
     if (section.expires_at && Date.parse(section.expires_at) <= now)
       blocking.add(`${section.category}:expired`);
     for (const source of section.sources) {
-      if (source.source_kind === "externally_reviewed_evidence") continue;
+      if (source.source_kind === "externally_reviewed_evidence") {
+        const evidence = dependencies.external_evidence.find(
+          (record) => record.evidence_id === source.evidence_id,
+        );
+        if (!evidence) invalid.add("external_evidence_reference_missing");
+        else if (
+          source.locator !==
+          `config/ai-openrouter-external-evidence-pack.json#${source.evidence_id}`
+        )
+          invalid.add("external_evidence_locator_mismatch");
+        else if (
+          source.integrity_hash !== evidence.integrity_hash ||
+          computeOpenRouterExternalEvidenceRecordHash(evidence) !==
+            evidence.integrity_hash
+        )
+          invalid.add("evidence_hash_mismatch");
+        else if (
+          evidence.category !== section.category ||
+          evidence.bindings.dossier_id !== dossier.dossier_id ||
+          evidence.bindings.openrouter_model_id !==
+            dossier.candidate_path.openrouter_model_id ||
+          evidence.bindings.upstream_provider_id !==
+            dossier.candidate_path.upstream_provider_id ||
+          evidence.bindings.model_registry_entry_id !==
+            dossier.candidate_path.model_registry_entry_id ||
+          evidence.bindings.route_record_id !==
+            dossier.candidate_path.route_record_id ||
+          evidence.bindings.execution_profile_candidate_id !==
+            dossier.candidate_path.execution_profile_candidate_id ||
+          evidence.bindings.capability_id !==
+            dossier.candidate_path.capability_id
+        )
+          invalid.add("external_evidence_identity_mismatch");
+        continue;
+      }
       const evidence = dependencies.provider_evidence.find(
         (record) => record.evidence_id === source.evidence_id,
       );
