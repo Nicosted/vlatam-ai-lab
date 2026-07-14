@@ -1,0 +1,232 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/ai-openrouter-readiness-dossier.schema.json",
+  "title": "Governed OpenRouter readiness dossier",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "dossier_contract_version",
+    "dossier_id",
+    "dossier_version",
+    "canonicalization_version",
+    "candidate_path",
+    "registry_contracts",
+    "evidence",
+    "risks",
+    "human_approval",
+    "created_at",
+    "dossier_hash"
+  ],
+  "properties": {
+    "dossier_contract_version": { "const": "1.0.0" },
+    "dossier_id": { "$ref": "#/$defs/id" },
+    "dossier_version": { "$ref": "#/$defs/semver" },
+    "canonicalization_version": { "const": "registry-json-v1" },
+    "candidate_path": { "$ref": "#/$defs/candidate_path" },
+    "registry_contracts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "model_registry_contract_version",
+        "route_registry_contract_version",
+        "registry_canonicalization_version"
+      ],
+      "properties": {
+        "model_registry_contract_version": { "const": "1.0.0" },
+        "route_registry_contract_version": { "const": "1.0.0" },
+        "registry_canonicalization_version": { "const": "registry-json-v1" }
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "minItems": 17,
+      "maxItems": 17,
+      "items": { "$ref": "#/$defs/evidence_section" }
+    },
+    "risks": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/risk" }
+    },
+    "human_approval": { "$ref": "#/$defs/approval" },
+    "created_at": { "type": "string", "format": "date-time" },
+    "dossier_hash": { "$ref": "#/$defs/hash" }
+  },
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._:-]+$" },
+    "semver": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "model_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9.-]*/[a-z0-9][a-z0-9.:-]*$",
+      "not": { "pattern": "^openrouter/" }
+    },
+    "nullable_date_time": {
+      "anyOf": [{ "type": "string", "format": "date-time" }, { "type": "null" }]
+    },
+    "candidate_path": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "provider_id",
+        "openrouter_model_id",
+        "upstream_provider_id",
+        "upstream_model_id",
+        "model_registry_entry_id",
+        "model_registry_entry_version",
+        "model_registry_entry_hash",
+        "route_id",
+        "route_record_id",
+        "route_version",
+        "route_hash",
+        "route_policy_id",
+        "route_policy_version",
+        "execution_profile_candidate_id",
+        "execution_profile_contract_version",
+        "execution_profile_registry_presence",
+        "capability_id"
+      ],
+      "properties": {
+        "provider_id": { "const": "openrouter" },
+        "openrouter_model_id": { "$ref": "#/$defs/model_id" },
+        "upstream_provider_id": { "$ref": "#/$defs/id" },
+        "upstream_model_id": { "type": ["string", "null"], "minLength": 1 },
+        "model_registry_entry_id": { "$ref": "#/$defs/id" },
+        "model_registry_entry_version": { "$ref": "#/$defs/semver" },
+        "model_registry_entry_hash": { "$ref": "#/$defs/hash" },
+        "route_id": { "$ref": "#/$defs/id" },
+        "route_record_id": { "$ref": "#/$defs/id" },
+        "route_version": { "$ref": "#/$defs/semver" },
+        "route_hash": { "$ref": "#/$defs/hash" },
+        "route_policy_id": { "$ref": "#/$defs/id" },
+        "route_policy_version": { "$ref": "#/$defs/semver" },
+        "execution_profile_candidate_id": { "$ref": "#/$defs/id" },
+        "execution_profile_contract_version": { "$ref": "#/$defs/semver" },
+        "execution_profile_registry_presence": {
+          "enum": ["absent", "disabled"]
+        },
+        "capability_id": { "$ref": "#/$defs/id" }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_kind", "evidence_id", "locator", "integrity_hash"],
+      "properties": {
+        "source_kind": {
+          "enum": ["repository_evidence", "externally_reviewed_evidence"]
+        },
+        "evidence_id": { "$ref": "#/$defs/id" },
+        "locator": { "type": "string", "minLength": 1 },
+        "integrity_hash": { "$ref": "#/$defs/hash" }
+      }
+    },
+    "evidence_section": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "category",
+        "mandatory",
+        "state",
+        "claims",
+        "sources",
+        "retrieved_at",
+        "reviewer_id",
+        "reviewed_at",
+        "expires_at",
+        "summary",
+        "limitations"
+      ],
+      "properties": {
+        "category": {
+          "enum": [
+            "exact_model_identifier",
+            "exact_upstream_route",
+            "model_lifecycle_release",
+            "context_window_limits",
+            "modalities",
+            "structured_output_json_schema",
+            "tool_function_calling",
+            "pricing",
+            "privacy_policy",
+            "retention",
+            "training_data_use",
+            "zdr",
+            "geography_jurisdiction",
+            "terms_acceptable_use",
+            "capability_benchmark",
+            "latency_reliability",
+            "known_limitations"
+          ]
+        },
+        "mandatory": { "type": "boolean" },
+        "state": {
+          "enum": [
+            "missing",
+            "unverified",
+            "verified",
+            "expired",
+            "conflicting",
+            "not_applicable"
+          ]
+        },
+        "claims": { "type": "object" },
+        "sources": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/source" }
+        },
+        "retrieved_at": { "$ref": "#/$defs/nullable_date_time" },
+        "reviewer_id": { "type": ["string", "null"], "minLength": 1 },
+        "reviewed_at": { "$ref": "#/$defs/nullable_date_time" },
+        "expires_at": { "$ref": "#/$defs/nullable_date_time" },
+        "summary": { "type": "string", "minLength": 1 },
+        "limitations": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "risk": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "risk_id",
+        "mandatory",
+        "status",
+        "description",
+        "resolution"
+      ],
+      "properties": {
+        "risk_id": { "$ref": "#/$defs/id" },
+        "mandatory": { "type": "boolean" },
+        "status": { "enum": ["open", "resolved"] },
+        "description": { "type": "string", "minLength": 1 },
+        "resolution": { "type": ["string", "null"], "minLength": 1 }
+      }
+    },
+    "approval": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "reviewer_id",
+        "scope",
+        "decided_at",
+        "expires_at",
+        "decision_reason"
+      ],
+      "properties": {
+        "status": { "enum": ["pending", "approved", "rejected"] },
+        "reviewer_id": { "type": ["string", "null"], "minLength": 1 },
+        "scope": {
+          "anyOf": [
+            { "const": "sandbox_enablement_proposal_only" },
+            { "type": "null" }
+          ]
+        },
+        "decided_at": { "$ref": "#/$defs/nullable_date_time" },
+        "expires_at": { "$ref": "#/$defs/nullable_date_time" },
+        "decision_reason": { "type": ["string", "null"], "minLength": 1 }
+      }
+    }
+  }
+}

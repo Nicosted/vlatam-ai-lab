@@ -231,6 +231,12 @@ benchmark contracts. Resolution does not manufacture the missing benchmark
 evidence. Benchmark work must remain separately approved and must not enable a
 provider, route, model, profile, or live call.
 
+`docs/architecture/ai-openrouter-readiness-dossier.md` now gathers that and
+every other enablement prerequisite into one exact-path, hash-bound dossier.
+The repository dossier remains blocked. Dossier approval, if eventually issued,
+permits only proposing a later sandbox-enablement PR and grants no execution
+authority.
+
 ## Authorized gateway binding and consumption timing
 
 `src/providers/openrouter-authorized-gateway.ts` is the only OpenRouter binding
