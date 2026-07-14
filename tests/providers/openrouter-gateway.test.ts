@@ -144,6 +144,7 @@ interface Setup {
   registry: CountingRegistry;
   transportCalls: () => number;
   ledgerReserves: () => number;
+  environmentReads: () => number;
 }
 function setup(
   options: {
@@ -151,20 +152,34 @@ function setup(
     hangTransport?: boolean;
     pricingCatalog?: PricingCatalog;
     failReserve?: boolean;
+    disabledAdapter?: boolean;
   } = {},
 ): Setup {
   let transportCalls = 0;
   let reserves = 0;
+  let environmentReads = 0;
   const registry = new CountingRegistry();
   registry.registerProviderAdapter(
     new OpenRouterAdapter({
-      config: { ...defaultConfig, enabled: true },
+      config: options.disabledAdapter
+        ? defaultConfig
+        : { ...defaultConfig, enabled: true },
       route_policies: [routePolicy],
-      env: {
-        AI_LAB_LIVE_PROVIDER_EXECUTION_ENABLED: "true",
-        AI_LAB_OPENROUTER_ENABLED: "true",
-        OPENROUTER_API_KEY: "synthetic-unit-test-placeholder",
-      },
+      env: options.disabledAdapter
+        ? new Proxy(
+            {},
+            {
+              get: () => {
+                environmentReads += 1;
+                return undefined;
+              },
+            },
+          )
+        : {
+            AI_LAB_LIVE_PROVIDER_EXECUTION_ENABLED: "true",
+            AI_LAB_OPENROUTER_ENABLED: "true",
+            OPENROUTER_API_KEY: "synthetic-unit-test-placeholder",
+          },
       transport: (transportRequest) => {
         transportCalls += 1;
         if (options.hangTransport) {
@@ -247,6 +262,7 @@ function setup(
     registry,
     transportCalls: () => transportCalls,
     ledgerReserves: () => reserves,
+    environmentReads: () => environmentReads,
   };
 }
 
@@ -309,6 +325,58 @@ describe("governed OpenRouter adapter behind the gateway", () => {
     );
     assert.equal(outcome.result.status, "blocked");
     assert.equal(subject.registry.lookups, 0);
+    assert.equal(subject.transportCalls(), 0);
+  });
+
+  it("blocks exact provider/model identity mismatch before authorization consumption", async () => {
+    for (const mismatch of ["provider", "model"] as const) {
+      const subject = setup();
+      let consumptionCalls = 0;
+      const outcome = await subject.gateway.executeAuthorized(
+        {
+          capability_request: request,
+          execution_profile_id: profile.profile_id,
+          expected_profile_contract_version: profile.contract_version,
+          expected_provider_id:
+            mismatch === "provider"
+              ? "different-provider"
+              : profile.provider_id,
+          expected_model_id:
+            mismatch === "model" ? "different/model" : profile.model_id,
+        },
+        () => {
+          consumptionCalls += 1;
+        },
+      );
+      assert.equal(
+        outcome.audit.error_code,
+        "EXECUTION_PROFILE_IDENTITY_MISMATCH",
+      );
+      assert.equal(consumptionCalls, 0);
+      assert.equal(subject.registry.lookups, 0);
+      assert.equal(subject.transportCalls(), 0);
+    }
+  });
+
+  it("consumes once immediately before the disabled adapter blocks without environment or transport access", async () => {
+    const subject = setup({ disabledAdapter: true });
+    let consumptionCalls = 0;
+    const outcome = await subject.gateway.executeAuthorized(
+      {
+        capability_request: request,
+        execution_profile_id: profile.profile_id,
+        expected_profile_contract_version: profile.contract_version,
+        expected_provider_id: profile.provider_id,
+        expected_model_id: profile.model_id,
+      },
+      () => {
+        consumptionCalls += 1;
+      },
+    );
+    assert.equal(consumptionCalls, 1);
+    assert.equal(outcome.audit.error_code, "LIVE_EXECUTION_DISABLED");
+    assert.equal(subject.registry.lookups, 1);
+    assert.equal(subject.environmentReads(), 0);
     assert.equal(subject.transportCalls(), 0);
   });
 

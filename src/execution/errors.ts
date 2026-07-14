@@ -4,6 +4,7 @@ export const EXECUTION_ERROR_CODES = [
   "PROFILE_DISABLED",
   "PROFILE_RETIRED",
   "EXECUTION_PROFILE_VERSION_MISMATCH",
+  "EXECUTION_PROFILE_IDENTITY_MISMATCH",
   "PROFILE_CAPABILITY_MISMATCH",
   "LIVE_EXECUTION_DISABLED",
   "CREDENTIALS_UNAVAILABLE",
@@ -62,6 +63,8 @@ const SAFE_MESSAGES: Record<ExecutionErrorCode, string> = {
   PROFILE_RETIRED: "The requested execution profile is retired.",
   EXECUTION_PROFILE_VERSION_MISMATCH:
     "The execution profile contract version does not match the required version.",
+  EXECUTION_PROFILE_IDENTITY_MISMATCH:
+    "The execution profile provider or model identity does not match the required identity.",
   PROFILE_CAPABILITY_MISMATCH:
     "The execution profile does not match the requested capability.",
   LIVE_EXECUTION_DISABLED: "Live provider execution is disabled.",

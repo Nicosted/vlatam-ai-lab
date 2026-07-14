@@ -51,6 +51,8 @@ export interface GatewayInvocation {
   readonly capability_request: CapabilityRequest;
   readonly execution_profile_id: string;
   readonly expected_profile_contract_version?: string;
+  readonly expected_provider_id?: string;
+  readonly expected_model_id?: string;
   readonly signal?: AbortSignal;
 }
 export interface GatewayOutcome {
@@ -105,6 +107,7 @@ function capabilityError(error: ExecutionError): CapabilityError {
     "UNKNOWN_PROVIDER",
     "PROFILE_CAPABILITY_MISMATCH",
     "EXECUTION_PROFILE_VERSION_MISMATCH",
+    "EXECUTION_PROFILE_IDENTITY_MISMATCH",
     "OUTPUT_SCHEMA_INVALID",
     "PROVIDER_RESPONSE_INVALID",
   ].includes(error.code);
@@ -235,6 +238,16 @@ export class MultiProviderGateway {
           invocation.expected_profile_contract_version
       )
         throw executionError("EXECUTION_PROFILE_VERSION_MISMATCH");
+      if (
+        invocation.expected_provider_id !== undefined &&
+        profile.provider_id !== invocation.expected_provider_id
+      )
+        throw executionError("EXECUTION_PROFILE_IDENTITY_MISMATCH");
+      if (
+        invocation.expected_model_id !== undefined &&
+        profile.model_id !== invocation.expected_model_id
+      )
+        throw executionError("EXECUTION_PROFILE_IDENTITY_MISMATCH");
       if (validateExecutionProfile(profile).length)
         throw executionError("INTERNAL_EXECUTION_ERROR");
       if (profile.capability_id !== invocation.capability_request.capability_id)

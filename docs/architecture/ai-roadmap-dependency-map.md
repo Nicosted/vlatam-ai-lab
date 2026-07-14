@@ -31,6 +31,7 @@ prior layer.
 | **AI-86**                     | Governed OpenRouter model and route registry (delivered 2026-07-14; non-executable)     | Closed registry contracts 1.0.0, explicit model-reference order, empty fallback, eligibility gates, hashes, honest route verification, disabled seed, no profile                        | AI-85; AI-82 evidence; rational pricing; privacy; AI-77 benchmark contracts                                     | enables AI-87 metadata-only route resolution                        |
 | **AI-87**                     | Governed OpenRouter route resolution (delivered 2026-07-14; metadata only)              | Pure discriminated-union resolver, deterministic preferred order, fail-closed eligibility, immutable decision hash, registry version/hash metadata, no adapter call                     | AI-86 registry/validator; AI-82 evidence; rational pricing identity; benchmark refs                             | enables audited selection after evidence/benchmark completion       |
 | **AI-88**                     | OpenRouter resolution authorization (delivered 2026-07-14; metadata only)               | Pure fail-closed resolution/grant evaluation and immutable exact-policy issuance; separate AI-80 consumption; no gateway/adapter call                                                   | AI-87 resolution; AI-80 consumption inspection; AI-73 privacy/ZDR; AI-74 budget; evidence/profile controls      | benchmarking/evidence and explicit runtime approval remain required |
+| **AI-89**                     | OpenRouter authorized gateway binding (delivered 2026-07-14; execution disabled)        | Exact-policy revalidation, AI-80 atomic consumption at the gateway hook, exact profile/provider/model binding, audit-safe blocked outcomes; disabled adapter and zero traffic           | AI-88 exact policy; AI-80 store; AI-72/73/74 gateway controls; AI-85 disabled adapter                           | benchmarking/evidence and explicit runtime approval remain required |
 
 Post-AI-84 governance hardening adds the internal review-artifact hash binding
 and the durable budget and usage ledger without changing the external
@@ -39,7 +40,10 @@ OpenRouter transport adapter. AI-86 then adds a read-only model and route
 registry without producing an approved route policy. AI-87 adds metadata-only
 resolution without changing the evidence dependency. AI-88 adds independent
 metadata-only authorization and exact-policy construction while keeping
-consumption, gateway execution, and adapter transport separate. The exact next
+consumption, gateway execution, and adapter transport separate. AI-89 binds
+those existing contracts without enabling execution: invalid requests fail
+before consumption, AI-80 conflicts fail at consumption, and the disabled
+adapter blocks after a successful consume without restoring the grant. The exact next
 evidence-producing PR is **capability-specific OpenRouter benchmarking**.
 Execution remains blocked on
 the unresolved pricing, privacy, upstream-route, benchmark, human-evidence, and
