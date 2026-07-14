@@ -28,14 +28,17 @@ prior layer.
 | **Lossless pricing contract** | Exact rational pricing and durable accounting binding (delivered 2026-07-13)            | Versioned rational rates, exact category costs, micro-USD CEILING accounting, ledger schema 2, legacy fail-closed behavior                                                              | AI-74; PR #94 durable ledger; PR #95 representability finding; AI-77 exact ranking                              | enables a separately reviewed OpenRouter governed-adapter PR  |
 | **AI-84**                     | Regulatory dossier evidence intake (delivered 2026-07-13)                               | Versioned provider-neutral client-fact/evidence intake, AR/ES/EU scope, deterministic readiness, workspace/read-model integration                                                       | AI-82 delivered; AI-83 remains blocked; existing advisory and contract boundaries                               | enables reviewed local regulatory research intake             |
 | **AI-85**                     | Governed OpenRouter transport adapter (delivered 2026-07-13; non-executable)            | Disabled-by-default transport-only adapter, closed config contract 1.0.0, exact pinned route policy contract 1.0.0, fail-closed route verification, versioned usage mapping, no profile | Lossless pricing contract; PR #94 durable ledger; PR #95 candidate controls; AI-73 privacy; AI-80 authorization | exact next PR: OpenRouter model and route registry            |
-| **AI-86**                     | Governed OpenRouter model and route registry (delivered 2026-07-14; non-executable)     | Closed registry contracts 1.0.0, explicit model-reference order, empty fallback, eligibility gates, hashes, honest route verification, disabled seed, no profile                        | AI-85; AI-82 evidence; rational pricing; privacy; AI-77 benchmark contracts                                     | exact next PR: capability-specific OpenRouter benchmarking    |
+| **AI-86**                     | Governed OpenRouter model and route registry (delivered 2026-07-14; non-executable)     | Closed registry contracts 1.0.0, explicit model-reference order, empty fallback, eligibility gates, hashes, honest route verification, disabled seed, no profile                        | AI-85; AI-82 evidence; rational pricing; privacy; AI-77 benchmark contracts                                     | enables AI-87 metadata-only route resolution                  |
+| **AI-87**                     | Governed OpenRouter route resolution (delivered 2026-07-14; metadata only)              | Pure discriminated-union resolver, deterministic preferred order, fail-closed eligibility, immutable decision hash, registry version/hash metadata, no adapter call                     | AI-86 registry/validator; AI-82 evidence; rational pricing identity; benchmark refs                             | enables audited selection after evidence/benchmark completion |
 
 Post-AI-84 governance hardening adds the internal review-artifact hash binding
 and the durable budget and usage ledger without changing the external
 approved-export contract. AI-85 then delivered the governed, non-executable
 OpenRouter transport adapter. AI-86 then adds a read-only model and route
-registry without producing an approved route policy. The exact next PR is
-**capability-specific OpenRouter benchmarking**. Execution remains blocked on
+registry without producing an approved route policy. AI-87 adds metadata-only
+resolution without changing the evidence dependency. The exact next
+evidence-producing PR is **capability-specific OpenRouter benchmarking**.
+Execution remains blocked on
 the unresolved pricing, privacy, upstream-route, benchmark, human-evidence, and
 disabled-profile gates regardless of registry state.
 

@@ -85,3 +85,15 @@ versions fail closed. Route records carry explicit allowed/preferred model-entry
 references, an empty fallback order, and mandatory eligibility requirements,
 but remain metadata outside gateway execution. See
 `docs/architecture/ai-openrouter-model-route-registry.md`.
+
+## Governed OpenRouter route resolution (metadata only)
+
+`src/providers/openrouter-route-resolution.ts` consumes the validated model and
+route registry and deterministically evaluates the route's explicit preferred
+order. It returns an immutable `resolved`, `blocked`, `no_eligible_model`, or
+`invalid_request` decision containing audit-safe metadata and registry hashes.
+It cannot construct an execution policy, import the adapter or gateway, read an
+environment variable, or access transport. The shipped disabled route resolves
+to `blocked`; resolved-path tests use synthetic in-memory views only. A resolved
+metadata decision is not authorization and cannot be passed to the adapter as an
+execution request.
