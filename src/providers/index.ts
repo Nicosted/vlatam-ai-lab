@@ -6,3 +6,4 @@ export * from "./openai-compatible-adapter.js";
 export * from "./openrouter-config.js";
 export * from "./openrouter-adapter.js";
 export * from "./openrouter-registry.js";
+export * from "./openrouter-route-resolution.js";

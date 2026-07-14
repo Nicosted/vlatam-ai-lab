@@ -16,7 +16,9 @@
  *     (invalid fixtures and tests may name it only to reject it);
  *  5. no automatic fallback identifier is introduced;
  *  6. no OpenRouter execution profile exists and the readiness catalog
- *     keeps every candidate disabled and runtime-blocked.
+ *     keeps every candidate disabled and runtime-blocked;
+ *  7. route resolution remains metadata-only and cannot import or invoke the
+ *     adapter, transport, gateway, environment, or network.
  */
 
 import { describe, it } from "node:test";
@@ -163,18 +165,27 @@ describe("governed OpenRouter provider boundary", () => {
   });
 
   it("keeps registry modules read-only and adapter/transport-free", () => {
-    const registrySource = read("src/providers/openrouter-registry.ts");
-    assert.doesNotMatch(
-      registrySource,
-      /from\s+["'][^"']*(?:openrouter-adapter|multi-provider-gateway)\.js["']|createOpenRouterFetchTransport|\bfetch\s*\(|process\.env/,
-    );
+    for (const file of [
+      "src/providers/openrouter-registry.ts",
+      "src/providers/openrouter-route-resolution.ts",
+    ]) {
+      assert.doesNotMatch(
+        read(file),
+        /from\s+["'][^"']*(?:openrouter-adapter|multi-provider-gateway)\.js["']|createOpenRouterFetchTransport|\bfetch\s*\(|process\.env/,
+        file,
+      );
+    }
     for (const file of [
       "src/providers/openrouter-adapter.ts",
       "src/providers/adapter-registry.ts",
       "src/execution/multi-provider-gateway.ts",
       "src/routing/policy-router.ts",
     ]) {
-      assert.doesNotMatch(read(file), /openrouter-registry/, file);
+      assert.doesNotMatch(
+        read(file),
+        /openrouter-registry|openrouter-route-resolution/,
+        file,
+      );
     }
   });
 

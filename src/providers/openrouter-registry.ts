@@ -202,6 +202,11 @@ export interface OpenRouterRegistryReadiness {
   readonly blockers: readonly string[];
 }
 
+export interface OpenRouterRegistryEligibility {
+  readonly eligible: boolean;
+  readonly blockers: readonly string[];
+}
+
 const MODEL_ID = /^[a-z0-9][a-z0-9.-]*\/[a-z0-9][a-z0-9.:-]*$/;
 const ID = /^[a-z0-9][a-z0-9._:-]+$/;
 const SEMVER = /^\d+\.\d+\.\d+$/;
@@ -556,6 +561,23 @@ export function evaluateOpenRouterRegistryReadiness(
       : "degraded"
     : entry.lifecycle;
   return { lifecycle, executable: false, blockers };
+}
+
+/**
+ * Registry-only eligibility facts for non-executable route resolution.
+ * Adapter enablement is intentionally excluded: selecting audit metadata is
+ * not authority to execute it. All evidence, pricing, benchmark, review, and
+ * exact-route blockers continue to fail closed through the shared validator.
+ */
+export function evaluateOpenRouterRegistryEligibility(
+  entry: OpenRouterModelRegistryEntry,
+  dependencies: OpenRouterRegistryDependencies,
+  now: Date,
+): OpenRouterRegistryEligibility {
+  const blockers = readinessBlockers(entry, dependencies, now).filter(
+    (blocker) => blocker !== "adapter_disabled",
+  );
+  return { eligible: blockers.length === 0, blockers };
 }
 
 function validateEntryShape(
