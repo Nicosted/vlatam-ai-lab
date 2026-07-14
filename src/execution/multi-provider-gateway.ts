@@ -297,6 +297,11 @@ export class MultiProviderGateway {
           execution_id: executionId,
           signal: controller.signal,
           timeout_ms: profile.configuration.timeout_ms,
+          pricing_contract: {
+            pricing_id: governance.pricing.pricing_id,
+            pricing_contract_version:
+              governance.pricing.pricing_contract_version,
+          },
         });
       } finally {
         clearTimeout(timeout);

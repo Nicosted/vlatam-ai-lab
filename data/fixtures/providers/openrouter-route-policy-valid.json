@@ -1,0 +1,14 @@
+{
+  "route_policy_version": "1.0.0",
+  "profile_id": "normative-claims.openrouter.synthetic-fixture.v1",
+  "profile_contract_version": "1.1.0",
+  "model_id": "minimax/minimax-m2.7",
+  "allowed_upstream_providers": ["minimax"],
+  "provider_order": ["minimax"],
+  "allow_fallbacks": false,
+  "data_collection": "deny",
+  "require_route_metadata": true,
+  "structured_output_mode": "json_object",
+  "pricing_id": "openrouter.synthetic-fixture.v1",
+  "pricing_contract_version": "1.0.0"
+}

@@ -1,0 +1,23 @@
+{
+  "config_contract_version": "1.0.0",
+  "provider_id": "openrouter",
+  "base_url_id": "openrouter-api-v1",
+  "enabled": false,
+  "api_key_env_var": "OPENROUTER_API_KEY",
+  "transport_capabilities": ["chat_completions"],
+  "max_request_body_bytes": 262144,
+  "max_response_body_bytes": 1048576,
+  "connect_timeout_ms": 5000,
+  "read_timeout_ms": 30000,
+  "overall_timeout_ms": 30000,
+  "retry_policy": { "max_retries": 0 },
+  "structured_output_modes": ["json_object"],
+  "supported_usage_fields": [
+    "prompt_tokens",
+    "completion_tokens",
+    "total_tokens",
+    "prompt_tokens_details.cached_tokens",
+    "completion_tokens_details.reasoning_tokens"
+  ],
+  "routing_policy_mode": "exact_pinned"
+}

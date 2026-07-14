@@ -18,6 +18,17 @@ OpenRouter `minimax/minimax-m2.7` was not evaluated in this work. Its existing
 variable-route evidence remains fail-closed; no endpoint is pinned and it remains
 disabled and blocked.
 
+**Update (2026-07-13, governed OpenRouter adapter PR):** a transport-only,
+disabled-by-default OpenRouter adapter now exists in `src/providers/`. It does
+not change this readiness decision: no execution profile was added, no route
+policy was approved, no candidate was enabled, and OpenRouter remains
+runtime-blocked. The adapter fails closed without an exact reviewed route
+policy, honestly represents that OpenRouter's variable routing cannot be
+assumed to guarantee an exact upstream, and blocks deterministically when a
+response does not prove its route. The remaining gate is unchanged: reviewed
+evidence plus a human decision, followed by a separately reviewed OpenRouter
+model-and-route registry PR.
+
 AI-81 established disabled candidate placeholders and the fail-closed distinction between declarations, reviewed evidence, and runtime eligibility. AI-81.1 is the corrective contract evolution captured in AI-82: schema version `2.0.0` closes provenance, scope, routing, conflict, review-date, and stable-hash gaps that could not be added honestly without replacing the incomplete `1.0.0` record shape.
 
 Every evidence claim now binds an exact provider and model scope, upstream-provider scope where applicable, official publisher/title/canonical URL, retrieval and effective dates, category, applicability and route mode, review state, re-review date, finding, limitations, conflicts, and a canonical SHA-256 hash. `unknown`, `rejected`, conflicting, stale, unreviewed, incorrectly scoped, or hash-invalid evidence fails closed.

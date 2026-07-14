@@ -17,6 +17,15 @@ export interface ProviderExecutionContext {
   readonly execution_id: string;
   readonly signal: AbortSignal;
   readonly timeout_ms: number;
+  /** Identity of the reviewed pricing contract already bound by the
+   * gateway before reservation. Metadata only — adapters may verify
+   * compatibility but never resolve pricing from a live response. */
+  readonly pricing_contract?:
+    | {
+        readonly pricing_id: string;
+        readonly pricing_contract_version: string;
+      }
+    | undefined;
 }
 export interface ProviderUsage {
   readonly input_tokens?: number | undefined;
