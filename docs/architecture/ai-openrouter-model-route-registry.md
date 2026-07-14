@@ -3,8 +3,9 @@
 Status: local, versioned, read-only, disabled, and non-executable. A
 metadata-only route resolver consumes the validated view but grants no execution
 authority. A separate metadata-only authorization coordinator can issue an
-exact execution policy only after every existing governed control passes; the
-shipped records still cannot reach that outcome.
+exact execution policy only after every existing governed control passes. An
+authorized gateway binding now validates and consumes that policy, but the
+shipped records and adapter remain disabled and cannot execute.
 
 ## Boundary and authority
 
@@ -30,7 +31,7 @@ The adapter remains transport-only and cannot import resolution or registry
 state. The gateway still receives an explicit execution profile and cannot
 import this resolver.
 
-The six boundaries are explicit:
+The seven boundaries are explicit:
 
 1. the model registry owns exact model identity and evidenced model facts;
 2. the route registry owns allowed references, semantic order, and eligibility
@@ -42,9 +43,17 @@ The six boundaries are explicit:
 5. AI-80 consumption is a separate state transition immediately before
    execution; evaluation and policy construction only inspect state and never
    consume a grant;
-6. the gateway preserves the normal governance boundary and the adapter remains
-   transport-only. Neither imports the authorization coordinator or selects a
-   model.
+6. the authorized gateway binding revalidates the immutable policy and request,
+   then delegates the one atomic transition to the existing AI-80 store at the
+   gateway's immediate pre-adapter hook;
+7. the gateway preserves its normal governance boundary and the adapter remains
+   transport-only and disabled. Neither selects a model or reruns authorization.
+
+The complete flow is:
+
+`registry → resolution → authorization → exact policy → atomic consumption → gateway → disabled adapter`
+
+No artifact before atomic consumption grants execution authority.
 
 ## Identity model
 
@@ -221,3 +230,42 @@ OpenRouter benchmarking** using reviewed local fixtures and the existing
 benchmark contracts. Resolution does not manufacture the missing benchmark
 evidence. Benchmark work must remain separately approved and must not enable a
 provider, route, model, profile, or live call.
+
+## Authorized gateway binding and consumption timing
+
+`src/providers/openrouter-authorized-gateway.ts` is the only OpenRouter binding
+between the exact policy, AI-80 consumption contract, and the generic gateway.
+It does not import or call the registry loader, route resolver, authorization
+coordinator, or adapter. It accepts the immutable policy, expected policy and
+authorization hashes, AI-80 identity/version/token-hash binding, the existing
+gateway request envelope, explicit evaluation time, and audit correlations.
+
+Before consumption it closes the request and policy shapes and verifies policy
+integrity, contract and registry versions, exact route/model/provider/upstream
+identity, profile identity, authorization ID/mode/scope/token binding,
+privacy/ZDR evidence, budget ceiling and estimate, evidence references, expiry,
+and correlations. Invalid, unknown, stale, expired, tampered, weakened, or
+inconsistent metadata is `invalid_request` or
+`blocked_before_consumption`. The generic gateway then performs its own request,
+profile, capability, privacy, pricing, and budget checks. A gateway rejection at
+that stage also remains `blocked_before_consumption` because its AI-80 callback
+has not run.
+
+Only after those pure checks and the gateway's durable budget reservation does
+the existing `executeAuthorized` hook call the injected AI-80 store exactly
+once. Store duplicates, conflicts, invalid bindings, supersession, or
+unavailability produce `consumption_rejected`. No resolver, authorization
+evaluation, provider selection, retry, or failover occurs.
+
+After a successful consume, the disabled repository adapter produces
+`execution_not_enabled`; any other gateway failure is
+`blocked_after_consumption`. Consumption is deliberately not rolled back. Once
+the compare-and-set succeeds, restoring or reusing the authorization would
+permit replay after an uncertain execution boundary and break the one-time
+contract. The result contains only hashes, identities, correlations, store and
+gateway decisions, and deterministic reason codes—never prompts, payloads,
+credentials, provider responses, or fabricated usage/billing data.
+
+The coordinator reads no environment variable or secret, constructs no URL,
+makes no network request, and has no success/executed result variant. The
+repository-backed flow therefore cannot report successful OpenRouter traffic.

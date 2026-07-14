@@ -97,3 +97,20 @@ environment variable, or access transport. The shipped disabled route resolves
 to `blocked`; resolved-path tests use synthetic in-memory views only. A resolved
 metadata decision is not authorization and cannot be passed to the adapter as an
 execution request.
+
+## OpenRouter exact-policy gateway binding (execution disabled)
+
+The OpenRouter-specific coordinator binds an AI-88 exact policy to the generic
+gateway's existing `executeAuthorized` hook. The binding verifies exact policy,
+authorization, route, provider, model, profile, privacy/ZDR, evidence, budget,
+version, expiry, hash, and correlation metadata before calling the gateway. The
+gateway additionally checks the resolved execution profile's exact provider and
+model identity before privacy enforcement, reservation, or consumption.
+
+AI-80 consumption occurs synchronously exactly once after gateway privacy and
+budget checks and immediately before mapping and adapter lookup. Store rejection
+stops the boundary. A successful consume is final even when the shipped adapter
+then returns `LIVE_EXECUTION_DISABLED`; rollback would make a single-use grant
+replayable after crossing the execution boundary. Repository configuration,
+profiles, secrets, and provider connectivity remain unchanged, so this flow
+cannot execute or send traffic.

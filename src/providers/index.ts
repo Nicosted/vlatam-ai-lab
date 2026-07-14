@@ -7,3 +7,4 @@ export * from "./openrouter-config.js";
 export * from "./openrouter-adapter.js";
 export * from "./openrouter-registry.js";
 export * from "./openrouter-route-resolution.js";
+export * from "./openrouter-authorized-gateway.js";

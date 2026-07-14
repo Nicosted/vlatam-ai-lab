@@ -190,6 +190,33 @@ describe("governed OpenRouter provider boundary", () => {
     }
   });
 
+  it("keeps authorized gateway dependency direction acyclic", () => {
+    const binding = read("src/providers/openrouter-authorized-gateway.ts");
+    assert.match(binding, /openrouter-resolution-authorization\.js/);
+    assert.match(binding, /authorization-store\.js/);
+    assert.match(binding, /multi-provider-gateway\.js/);
+    assert.doesNotMatch(
+      binding,
+      /authorizeOpenRouterResolution|resolve(?:Governed)?OpenRouterRoute\s*\(|\bOpenRouterAdapter\b|createOpenRouterFetchTransport|\bfetch\s*\(|process\.env|randomUUID/,
+    );
+
+    const adapter = read("src/providers/openrouter-adapter.ts");
+    assert.doesNotMatch(
+      adapter,
+      /openrouter-(?:registry|route-resolution|resolution-authorization|authorized-gateway)/,
+    );
+    for (const file of [
+      "src/providers/openrouter-route-resolution.ts",
+      "src/providers/openrouter-resolution-authorization.ts",
+    ]) {
+      assert.doesNotMatch(
+        read(file),
+        /openrouter-adapter|openrouter-authorized-gateway/,
+        file,
+      );
+    }
+  });
+
   it("keeps endpoint literals in provider config and secrets out of registry data", () => {
     const endpointOwners = runtimeSources.filter((file) =>
       /https:\/\/openrouter\.ai\/api\/v1/.test(read(file)),

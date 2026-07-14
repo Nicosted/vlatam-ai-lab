@@ -337,11 +337,23 @@ function invalidReasons(value: unknown): readonly string[] {
   return [...reasons].sort();
 }
 
-function policyHash(value: unknown): string {
+export function computeOpenRouterExactExecutionPolicyHash(
+  value: unknown,
+): string {
   return createHash("sha256")
     .update(OPENROUTER_EXACT_EXECUTION_POLICY_HASH_DOMAIN)
     .update("\n")
     .update(canonicalizeOpenRouterRegistryJson(value))
+    .digest("hex");
+}
+
+export function computeOpenRouterAuthorizationHash(
+  authorization: OpenRouterExactExecutionPolicy["authorization"],
+): string {
+  return createHash("sha256")
+    .update("vlatam-ai-lab:openrouter-authorization-binding:v1")
+    .update("\n")
+    .update(canonicalizeOpenRouterRegistryJson(authorization))
     .digest("hex");
 }
 
@@ -678,7 +690,10 @@ function authorizeOpenRouterResolutionInternal(
   };
   return deepFreeze({
     status: "authorized",
-    policy: { ...withoutHash, policy_hash: policyHash(withoutHash) },
+    policy: {
+      ...withoutHash,
+      policy_hash: computeOpenRouterExactExecutionPolicyHash(withoutHash),
+    },
   });
 }
 
