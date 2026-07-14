@@ -109,6 +109,8 @@ export interface OpenRouterRoutePolicy {
   readonly allow_fallbacks: false;
   /** Sent as `provider.data_collection`; always "deny". */
   readonly data_collection: "deny";
+  readonly require_parameters: true;
+  readonly zdr: true;
   /** Require response route metadata for post-response verification. */
   readonly require_route_metadata: boolean;
   readonly structured_output_mode: OpenRouterStructuredOutputMode;
@@ -319,6 +321,8 @@ export function validateOpenRouterRoutePolicy(
     "provider_order",
     "allow_fallbacks",
     "data_collection",
+    "require_parameters",
+    "zdr",
     "require_route_metadata",
     "structured_output_mode",
     "pricing_id",
@@ -381,6 +385,9 @@ export function validateOpenRouterRoutePolicy(
   if (value["allow_fallbacks"] !== false) errors.add("permissive_fallback");
   if (value["data_collection"] !== "deny")
     errors.add("invalid_data_collection");
+  if (value["require_parameters"] !== true)
+    errors.add("parameters_not_required");
+  if (value["zdr"] !== true) errors.add("zdr_not_required");
   if (typeof value["require_route_metadata"] !== "boolean")
     errors.add("invalid_require_route_metadata");
   if (

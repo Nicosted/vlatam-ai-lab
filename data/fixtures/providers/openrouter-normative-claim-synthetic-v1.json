@@ -1,0 +1,48 @@
+{
+  "fixture_contract_version": "1.0.0",
+  "fixture_id": "openrouter.normative-claim.synthetic.v1",
+  "classification": "synthetic",
+  "source": {
+    "title": "Synthetic Labeling Rule",
+    "text": "A fictional laboratory rule requires blue sample boxes to display the lot code on the front panel. The rule applies from 1 September 2030. Red sample boxes are outside this fictional rule."
+  },
+  "expected_schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["claims"],
+    "properties": {
+      "claims": {
+        "type": "array",
+        "minItems": 2,
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["claim_id", "claim", "evidence"],
+          "properties": {
+            "claim_id": { "type": "string" },
+            "claim": { "type": "string" },
+            "evidence": { "type": "string" }
+          }
+        }
+      }
+    }
+  },
+  "expected_claims": [
+    {
+      "claim_id": "claim-1",
+      "claim_contains": "blue sample boxes",
+      "evidence_exact": "requires blue sample boxes to display the lot code on the front panel"
+    },
+    {
+      "claim_id": "claim-2",
+      "claim_contains": "1 September 2030",
+      "evidence_exact": "applies from 1 September 2030"
+    }
+  ],
+  "validation": {
+    "minimum_claims": 2,
+    "evidence_must_be_source_substring": true,
+    "claim_ids_unique": true,
+    "additional_properties_allowed": false
+  }
+}

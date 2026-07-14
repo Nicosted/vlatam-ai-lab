@@ -9,10 +9,9 @@
  * approved request into at most one HTTP call and normalizes the
  * response deterministically.
  *
- * The API key is read from the configured environment variable NAME at
- * execution time only, is never stored, logged, echoed, or validated
- * against the live provider by this PR, and never appears in errors,
- * audit records, or results.
+ * The API key is obtained from a narrow injected provider only after every
+ * non-secret adapter check passes. It is never stored, logged, echoed, hashed,
+ * snapshotted, or returned.
  */
 
 import type {
@@ -41,6 +40,10 @@ import {
   type OpenRouterAdapterConfig,
   type OpenRouterRoutePolicy,
 } from "./openrouter-config.js";
+import {
+  resolveOpenRouterSecret,
+  type OpenRouterSecretProvider,
+} from "./openrouter-secret-provider.js";
 
 export const OPENROUTER_ADAPTER_ERROR_CODES = [
   "ADAPTER_DISABLED",
@@ -67,6 +70,11 @@ export const OPENROUTER_ADAPTER_ERROR_CODES = [
   "RESPONSE_SCHEMA_INVALID",
   "USAGE_UNAVAILABLE",
   "USAGE_MALFORMED",
+  "AUTHENTICATION_FAILURE",
+  "RATE_LIMITED",
+  "PROVIDER_UNAVAILABLE",
+  "STRUCTURED_OUTPUT_VALIDATION_FAILED",
+  "BUDGET_METADATA_INCOMPATIBLE",
 ] as const;
 export type OpenRouterAdapterErrorCode =
   (typeof OPENROUTER_ADAPTER_ERROR_CODES)[number];
@@ -98,6 +106,11 @@ const GATEWAY_CODE: Record<OpenRouterAdapterErrorCode, ExecutionErrorCode> = {
   RESPONSE_SCHEMA_INVALID: "PROVIDER_RESPONSE_INVALID",
   USAGE_UNAVAILABLE: "USAGE_UNAVAILABLE",
   USAGE_MALFORMED: "USAGE_INVALID",
+  AUTHENTICATION_FAILURE: "CREDENTIALS_UNAVAILABLE",
+  RATE_LIMITED: "PROVIDER_RATE_LIMITED",
+  PROVIDER_UNAVAILABLE: "PROVIDER_UNAVAILABLE",
+  STRUCTURED_OUTPUT_VALIDATION_FAILED: "PROVIDER_RESPONSE_INVALID",
+  BUDGET_METADATA_INCOMPATIBLE: "PRICING_UNVERIFIED",
 };
 
 /** Adapter failures that block before or instead of provider work
@@ -176,6 +189,19 @@ function usageToken(value: unknown): number | undefined {
   return value;
 }
 
+function costMetadata(value: unknown): string | undefined {
+  if (value === undefined || value === null) return undefined;
+  const rendered = String(value);
+  if (
+    (typeof value !== "number" && typeof value !== "string") ||
+    !/^\d+(?:\.\d+)?$/.test(rendered) ||
+    !Number.isFinite(Number(value)) ||
+    Number(value) < 0
+  )
+    throw new OpenRouterAdapterError("BUDGET_METADATA_INCOMPATIBLE");
+  return rendered;
+}
+
 /**
  * Versioned, deterministic OpenRouter usage normalization
  * (OPENROUTER_USAGE_NORMALIZATION_VERSION). Maps only explicitly
@@ -199,6 +225,9 @@ export function mapOpenRouterUsage(raw: unknown): ProviderUsage | undefined {
     total_tokens: usageToken(raw["total_tokens"]),
     cached_input_tokens: usageToken(promptDetails?.["cached_tokens"]),
     reasoning_tokens: usageToken(completionDetails?.["reasoning_tokens"]),
+    ...(costMetadata(raw["cost"]) === undefined
+      ? {}
+      : { reported_cost_usd: costMetadata(raw["cost"]) }),
     source: "provider_reported",
   };
   if (
@@ -257,7 +286,8 @@ export interface OpenRouterAdapterOptions {
    * supplies none anywhere: the reviewed route registry is a future PR. */
   readonly route_policies: readonly OpenRouterRoutePolicy[];
   readonly transport: OpenRouterTransport;
-  readonly env?: NodeJS.ProcessEnv | undefined;
+  readonly secret_provider: OpenRouterSecretProvider;
+  readonly validate_structured_output?: (value: unknown) => boolean;
 }
 
 interface OpenRouterParsedResponse {
@@ -283,9 +313,12 @@ export class OpenRouterAdapter implements ProviderAdapter {
     let transportInvoked = false;
     try {
       const policy = this.validateBeforeTransport(request, profile, context);
-      const apiKey = (this.options.env ?? process.env)[
-        this.options.config.api_key_env_var
-      ]!;
+      const apiKey = await resolveOpenRouterSecret(
+        this.options.secret_provider,
+        this.options.config.api_key_env_var,
+      );
+      if (apiKey === undefined)
+        throw new OpenRouterAdapterError("SECRET_MISSING");
       const body = this.buildRequestBody(request, profile, policy);
       if (context.signal.aborted)
         throw new OpenRouterAdapterError("TRANSPORT_ABORTED");
@@ -333,16 +366,8 @@ export class OpenRouterAdapter implements ProviderAdapter {
     const { config } = this.options;
     if (validateOpenRouterAdapterConfig(config).length > 0)
       throw new OpenRouterAdapterError("ADAPTER_CONFIG_INVALID");
-    const env = this.options.env ?? process.env;
-    if (
-      config.enabled !== true ||
-      env["AI_LAB_LIVE_PROVIDER_EXECUTION_ENABLED"] !== "true" ||
-      env["AI_LAB_OPENROUTER_ENABLED"] !== "true"
-    )
+    if (config.enabled !== true)
       throw new OpenRouterAdapterError("ADAPTER_DISABLED");
-    const apiKey = env[config.api_key_env_var];
-    if (typeof apiKey !== "string" || apiKey.length === 0)
-      throw new OpenRouterAdapterError("SECRET_MISSING");
     if (
       typeof profile.profile_id !== "string" ||
       profile.profile_id.length === 0 ||
@@ -424,6 +449,8 @@ export class OpenRouterAdapter implements ProviderAdapter {
       provider: {
         allow_fallbacks: false,
         data_collection: policy.data_collection,
+        require_parameters: true,
+        zdr: true,
         ...(policy.allowed_upstream_providers === undefined
           ? {}
           : { only: [...policy.allowed_upstream_providers] }),
@@ -445,7 +472,12 @@ export class OpenRouterAdapter implements ProviderAdapter {
     profile: ExecutionProfile,
     policy: OpenRouterRoutePolicy,
   ): OpenRouterParsedResponse {
-    if (response.status === 429) throw executionError("PROVIDER_RATE_LIMITED");
+    if (response.status === 401 || response.status === 403)
+      throw new OpenRouterAdapterError("AUTHENTICATION_FAILURE");
+    if (response.status === 429)
+      throw new OpenRouterAdapterError("RATE_LIMITED");
+    if ([502, 503, 504].includes(response.status))
+      throw new OpenRouterAdapterError("PROVIDER_UNAVAILABLE");
     if (response.status !== 200)
       throw new OpenRouterAdapterError("TRANSPORT_FAILURE");
     if (
@@ -505,6 +537,13 @@ export class OpenRouterAdapter implements ProviderAdapter {
         const structured: unknown = JSON.parse(content);
         if (!isRecord(structured))
           throw new OpenRouterAdapterError("RESPONSE_SCHEMA_INVALID");
+        if (
+          this.options.validate_structured_output !== undefined &&
+          !this.options.validate_structured_output(structured)
+        )
+          throw new OpenRouterAdapterError(
+            "STRUCTURED_OUTPUT_VALIDATION_FAILED",
+          );
       } catch (caught) {
         if (caught instanceof OpenRouterAdapterError) throw caught;
         throw new OpenRouterAdapterError("RESPONSE_SCHEMA_INVALID");
@@ -517,10 +556,13 @@ export class OpenRouterAdapter implements ProviderAdapter {
         : finishRaw === "length"
           ? "length"
           : "unknown";
+    const usage = mapOpenRouterUsage(parsed["usage"]);
+    if (usage === undefined)
+      throw new OpenRouterAdapterError("USAGE_UNAVAILABLE");
     return {
       content,
       finish_reason,
-      usage: mapOpenRouterUsage(parsed["usage"]),
+      usage,
     };
   }
 

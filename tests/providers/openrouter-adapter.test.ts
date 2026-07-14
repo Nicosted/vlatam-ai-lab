@@ -46,17 +46,12 @@ const responseScenarios = load<{
   }[];
 }>("data/fixtures/providers/openrouter-response-invalid-scenarios.json");
 
-/** Enabling in a unit test is a synthetic act: config flag + both env
- * flags + a placeholder env value that is NOT a real credential. */
+/** Enabling in a unit test is synthetic and uses no environment access. */
 const enabledConfig: OpenRouterAdapterConfig = {
   ...defaultConfig,
   enabled: true,
 };
-const env = {
-  AI_LAB_LIVE_PROVIDER_EXECUTION_ENABLED: "true",
-  AI_LAB_OPENROUTER_ENABLED: "true",
-  OPENROUTER_API_KEY: "synthetic-unit-test-placeholder",
-};
+const syntheticSecret = "synthetic-unit-test-placeholder";
 
 const profile: ExecutionProfile = {
   profile_id: routePolicy.profile_id as ExecutionProfileId,
@@ -149,8 +144,10 @@ function adapter(
   overrides: {
     config?: OpenRouterAdapterConfig;
     policies?: readonly OpenRouterRoutePolicy[];
-    env?: NodeJS.ProcessEnv;
+    secret?: string | undefined;
+    secretCalls?: { count: number };
     transport?: MockTransport;
+    validate?: (value: unknown) => boolean;
   } = {},
 ): { subject: OpenRouterAdapter; transport: MockTransport } {
   const transport = overrides.transport ?? mockTransport();
@@ -159,7 +156,17 @@ function adapter(
       config: overrides.config ?? enabledConfig,
       route_policies: overrides.policies ?? [routePolicy],
       transport: transport.transport,
-      env: overrides.env ?? env,
+      secret_provider: {
+        resolve: async () => {
+          if (overrides.secretCalls) overrides.secretCalls.count += 1;
+          return overrides.secret === undefined
+            ? syntheticSecret
+            : overrides.secret;
+        },
+      },
+      ...(overrides.validate === undefined
+        ? {}
+        : { validate_structured_output: overrides.validate }),
     }),
     transport,
   };
@@ -182,23 +189,21 @@ describe("governed OpenRouter transport adapter", () => {
     assert.equal("content" in result, false);
   });
 
-  it("stays disabled unless config flag AND both env flags agree", async () => {
-    for (const partialEnv of [
-      { ...env, AI_LAB_LIVE_PROVIDER_EXECUTION_ENABLED: undefined },
-      { ...env, AI_LAB_OPENROUTER_ENABLED: undefined },
-    ]) {
-      const { subject, transport } = adapter({
-        env: partialEnv as NodeJS.ProcessEnv,
-      });
-      const result = await subject.execute(request, profile, context());
-      assert.equal(adapterCode(result.error), "ADAPTER_DISABLED");
-      assert.equal(transport.calls(), 0);
-    }
+  it("does not resolve the secret while the adapter is disabled", async () => {
+    const secretCalls = { count: 0 };
+    const { subject, transport } = adapter({
+      config: defaultConfig,
+      secretCalls,
+    });
+    const result = await subject.execute(request, profile, context());
+    assert.equal(adapterCode(result.error), "ADAPTER_DISABLED");
+    assert.equal(secretCalls.count, 0);
+    assert.equal(transport.calls(), 0);
   });
 
   it("fails closed without a secret and never calls transport", async () => {
     const { subject, transport } = adapter({
-      env: { ...env, OPENROUTER_API_KEY: undefined } as NodeJS.ProcessEnv,
+      secret: " ",
     });
     const result = await subject.execute(request, profile, context());
     assert.equal(result.status, "blocked");
@@ -351,6 +356,8 @@ describe("governed OpenRouter transport adapter", () => {
     assert.deepEqual(body["provider"], {
       allow_fallbacks: false,
       data_collection: "deny",
+      require_parameters: true,
+      zdr: true,
       only: ["minimax"],
       order: ["minimax"],
     });
@@ -423,8 +430,8 @@ describe("governed OpenRouter transport adapter", () => {
       profile,
       context(),
     );
-    assert.equal(missing.status, "succeeded");
-    assert.equal(missing.usage, undefined);
+    assert.equal(missing.status, "failed");
+    assert.equal(adapterCode(missing.error), "USAGE_UNAVAILABLE");
   });
 
   it("never derives token counts from text length", () => {
@@ -455,7 +462,7 @@ describe("governed OpenRouter transport adapter", () => {
     const { subject } = adapter({ transport: failing });
     const result = await subject.execute(request, profile, context());
     assert.equal(result.status, "failed");
-    assert.equal(adapterCode(result.error), "TRANSPORT_FAILURE");
+    assert.equal(adapterCode(result.error), "PROVIDER_UNAVAILABLE");
     assert.equal(result.error?.code, "PROVIDER_UNAVAILABLE");
     assert.equal(failing.calls(), 1);
     assert.doesNotMatch(
@@ -470,6 +477,30 @@ describe("governed OpenRouter transport adapter", () => {
     const result = await subject.execute(request, profile, context());
     assert.equal(result.error?.code, "PROVIDER_RATE_LIMITED");
     assert.equal(limited.calls(), 1);
+  });
+
+  it("maps authentication failure without leaking the provider body", async () => {
+    const denied = mockTransport({ status: 401, body: "secret rejected" });
+    const result = await adapter({ transport: denied }).subject.execute(
+      request,
+      profile,
+      context(),
+    );
+    assert.equal(adapterCode(result.error), "AUTHENTICATION_FAILURE");
+    assert.equal(denied.calls(), 1);
+    assert.doesNotMatch(JSON.stringify(result), /secret rejected/);
+  });
+
+  it("applies the governed structured-output validator", async () => {
+    const result = await adapter({ validate: () => false }).subject.execute(
+      request,
+      profile,
+      context(),
+    );
+    assert.equal(
+      adapterCode(result.error),
+      "STRUCTURED_OUTPUT_VALIDATION_FAILED",
+    );
   });
 
   it("distinguishes abort before transport (zero calls) from abort during transport", async () => {
@@ -510,8 +541,9 @@ describe("governed OpenRouter transport adapter", () => {
     const duringResult = await pending;
     assert.equal(adapterCode(duringResult.error), "TRANSPORT_ABORTED");
     assert.equal(duringResult.error?.code, "EXECUTION_ABORTED");
-    // Cancellation propagated to the transport through the same signal.
-    assert.equal(seenSignal, during.signal);
+    // An abort during asynchronous final-boundary secret resolution still
+    // blocks before transport; no provider work occurs.
+    assert.equal(seenSignal, undefined);
   });
 
   it("fails closed on every invalid response fixture without leaking provider text", async () => {

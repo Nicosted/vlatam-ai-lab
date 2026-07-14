@@ -104,3 +104,14 @@ separate human decisions.
 8. Recompute and review dossier, evidence-pack, proposal, and approval hashes.
 9. Submit a separate configuration PR that keeps execution disabled.
 10. Obtain a separate, scoped, expiring execution authorization before any call.
+
+## Transport harness implementation note — 2026-07-14
+
+The transport adapter and fixture-only manual harness now exist behind a new
+runtime metadata contract and explicit preflight. This is technical scaffolding,
+not enablement: the shipped runtime metadata records the same blocked dossier
+and proposal, pending reviews and approval, disabled model/route/profile/adapter
+and budget, active kill switch, absent exact-policy hash, and secret reference
+name only. The adapter no longer reads environment values directly; a narrow
+secret provider is invoked only after non-secret gates. See
+`docs/operations/openrouter-sandbox-adapter-runbook.md`.
