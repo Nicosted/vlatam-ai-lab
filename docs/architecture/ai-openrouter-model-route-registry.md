@@ -2,7 +2,9 @@
 
 Status: local, versioned, read-only, disabled, and non-executable. A
 metadata-only route resolver consumes the validated view but grants no execution
-authority.
+authority. A separate metadata-only authorization coordinator can issue an
+exact execution policy only after every existing governed control passes; the
+shipped records still cannot reach that outcome.
 
 ## Boundary and authority
 
@@ -28,14 +30,21 @@ The adapter remains transport-only and cannot import resolution or registry
 state. The gateway still receives an explicit execution profile and cannot
 import this resolver.
 
-The four boundaries are explicit:
+The six boundaries are explicit:
 
 1. the model registry owns exact model identity and evidenced model facts;
 2. the route registry owns allowed references, semantic order, and eligibility
    policy;
 3. route resolution evaluates those immutable facts and returns metadata only;
-4. the adapter transports an independently authorized exact execution policy
-   and never selects a model.
+4. authorization independently validates the resolution, grant, profile,
+   privacy/ZDR, evidence, budget, correlation, and validity windows, then either
+   blocks or issues one immutable exact policy;
+5. AI-80 consumption is a separate state transition immediately before
+   execution; evaluation and policy construction only inspect state and never
+   consume a grant;
+6. the gateway preserves the normal governance boundary and the adapter remains
+   transport-only. Neither imports the authorization coordinator or selects a
+   model.
 
 ## Identity model
 
@@ -175,10 +184,40 @@ config; keep secrets and provider response metadata out of registry data; keep
 domain requests provider-neutral; keep fallbacks disabled; and prevent any
 OpenRouter execution profile or approved-artifact dependency.
 
-## Next PR
+## Resolution authorization and exact-policy issuance
 
-The exact next PR remains **capability-specific OpenRouter benchmarking** using
-reviewed local fixtures and the existing benchmark contracts. Resolution does
-not manufacture the missing benchmark evidence. Benchmark work must remain
-separately approved and must not enable a provider, route, model, profile, or
-live call.
+Authorization contract `1.0.0` accepts a previously produced resolution; it
+never reruns the resolver. `resolved` is necessary but never sufficient. The
+coordinator recomputes the resolution decision hash, recomputes the current
+route and entry hashes, checks all registry version/hash bindings, and rejects
+stale, future-dated, malformed, or non-resolved decisions.
+
+It then checks an explicitly scoped grant and the read-only AI-80 consumption
+inspection result; exact route/model/profile/capability identity; an existing
+privacy-enforcement decision with verified ZDR metadata; the existing governed
+budget policy and estimate; complete evidence references and validity; enabled,
+compatible profile state; and required correlation IDs. Unknown state fails
+closed. The policy expiry is the earliest of the requested TTL, authorization,
+route, model-entry, and evidence validity windows.
+
+Success is the only path that returns `OpenRouterExactExecutionPolicy` contract
+`1.0.0`. It contains only exact route/model/provider/profile identity, grant
+scope, privacy/ZDR references, budget ceiling and estimate, registry/resolution
+versions and hashes, deterministic policy hash, timestamps, reasons, evidence
+IDs, and correlations. It contains no prompt, payload, provider response,
+credential, endpoint, or transport request.
+
+The coordinator is pure and deeply freezes every result. It does not reserve
+budget, mutate the authorization store, invoke the gateway/adapter, read the
+environment, perform network I/O, discover providers, retry, fail over, enqueue,
+or schedule. Consumption remains the explicit AI-80 step and adapter execution
+remains a later transport step. The repository records and profile catalog stay
+disabled/incompatible, so repository-backed authorization remains blocked.
+
+## Next evidence dependency
+
+The exact evidence-producing dependency remains **capability-specific
+OpenRouter benchmarking** using reviewed local fixtures and the existing
+benchmark contracts. Resolution does not manufacture the missing benchmark
+evidence. Benchmark work must remain separately approved and must not enable a
+provider, route, model, profile, or live call.

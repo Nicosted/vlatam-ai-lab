@@ -1,0 +1,187 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/ai-openrouter-exact-execution-policy.schema.json",
+  "title": "Governed OpenRouter exact execution policy",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract_version",
+    "route",
+    "execution_profile",
+    "authorization",
+    "privacy",
+    "budget",
+    "versions",
+    "evidence_ids",
+    "reasons",
+    "evaluated_at",
+    "issued_at",
+    "expires_at",
+    "execution_correlation_id",
+    "audit_correlation_id",
+    "policy_hash"
+  ],
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._:-]+$" },
+    "semver": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+  },
+  "properties": {
+    "contract_version": { "const": "1.0.0" },
+    "route": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "route_id",
+        "route_record_id",
+        "route_version",
+        "route_hash",
+        "model_registry_id",
+        "model_entry_version",
+        "model_entry_hash",
+        "provider_id",
+        "provider_model_id",
+        "upstream_provider_id"
+      ],
+      "properties": {
+        "route_id": { "$ref": "#/$defs/id" },
+        "route_record_id": { "$ref": "#/$defs/id" },
+        "route_version": { "$ref": "#/$defs/semver" },
+        "route_hash": { "$ref": "#/$defs/hash" },
+        "model_registry_id": { "$ref": "#/$defs/id" },
+        "model_entry_version": { "$ref": "#/$defs/semver" },
+        "model_entry_hash": { "$ref": "#/$defs/hash" },
+        "provider_id": { "const": "openrouter" },
+        "provider_model_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9.-]+/[a-z0-9.:-]+$"
+        },
+        "upstream_provider_id": { "$ref": "#/$defs/id" }
+      }
+    },
+    "execution_profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["profile_id", "contract_version"],
+      "properties": {
+        "profile_id": { "$ref": "#/$defs/id" },
+        "contract_version": { "$ref": "#/$defs/semver" }
+      }
+    },
+    "authorization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "authorization_id",
+        "authorization_mode",
+        "authorizer_role",
+        "review_attestation_reference",
+        "capability_ids",
+        "handoff_policy_id",
+        "handoff_policy_version",
+        "handoff_policy_hash"
+      ],
+      "properties": {
+        "authorization_id": { "$ref": "#/$defs/id" },
+        "authorization_mode": { "enum": ["single_use", "reusable"] },
+        "authorizer_role": { "$ref": "#/$defs/id" },
+        "review_attestation_reference": { "$ref": "#/$defs/id" },
+        "capability_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/id" }
+        },
+        "handoff_policy_id": { "$ref": "#/$defs/id" },
+        "handoff_policy_version": { "$ref": "#/$defs/semver" },
+        "handoff_policy_hash": { "$ref": "#/$defs/hash" }
+      }
+    },
+    "privacy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "zdr_required",
+        "privacy_decision_id",
+        "privacy_policy_id",
+        "privacy_policy_version",
+        "zdr_evidence_id",
+        "zdr_evidence_hash"
+      ],
+      "properties": {
+        "zdr_required": { "const": true },
+        "privacy_decision_id": { "$ref": "#/$defs/id" },
+        "privacy_policy_id": { "$ref": "#/$defs/id" },
+        "privacy_policy_version": { "$ref": "#/$defs/semver" },
+        "zdr_evidence_id": { "$ref": "#/$defs/id" },
+        "zdr_evidence_hash": { "$ref": "#/$defs/hash" }
+      }
+    },
+    "budget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "policy_id",
+        "policy_version",
+        "scope_id",
+        "currency",
+        "accounting_scale",
+        "ceiling_accounting_units",
+        "estimated_accounting_units"
+      ],
+      "properties": {
+        "policy_id": { "$ref": "#/$defs/id" },
+        "policy_version": { "$ref": "#/$defs/semver" },
+        "scope_id": { "$ref": "#/$defs/id" },
+        "currency": { "type": "string", "minLength": 1 },
+        "accounting_scale": { "type": "string", "pattern": "^[0-9]+$" },
+        "ceiling_accounting_units": { "type": "string", "pattern": "^[0-9]+$" },
+        "estimated_accounting_units": {
+          "type": "string",
+          "pattern": "^[0-9]+$"
+        }
+      }
+    },
+    "versions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "model_registry_contract_version",
+        "route_registry_contract_version",
+        "registry_canonicalization_version",
+        "resolution_contract_version",
+        "resolution_decision_hash",
+        "authorization_contract_version"
+      ],
+      "properties": {
+        "model_registry_contract_version": { "$ref": "#/$defs/semver" },
+        "route_registry_contract_version": { "$ref": "#/$defs/semver" },
+        "registry_canonicalization_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "resolution_contract_version": { "$ref": "#/$defs/semver" },
+        "resolution_decision_hash": { "$ref": "#/$defs/hash" },
+        "authorization_contract_version": { "$ref": "#/$defs/semver" }
+      }
+    },
+    "evidence_ids": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/id" }
+    },
+    "reasons": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "evaluated_at": { "type": "string", "format": "date-time" },
+    "issued_at": { "type": "string", "format": "date-time" },
+    "expires_at": { "type": "string", "format": "date-time" },
+    "execution_correlation_id": { "$ref": "#/$defs/id" },
+    "audit_correlation_id": { "$ref": "#/$defs/id" },
+    "policy_hash": { "$ref": "#/$defs/hash" }
+  }
+}
