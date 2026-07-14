@@ -1,0 +1,490 @@
+{
+  "dossier_contract_version": "1.0.0",
+  "dossier_id": "openrouter.minimax-m2.7.normative-extraction.v1",
+  "dossier_version": "1.0.0",
+  "canonicalization_version": "registry-json-v1",
+  "candidate_path": {
+    "provider_id": "openrouter",
+    "openrouter_model_id": "minimax/minimax-m2.7",
+    "upstream_provider_id": "minimax",
+    "upstream_model_id": null,
+    "model_registry_entry_id": "openrouter.minimax-m2.7.variable.v1",
+    "model_registry_entry_version": "1.0.0",
+    "model_registry_entry_hash": "962d96be424974f40ba95ac3cb0fdc147cc59d90b687e4ee8ca05750cc0fa9cd",
+    "route_id": "openrouter.minimax-m2.7.variable",
+    "route_record_id": "openrouter.minimax-m2.7.variable-route.v1",
+    "route_version": "1.0.0",
+    "route_hash": "b70b10f24627e60ca6faf749637f01fba993ad75a404833392fb2ad3dbe7aba1",
+    "route_policy_id": "openrouter.minimax-m2.7.variable-policy",
+    "route_policy_version": "1.0.0",
+    "execution_profile_candidate_id": "openrouter.minimax-m2.7.normative-extraction.candidate",
+    "execution_profile_contract_version": "1.1.0",
+    "execution_profile_registry_presence": "absent",
+    "capability_id": "evidence.extraction.normative_claims"
+  },
+  "registry_contracts": {
+    "model_registry_contract_version": "1.0.0",
+    "route_registry_contract_version": "1.0.0",
+    "registry_canonicalization_version": "registry-json-v1"
+  },
+  "evidence": [
+    {
+      "category": "exact_model_identifier",
+      "mandatory": true,
+      "state": "verified",
+      "claims": { "openrouter_model_id": "minimax/minimax-m2.7" },
+      "sources": [
+        {
+          "source_kind": "repository_evidence",
+          "evidence_id": "openrouter.model-identity.v2",
+          "locator": "config/ai-provider-evidence.json#openrouter.model-identity.v2",
+          "integrity_hash": "3fef07e37d2441127da103a74212d0ab0df538066c39fedbe35fab523258ba13"
+        }
+      ],
+      "retrieved_at": "2026-07-13T00:00:00.000Z",
+      "reviewer_id": null,
+      "reviewed_at": "2026-07-13T00:00:00.000Z",
+      "expires_at": "2026-10-11T00:00:00.000Z",
+      "summary": "Repository evidence records the exact OpenRouter model slug.",
+      "limitations": [
+        "The slug does not pin an upstream endpoint or model revision."
+      ]
+    },
+    {
+      "category": "exact_upstream_route",
+      "mandatory": true,
+      "state": "unverified",
+      "claims": {
+        "upstream_provider_id": "minimax",
+        "upstream_model_id": null,
+        "verification": "variable"
+      },
+      "sources": [
+        {
+          "source_kind": "repository_evidence",
+          "evidence_id": "openrouter.provider-routing.v2",
+          "locator": "config/ai-provider-evidence.json#openrouter.provider-routing.v2",
+          "integrity_hash": "868d9dcf15676869d6b8375e6a877fa5bfa8011cbe0b2a2008487f4ef0fece6e"
+        }
+      ],
+      "retrieved_at": "2026-07-13T00:00:00.000Z",
+      "reviewer_id": null,
+      "reviewed_at": "2026-07-13T00:00:00.000Z",
+      "expires_at": "2026-08-12T00:00:00.000Z",
+      "summary": "Repository evidence records variable routing and does not prove an exact endpoint.",
+      "limitations": [
+        "No exact upstream endpoint allowlist and order are approved."
+      ]
+    },
+    {
+      "category": "model_lifecycle_release",
+      "mandatory": true,
+      "state": "verified",
+      "claims": {
+        "released_at": "2026-03-18",
+        "available": true,
+        "revision": null
+      },
+      "sources": [
+        {
+          "source_kind": "repository_evidence",
+          "evidence_id": "openrouter.model-lifecycle.v2",
+          "locator": "config/ai-provider-evidence.json#openrouter.model-lifecycle.v2",
+          "integrity_hash": "c146a43b660e7cc33caa762dc749f4cfa8994b0ee90c79ef041542909c58e16b"
+        }
+      ],
+      "retrieved_at": "2026-07-13T00:00:00.000Z",
+      "reviewer_id": null,
+      "reviewed_at": "2026-07-13T00:00:00.000Z",
+      "expires_at": "2026-10-11T00:00:00.000Z",
+      "summary": "Repository evidence records release date and catalog availability.",
+      "limitations": [
+        "No exact revision or contractual deprecation notice is proven."
+      ]
+    },
+    {
+      "category": "context_window_limits",
+      "mandatory": true,
+      "state": "unverified",
+      "claims": {
+        "context_window_tokens": 204800,
+        "maximum_output_tokens": null
+      },
+      "sources": [
+        {
+          "source_kind": "repository_evidence",
+          "evidence_id": "openrouter.context-limits.v2",
+          "locator": "config/ai-provider-evidence.json#openrouter.context-limits.v2",
+          "integrity_hash": "fd373ae8aa3224bab15e2267662c377a9d3e955844e3ec587c8a19c339bff69f"
+        }
+      ],
+      "retrieved_at": "2026-07-13T00:00:00.000Z",
+      "reviewer_id": null,
+      "reviewed_at": "2026-07-13T00:00:00.000Z",
+      "expires_at": "2026-10-11T00:00:00.000Z",
+      "summary": "The context window is recorded, but the maximum output limit is unknown.",
+      "limitations": ["Endpoint limits may vary."]
+    },
+    {
+      "category": "modalities",
+      "mandatory": true,
+      "state": "unverified",
+      "claims": { "input": ["text"], "output": ["text"] },
+      "sources": [
+        {
+          "source_kind": "repository_evidence",
+          "evidence_id": "openrouter.multimodal.v2",
+          "locator": "config/ai-provider-evidence.json#openrouter.multimodal.v2",
+          "integrity_hash": "ce535da05c148e89b31a376ed1fdbafcecda26157fb8e74bf6e065d56f98df44"
+        }
+      ],
+      "retrieved_at": "2026-07-13T00:00:00.000Z",
+      "reviewer_id": null,
+      "reviewed_at": "2026-07-13T00:00:00.000Z",
+      "expires_at": "2026-10-11T00:00:00.000Z",
+      "summary": "No exact multimodal support was accepted by the repository review.",
+      "limitations": [
+        "Only the registry's text-only candidate declaration is available."
+      ]
+    },
+    {
+      "category": "structured_output_json_schema",
+      "mandatory": true,
+      "state": "unverified",
+      "claims": { "json_object": true, "json_schema_suitable": false },
+      "sources": [
+        {
+          "source_kind": "repository_evidence",
+          "evidence_id": "openrouter.structured-outputs.v2",
+          "locator": "config/ai-provider-evidence.json#openrouter.structured-outputs.v2",
+          "integrity_hash": "b7d977b173b19b535ab364ee4fabe334329849b7c0083bf917b41f143ee02f49"
+        }
+      ],
+      "retrieved_at": "2026-07-13T00:00:00.000Z",
+      "reviewer_id": null,
+      "reviewed_at": "2026-07-13T00:00:00.000Z",
+      "expires_at": "2026-10-11T00:00:00.000Z",
+      "summary": "JSON object response formatting is recorded; strict JSON Schema suitability is not proven.",
+      "limitations": ["Support is not verified for an exact upstream route."]
+    },
+    {
+      "category": "tool_function_calling",
+      "mandatory": false,
+      "state": "unverified",
+      "claims": {
+        "tools": true,
+        "tool_choice": true,
+        "parallel_tool_calls": true
+      },
+      "sources": [
+        {
+          "source_kind": "repository_evidence",
+          "evidence_id": "openrouter.tool-calling.v2",
+          "locator": "config/ai-provider-evidence.json#openrouter.tool-calling.v2",
+          "integrity_hash": "a66de77aa741d8925717d69040e7568a246f1c0f9d85ea7ebdcbde7bfe2ebe36"
+        }
+      ],
+      "retrieved_at": "2026-07-13T00:00:00.000Z",
+      "reviewer_id": null,
+      "reviewed_at": "2026-07-13T00:00:00.000Z",
+      "expires_at": "2026-10-11T00:00:00.000Z",
+      "summary": "Published parameter support is recorded without local correctness evidence.",
+      "limitations": ["No tool-call benchmark exists."]
+    },
+    {
+      "category": "pricing",
+      "mandatory": true,
+      "state": "conflicting",
+      "claims": {
+        "pricing_identity": null,
+        "effective_at": null,
+        "input_price": null,
+        "cached_input_price": null,
+        "output_price": null,
+        "currency": "USD",
+        "unit": "token",
+        "variable": true,
+        "bounded_policy": null
+      },
+      "sources": [
+        {
+          "source_kind": "repository_evidence",
+          "evidence_id": "openrouter.pricing.v2",
+          "locator": "config/ai-provider-evidence.json#openrouter.pricing.v2",
+          "integrity_hash": "a7ab6947ed90f0093844abe056a26d2004ace3c1b7599767c82f37242c21b032"
+        }
+      ],
+      "retrieved_at": "2026-07-13T00:00:00.000Z",
+      "reviewer_id": null,
+      "reviewed_at": "2026-07-13T00:00:00.000Z",
+      "expires_at": "2026-08-12T00:00:00.000Z",
+      "summary": "Multiple upstream offers have different prices; no bounded exact-route pricing contract exists.",
+      "limitations": [
+        "No deterministic input, cached-input, or output rate may be asserted."
+      ]
+    },
+    {
+      "category": "privacy_policy",
+      "mandatory": true,
+      "state": "unverified",
+      "claims": {
+        "openrouter_policy": "repository reference present",
+        "exact_upstream_policy": null
+      },
+      "sources": [
+        {
+          "source_kind": "repository_evidence",
+          "evidence_id": "openrouter.provider-identity.v2",
+          "locator": "config/ai-provider-evidence.json#openrouter.provider-identity.v2",
+          "integrity_hash": "afb077600833e035c27cb537b75dfd621fd42c25b1c901283dd179a71861c117"
+        }
+      ],
+      "retrieved_at": "2026-07-13T00:00:00.000Z",
+      "reviewer_id": null,
+      "reviewed_at": "2026-07-13T00:00:00.000Z",
+      "expires_at": "2026-10-11T00:00:00.000Z",
+      "summary": "A router-level privacy source exists, but exact upstream compatibility is unknown.",
+      "limitations": [
+        "Router policy cannot substitute for upstream policy evidence."
+      ]
+    },
+    {
+      "category": "retention",
+      "mandatory": true,
+      "state": "unverified",
+      "claims": { "openrouter_retention": null, "upstream_retention": null },
+      "sources": [
+        {
+          "source_kind": "repository_evidence",
+          "evidence_id": "openrouter.retention.v2",
+          "locator": "config/ai-provider-evidence.json#openrouter.retention.v2",
+          "integrity_hash": "5b749a8b0536627c59ca2cca0257852cb1e1b0d7fe1dba6ae0f571317ae018e1"
+        }
+      ],
+      "retrieved_at": "2026-07-13T00:00:00.000Z",
+      "reviewer_id": null,
+      "reviewed_at": "2026-07-13T00:00:00.000Z",
+      "expires_at": "2026-08-12T00:00:00.000Z",
+      "summary": "Exact route retention behavior is unknown.",
+      "limitations": ["Both router and upstream retention must be proven."]
+    },
+    {
+      "category": "training_data_use",
+      "mandatory": true,
+      "state": "unverified",
+      "claims": {
+        "training_use": null,
+        "data_collection_filter": "available but unconfigured"
+      },
+      "sources": [
+        {
+          "source_kind": "repository_evidence",
+          "evidence_id": "openrouter.training-use.v2",
+          "locator": "config/ai-provider-evidence.json#openrouter.training-use.v2",
+          "integrity_hash": "9cb0cf3bc72ba54501ec38aa9ff2d762138b16ec4aa114e3f90d02e86dfb97fe"
+        }
+      ],
+      "retrieved_at": "2026-07-13T00:00:00.000Z",
+      "reviewer_id": null,
+      "reviewed_at": "2026-07-13T00:00:00.000Z",
+      "expires_at": "2026-08-12T00:00:00.000Z",
+      "summary": "Exact upstream training and data-use behavior is unknown.",
+      "limitations": ["A router filter does not prove upstream behavior."]
+    },
+    {
+      "category": "zdr",
+      "mandatory": true,
+      "state": "unverified",
+      "claims": {
+        "eligible": null,
+        "required_account_configuration": null,
+        "configured": false
+      },
+      "sources": [
+        {
+          "source_kind": "repository_evidence",
+          "evidence_id": "openrouter.zdr.v2",
+          "locator": "config/ai-provider-evidence.json#openrouter.zdr.v2",
+          "integrity_hash": "1a76cc388b02b67cef75a35f106e67686c243422fa3fdd6b01def7dfd06afd48"
+        }
+      ],
+      "retrieved_at": "2026-07-13T00:00:00.000Z",
+      "reviewer_id": null,
+      "reviewed_at": "2026-07-13T00:00:00.000Z",
+      "expires_at": "2026-08-12T00:00:00.000Z",
+      "summary": "ZDR eligibility and required account configuration are unverified.",
+      "limitations": ["No provider account was accessed or changed."]
+    },
+    {
+      "category": "geography_jurisdiction",
+      "mandatory": true,
+      "state": "unverified",
+      "claims": {
+        "processing_region": null,
+        "jurisdictional_constraints": null
+      },
+      "sources": [
+        {
+          "source_kind": "repository_evidence",
+          "evidence_id": "openrouter.processing-regions.v2",
+          "locator": "config/ai-provider-evidence.json#openrouter.processing-regions.v2",
+          "integrity_hash": "b7bf1955aac7ddf9f166602809d300c184fdaf481d735d6ab9f5d11c27947232"
+        }
+      ],
+      "retrieved_at": "2026-07-13T00:00:00.000Z",
+      "reviewer_id": null,
+      "reviewed_at": "2026-07-13T00:00:00.000Z",
+      "expires_at": "2026-08-12T00:00:00.000Z",
+      "summary": "No exact processing geography is established.",
+      "limitations": ["Router and upstream geography both require review."]
+    },
+    {
+      "category": "terms_acceptable_use",
+      "mandatory": true,
+      "state": "unverified",
+      "claims": {
+        "upstream_terms_apply": true,
+        "legal_review_completed": false
+      },
+      "sources": [
+        {
+          "source_kind": "repository_evidence",
+          "evidence_id": "openrouter.restrictions.v2",
+          "locator": "config/ai-provider-evidence.json#openrouter.restrictions.v2",
+          "integrity_hash": "e5a722e0015f266b4d3b06ee69974cb08cebc1740b7eb47277bbba8c18d8d063"
+        }
+      ],
+      "retrieved_at": "2026-07-13T00:00:00.000Z",
+      "reviewer_id": null,
+      "reviewed_at": "2026-07-13T00:00:00.000Z",
+      "expires_at": "2026-10-11T00:00:00.000Z",
+      "summary": "Repository evidence records router terms and upstream-term dependency.",
+      "limitations": [
+        "Counsel review and exact upstream acceptable-use review are absent."
+      ]
+    },
+    {
+      "category": "capability_benchmark",
+      "mandatory": true,
+      "state": "missing",
+      "claims": { "capability_id": null, "benchmark_report_id": null },
+      "sources": [
+        {
+          "source_kind": "repository_evidence",
+          "evidence_id": "openrouter.normative-extraction.v2",
+          "locator": "config/ai-provider-evidence.json#openrouter.normative-extraction.v2",
+          "integrity_hash": "ad6b844d4ed8718e44de3ca49142c04db650b9508e32198e7af95067d370a34c"
+        }
+      ],
+      "retrieved_at": "2026-07-13T00:00:00.000Z",
+      "reviewer_id": null,
+      "reviewed_at": "2026-07-13T00:00:00.000Z",
+      "expires_at": "2026-10-11T00:00:00.000Z",
+      "summary": "No benchmark proves normative-claim extraction suitability.",
+      "limitations": ["General model claims are not benchmark evidence."]
+    },
+    {
+      "category": "latency_reliability",
+      "mandatory": false,
+      "state": "unverified",
+      "claims": { "latency": null, "reliability": null, "rate_limits": null },
+      "sources": [
+        {
+          "source_kind": "repository_evidence",
+          "evidence_id": "openrouter.rate-limits.v2",
+          "locator": "config/ai-provider-evidence.json#openrouter.rate-limits.v2",
+          "integrity_hash": "d4ffbe5caaf6470f7c47972a647e34bfc72fe30c4abe7f51c41b654794f4515c"
+        }
+      ],
+      "retrieved_at": "2026-07-13T00:00:00.000Z",
+      "reviewer_id": null,
+      "reviewed_at": "2026-07-13T00:00:00.000Z",
+      "expires_at": "2026-08-12T00:00:00.000Z",
+      "summary": "Exact account and route operational characteristics are unavailable.",
+      "limitations": ["No live call or account lookup was performed."]
+    },
+    {
+      "category": "known_limitations",
+      "mandatory": true,
+      "state": "verified",
+      "claims": { "unresolved_risk_count": 7 },
+      "sources": [
+        {
+          "source_kind": "repository_evidence",
+          "evidence_id": "openrouter.provider-routing.v2",
+          "locator": "config/ai-provider-evidence.json#openrouter.provider-routing.v2",
+          "integrity_hash": "868d9dcf15676869d6b8375e6a877fa5bfa8011cbe0b2a2008487f4ef0fece6e"
+        }
+      ],
+      "retrieved_at": "2026-07-13T00:00:00.000Z",
+      "reviewer_id": null,
+      "reviewed_at": "2026-07-13T00:00:00.000Z",
+      "expires_at": "2026-08-12T00:00:00.000Z",
+      "summary": "Repository evidence explicitly records unresolved route, price, privacy, ZDR, capability, profile, and approval risks.",
+      "limitations": [
+        "The list is a local readiness snapshot, not a production-readiness claim."
+      ]
+    }
+  ],
+  "risks": [
+    {
+      "risk_id": "exact-route-unproven",
+      "mandatory": true,
+      "status": "open",
+      "description": "Exact upstream provider/model endpoint routing is not proven.",
+      "resolution": null
+    },
+    {
+      "risk_id": "pricing-conflicting",
+      "mandatory": true,
+      "status": "open",
+      "description": "Pricing varies by upstream and no bounded policy exists.",
+      "resolution": null
+    },
+    {
+      "risk_id": "privacy-retention-training-unknown",
+      "mandatory": true,
+      "status": "open",
+      "description": "Route-specific privacy, retention, and training-use behavior is unknown.",
+      "resolution": null
+    },
+    {
+      "risk_id": "zdr-unverified",
+      "mandatory": true,
+      "status": "open",
+      "description": "ZDR eligibility and required account configuration are unverified.",
+      "resolution": null
+    },
+    {
+      "risk_id": "json-schema-unverified",
+      "mandatory": true,
+      "status": "open",
+      "description": "Strict JSON Schema suitability is unverified.",
+      "resolution": null
+    },
+    {
+      "risk_id": "benchmark-missing",
+      "mandatory": true,
+      "status": "open",
+      "description": "Capability-specific benchmark evidence is missing.",
+      "resolution": null
+    },
+    {
+      "risk_id": "profile-and-approval-absent",
+      "mandatory": true,
+      "status": "open",
+      "description": "No execution profile exists and no human dossier approval has been issued.",
+      "resolution": null
+    }
+  ],
+  "human_approval": {
+    "status": "pending",
+    "reviewer_id": null,
+    "scope": null,
+    "decided_at": null,
+    "expires_at": null,
+    "decision_reason": null
+  },
+  "created_at": "2026-07-14T00:00:00.000Z",
+  "dossier_hash": "c6bae9d5f4032bbcb765abb7fd658dc0bf43963587cee6c91975f244643a3bdc"
+}

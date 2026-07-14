@@ -17,7 +17,8 @@
  *  5. no automatic fallback identifier is introduced;
  *  6. no OpenRouter execution profile exists and the readiness catalog
  *     keeps every candidate disabled and runtime-blocked;
- *  7. route resolution and authorization remain metadata-only and cannot
+ *  7. route resolution, authorization, and readiness evaluation remain
+ *     metadata-only and cannot
  *     import or invoke the adapter, transport, gateway, environment, or network.
  */
 
@@ -169,6 +170,7 @@ describe("governed OpenRouter provider boundary", () => {
       "src/providers/openrouter-registry.ts",
       "src/providers/openrouter-route-resolution.ts",
       "src/providers/openrouter-resolution-authorization.ts",
+      "src/providers/openrouter-readiness-dossier.ts",
     ]) {
       assert.doesNotMatch(
         read(file),
