@@ -71,3 +71,17 @@ AI-73 privacy/ZDR and AI-74 durable budget governance now run before the single 
 `src/providers/openrouter-adapter.ts` adds a transport-only OpenRouter adapter behind the same boundary. It is disabled by default (`config/ai-openrouter-adapter.json`, contract `1.0.0`), has no execution profile, no default model, no route policy shipped, zero retries, and a fixed base URL (`https://openrouter.ai/api/v1`) defined only in the provider layer; configuration carries the identifier `openrouter-api-v1`, never a URL. The API key is referenced by environment variable name (`OPENROUTER_API_KEY`) and read only at execution time; it is never stored, logged, or validated by a live call.
 
 Routing is exact and fail-closed: an exact pinned model per approved route policy, optional upstream allowlist and ordering sent through documented `provider` request controls (`only`, `order`, `allow_fallbacks: false`, `data_collection: "deny"`), `openrouter/auto` structurally forbidden, and mandatory post-response route verification. Reviewed evidence records OpenRouter's default routing as variable, so the adapter never claims a guaranteed upstream; unproven routes block deterministically (`ROUTE_VERIFICATION_UNAVAILABLE`, `UPSTREAM_PROVIDER_UNVERIFIED`, `PROVIDER_SUBSTITUTION_DETECTED`, `MODEL_SUBSTITUTION_DETECTED`). The transport is injected; production may use `fetch`, while every test uses a deterministic mock. The gateway now also passes the bound pricing contract identity into `ProviderExecutionContext.pricing_contract` (metadata only) so transport adapters can verify pricing compatibility without ever resolving pricing from a live response. Boundary rules are enforced by `tests/architecture/openrouter-boundary.test.ts`.
+
+## Governed OpenRouter model/route registry (non-executable)
+
+The versioned registry under `config/ai-openrouter-*-registry.json` is a
+provider-layer, read-only candidate catalog. It does not feed the gateway or
+adapter and cannot create an execution profile. The existing route-policy
+contract remains authoritative. The single seeded OpenRouter route is
+`evidence_incomplete`, `variable`, and disabled; it has no rational pricing
+contract, no approved benchmark, and no exact upstream proof. Registry lookup is
+exact-version only, append-only history is preserved, and conflicting active
+versions fail closed. Route records carry explicit allowed/preferred model-entry
+references, an empty fallback order, and mandatory eligibility requirements,
+but remain metadata outside gateway execution. See
+`docs/architecture/ai-openrouter-model-route-registry.md`.

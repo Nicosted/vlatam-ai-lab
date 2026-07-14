@@ -1,0 +1,159 @@
+{
+  "fixture_contract_version": "1.0.0",
+  "scenarios": [
+    { "name": "enabled-entry", "expected_error": "enabled_entry_forbidden" },
+    {
+      "name": "approved-without-benchmark",
+      "expected_error": "approved_without_complete_evidence_or_benchmark"
+    },
+    {
+      "name": "candidate-with-expired-evidence",
+      "expected_error": "candidate_not_ready"
+    },
+    { "name": "unknown-lifecycle", "expected_error": "unknown_lifecycle" },
+    {
+      "name": "unknown-field",
+      "expected_error": "unknown_entry_field:unexpected"
+    },
+    { "name": "malformed-model-id", "expected_error": "malformed_model_id" },
+    { "name": "openrouter-auto", "expected_error": "pseudo_model_forbidden" },
+    {
+      "name": "duplicate-entry-id-version",
+      "expected_error": "duplicate_entry_id_version"
+    },
+    {
+      "name": "duplicate-route-id-version",
+      "expected_error": "duplicate_route_id_version"
+    },
+    {
+      "name": "duplicate-entry-id",
+      "expected_error": "duplicate_entry_id"
+    },
+    {
+      "name": "duplicate-route-record-id",
+      "expected_error": "duplicate_route_record_id"
+    },
+    {
+      "name": "ambiguous-active-model-route",
+      "expected_error": "ambiguous_active_model_route"
+    },
+    {
+      "name": "model-route-mismatch",
+      "expected_error": "model_route_mismatch"
+    },
+    {
+      "name": "missing-upstream-identity",
+      "expected_error": "missing_upstream_identity"
+    },
+    {
+      "name": "variable-route-marked-exact",
+      "expected_error": "variable_route_marked_exact"
+    },
+    {
+      "name": "generic-evidence-used-as-model-evidence",
+      "expected_error": "generic_evidence_used_as_model_evidence"
+    },
+    {
+      "name": "missing-evidence-hash",
+      "expected_error": "missing_evidence_hash"
+    },
+    {
+      "name": "evidence-hash-mismatch",
+      "expected_error": "evidence_hash_mismatch"
+    },
+    {
+      "name": "unsupported-pricing-version",
+      "expected_error": "unsupported_pricing_version"
+    },
+    {
+      "name": "pricing-evidence-mismatch",
+      "expected_error": "pricing_evidence_mismatch"
+    },
+    {
+      "name": "privacy-evidence-mismatch",
+      "expected_error": "privacy_evidence_mismatch"
+    },
+    {
+      "name": "operational-evidence-mismatch",
+      "expected_error": "operational_evidence_mismatch"
+    },
+    { "name": "capability-unknown", "expected_error": "unknown_capability" },
+    { "name": "future-review-date", "expected_error": "future_review_date" },
+    {
+      "name": "expiry-before-review",
+      "expected_error": "expiry_before_review"
+    },
+    { "name": "missing-review", "expected_error": "missing_review" },
+    { "name": "supersession-cycle", "expected_error": "supersession_cycle" },
+    { "name": "self-supersession", "expected_error": "self_supersession" },
+    { "name": "version-regression", "expected_error": "version_regression" },
+    {
+      "name": "content-mutation-without-hash-change",
+      "expected_error": "entry_hash_mismatch"
+    },
+    {
+      "name": "missing-route-field",
+      "expected_error": "missing_route_field:route_hash"
+    },
+    {
+      "name": "malformed-model-evidence-references",
+      "expected_error": "invalid_model_evidence_refs"
+    },
+    {
+      "name": "route-fallback-enabled",
+      "expected_error": "route_fallback_enabled"
+    },
+    {
+      "name": "unsafe-fallback-route",
+      "expected_error": "unsafe_fallback_route"
+    },
+    {
+      "name": "unknown-model-reference",
+      "expected_error": "unknown_model_reference"
+    },
+    {
+      "name": "preferred-model-outside-allowlist",
+      "expected_error": "invalid_preferred_model_order"
+    },
+    {
+      "name": "incomplete-preferred-model-order",
+      "expected_error": "incomplete_preferred_model_order"
+    },
+    {
+      "name": "invalid-eligibility-requirements",
+      "expected_error": "invalid_eligibility_requirements"
+    },
+    {
+      "name": "orphan-route-reference",
+      "expected_error": "orphan_route_reference"
+    },
+    {
+      "name": "provider-order-without-allowlist",
+      "expected_error": "provider_order_without_allowlist"
+    },
+    {
+      "name": "malformed-provider-order",
+      "expected_error": "invalid_upstream_provider_order"
+    },
+    {
+      "name": "data-collection-not-denied",
+      "expected_error": "data_collection_not_denied"
+    },
+    {
+      "name": "executable-profile-reference",
+      "expected_error": "executable_profile_reference"
+    },
+    {
+      "name": "provider-secret-field",
+      "expected_error": "credential_shaped_field:api_key"
+    },
+    {
+      "name": "runtime-enablement-flag",
+      "expected_error": "unknown_entry_field:runtime_enabled"
+    },
+    {
+      "name": "provider-metadata-leakage",
+      "expected_error": "unknown_entry_field:provider_metadata"
+    }
+  ]
+}
