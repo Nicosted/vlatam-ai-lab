@@ -1,0 +1,182 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/ai-openrouter-model-registry.schema.json",
+  "title": "Versioned append-only OpenRouter model-route candidate registry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "registry_contract_version",
+    "canonicalization_version",
+    "entries"
+  ],
+  "properties": {
+    "registry_contract_version": { "const": "1.0.0" },
+    "canonicalization_version": { "const": "registry-json-v1" },
+    "entries": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/entry" }
+    }
+  },
+  "$defs": {
+    "semver": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._:-]+$" },
+    "hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "model_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9.-]*/[a-z0-9][a-z0-9.:-]*$",
+      "not": { "pattern": "^openrouter/" }
+    },
+    "evidence_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["evidence_id", "evidence_hash"],
+      "properties": {
+        "evidence_id": { "$ref": "#/$defs/id" },
+        "evidence_hash": { "$ref": "#/$defs/hash" }
+      }
+    },
+    "entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "registry_contract_version",
+        "entry_id",
+        "entry_version",
+        "model_id",
+        "model_revision",
+        "route_id",
+        "provider_id",
+        "upstream_provider_id",
+        "upstream_route_verification",
+        "capability_ids",
+        "supported_input_modalities",
+        "supported_output_modalities",
+        "structured_output_modes",
+        "tool_calling",
+        "context_window_tokens",
+        "maximum_output_tokens",
+        "usage_mapping_version",
+        "pricing_contract_id",
+        "pricing_contract_version",
+        "pricing_evidence_id",
+        "pricing_evidence_hash",
+        "privacy_evidence_id",
+        "privacy_evidence_hash",
+        "operational_evidence_id",
+        "operational_evidence_hash",
+        "model_evidence_refs",
+        "benchmark_evidence_ids",
+        "route_policy_id",
+        "route_policy_version",
+        "lifecycle",
+        "enabled",
+        "review_status",
+        "reviewed_at",
+        "expires_at",
+        "supersedes_entry_id",
+        "created_at",
+        "entry_hash"
+      ],
+      "properties": {
+        "registry_contract_version": { "const": "1.0.0" },
+        "entry_id": { "$ref": "#/$defs/id" },
+        "entry_version": { "$ref": "#/$defs/semver" },
+        "model_id": { "$ref": "#/$defs/model_id" },
+        "model_revision": { "type": ["string", "null"], "minLength": 1 },
+        "route_id": { "$ref": "#/$defs/id" },
+        "provider_id": { "const": "openrouter" },
+        "upstream_provider_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]*$"
+        },
+        "upstream_route_verification": {
+          "enum": [
+            "verified_exact",
+            "documented_preference_only",
+            "response_verified_only",
+            "unverified",
+            "variable"
+          ]
+        },
+        "capability_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "supported_input_modalities": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "enum": ["text", "image", "audio", "video"] }
+        },
+        "supported_output_modalities": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "enum": ["text", "image", "audio"] }
+        },
+        "structured_output_modes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "enum": ["json_object", "json_schema"] }
+        },
+        "tool_calling": { "type": ["boolean", "null"] },
+        "context_window_tokens": { "type": ["integer", "null"], "minimum": 1 },
+        "maximum_output_tokens": { "type": ["integer", "null"], "minimum": 1 },
+        "usage_mapping_version": { "$ref": "#/$defs/semver" },
+        "pricing_contract_id": {
+          "anyOf": [{ "$ref": "#/$defs/id" }, { "type": "null" }]
+        },
+        "pricing_contract_version": {
+          "anyOf": [{ "$ref": "#/$defs/semver" }, { "type": "null" }]
+        },
+        "pricing_evidence_id": { "$ref": "#/$defs/id" },
+        "pricing_evidence_hash": { "$ref": "#/$defs/hash" },
+        "privacy_evidence_id": { "$ref": "#/$defs/id" },
+        "privacy_evidence_hash": { "$ref": "#/$defs/hash" },
+        "operational_evidence_id": { "$ref": "#/$defs/id" },
+        "operational_evidence_hash": { "$ref": "#/$defs/hash" },
+        "model_evidence_refs": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/evidence_ref" }
+        },
+        "benchmark_evidence_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/id" }
+        },
+        "route_policy_id": { "$ref": "#/$defs/id" },
+        "route_policy_version": { "const": "1.0.0" },
+        "lifecycle": {
+          "enum": [
+            "discovered",
+            "evidence_incomplete",
+            "benchmark_pending",
+            "candidate",
+            "approved",
+            "degraded",
+            "blocked",
+            "retired"
+          ]
+        },
+        "enabled": { "const": false },
+        "review_status": {
+          "enum": [
+            "pending",
+            "reviewed_with_blockers",
+            "reviewed_approved",
+            "rejected"
+          ]
+        },
+        "reviewed_at": { "type": ["string", "null"], "format": "date-time" },
+        "expires_at": { "type": "string", "format": "date-time" },
+        "supersedes_entry_id": {
+          "anyOf": [{ "$ref": "#/$defs/id" }, { "type": "null" }]
+        },
+        "created_at": { "type": "string", "format": "date-time" },
+        "entry_hash": { "$ref": "#/$defs/hash" }
+      }
+    }
+  }
+}

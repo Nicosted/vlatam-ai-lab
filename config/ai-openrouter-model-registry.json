@@ -1,0 +1,74 @@
+{
+  "registry_contract_version": "1.0.0",
+  "canonicalization_version": "registry-json-v1",
+  "entries": [
+    {
+      "registry_contract_version": "1.0.0",
+      "entry_id": "openrouter.minimax-m2.7.variable.v1",
+      "entry_version": "1.0.0",
+      "model_id": "minimax/minimax-m2.7",
+      "model_revision": null,
+      "route_id": "openrouter.minimax-m2.7.variable",
+      "provider_id": "openrouter",
+      "upstream_provider_id": "minimax",
+      "upstream_route_verification": "variable",
+      "capability_ids": ["evidence.extraction.normative_claims"],
+      "supported_input_modalities": ["text"],
+      "supported_output_modalities": ["text"],
+      "structured_output_modes": ["json_object"],
+      "tool_calling": true,
+      "context_window_tokens": 204800,
+      "maximum_output_tokens": null,
+      "usage_mapping_version": "1.0.0",
+      "pricing_contract_id": null,
+      "pricing_contract_version": null,
+      "pricing_evidence_id": "openrouter.pricing.v2",
+      "pricing_evidence_hash": "a7ab6947ed90f0093844abe056a26d2004ace3c1b7599767c82f37242c21b032",
+      "privacy_evidence_id": "openrouter.zdr.v2",
+      "privacy_evidence_hash": "1a76cc388b02b67cef75a35f106e67686c243422fa3fdd6b01def7dfd06afd48",
+      "operational_evidence_id": "openrouter.provider-routing.v2",
+      "operational_evidence_hash": "868d9dcf15676869d6b8375e6a877fa5bfa8011cbe0b2a2008487f4ef0fece6e",
+      "model_evidence_refs": [
+        {
+          "evidence_id": "openrouter.model-identity.v2",
+          "evidence_hash": "3fef07e37d2441127da103a74212d0ab0df538066c39fedbe35fab523258ba13"
+        },
+        {
+          "evidence_id": "openrouter.model-lifecycle.v2",
+          "evidence_hash": "c146a43b660e7cc33caa762dc749f4cfa8994b0ee90c79ef041542909c58e16b"
+        },
+        {
+          "evidence_id": "openrouter.context-limits.v2",
+          "evidence_hash": "fd373ae8aa3224bab15e2267662c377a9d3e955844e3ec587c8a19c339bff69f"
+        },
+        {
+          "evidence_id": "openrouter.structured-outputs.v2",
+          "evidence_hash": "b7d977b173b19b535ab364ee4fabe334329849b7c0083bf917b41f143ee02f49"
+        },
+        {
+          "evidence_id": "openrouter.tool-calling.v2",
+          "evidence_hash": "a66de77aa741d8925717d69040e7568a246f1c0f9d85ea7ebdcbde7bfe2ebe36"
+        },
+        {
+          "evidence_id": "openrouter.multimodal.v2",
+          "evidence_hash": "ce535da05c148e89b31a376ed1fdbafcecda26157fb8e74bf6e065d56f98df44"
+        },
+        {
+          "evidence_id": "openrouter.normative-extraction.v2",
+          "evidence_hash": "ad6b844d4ed8718e44de3ca49142c04db650b9508e32198e7af95067d370a34c"
+        }
+      ],
+      "benchmark_evidence_ids": [],
+      "route_policy_id": "openrouter.minimax-m2.7.variable-policy",
+      "route_policy_version": "1.0.0",
+      "lifecycle": "evidence_incomplete",
+      "enabled": false,
+      "review_status": "reviewed_with_blockers",
+      "reviewed_at": "2026-07-13T00:00:00.000Z",
+      "expires_at": "2026-08-12T00:00:00.000Z",
+      "supersedes_entry_id": null,
+      "created_at": "2026-07-14T01:00:00.000Z",
+      "entry_hash": "962d96be424974f40ba95ac3cb0fdc147cc59d90b687e4ee8ca05750cc0fa9cd"
+    }
+  ]
+}

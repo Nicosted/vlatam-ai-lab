@@ -161,4 +161,91 @@ describe("governed OpenRouter provider boundary", () => {
       ),
     );
   });
+
+  it("keeps registry modules read-only and adapter/transport-free", () => {
+    const registrySource = read("src/providers/openrouter-registry.ts");
+    assert.doesNotMatch(
+      registrySource,
+      /from\s+["'][^"']*(?:openrouter-adapter|multi-provider-gateway)\.js["']|createOpenRouterFetchTransport|\bfetch\s*\(|process\.env/,
+    );
+    for (const file of [
+      "src/providers/openrouter-adapter.ts",
+      "src/providers/adapter-registry.ts",
+      "src/execution/multi-provider-gateway.ts",
+      "src/routing/policy-router.ts",
+    ]) {
+      assert.doesNotMatch(read(file), /openrouter-registry/, file);
+    }
+  });
+
+  it("keeps endpoint literals in provider config and secrets out of registry data", () => {
+    const endpointOwners = runtimeSources.filter((file) =>
+      /https:\/\/openrouter\.ai\/api\/v1/.test(read(file)),
+    );
+    assert.deepEqual(endpointOwners, ["src/providers/openrouter-config.ts"]);
+    for (const file of [
+      "config/ai-openrouter-model-registry.json",
+      "config/ai-openrouter-route-registry.json",
+      "schemas/ai-openrouter-model-registry.schema.json",
+      "schemas/ai-openrouter-route-registry.schema.json",
+    ]) {
+      const content = read(file);
+      assert.doesNotMatch(content, /openrouter\.ai/, file);
+      assert.doesNotMatch(
+        content,
+        /api[_-]?key|secret|password|bearer|authorization|provider_metadata/i,
+        file,
+      );
+    }
+  });
+
+  it("keeps every registered route disabled, fallback-free, and data-denied", () => {
+    const entries = (
+      JSON.parse(read("config/ai-openrouter-model-registry.json")) as {
+        entries: { enabled: boolean; lifecycle: string }[];
+      }
+    ).entries;
+    const routes = (
+      JSON.parse(read("config/ai-openrouter-route-registry.json")) as {
+        routes: {
+          enabled: boolean;
+          allow_fallbacks: boolean;
+          fallback_model_entry_order: string[];
+          data_collection: string;
+          profile_compatibility: { executable_profile_ids: string[] };
+        }[];
+      }
+    ).routes;
+    assert.ok(
+      entries.every(
+        (entry) => !entry.enabled && entry.lifecycle !== "approved",
+      ),
+    );
+    assert.ok(
+      routes.every(
+        (route) =>
+          !route.enabled &&
+          !route.allow_fallbacks &&
+          route.fallback_model_entry_order.length === 0 &&
+          route.data_collection === "deny" &&
+          route.profile_compatibility.executable_profile_ids.length === 0,
+      ),
+    );
+  });
+
+  it("keeps registry identities outside domain and approved-artifact contracts", () => {
+    for (const file of [
+      "src/capabilities/contracts.ts",
+      "schemas/capability-request.schema.json",
+      "schemas/approved-artifact.schema.json",
+      "schemas/classifier-approved-artifact-export-contract.schema.json",
+      "schemas/review-artifact-binding.schema.json",
+    ]) {
+      assert.doesNotMatch(
+        read(file),
+        /minimax\/minimax-m2\.7|openrouter\.minimax-m2\.7\.variable/,
+        file,
+      );
+    }
+  });
 });

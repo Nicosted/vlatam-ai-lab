@@ -63,6 +63,14 @@ but no MiniMax pricing contract has been reviewed or enabled for runtime use.
 Human review remains mandatory after the remaining evidence and runtime pricing
 identity gaps close.
 
+**Update (2026-07-14, governed OpenRouter model/route registry PR):** the one
+exact OpenRouter model identity already present in reviewed evidence is now
+recorded in a separate versioned, append-only registry. The route remains
+`evidence_incomplete`, `variable`, disabled, and non-executable. This does not
+reuse MiniMax Direct evidence, resolve conflicting OpenRouter pricing, prove
+upstream pinning, satisfy privacy/ZDR, add benchmark evidence, create a profile,
+or change the AI-83 selected-candidate decision.
+
 Live execution additionally requires the existing explicit flag and server-side
 secret, current privacy and pricing approval, durable reservation, consumed AI-80
 authorization, registered public fixture identity, and hard campaign caps of 10

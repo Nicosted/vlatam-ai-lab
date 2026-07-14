@@ -5,3 +5,4 @@ export * from "./replay-adapter.js";
 export * from "./openai-compatible-adapter.js";
 export * from "./openrouter-config.js";
 export * from "./openrouter-adapter.js";
+export * from "./openrouter-registry.js";

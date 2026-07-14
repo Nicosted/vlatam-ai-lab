@@ -80,9 +80,10 @@ export interface OpenRouterAdapterConfig {
 
 /**
  * Exact route policy for one approved execution profile. The adapter
- * never derives any of these values; a policy exists only when a
- * reviewed route registry (a future PR) supplies it. This PR ships no
- * policy, so no profile is executable.
+ * never derives any of these values. The repository registry may describe
+ * reviewed candidate routes, but only a separately approved, complete route
+ * can supply this execution contract. The shipped registry has no approved
+ * route, so no profile is executable.
  *
  * Route verification honesty: OpenRouter documents per-request
  * provider controls (`provider.only`, `provider.order`,
