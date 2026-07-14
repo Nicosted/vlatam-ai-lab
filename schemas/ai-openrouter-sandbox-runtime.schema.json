@@ -1,0 +1,171 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/ai-openrouter-sandbox-runtime.schema.json",
+  "title": "OpenRouter manual sandbox runtime metadata",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "runtime_contract_version",
+    "configuration_id",
+    "adapter",
+    "provider_id",
+    "endpoint_id",
+    "exact_model",
+    "intended_provider_order",
+    "fallback_enabled",
+    "automatic_retries",
+    "timeout_ms",
+    "maximum_input_tokens",
+    "maximum_output_tokens",
+    "maximum_requests",
+    "maximum_total_spend_usd",
+    "manual_only",
+    "require_parameters",
+    "zdr_required",
+    "data_collection",
+    "kill_switch",
+    "bindings",
+    "approval_reference",
+    "approval_state",
+    "approval_issuer",
+    "approval_scope",
+    "approval_expires_at",
+    "expires_at",
+    "secret_reference_name",
+    "allowed_test_data_classification",
+    "readiness_outcome",
+    "proposal_outcome",
+    "exact_routing_status",
+    "privacy_review",
+    "retention_review",
+    "training_use_review",
+    "geography_review",
+    "zdr_review",
+    "structured_output_review",
+    "benchmark_acceptance",
+    "legal_review",
+    "security_review",
+    "model_enabled",
+    "route_enabled",
+    "profile_enabled",
+    "budget_enabled"
+  ],
+  "properties": {
+    "runtime_contract_version": { "const": "1.0.0" },
+    "configuration_id": { "$ref": "#/$defs/id" },
+    "adapter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["identity", "version", "enabled", "hash"],
+      "properties": {
+        "identity": { "const": "openrouter.transport.chat-completions" },
+        "version": { "const": "1.0.0" },
+        "enabled": { "type": "boolean" },
+        "hash": { "$ref": "#/$defs/hash" }
+      }
+    },
+    "provider_id": { "const": "openrouter" },
+    "endpoint_id": { "const": "openrouter-api-v1" },
+    "exact_model": { "const": "minimax/minimax-m2.7" },
+    "intended_provider_order": {
+      "type": "array",
+      "prefixItems": [{ "const": "minimax" }],
+      "items": false
+    },
+    "fallback_enabled": { "const": false },
+    "automatic_retries": { "const": 0 },
+    "timeout_ms": { "type": "integer", "minimum": 1, "maximum": 10000 },
+    "maximum_input_tokens": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 8000
+    },
+    "maximum_output_tokens": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 2000
+    },
+    "maximum_requests": { "type": "integer", "minimum": 1, "maximum": 10 },
+    "maximum_total_spend_usd": { "const": "0.05" },
+    "manual_only": { "const": true },
+    "require_parameters": { "const": true },
+    "zdr_required": { "const": true },
+    "data_collection": { "const": "deny" },
+    "kill_switch": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reference", "active", "owner"],
+      "properties": {
+        "reference": { "$ref": "#/$defs/id" },
+        "active": { "type": "boolean" },
+        "owner": { "type": "string", "minLength": 1 }
+      }
+    },
+    "bindings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "proposal_hash",
+        "dossier_hash",
+        "evidence_pack_hash",
+        "profile_hash",
+        "route_hash",
+        "model_hash",
+        "exact_policy_hash"
+      ],
+      "properties": {
+        "proposal_hash": { "$ref": "#/$defs/hash" },
+        "dossier_hash": { "$ref": "#/$defs/hash" },
+        "evidence_pack_hash": { "$ref": "#/$defs/hash" },
+        "profile_hash": { "$ref": "#/$defs/hash" },
+        "route_hash": { "$ref": "#/$defs/hash" },
+        "model_hash": { "$ref": "#/$defs/hash" },
+        "exact_policy_hash": {
+          "anyOf": [{ "$ref": "#/$defs/hash" }, { "type": "null" }]
+        }
+      }
+    },
+    "approval_reference": { "$ref": "#/$defs/id" },
+    "approval_state": { "enum": ["pending", "approved", "rejected"] },
+    "approval_issuer": { "type": ["string", "null"] },
+    "approval_scope": {
+      "enum": [
+        "sandbox_configuration_proposal_only",
+        "manual_sandbox_execution_exact_hashes"
+      ]
+    },
+    "approval_expires_at": {
+      "type": ["string", "null"],
+      "format": "date-time"
+    },
+    "expires_at": { "type": "string", "format": "date-time" },
+    "secret_reference_name": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_]{2,63}$"
+    },
+    "allowed_test_data_classification": {
+      "enum": ["synthetic", "specifically_approved_non_sensitive"]
+    },
+    "readiness_outcome": { "enum": ["blocked", "eligible"] },
+    "proposal_outcome": { "enum": ["blocked", "eligible_for_configuration"] },
+    "exact_routing_status": { "enum": ["unresolved", "verified"] },
+    "privacy_review": { "$ref": "#/$defs/review" },
+    "retention_review": { "$ref": "#/$defs/review" },
+    "training_use_review": { "$ref": "#/$defs/review" },
+    "geography_review": { "$ref": "#/$defs/review" },
+    "zdr_review": { "$ref": "#/$defs/review" },
+    "structured_output_review": { "$ref": "#/$defs/review" },
+    "benchmark_acceptance": { "enum": ["missing", "approved"] },
+    "legal_review": { "$ref": "#/$defs/review" },
+    "security_review": { "$ref": "#/$defs/review" },
+    "model_enabled": { "type": "boolean" },
+    "route_enabled": { "type": "boolean" },
+    "profile_enabled": { "type": "boolean" },
+    "budget_enabled": { "type": "boolean" }
+  },
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._:-]+$" },
+    "hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "review": { "enum": ["pending", "approved"] }
+  }
+}

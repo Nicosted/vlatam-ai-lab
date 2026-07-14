@@ -165,21 +165,14 @@ function setup(
         ? defaultConfig
         : { ...defaultConfig, enabled: true },
       route_policies: [routePolicy],
-      env: options.disabledAdapter
-        ? new Proxy(
-            {},
-            {
-              get: () => {
-                environmentReads += 1;
-                return undefined;
-              },
-            },
-          )
-        : {
-            AI_LAB_LIVE_PROVIDER_EXECUTION_ENABLED: "true",
-            AI_LAB_OPENROUTER_ENABLED: "true",
-            OPENROUTER_API_KEY: "synthetic-unit-test-placeholder",
-          },
+      secret_provider: {
+        resolve: async () => {
+          environmentReads += 1;
+          return options.disabledAdapter
+            ? undefined
+            : "synthetic-unit-test-placeholder";
+        },
+      },
       transport: (transportRequest) => {
         transportCalls += 1;
         if (options.hangTransport) {
@@ -427,7 +420,7 @@ describe("governed OpenRouter adapter behind the gateway", () => {
     controller.abort();
     const outcome = await pending;
     assert.equal(outcome.audit.error_code, "EXECUTION_ABORTED");
-    assert.equal(subject.transportCalls(), 1);
+    assert.equal(subject.transportCalls(), 0);
   });
 
   it("keeps the proposal profile and every candidate disabled and blocked", () => {

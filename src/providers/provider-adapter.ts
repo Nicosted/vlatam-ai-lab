@@ -34,6 +34,8 @@ export interface ProviderUsage {
   readonly cached_input_tokens?: number | undefined;
   readonly cache_write_input_tokens?: number | undefined;
   readonly reasoning_tokens?: number | undefined;
+  /** Exact provider-reported decimal metadata only; never estimated. */
+  readonly reported_cost_usd?: string | undefined;
   readonly source?: "provider_reported" | "fixture" | "unavailable";
   readonly fixture_origin?: "synthetic" | "sanitized_recorded";
 }

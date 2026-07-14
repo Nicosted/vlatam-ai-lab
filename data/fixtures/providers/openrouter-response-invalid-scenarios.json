@@ -136,7 +136,7 @@
     },
     {
       "scenario": "raw_provider_error_leakage",
-      "expected_adapter_code": "TRANSPORT_FAILURE",
+      "expected_adapter_code": "PROVIDER_UNAVAILABLE",
       "response": {
         "status": 502,
         "body_raw": "{\"error\":{\"message\":\"FIXTURE-LEAK-MARKER-DO-NOT-EXPOSE internal upstream detail\"}}"

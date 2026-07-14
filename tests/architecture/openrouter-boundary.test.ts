@@ -53,7 +53,8 @@ const runtimeSources = [
 const read = (relPath: string): string =>
   readFileSync(resolve(repoRoot, relPath), "utf-8");
 const isProviderLayer = (relPath: string): boolean =>
-  relPath.startsWith("src/providers/");
+  relPath.startsWith("src/providers/") ||
+  relPath === "scripts/openrouter-sandbox-harness.ts";
 
 describe("governed OpenRouter provider boundary", () => {
   it("keeps the OpenRouter endpoint literal inside the provider layer only", () => {
@@ -248,6 +249,41 @@ describe("governed OpenRouter provider boundary", () => {
         file,
       );
     }
+  });
+
+  it("keeps preflight pure, adapter transport-only, and secret access final-boundary", () => {
+    const preflight = read("src/providers/openrouter-sandbox-preflight.ts");
+    assert.doesNotMatch(
+      preflight,
+      /openrouter-adapter|openrouter-registry|openrouter-route-resolution|openrouter-resolution-authorization|multi-provider-gateway|authorization-store|\bfetch\s*\(|process\.env/,
+    );
+    const adapter = read("src/providers/openrouter-adapter.ts");
+    assert.doesNotMatch(
+      adapter,
+      /openrouter-registry|openrouter-route-resolution|openrouter-resolution-authorization|openrouter-readiness-dossier|openrouter-external-evidence|process\.env/,
+    );
+    const secret = read("src/providers/openrouter-secret-provider.ts");
+    assert.match(secret, /process\.env\[referenceName\]/);
+    for (const file of [
+      "src/providers/openrouter-registry.ts",
+      "src/providers/openrouter-route-resolution.ts",
+      "src/providers/openrouter-resolution-authorization.ts",
+      "src/providers/openrouter-authorized-gateway.ts",
+      "src/providers/openrouter-sandbox-preflight.ts",
+    ]) {
+      assert.doesNotMatch(read(file), /process\.env/, file);
+    }
+  });
+
+  it("does not import the operator CLI from startup, APIs, schedulers, or workers", () => {
+    const violations = runtimeSources.filter(
+      (file) =>
+        file !== "scripts/openrouter-sandbox-harness.ts" &&
+        /scripts\/openrouter-sandbox-harness|openrouter-sandbox-harness\.ts/.test(
+          read(file),
+        ),
+    );
+    assert.deepEqual(violations, []);
   });
 
   it("keeps endpoint literals in provider config and secrets out of registry data", () => {

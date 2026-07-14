@@ -847,6 +847,19 @@
       "requires_human_review_semantics": true,
       "requires_traceability": true,
       "downstream_allowed_field_present": false
+    },
+    {
+      "contract_name": "ai_openrouter_sandbox_runtime",
+      "schema_file": "schemas/ai-openrouter-sandbox-runtime.schema.json",
+      "valid_fixture": "config/ai-openrouter-sandbox-runtime.json",
+      "invalid_fixtures": [],
+      "test_file": "tests/providers/openrouter-sandbox-runtime.test.ts",
+      "status": "implemented",
+      "purpose": "Closed metadata-only runtime contract for the exact manual OpenRouter MiniMax sandbox candidate, integrity bindings, ceilings, reviews, kill switch, budget, and secret reference name.",
+      "downstream_role": "Preflight input only; the repository fixture is blocked and cannot authorize secret access, consumption, transport, or provider traffic.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": false
     }
   ]
 }

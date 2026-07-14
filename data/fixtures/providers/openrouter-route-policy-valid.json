@@ -7,6 +7,8 @@
   "provider_order": ["minimax"],
   "allow_fallbacks": false,
   "data_collection": "deny",
+  "require_parameters": true,
+  "zdr": true,
   "require_route_metadata": true,
   "structured_output_mode": "json_object",
   "pricing_id": "openrouter.synthetic-fixture.v1",

@@ -35,6 +35,7 @@ prior layer.
 | **OpenRouter readiness dossier**               | Governed enablement-readiness evidence (delivered 2026-07-14; candidate blocked)                                  | Contract `1.0.0`, one exact candidate-path dossier, integrity-bound evidence, fail-closed evaluation, separate human-approval boundary, no runtime authority                            | AI-82 evidence; AI-86/87 registry and resolution; AI-88/89 authorization and gateway boundaries                 | close dossier blockers before a sandbox-enablement PR may be proposed                                  |
 | **OpenRouter reviewed external evidence pack** | Authoritative-source collection and dossier integration (delivered 2026-07-14; review pending, candidate blocked) | Contract `1.0.0`, exact candidate bindings, record/pack SHA-256 integrity, conflict/expiry semantics, metadata-only budget proposal, no runtime authority                               | OpenRouter readiness dossier; official public OpenRouter/MiniMax sources                                        | named evidence, privacy/security, legal, benchmark, and final dossier reviews remain required          |
 | **OpenRouter sandbox-enablement proposal**     | Governed configuration proposal (delivered 2026-07-14; blocked, execution disabled)                               | Contract `1.0.0`, exact dossier/pack/candidate bindings, separate approval, disabled profile metadata, first-run policy, reviewed ceilings, deterministic fail-closed evaluation        | readiness dossier; external evidence pack; AI-72 profile catalog; AI-85/86 disabled adapter and registries      | resolve all blockers, then separately review a configuration PR; execution authorization remains later |
+| **OpenRouter manual sandbox adapter harness**  | Transport and operator scaffolding (implemented 2026-07-14; blocked, non-executable)                              | Runtime metadata contract, pure preflight, final-boundary secret provider, active-by-default kill switch, fixture-only CLI, one-request mocked transport coverage                       | sandbox proposal; readiness dossier; AI-80/85/89 governed chain                                                 | resolve evidence/review/approval/hash/budget/secret/kill-switch blockers before one real request       |
 
 Post-AI-84 governance hardening adds the internal review-artifact hash binding
 and the durable budget and usage ledger without changing the external
@@ -55,6 +56,9 @@ The sandbox-enablement proposal adds only a disabled profile candidate and
 configuration-review artifacts. It does not change evidence, enable the route
 or adapter, issue or consume authorization, access authentication material, or
 call a provider. Its repository outcome is `blocked`.
+The manual sandbox harness adds technical transport capability without runtime
+authority. Repository preflight remains blocked, the live executor is not
+wired, and the kill switch and budget defaults prevent secret or network access.
 The exact next evidence-producing PR remains **capability-specific OpenRouter
 benchmarking**, followed by renewed dossier evaluation and explicit human
 approval. Even an approved dossier can authorize only a later
