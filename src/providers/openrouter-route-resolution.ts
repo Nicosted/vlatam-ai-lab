@@ -63,6 +63,7 @@ export interface OpenRouterRouteResolutionAudit {
 interface OpenRouterRouteResolutionBase {
   readonly status: OpenRouterRouteResolutionStatus;
   readonly route_id: string | null;
+  readonly evaluated_at: string | null;
   readonly decision_reasons: readonly string[];
   readonly registry: OpenRouterRouteResolutionRegistryMetadata;
   readonly audit: OpenRouterRouteResolutionAudit;
@@ -169,7 +170,7 @@ function deepFreeze<T>(value: T): T {
   return value;
 }
 
-function decisionHash(value: unknown): string {
+export function computeOpenRouterRouteResolutionHash(value: unknown): string {
   return createHash("sha256")
     .update(OPENROUTER_ROUTE_RESOLUTION_HASH_DOMAIN)
     .update("\n")
@@ -199,7 +200,7 @@ function metadata(
 function finish<T extends Omit<OpenRouterRouteResolutionResult, "audit">>(
   value: T,
 ): OpenRouterRouteResolutionResult {
-  const hash = decisionHash(value);
+  const hash = computeOpenRouterRouteResolutionHash(value);
   return deepFreeze({
     ...value,
     audit: {
@@ -216,10 +217,12 @@ function unresolved(
   routeId: string | null,
   reasons: readonly string[],
   registry: OpenRouterRouteResolutionRegistryMetadata,
+  evaluatedAt: string | null = null,
 ): OpenRouterRouteResolutionResult {
   return finish({
     status,
     route_id: routeId,
+    evaluated_at: evaluatedAt,
     decision_reasons: [...reasons].sort(),
     registry,
   });
@@ -346,6 +349,7 @@ export function resolveOpenRouterRoute(
       request.route_id,
       ["unknown_route"],
       metadata(),
+      request.evaluated_at,
     );
   if (routes.length !== 1)
     return unresolved(
@@ -353,6 +357,7 @@ export function resolveOpenRouterRoute(
       request.route_id,
       ["registry_integrity_ambiguous_active_route"],
       metadata(),
+      request.evaluated_at,
     );
   const route = routes[0]!;
   const routeEntries = route.allowed_model_entry_ids
@@ -367,6 +372,7 @@ export function resolveOpenRouterRoute(
       request.route_id,
       ["registry_integrity_unknown_model_reference"],
       routeMetadata,
+      request.evaluated_at,
     );
   if (!route.enabled)
     return unresolved(
@@ -374,6 +380,7 @@ export function resolveOpenRouterRoute(
       request.route_id,
       ["route_disabled"],
       routeMetadata,
+      request.evaluated_at,
     );
   if (["blocked", "degraded", "retired"].includes(route.lifecycle))
     return unresolved(
@@ -381,10 +388,17 @@ export function resolveOpenRouterRoute(
       request.route_id,
       ["route_lifecycle_ineligible"],
       routeMetadata,
+      request.evaluated_at,
     );
   const conflicts = policyConflicts(request, route);
   if (conflicts.length > 0)
-    return unresolved("blocked", request.route_id, conflicts, routeMetadata);
+    return unresolved(
+      "blocked",
+      request.route_id,
+      conflicts,
+      routeMetadata,
+      request.evaluated_at,
+    );
   const preferred = route.preferred_model_entry_order;
   const fallback = route.fallback_model_entry_order;
   const invalidFallback =
@@ -406,6 +420,7 @@ export function resolveOpenRouterRoute(
       request.route_id,
       ["invalid_fallback_configuration"],
       routeMetadata,
+      request.evaluated_at,
     );
   const evaluatedReasons: string[] = [];
   for (let index = 0; index < order.length; index += 1) {
@@ -419,6 +434,7 @@ export function resolveOpenRouterRoute(
         request.route_id,
         ["registry_integrity_unknown_model_reference"],
         routeMetadata,
+        request.evaluated_at,
       );
     const blockers = candidateBlockers(request, route, entry, dependencies);
     if (blockers.length > 0) {
@@ -429,6 +445,7 @@ export function resolveOpenRouterRoute(
     return finish({
       status: "resolved",
       route_id: request.route_id,
+      evaluated_at: request.evaluated_at,
       selected_model_registry_id: entry.entry_id,
       selected_provider_model_id: entry.model_id,
       provider_id: entry.provider_id,
@@ -456,6 +473,7 @@ export function resolveOpenRouterRoute(
     request.route_id,
     evaluatedReasons.length > 0 ? evaluatedReasons : ["candidate_order_empty"],
     routeMetadata,
+    request.evaluated_at,
   );
 }
 
@@ -473,6 +491,7 @@ export function resolveGovernedOpenRouterRoute(
         : null,
       errors,
       metadata(),
+      null,
     );
   const typed = request as OpenRouterRouteResolutionRequest;
   try {
@@ -485,6 +504,7 @@ export function resolveGovernedOpenRouterRoute(
       typed.route_id,
       ["registry_version_or_integrity_failure"],
       metadata(),
+      typed.evaluated_at,
     );
   }
 }
