@@ -1,0 +1,142 @@
+{
+  "description": "Invalid governed OpenRouter route policy fixtures. Every scenario must be rejected by validateOpenRouterRoutePolicy with at least the listed error.",
+  "scenarios": [
+    {
+      "scenario": "openrouter_auto_forbidden",
+      "expected_error": "auto_routing_forbidden",
+      "policy": {
+        "route_policy_version": "1.0.0",
+        "profile_id": "normative-claims.openrouter.synthetic-fixture.v1",
+        "profile_contract_version": "1.1.0",
+        "model_id": "openrouter/auto",
+        "allowed_upstream_providers": ["minimax"],
+        "allow_fallbacks": false,
+        "data_collection": "deny",
+        "require_route_metadata": true,
+        "structured_output_mode": "json_object",
+        "pricing_id": "openrouter.synthetic-fixture.v1",
+        "pricing_contract_version": "1.0.0"
+      }
+    },
+    {
+      "scenario": "malformed_model_id",
+      "expected_error": "malformed_model_id",
+      "policy": {
+        "route_policy_version": "1.0.0",
+        "profile_id": "normative-claims.openrouter.synthetic-fixture.v1",
+        "profile_contract_version": "1.1.0",
+        "model_id": "MiniMax M2.7 (latest!)",
+        "allowed_upstream_providers": ["minimax"],
+        "allow_fallbacks": false,
+        "data_collection": "deny",
+        "require_route_metadata": true,
+        "structured_output_mode": "json_object",
+        "pricing_id": "openrouter.synthetic-fixture.v1",
+        "pricing_contract_version": "1.0.0"
+      }
+    },
+    {
+      "scenario": "missing_route_policy_model",
+      "expected_error": "malformed_model_id",
+      "policy": {
+        "route_policy_version": "1.0.0",
+        "profile_id": "normative-claims.openrouter.synthetic-fixture.v1",
+        "profile_contract_version": "1.1.0",
+        "allowed_upstream_providers": ["minimax"],
+        "allow_fallbacks": false,
+        "data_collection": "deny",
+        "require_route_metadata": true,
+        "structured_output_mode": "json_object",
+        "pricing_id": "openrouter.synthetic-fixture.v1",
+        "pricing_contract_version": "1.0.0"
+      }
+    },
+    {
+      "scenario": "permissive_fallback",
+      "expected_error": "permissive_fallback",
+      "policy": {
+        "route_policy_version": "1.0.0",
+        "profile_id": "normative-claims.openrouter.synthetic-fixture.v1",
+        "profile_contract_version": "1.1.0",
+        "model_id": "minimax/minimax-m2.7",
+        "allowed_upstream_providers": ["minimax"],
+        "allow_fallbacks": true,
+        "data_collection": "deny",
+        "require_route_metadata": true,
+        "structured_output_mode": "json_object",
+        "pricing_id": "openrouter.synthetic-fixture.v1",
+        "pricing_contract_version": "1.0.0"
+      }
+    },
+    {
+      "scenario": "provider_order_outside_allowlist",
+      "expected_error": "provider_order_outside_allowlist",
+      "policy": {
+        "route_policy_version": "1.0.0",
+        "profile_id": "normative-claims.openrouter.synthetic-fixture.v1",
+        "profile_contract_version": "1.1.0",
+        "model_id": "minimax/minimax-m2.7",
+        "allowed_upstream_providers": ["minimax"],
+        "provider_order": ["some-other-upstream"],
+        "allow_fallbacks": false,
+        "data_collection": "deny",
+        "require_route_metadata": true,
+        "structured_output_mode": "json_object",
+        "pricing_id": "openrouter.synthetic-fixture.v1",
+        "pricing_contract_version": "1.0.0"
+      }
+    },
+    {
+      "scenario": "unsupported_structured_output_mode",
+      "expected_error": "unsupported_structured_output_mode",
+      "policy": {
+        "route_policy_version": "1.0.0",
+        "profile_id": "normative-claims.openrouter.synthetic-fixture.v1",
+        "profile_contract_version": "1.1.0",
+        "model_id": "minimax/minimax-m2.7",
+        "allowed_upstream_providers": ["minimax"],
+        "allow_fallbacks": false,
+        "data_collection": "deny",
+        "require_route_metadata": true,
+        "structured_output_mode": "grammar_constrained",
+        "pricing_id": "openrouter.synthetic-fixture.v1",
+        "pricing_contract_version": "1.0.0"
+      }
+    },
+    {
+      "scenario": "data_collection_not_denied",
+      "expected_error": "invalid_data_collection",
+      "policy": {
+        "route_policy_version": "1.0.0",
+        "profile_id": "normative-claims.openrouter.synthetic-fixture.v1",
+        "profile_contract_version": "1.1.0",
+        "model_id": "minimax/minimax-m2.7",
+        "allowed_upstream_providers": ["minimax"],
+        "allow_fallbacks": false,
+        "data_collection": "allow",
+        "require_route_metadata": true,
+        "structured_output_mode": "json_object",
+        "pricing_id": "openrouter.synthetic-fixture.v1",
+        "pricing_contract_version": "1.0.0"
+      }
+    },
+    {
+      "scenario": "credential_shaped_field",
+      "expected_error": "credential_shaped_field:api_key",
+      "policy": {
+        "route_policy_version": "1.0.0",
+        "profile_id": "normative-claims.openrouter.synthetic-fixture.v1",
+        "profile_contract_version": "1.1.0",
+        "model_id": "minimax/minimax-m2.7",
+        "allowed_upstream_providers": ["minimax"],
+        "allow_fallbacks": false,
+        "data_collection": "deny",
+        "require_route_metadata": true,
+        "structured_output_mode": "json_object",
+        "pricing_id": "openrouter.synthetic-fixture.v1",
+        "pricing_contract_version": "1.0.0",
+        "api_key": "fixture-placeholder"
+      }
+    }
+  ]
+}

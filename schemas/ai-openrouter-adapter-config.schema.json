@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/ai-openrouter-adapter-config.schema.json",
+  "title": "Governed OpenRouter adapter configuration (non-secret, closed contract)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "config_contract_version",
+    "provider_id",
+    "base_url_id",
+    "enabled",
+    "api_key_env_var",
+    "transport_capabilities",
+    "max_request_body_bytes",
+    "max_response_body_bytes",
+    "connect_timeout_ms",
+    "read_timeout_ms",
+    "overall_timeout_ms",
+    "retry_policy",
+    "structured_output_modes",
+    "supported_usage_fields",
+    "routing_policy_mode"
+  ],
+  "properties": {
+    "config_contract_version": { "const": "1.0.0" },
+    "provider_id": { "const": "openrouter" },
+    "base_url_id": { "const": "openrouter-api-v1" },
+    "enabled": { "type": "boolean" },
+    "api_key_env_var": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_]{2,63}$",
+      "description": "Environment variable NAME only. Secret values are never stored in configuration."
+    },
+    "transport_capabilities": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "enum": ["chat_completions"] }
+    },
+    "max_request_body_bytes": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 10000000
+    },
+    "max_response_body_bytes": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 50000000
+    },
+    "connect_timeout_ms": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 120000
+    },
+    "read_timeout_ms": { "type": "integer", "minimum": 1, "maximum": 120000 },
+    "overall_timeout_ms": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 120000
+    },
+    "retry_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["max_retries"],
+      "properties": { "max_retries": { "const": 0 } }
+    },
+    "structured_output_modes": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "enum": ["json_object"] }
+    },
+    "supported_usage_fields": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "prompt_tokens",
+          "completion_tokens",
+          "total_tokens",
+          "prompt_tokens_details.cached_tokens",
+          "completion_tokens_details.reasoning_tokens"
+        ]
+      }
+    },
+    "routing_policy_mode": { "const": "exact_pinned" }
+  }
+}

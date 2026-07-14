@@ -1,0 +1,146 @@
+{
+  "description": "Deterministic mock transport response fixtures for the governed OpenRouter adapter. Every scenario must fail closed with the listed adapter error, and no provider-authored text, header, or metadata may leak into results, errors, or audit fields. leak_marker strings must never appear in any serialized adapter output.",
+  "leak_marker": "FIXTURE-LEAK-MARKER-DO-NOT-EXPOSE",
+  "scenarios": [
+    {
+      "scenario": "model_substitution",
+      "expected_adapter_code": "MODEL_SUBSTITUTION_DETECTED",
+      "response": {
+        "status": 200,
+        "body_json": {
+          "model": "some-other/model",
+          "provider": "minimax",
+          "choices": [
+            {
+              "message": { "content": "{\"claims\":[]}" },
+              "finish_reason": "stop"
+            }
+          ],
+          "usage": {
+            "prompt_tokens": 10,
+            "completion_tokens": 5,
+            "total_tokens": 15
+          }
+        }
+      }
+    },
+    {
+      "scenario": "upstream_substitution",
+      "expected_adapter_code": "PROVIDER_SUBSTITUTION_DETECTED",
+      "response": {
+        "status": 200,
+        "body_json": {
+          "model": "minimax/minimax-m2.7",
+          "provider": "unapproved-upstream",
+          "choices": [
+            {
+              "message": { "content": "{\"claims\":[]}" },
+              "finish_reason": "stop"
+            }
+          ],
+          "usage": {
+            "prompt_tokens": 10,
+            "completion_tokens": 5,
+            "total_tokens": 15
+          }
+        }
+      }
+    },
+    {
+      "scenario": "route_verification_unavailable",
+      "expected_adapter_code": "ROUTE_VERIFICATION_UNAVAILABLE",
+      "response": {
+        "status": 200,
+        "body_json": {
+          "model": "minimax/minimax-m2.7",
+          "choices": [
+            {
+              "message": { "content": "{\"claims\":[]}" },
+              "finish_reason": "stop"
+            }
+          ],
+          "usage": {
+            "prompt_tokens": 10,
+            "completion_tokens": 5,
+            "total_tokens": 15
+          }
+        }
+      }
+    },
+    {
+      "scenario": "malformed_json",
+      "expected_adapter_code": "RESPONSE_MALFORMED",
+      "response": { "status": 200, "body_raw": "{not-json:::" }
+    },
+    {
+      "scenario": "missing_choices",
+      "expected_adapter_code": "RESPONSE_SCHEMA_INVALID",
+      "response": {
+        "status": 200,
+        "body_json": {
+          "model": "minimax/minimax-m2.7",
+          "provider": "minimax",
+          "usage": {
+            "prompt_tokens": 10,
+            "completion_tokens": 5,
+            "total_tokens": 15
+          }
+        }
+      }
+    },
+    {
+      "scenario": "response_schema_mismatch",
+      "expected_adapter_code": "RESPONSE_SCHEMA_INVALID",
+      "response": {
+        "status": 200,
+        "body_json": {
+          "model": "minimax/minimax-m2.7",
+          "provider": "minimax",
+          "choices": [
+            {
+              "message": {
+                "content": "this is not the contracted json object"
+              },
+              "finish_reason": "stop"
+            }
+          ],
+          "usage": {
+            "prompt_tokens": 10,
+            "completion_tokens": 5,
+            "total_tokens": 15
+          }
+        }
+      }
+    },
+    {
+      "scenario": "malformed_usage",
+      "expected_adapter_code": "USAGE_MALFORMED",
+      "response": {
+        "status": 200,
+        "body_json": {
+          "model": "minimax/minimax-m2.7",
+          "provider": "minimax",
+          "choices": [
+            {
+              "message": { "content": "{\"claims\":[]}" },
+              "finish_reason": "stop"
+            }
+          ],
+          "usage": {
+            "prompt_tokens": -5,
+            "completion_tokens": 5,
+            "total_tokens": 15
+          }
+        }
+      }
+    },
+    {
+      "scenario": "raw_provider_error_leakage",
+      "expected_adapter_code": "TRANSPORT_FAILURE",
+      "response": {
+        "status": 502,
+        "body_raw": "{\"error\":{\"message\":\"FIXTURE-LEAK-MARKER-DO-NOT-EXPOSE internal upstream detail\"}}"
+      }
+    }
+  ]
+}

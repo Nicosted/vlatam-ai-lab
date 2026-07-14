@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/ai-openrouter-route-policy.schema.json",
+  "title": "Governed OpenRouter exact route policy (fail-closed, no fallback)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "route_policy_version",
+    "profile_id",
+    "profile_contract_version",
+    "model_id",
+    "allow_fallbacks",
+    "data_collection",
+    "require_route_metadata",
+    "structured_output_mode",
+    "pricing_id",
+    "pricing_contract_version"
+  ],
+  "properties": {
+    "route_policy_version": { "const": "1.0.0" },
+    "profile_id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]+$" },
+    "profile_contract_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "model_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9.-]*/[a-z0-9][a-z0-9.:-]*$",
+      "not": { "pattern": "^openrouter/" },
+      "description": "Exact OpenRouter model slug. openrouter/auto and every openrouter/* alias are forbidden."
+    },
+    "allowed_upstream_providers": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" }
+    },
+    "provider_order": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" }
+    },
+    "allow_fallbacks": { "const": false },
+    "data_collection": { "const": "deny" },
+    "require_route_metadata": { "type": "boolean" },
+    "structured_output_mode": { "enum": ["json_object"] },
+    "pricing_id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._:-]+$" },
+    "pricing_contract_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    }
+  },
+  "dependentRequired": { "provider_order": ["allowed_upstream_providers"] }
+}

@@ -1,0 +1,207 @@
+{
+  "description": "Invalid governed OpenRouter adapter configuration fixtures. Every scenario must be rejected by validateOpenRouterDefaultConfig with at least the listed error.",
+  "scenarios": [
+    {
+      "scenario": "enabled_by_default",
+      "expected_error": "enabled_by_default",
+      "config": {
+        "config_contract_version": "1.0.0",
+        "provider_id": "openrouter",
+        "base_url_id": "openrouter-api-v1",
+        "enabled": true,
+        "api_key_env_var": "OPENROUTER_API_KEY",
+        "transport_capabilities": ["chat_completions"],
+        "max_request_body_bytes": 262144,
+        "max_response_body_bytes": 1048576,
+        "connect_timeout_ms": 5000,
+        "read_timeout_ms": 30000,
+        "overall_timeout_ms": 30000,
+        "retry_policy": { "max_retries": 0 },
+        "structured_output_modes": ["json_object"],
+        "supported_usage_fields": [
+          "prompt_tokens",
+          "completion_tokens",
+          "total_tokens"
+        ],
+        "routing_policy_mode": "exact_pinned"
+      }
+    },
+    {
+      "scenario": "missing_config_version",
+      "expected_error": "missing_config_field:config_contract_version",
+      "config": {
+        "provider_id": "openrouter",
+        "base_url_id": "openrouter-api-v1",
+        "enabled": false,
+        "api_key_env_var": "OPENROUTER_API_KEY",
+        "transport_capabilities": ["chat_completions"],
+        "max_request_body_bytes": 262144,
+        "max_response_body_bytes": 1048576,
+        "connect_timeout_ms": 5000,
+        "read_timeout_ms": 30000,
+        "overall_timeout_ms": 30000,
+        "retry_policy": { "max_retries": 0 },
+        "structured_output_modes": ["json_object"],
+        "supported_usage_fields": [
+          "prompt_tokens",
+          "completion_tokens",
+          "total_tokens"
+        ],
+        "routing_policy_mode": "exact_pinned"
+      }
+    },
+    {
+      "scenario": "unknown_config_field",
+      "expected_error": "unknown_config_field:experimental_mode",
+      "config": {
+        "config_contract_version": "1.0.0",
+        "provider_id": "openrouter",
+        "base_url_id": "openrouter-api-v1",
+        "enabled": false,
+        "api_key_env_var": "OPENROUTER_API_KEY",
+        "transport_capabilities": ["chat_completions"],
+        "max_request_body_bytes": 262144,
+        "max_response_body_bytes": 1048576,
+        "connect_timeout_ms": 5000,
+        "read_timeout_ms": 30000,
+        "overall_timeout_ms": 30000,
+        "retry_policy": { "max_retries": 0 },
+        "structured_output_modes": ["json_object"],
+        "supported_usage_fields": [
+          "prompt_tokens",
+          "completion_tokens",
+          "total_tokens"
+        ],
+        "routing_policy_mode": "exact_pinned",
+        "experimental_mode": true
+      }
+    },
+    {
+      "scenario": "mutable_base_url",
+      "expected_error": "unknown_config_field:base_url",
+      "config": {
+        "config_contract_version": "1.0.0",
+        "provider_id": "openrouter",
+        "base_url_id": "openrouter-api-v1",
+        "base_url": "https://router.example.invalid/api/v1",
+        "enabled": false,
+        "api_key_env_var": "OPENROUTER_API_KEY",
+        "transport_capabilities": ["chat_completions"],
+        "max_request_body_bytes": 262144,
+        "max_response_body_bytes": 1048576,
+        "connect_timeout_ms": 5000,
+        "read_timeout_ms": 30000,
+        "overall_timeout_ms": 30000,
+        "retry_policy": { "max_retries": 0 },
+        "structured_output_modes": ["json_object"],
+        "supported_usage_fields": [
+          "prompt_tokens",
+          "completion_tokens",
+          "total_tokens"
+        ],
+        "routing_policy_mode": "exact_pinned"
+      }
+    },
+    {
+      "scenario": "secret_value_stored_in_config",
+      "expected_error": "secret_value_in_config",
+      "config": {
+        "config_contract_version": "1.0.0",
+        "provider_id": "openrouter",
+        "base_url_id": "openrouter-api-v1",
+        "enabled": false,
+        "api_key_env_var": "sk-or-0000000000fixture0000000000",
+        "transport_capabilities": ["chat_completions"],
+        "max_request_body_bytes": 262144,
+        "max_response_body_bytes": 1048576,
+        "connect_timeout_ms": 5000,
+        "read_timeout_ms": 30000,
+        "overall_timeout_ms": 30000,
+        "retry_policy": { "max_retries": 0 },
+        "structured_output_modes": ["json_object"],
+        "supported_usage_fields": [
+          "prompt_tokens",
+          "completion_tokens",
+          "total_tokens"
+        ],
+        "routing_policy_mode": "exact_pinned"
+      }
+    },
+    {
+      "scenario": "default_model_present",
+      "expected_error": "unknown_config_field:default_model",
+      "config": {
+        "config_contract_version": "1.0.0",
+        "provider_id": "openrouter",
+        "base_url_id": "openrouter-api-v1",
+        "enabled": false,
+        "api_key_env_var": "OPENROUTER_API_KEY",
+        "default_model": "minimax/minimax-m2.7",
+        "transport_capabilities": ["chat_completions"],
+        "max_request_body_bytes": 262144,
+        "max_response_body_bytes": 1048576,
+        "connect_timeout_ms": 5000,
+        "read_timeout_ms": 30000,
+        "overall_timeout_ms": 30000,
+        "retry_policy": { "max_retries": 0 },
+        "structured_output_modes": ["json_object"],
+        "supported_usage_fields": [
+          "prompt_tokens",
+          "completion_tokens",
+          "total_tokens"
+        ],
+        "routing_policy_mode": "exact_pinned"
+      }
+    },
+    {
+      "scenario": "retry_count_greater_than_zero",
+      "expected_error": "invalid_retry_policy",
+      "config": {
+        "config_contract_version": "1.0.0",
+        "provider_id": "openrouter",
+        "base_url_id": "openrouter-api-v1",
+        "enabled": false,
+        "api_key_env_var": "OPENROUTER_API_KEY",
+        "transport_capabilities": ["chat_completions"],
+        "max_request_body_bytes": 262144,
+        "max_response_body_bytes": 1048576,
+        "connect_timeout_ms": 5000,
+        "read_timeout_ms": 30000,
+        "overall_timeout_ms": 30000,
+        "retry_policy": { "max_retries": 2 },
+        "structured_output_modes": ["json_object"],
+        "supported_usage_fields": [
+          "prompt_tokens",
+          "completion_tokens",
+          "total_tokens"
+        ],
+        "routing_policy_mode": "exact_pinned"
+      }
+    },
+    {
+      "scenario": "permissive_routing_policy_mode",
+      "expected_error": "invalid_routing_policy_mode",
+      "config": {
+        "config_contract_version": "1.0.0",
+        "provider_id": "openrouter",
+        "base_url_id": "openrouter-api-v1",
+        "enabled": false,
+        "api_key_env_var": "OPENROUTER_API_KEY",
+        "transport_capabilities": ["chat_completions"],
+        "max_request_body_bytes": 262144,
+        "max_response_body_bytes": 1048576,
+        "connect_timeout_ms": 5000,
+        "read_timeout_ms": 30000,
+        "overall_timeout_ms": 30000,
+        "retry_policy": { "max_retries": 0 },
+        "structured_output_modes": ["json_object"],
+        "supported_usage_fields": [
+          "prompt_tokens",
+          "completion_tokens",
+          "total_tokens"
+        ],
+        "routing_policy_mode": "best_available_fallback"
+      }
+    }
+  ]
+}

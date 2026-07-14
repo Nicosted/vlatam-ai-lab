@@ -209,7 +209,7 @@ function isForbiddenSdkSpecifier(specifier: string): string | null {
 function referencesAdapterLayer(specifier: string): boolean {
   // Relative or absolute references into src/providers/.
   return (
-    /(?:^|\/)providers\/(?:index|adapter-registry|provider-adapter|openai-compatible-adapter|replay-adapter|provider-evidence)(?:\.js|\.ts)?$/.test(
+    /(?:^|\/)providers\/(?:index|adapter-registry|provider-adapter|openai-compatible-adapter|replay-adapter|provider-evidence|openrouter-adapter|openrouter-config)(?:\.js|\.ts)?$/.test(
       specifier,
     ) || /(?:^|\/)providers\/?$/.test(specifier)
   );

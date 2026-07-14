@@ -748,6 +748,36 @@
       "requires_human_review_semantics": false,
       "requires_traceability": true,
       "downstream_allowed_field_present": false
+    },
+    {
+      "contract_name": "ai_openrouter_adapter_config",
+      "schema_file": "schemas/ai-openrouter-adapter-config.schema.json",
+      "valid_fixture": "config/ai-openrouter-adapter.json",
+      "invalid_fixtures": [
+        "data/fixtures/providers/openrouter-adapter-invalid-scenarios.json"
+      ],
+      "test_file": "tests/providers/openrouter-config.test.ts",
+      "status": "implemented",
+      "purpose": "Closed, versioned, non-secret configuration for the governed OpenRouter transport adapter; disabled by default, zero retries, fixed base-url identifier, secret referenced by environment variable name only.",
+      "downstream_role": "Provider-layer transport configuration only; no execution profile, no model selection, no runtime enablement.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": false
+    },
+    {
+      "contract_name": "ai_openrouter_route_policy",
+      "schema_file": "schemas/ai-openrouter-route-policy.schema.json",
+      "valid_fixture": "data/fixtures/providers/openrouter-route-policy-valid.json",
+      "invalid_fixtures": [
+        "data/fixtures/providers/openrouter-route-policy-invalid-scenarios.json"
+      ],
+      "test_file": "tests/providers/openrouter-config.test.ts",
+      "status": "implemented",
+      "purpose": "Exact pinned OpenRouter route policy: exact model, optional upstream allowlist and order, fallbacks disabled, data collection denied, pricing contract identity bound; openrouter/auto structurally forbidden.",
+      "downstream_role": "Synthetic fixture contract for the future reviewed route registry PR; this PR ships no approved policy and no executable profile.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": false
     }
   ]
 }
