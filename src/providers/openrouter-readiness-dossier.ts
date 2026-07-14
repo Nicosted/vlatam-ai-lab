@@ -218,7 +218,11 @@ export function defaultOpenRouterReadinessDependencies(
       providerEvidenceJson.evidence as readonly ProviderEvidenceRecord[],
     external_evidence:
       externalEvidencePackJson.records as readonly OpenRouterExternalEvidenceRecord[],
-    execution_profiles: executionProfilesJson.profiles,
+    execution_profiles: executionProfilesJson.profiles.filter(
+      (profile) =>
+        !("sandbox_controls" in profile) ||
+        profile.sandbox_controls.configuration_status !== "proposal_only",
+    ),
   } as OpenRouterReadinessDependencies;
 }
 

@@ -1,6 +1,7 @@
 # Governed OpenRouter readiness dossier
 
-Status: evidence and governance only; repository candidate blocked. This
+Status: evidence and governance only; repository candidate blocked; the
+separate sandbox-enablement proposal is also blocked. This
 contract does not enable a model, route, execution profile, adapter, provider,
 secret, gateway invocation, or external traffic.
 
@@ -99,8 +100,8 @@ The deterministic repository outcome is `blocked` because:
 - exact upstream terms/legal review, named evidence reviewers, and separate
   human approval are absent;
 - mandatory risks remain open; and
-- no OpenRouter execution profile exists, while model, route, and adapter stay
-  disabled.
+- no executable OpenRouter profile exists; the later proposal-only profile,
+  model, route, and adapter all stay disabled.
 
 The 2026-07-14 external collection adds authoritative source metadata for the
 model identifier/release/context, routing controls, provider-dependent
@@ -109,6 +110,12 @@ It does not close the blockers. Pricing remains `conflicting`; the route stays
 variable; exact endpoint revision, strict JSON Schema conformance, exact-route
 privacy/ZDR, a relevant normative-claim extraction benchmark, and legal review
 remain unproven. Human evidence review and dossier approval remain absent.
+
+The later proposal artifact now exists at
+`config/ai-openrouter-sandbox-enablement-proposal.json`, bound to this exact
+dossier hash without changing this dossier. Its outcome remains `blocked`; its
+disabled profile is proposal-only and does not satisfy or bypass this dossier's
+missing evidence or approval.
 
 These findings do not authorize provider-account access or live calls. Closing
 them requires separately approved, local-first evidence work and human review.

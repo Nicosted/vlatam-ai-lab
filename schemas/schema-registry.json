@@ -821,6 +821,32 @@
       "requires_human_review_semantics": true,
       "requires_traceability": true,
       "downstream_allowed_field_present": false
+    },
+    {
+      "contract_name": "ai_openrouter_sandbox_enablement_proposal",
+      "schema_file": "schemas/ai-openrouter-sandbox-enablement-proposal.schema.json",
+      "valid_fixture": "config/ai-openrouter-sandbox-enablement-proposal.json",
+      "invalid_fixtures": [],
+      "test_file": "tests/providers/openrouter-sandbox-enablement-proposal.test.ts",
+      "status": "implemented",
+      "purpose": "Integrity-bound, fail-closed proposal for the exact disabled OpenRouter MiniMax sandbox candidate, reviewed ceilings, first-run data restrictions, and separate human approval boundary.",
+      "downstream_role": "Human configuration review only; it cannot authorize execution, secrets, runtime configuration, gateway or adapter calls, provider traffic, or production changes.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": false
+    },
+    {
+      "contract_name": "ai_openrouter_sandbox_configuration_approval",
+      "schema_file": "schemas/ai-openrouter-sandbox-configuration-approval.schema.json",
+      "valid_fixture": "config/ai-openrouter-sandbox-configuration-approval.json",
+      "invalid_fixtures": [],
+      "test_file": "tests/providers/openrouter-sandbox-enablement-proposal.test.ts",
+      "status": "implemented",
+      "purpose": "Separate named-human decision artifact bound to reviewed proposal, dossier, and evidence-pack hashes with proposal-only scope and explicit expiry.",
+      "downstream_role": "May permit only a later sandbox configuration PR; it never authorizes execution, secret access, or runtime configuration by itself.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": false
     }
   ]
 }

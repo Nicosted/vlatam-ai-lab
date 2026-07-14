@@ -166,7 +166,7 @@ describe("AI-83 controlled provider candidate", () => {
     );
   });
 
-  it("adds neither adapter nor execution profile and records zero live calls and zero cost", () => {
+  it("adds neither live adapter nor executable profile and records zero live calls and zero cost", () => {
     assert.equal(readiness.controlled_execution.adapter_status, "not_added");
     assert.equal(
       readiness.controlled_execution.execution_profile_status,
@@ -191,13 +191,25 @@ describe("AI-83 controlled provider candidate", () => {
     assert.equal(gates.live_execution.actual_accounting_units, "0");
     assert.deepEqual(new ProviderAdapterRegistry().listProviderAdapters(), []);
 
-    const executionProfiles = readFileSync(
-      "config/ai-execution-profiles.json",
-      "utf8",
-    );
-    assert.doesNotMatch(
-      executionProfiles,
-      /minimax-direct|MiniMax-M2\.7|openrouter/i,
+    const executionProfiles = JSON.parse(
+      readFileSync("config/ai-execution-profiles.json", "utf8"),
+    ) as {
+      profiles: {
+        provider_id: string;
+        enabled: boolean;
+        sandbox_controls?: { configuration_status: string };
+      }[];
+    };
+    assert.ok(
+      executionProfiles.profiles
+        .filter((profile) =>
+          ["openrouter", "minimax-direct"].includes(profile.provider_id),
+        )
+        .every(
+          (profile) =>
+            !profile.enabled &&
+            profile.sandbox_controls?.configuration_status === "proposal_only",
+        ),
     );
   });
 

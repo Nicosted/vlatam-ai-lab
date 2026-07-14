@@ -1,0 +1,281 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/ai-openrouter-sandbox-enablement-proposal.schema.json",
+  "title": "Governed OpenRouter sandbox-enablement proposal",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "proposal_contract_version",
+    "proposal_id",
+    "proposal_version",
+    "canonicalization_version",
+    "lifecycle",
+    "created_by",
+    "created_at",
+    "expires_at",
+    "readiness_binding",
+    "evidence_pack_binding",
+    "candidate",
+    "sandbox_controls",
+    "routing_constraints",
+    "privacy_requirements",
+    "review_requirements",
+    "approval_binding",
+    "first_run_data_policy",
+    "execution_authorized",
+    "secret_access_authorized",
+    "runtime_configuration_authorized",
+    "provider_call_performed",
+    "proposal_hash"
+  ],
+  "properties": {
+    "proposal_contract_version": { "const": "1.0.0" },
+    "proposal_id": { "$ref": "#/$defs/id" },
+    "proposal_version": { "$ref": "#/$defs/semver" },
+    "canonicalization_version": { "const": "registry-json-v1" },
+    "lifecycle": {
+      "enum": [
+        "draft",
+        "blocked",
+        "pending_human_review",
+        "approved_for_sandbox_configuration",
+        "expired",
+        "rejected"
+      ]
+    },
+    "created_by": { "$ref": "#/$defs/id" },
+    "created_at": { "$ref": "#/$defs/date_time" },
+    "expires_at": { "$ref": "#/$defs/date_time" },
+    "readiness_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "dossier_id",
+        "dossier_version",
+        "dossier_hash",
+        "required_outcome",
+        "observed_outcome"
+      ],
+      "properties": {
+        "dossier_id": { "$ref": "#/$defs/id" },
+        "dossier_version": { "$ref": "#/$defs/semver" },
+        "dossier_hash": { "$ref": "#/$defs/hash" },
+        "required_outcome": { "const": "ready_for_sandbox_review" },
+        "observed_outcome": {
+          "enum": [
+            "invalid_dossier",
+            "not_ready",
+            "blocked",
+            "ready_for_sandbox_review"
+          ]
+        }
+      }
+    },
+    "evidence_pack_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pack_id", "pack_version", "pack_hash"],
+      "properties": {
+        "pack_id": { "$ref": "#/$defs/id" },
+        "pack_version": { "$ref": "#/$defs/semver" },
+        "pack_hash": { "$ref": "#/$defs/hash" }
+      }
+    },
+    "candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "provider_id",
+        "openrouter_model_id",
+        "intended_upstream_provider_id",
+        "upstream_model_id",
+        "model_registry_entry_id",
+        "route_id",
+        "route_record_id",
+        "capability_id",
+        "execution_profile_id",
+        "execution_profile_contract_version",
+        "adapter_config_id"
+      ],
+      "properties": {
+        "provider_id": { "const": "openrouter" },
+        "openrouter_model_id": { "const": "minimax/minimax-m2.7" },
+        "intended_upstream_provider_id": { "const": "minimax" },
+        "upstream_model_id": { "type": ["string", "null"] },
+        "model_registry_entry_id": {
+          "const": "openrouter.minimax-m2.7.variable.v1"
+        },
+        "route_id": { "const": "openrouter.minimax-m2.7.variable" },
+        "route_record_id": {
+          "const": "openrouter.minimax-m2.7.variable-route.v1"
+        },
+        "capability_id": { "const": "evidence.extraction.normative_claims" },
+        "execution_profile_id": {
+          "const": "openrouter.minimax-m2.7.normative-extraction.candidate"
+        },
+        "execution_profile_contract_version": { "const": "1.1.0" },
+        "adapter_config_id": {
+          "const": "openrouter.disabled-adapter-config.v1"
+        }
+      }
+    },
+    "sandbox_controls": { "$ref": "#/$defs/sandbox_controls" },
+    "routing_constraints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "provider_order",
+        "allow_fallbacks",
+        "require_parameters",
+        "data_collection",
+        "zdr",
+        "exact_upstream_route_status"
+      ],
+      "properties": {
+        "provider_order": {
+          "type": "array",
+          "prefixItems": [{ "const": "minimax" }],
+          "items": false,
+          "minItems": 1,
+          "maxItems": 1
+        },
+        "allow_fallbacks": { "const": false },
+        "require_parameters": { "const": true },
+        "data_collection": { "const": "deny" },
+        "zdr": { "const": true },
+        "exact_upstream_route_status": { "enum": ["unresolved", "verified"] }
+      }
+    },
+    "privacy_requirements": { "$ref": "#/$defs/privacy_requirements" },
+    "review_requirements": { "$ref": "#/$defs/review_requirements" },
+    "approval_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["approval_id", "required_scope", "observed_state"],
+      "properties": {
+        "approval_id": { "$ref": "#/$defs/id" },
+        "required_scope": { "const": "sandbox_configuration_proposal_only" },
+        "observed_state": { "enum": ["pending", "approved", "rejected"] }
+      }
+    },
+    "first_run_data_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "allowed_data",
+        "customer_data_allowed",
+        "personal_data_allowed",
+        "production_documents_allowed",
+        "legal_reliance_allowed",
+        "automatic_downstream_publication_allowed",
+        "human_review_required",
+        "outputs_classification"
+      ],
+      "properties": {
+        "allowed_data": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "enum": ["synthetic", "specifically_approved_non_sensitive"]
+          },
+          "uniqueItems": true
+        },
+        "customer_data_allowed": { "const": false },
+        "personal_data_allowed": { "const": false },
+        "production_documents_allowed": { "const": false },
+        "legal_reliance_allowed": { "const": false },
+        "automatic_downstream_publication_allowed": { "const": false },
+        "human_review_required": { "const": true },
+        "outputs_classification": { "const": "experimental" }
+      }
+    },
+    "execution_authorized": { "const": false },
+    "secret_access_authorized": { "const": false },
+    "runtime_configuration_authorized": { "const": false },
+    "provider_call_performed": { "const": false },
+    "proposal_hash": { "$ref": "#/$defs/hash" }
+  },
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._:-]+$" },
+    "semver": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "date_time": { "type": "string", "format": "date-time" },
+    "sandbox_controls": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "metadata_only",
+        "maximum_requests",
+        "maximum_input_tokens_per_request",
+        "maximum_output_tokens_per_request",
+        "maximum_total_spend_usd",
+        "invocation_mode",
+        "fallback_enabled",
+        "automatic_retries",
+        "kill_switch_required",
+        "exact_model_only"
+      ],
+      "properties": {
+        "metadata_only": { "const": true },
+        "maximum_requests": { "type": "integer", "minimum": 1, "maximum": 10 },
+        "maximum_input_tokens_per_request": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 8000
+        },
+        "maximum_output_tokens_per_request": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2000
+        },
+        "maximum_total_spend_usd": {
+          "type": "string",
+          "pattern": "^(0\\.0[1-5])$"
+        },
+        "invocation_mode": { "const": "manual_only" },
+        "fallback_enabled": { "const": false },
+        "automatic_retries": { "const": 0 },
+        "kill_switch_required": { "const": true },
+        "exact_model_only": { "const": true }
+      }
+    },
+    "privacy_requirements": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "zdr_required",
+        "retention_review",
+        "training_use_review",
+        "geography_review",
+        "privacy_security_review"
+      ],
+      "properties": {
+        "zdr_required": { "const": true },
+        "retention_review": { "enum": ["pending", "approved"] },
+        "training_use_review": { "enum": ["pending", "approved"] },
+        "geography_review": { "enum": ["pending", "approved"] },
+        "privacy_security_review": { "enum": ["pending", "approved"] }
+      }
+    },
+    "review_requirements": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evidence_verified",
+        "pricing_bounded",
+        "strict_structured_output_verified",
+        "capability_benchmark_approved",
+        "legal_review",
+        "security_review"
+      ],
+      "properties": {
+        "evidence_verified": { "type": "boolean" },
+        "pricing_bounded": { "type": "boolean" },
+        "strict_structured_output_verified": { "type": "boolean" },
+        "capability_benchmark_approved": { "type": "boolean" },
+        "legal_review": { "enum": ["pending", "approved"] },
+        "security_review": { "enum": ["pending", "approved"] }
+      }
+    }
+  }
+}

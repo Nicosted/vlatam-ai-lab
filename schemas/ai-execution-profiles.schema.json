@@ -6,26 +6,87 @@
   "required": ["schema_version", "profiles"],
   "properties": {
     "schema_version": { "const": "1.1.0" },
-    "profiles": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/profile" } }
+    "profiles": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/profile" }
+    }
   },
   "$defs": {
     "profile": {
-      "type": "object", "additionalProperties": false,
-      "required": ["profile_id","capability_id","provider_id","model_id","mode","lifecycle_status","enabled","contract_version","configuration","eligibility","privacy"],
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profile_id",
+        "capability_id",
+        "provider_id",
+        "model_id",
+        "mode",
+        "lifecycle_status",
+        "enabled",
+        "contract_version",
+        "configuration",
+        "eligibility",
+        "privacy"
+      ],
       "properties": {
         "profile_id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]+$" },
-        "capability_id": { "type": "string", "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$" },
-        "provider_id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]+$" },
+        "capability_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$"
+        },
+        "provider_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]+$"
+        },
         "model_id": { "type": "string", "minLength": 1 },
         "mode": { "enum": ["replay", "live"] },
-        "lifecycle_status": { "enum": ["production", "candidate", "shadow", "retired"] },
+        "lifecycle_status": {
+          "enum": ["production", "candidate", "shadow", "retired"]
+        },
         "enabled": { "type": "boolean" },
-        "contract_version": { "type": "string", "pattern": "^1\\.\\d+\\.\\d+$" },
-        "provider_configuration_ref": { "type": "string", "pattern": "^[A-Z0-9_]+$" },
+        "contract_version": {
+          "type": "string",
+          "pattern": "^1\\.\\d+\\.\\d+$"
+        },
+        "provider_configuration_ref": {
+          "type": "string",
+          "pattern": "^[A-Z0-9_]+$"
+        },
         "fixture_id": { "type": "string", "minLength": 1 },
-        "configuration": { "type": "object", "additionalProperties": false, "required": ["timeout_ms","response_format"], "properties": { "temperature": { "type": "number", "minimum": 0, "maximum": 2 }, "max_output_tokens": { "type": "integer", "minimum": 1 }, "timeout_ms": { "type": "integer", "minimum": 1, "maximum": 120000 }, "response_format": { "const": "json" } } },
-        "eligibility": { "type": "object", "additionalProperties": false, "required": ["privacy_compatibility","budget_class","evaluation_status"], "properties": { "privacy_compatibility": { "const": "declared_not_enforced" }, "budget_class": { "enum": ["development","unclassified"] }, "evaluation_status": { "enum": ["not_evaluated","fixture_verified"] } } },
-        "privacy": { "$ref": "#/$defs/privacy_declaration" }
+        "configuration": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["timeout_ms", "response_format"],
+          "properties": {
+            "temperature": { "type": "number", "minimum": 0, "maximum": 2 },
+            "max_output_tokens": { "type": "integer", "minimum": 1 },
+            "timeout_ms": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 120000
+            },
+            "response_format": { "const": "json" }
+          }
+        },
+        "eligibility": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "privacy_compatibility",
+            "budget_class",
+            "evaluation_status"
+          ],
+          "properties": {
+            "privacy_compatibility": { "const": "declared_not_enforced" },
+            "budget_class": { "enum": ["development", "unclassified"] },
+            "evaluation_status": {
+              "enum": ["not_evaluated", "fixture_verified"]
+            }
+          }
+        },
+        "privacy": { "$ref": "#/$defs/privacy_declaration" },
+        "sandbox_controls": { "$ref": "#/$defs/sandbox_controls" }
       },
       "allOf": [
         {
@@ -34,16 +95,117 @@
             "properties": {
               "privacy": {
                 "type": "object",
-                "required": ["replay_fixture_origin", "replay_fixture_sanitization"],
+                "required": [
+                  "replay_fixture_origin",
+                  "replay_fixture_sanitization"
+                ],
                 "properties": {
-                  "replay_fixture_origin": { "enum": ["synthetic", "sanitized_recorded", "unsanitized_recorded", "unknown"] },
-                  "replay_fixture_sanitization": { "enum": ["not_applicable", "sanitized", "unsanitized", "unknown"] }
+                  "replay_fixture_origin": {
+                    "enum": [
+                      "synthetic",
+                      "sanitized_recorded",
+                      "unsanitized_recorded",
+                      "unknown"
+                    ]
+                  },
+                  "replay_fixture_sanitization": {
+                    "enum": [
+                      "not_applicable",
+                      "sanitized",
+                      "unsanitized",
+                      "unknown"
+                    ]
+                  }
                 }
               }
             }
           }
         }
       ]
+    },
+    "sandbox_controls": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "configuration_status",
+        "adapter_config_id",
+        "adapter_enabled",
+        "authentication_material",
+        "invocation_mode",
+        "fallback_enabled",
+        "automatic_retries",
+        "maximum_requests",
+        "maximum_input_tokens_per_request",
+        "maximum_output_tokens_per_request",
+        "maximum_total_spend_usd",
+        "exact_model_only",
+        "intended_upstream_provider_id",
+        "provider_order",
+        "require_parameters",
+        "data_collection",
+        "zdr_required",
+        "exact_upstream_routing_status",
+        "route_id",
+        "required_dossier_hash",
+        "required_evidence_pack_hash",
+        "expires_at",
+        "kill_switch_required"
+      ],
+      "properties": {
+        "configuration_status": { "const": "proposal_only" },
+        "adapter_config_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._:-]+$"
+        },
+        "adapter_enabled": { "const": false },
+        "authentication_material": { "const": "absent" },
+        "invocation_mode": { "const": "manual_only" },
+        "fallback_enabled": { "const": false },
+        "automatic_retries": { "const": 0 },
+        "maximum_requests": { "type": "integer", "minimum": 1, "maximum": 10 },
+        "maximum_input_tokens_per_request": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 8000
+        },
+        "maximum_output_tokens_per_request": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2000
+        },
+        "maximum_total_spend_usd": {
+          "type": "string",
+          "pattern": "^0\\.0[1-5]$"
+        },
+        "exact_model_only": { "const": true },
+        "intended_upstream_provider_id": { "type": "string", "minLength": 1 },
+        "provider_order": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1,
+          "items": { "const": "minimax" }
+        },
+        "require_parameters": { "const": true },
+        "data_collection": { "const": "deny" },
+        "zdr_required": { "const": true },
+        "exact_upstream_routing_status": {
+          "enum": ["unresolved", "verified"]
+        },
+        "route_id": { "type": "string", "minLength": 1 },
+        "required_dossier_hash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "required_evidence_pack_hash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "expires_at": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$"
+        },
+        "kill_switch_required": { "const": true }
+      }
     },
     "privacy_declaration": {
       "type": "object",
@@ -60,16 +222,51 @@
         "restricted_data_permitted"
       ],
       "properties": {
-        "max_data_classification": { "enum": ["public", "internal", "confidential", "regulated", "restricted"] },
+        "max_data_classification": {
+          "enum": [
+            "public",
+            "internal",
+            "confidential",
+            "regulated",
+            "restricted"
+          ]
+        },
         "external_processing": { "enum": ["allowed", "forbidden"] },
-        "zdr_support": { "enum": ["verified", "declared_unverified", "unsupported", "unknown"] },
+        "zdr_support": {
+          "enum": ["verified", "declared_unverified", "unsupported", "unknown"]
+        },
         "zdr_evidence_ref": { "type": "string", "minLength": 1 },
-        "retention_behavior": { "enum": ["none", "ephemeral_memory", "bounded_local_fixture", "provider_declared_bounded", "provider_unknown", "forbidden"] },
-        "training_use": { "enum": ["contractually_prohibited_verified", "declared_not_used", "may_be_used", "unknown"] },
+        "retention_behavior": {
+          "enum": [
+            "none",
+            "ephemeral_memory",
+            "bounded_local_fixture",
+            "provider_declared_bounded",
+            "provider_unknown",
+            "forbidden"
+          ]
+        },
+        "training_use": {
+          "enum": [
+            "contractually_prohibited_verified",
+            "declared_not_used",
+            "may_be_used",
+            "unknown"
+          ]
+        },
         "processing_region": { "type": "string", "minLength": 1 },
         "pre_execution_redaction_required": { "type": "boolean" },
-        "replay_fixture_origin": { "enum": ["synthetic", "sanitized_recorded", "unsanitized_recorded", "unknown"] },
-        "replay_fixture_sanitization": { "enum": ["not_applicable", "sanitized", "unsanitized", "unknown"] },
+        "replay_fixture_origin": {
+          "enum": [
+            "synthetic",
+            "sanitized_recorded",
+            "unsanitized_recorded",
+            "unknown"
+          ]
+        },
+        "replay_fixture_sanitization": {
+          "enum": ["not_applicable", "sanitized", "unsanitized", "unknown"]
+        },
         "regulated_data_permitted": { "type": "boolean" },
         "restricted_data_permitted": { "type": "boolean" }
       },
@@ -78,7 +275,9 @@
           "if": { "properties": { "zdr_support": { "const": "verified" } } },
           "then": {
             "required": ["zdr_evidence_ref"],
-            "properties": { "zdr_evidence_ref": { "type": "string", "minLength": 1 } }
+            "properties": {
+              "zdr_evidence_ref": { "type": "string", "minLength": 1 }
+            }
           }
         }
       ]

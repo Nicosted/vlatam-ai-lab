@@ -139,13 +139,44 @@ describe("governed OpenRouter provider boundary", () => {
     );
   });
 
-  it("adds no OpenRouter execution profile and keeps candidates blocked", () => {
+  it("keeps the sole OpenRouter proposal profile disabled and candidates blocked", () => {
     const profiles = (
       JSON.parse(read("config/ai-execution-profiles.json")) as {
-        profiles: { provider_id: string }[];
+        profiles: {
+          profile_id: string;
+          provider_id: string;
+          enabled: boolean;
+          lifecycle_status: string;
+          sandbox_controls?: {
+            configuration_status: string;
+            adapter_enabled: boolean;
+            authentication_material: string;
+          };
+        }[];
       }
     ).profiles;
-    assert.ok(profiles.every((entry) => entry.provider_id !== "openrouter"));
+    const openrouterProfiles = profiles.filter(
+      (entry) => entry.provider_id === "openrouter",
+    );
+    assert.equal(openrouterProfiles.length, 1);
+    assert.deepEqual(openrouterProfiles[0], {
+      ...openrouterProfiles[0],
+      profile_id: "openrouter.minimax-m2.7.normative-extraction.candidate",
+      enabled: false,
+      lifecycle_status: "candidate",
+    });
+    assert.equal(
+      openrouterProfiles[0]?.sandbox_controls?.configuration_status,
+      "proposal_only",
+    );
+    assert.equal(
+      openrouterProfiles[0]?.sandbox_controls?.adapter_enabled,
+      false,
+    );
+    assert.equal(
+      openrouterProfiles[0]?.sandbox_controls?.authentication_material,
+      "absent",
+    );
     const readiness = (
       JSON.parse(read("config/ai-candidate-profile-readiness.json")) as {
         profiles: {

@@ -116,6 +116,13 @@ environment/network/gateway/adapter access.
 
 ## Limitations and required review
 
+### Later proposal status
+
+The separate sandbox-enablement proposal now binds this pack's exact version
+and hash. Its deterministic repository outcome is `blocked`; the proposed
+execution profile is disabled and proposal-only. This status update does not
+verify, approve, or alter any evidence record and grants no runtime authority.
+
 - Public page contents were normalized but not vendored; a reviewer must
   retrieve the canonical URLs before assigning `verified`.
 - OpenRouter endpoint availability, provider offers, prices, ZDR labels, and

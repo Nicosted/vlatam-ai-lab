@@ -1,6 +1,7 @@
 # OpenRouter external evidence review
 
-Status: collected and integrity-bound; human verification pending; exact candidate blocked.
+Status: collected and integrity-bound; human verification pending; exact
+candidate and the separate sandbox-enablement proposal blocked.
 
 This document governs `config/ai-openrouter-external-evidence-pack.json` for the
 single repository candidate:
@@ -111,8 +112,8 @@ Evidence verification answers only whether a source supports a claim. Human
 dossier approval is separate, remains pending, and can authorize at most a
 later sandbox-enablement proposal. The evaluator always emits
 `execution_authorized: false` and `provider_call_performed: false`. The model
-and route registries and adapter remain disabled, and the execution profile is
-absent.
+and route registries and adapter remain disabled. The later proposal-only
+profile metadata is disabled and excluded from executable registry dependencies.
 
 ## Metadata-only sandbox budget proposal
 
@@ -122,3 +123,9 @@ input and 2,000 output tokens per request; USD 0.05 total spend; only
 fallback; zero automatic retries; expiry on 2026-08-13; and a required kill
 switch. Variable routing means the permitted upstream identity is not yet
 provably enforceable, so the proposal does not resolve readiness.
+
+The sandbox-enablement proposal now binds pack version `1.0.0` and hash
+`5b5cc5337c3f8c0a47aef8f8ba8528dc245db7be3ae56ab3814a574a76cee906`.
+It does not rewrite these records or treat collection as verification. The
+proposal preserves the reviewed ceilings and remains blocked on every evidence,
+routing, privacy, benchmark, legal, security, and approval gap listed here.

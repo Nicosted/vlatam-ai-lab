@@ -593,13 +593,27 @@ describe("governed OpenRouter model and route registry", () => {
     );
   });
 
-  it("keeps the adapter disabled and adds zero execution profiles", () => {
+  it("keeps the adapter and the proposal-only execution profile disabled", () => {
     assert.equal(adapterConfig.enabled, false);
-    assert.equal(executionProfiles.profiles.length, 3);
-    assert.ok(
-      executionProfiles.profiles.every(
-        (profile) => profile.provider_id !== "openrouter",
-      ),
+    assert.equal(executionProfiles.profiles.length, 4);
+    assert.deepEqual(
+      executionProfiles.profiles
+        .filter((profile) => profile.provider_id === "openrouter")
+        .map((profile) => ({
+          profile_id: profile.profile_id,
+          enabled: profile.enabled,
+          configuration_status:
+            "sandbox_controls" in profile
+              ? profile.sandbox_controls.configuration_status
+              : null,
+        })),
+      [
+        {
+          profile_id: "openrouter.minimax-m2.7.normative-extraction.candidate",
+          enabled: false,
+          configuration_status: "proposal_only",
+        },
+      ],
     );
   });
 

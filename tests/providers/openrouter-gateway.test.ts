@@ -430,11 +430,23 @@ describe("governed OpenRouter adapter behind the gateway", () => {
     assert.equal(subject.transportCalls(), 1);
   });
 
-  it("adds no execution profile and keeps every candidate disabled and blocked", () => {
-    const profiles = load<{ profiles: { provider_id: string }[] }>(
-      "config/ai-execution-profiles.json",
-    ).profiles;
-    assert.ok(profiles.every((entry) => entry.provider_id !== "openrouter"));
+  it("keeps the proposal profile and every candidate disabled and blocked", () => {
+    const profiles = load<{
+      profiles: {
+        provider_id: string;
+        enabled: boolean;
+        sandbox_controls?: { configuration_status: string };
+      }[];
+    }>("config/ai-execution-profiles.json").profiles;
+    assert.ok(
+      profiles
+        .filter((entry) => entry.provider_id === "openrouter")
+        .every(
+          (entry) =>
+            !entry.enabled &&
+            entry.sandbox_controls?.configuration_status === "proposal_only",
+        ),
+    );
     const readiness = load<{
       profiles: { enabled: boolean; runtime_eligibility: string }[];
     }>("config/ai-candidate-profile-readiness.json").profiles;
