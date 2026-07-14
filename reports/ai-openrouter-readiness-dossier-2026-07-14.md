@@ -1,5 +1,10 @@
 # OpenRouter readiness dossier evidence report — 2026-07-14
 
+Status update: the separate sandbox-enablement proposal now binds this dossier
+by exact version and hash, but remains `blocked`. Its profile metadata is
+disabled and proposal-only; this update does not change dossier evidence,
+approval, or runtime authority.
+
 ## Local source snapshot
 
 - branch started from clean `main`;

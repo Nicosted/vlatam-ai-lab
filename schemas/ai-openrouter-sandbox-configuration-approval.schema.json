@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/ai-openrouter-sandbox-configuration-approval.schema.json",
+  "title": "OpenRouter sandbox configuration proposal approval",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "approval_contract_version",
+    "approval_id",
+    "proposal_id",
+    "proposal_version",
+    "status",
+    "reviewer_id",
+    "scope",
+    "decision",
+    "reason",
+    "decided_at",
+    "expires_at",
+    "reviewed_hashes",
+    "execution_authorized",
+    "secret_access_authorized",
+    "runtime_configuration_authorized"
+  ],
+  "properties": {
+    "approval_contract_version": { "const": "1.0.0" },
+    "approval_id": { "$ref": "#/$defs/id" },
+    "proposal_id": { "$ref": "#/$defs/id" },
+    "proposal_version": { "$ref": "#/$defs/semver" },
+    "status": { "enum": ["pending", "approved", "rejected"] },
+    "reviewer_id": { "type": ["string", "null"], "minLength": 1 },
+    "scope": { "const": "sandbox_configuration_proposal_only" },
+    "decision": { "enum": ["approve", "reject", null] },
+    "reason": { "type": ["string", "null"], "minLength": 1 },
+    "decided_at": { "$ref": "#/$defs/nullable_date_time" },
+    "expires_at": { "$ref": "#/$defs/nullable_date_time" },
+    "reviewed_hashes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["proposal_hash", "dossier_hash", "evidence_pack_hash"],
+      "properties": {
+        "proposal_hash": { "$ref": "#/$defs/nullable_hash" },
+        "dossier_hash": { "$ref": "#/$defs/nullable_hash" },
+        "evidence_pack_hash": { "$ref": "#/$defs/nullable_hash" }
+      }
+    },
+    "execution_authorized": { "const": false },
+    "secret_access_authorized": { "const": false },
+    "runtime_configuration_authorized": { "const": false }
+  },
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._:-]+$" },
+    "semver": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "nullable_hash": {
+      "anyOf": [{ "$ref": "#/$defs/hash" }, { "type": "null" }]
+    },
+    "nullable_date_time": {
+      "anyOf": [{ "type": "string", "format": "date-time" }, { "type": "null" }]
+    }
+  }
+}

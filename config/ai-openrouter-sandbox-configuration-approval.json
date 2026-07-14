@@ -1,0 +1,21 @@
+{
+  "approval_contract_version": "1.0.0",
+  "approval_id": "openrouter.minimax-m2.7.sandbox-configuration-approval.v1",
+  "proposal_id": "openrouter.minimax-m2.7.sandbox-enablement-proposal.v1",
+  "proposal_version": "1.0.0",
+  "status": "pending",
+  "reviewer_id": null,
+  "scope": "sandbox_configuration_proposal_only",
+  "decision": null,
+  "reason": null,
+  "decided_at": null,
+  "expires_at": null,
+  "reviewed_hashes": {
+    "proposal_hash": null,
+    "dossier_hash": null,
+    "evidence_pack_hash": null
+  },
+  "execution_authorized": false,
+  "secret_access_authorized": false,
+  "runtime_configuration_authorized": false
+}

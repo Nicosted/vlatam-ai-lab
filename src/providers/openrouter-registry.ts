@@ -1468,9 +1468,16 @@ export function defaultOpenRouterRegistryDependencies(): OpenRouterRegistryDepen
     ).capabilities.map((entry) => entry.capability_id),
     execution_profiles: (
       executionProfilesJson as {
-        profiles: { profile_id: string; provider_id: string }[];
+        profiles: {
+          profile_id: string;
+          provider_id: string;
+          sandbox_controls?: { configuration_status: string };
+        }[];
       }
-    ).profiles,
+    ).profiles.filter(
+      (profile) =>
+        profile.sandbox_controls?.configuration_status !== "proposal_only",
+    ),
     adapter_config: adapterConfigJson as OpenRouterAdapterConfig,
   };
 }

@@ -202,12 +202,27 @@ describe("AI-81/AI-82 provider evidence and candidate readiness", () => {
     });
   }
 
-  it("keeps both providers outside execution profiles and the live adapter registry", async () => {
-    const executionProfiles = readFileSync(
-      "config/ai-execution-profiles.json",
-      "utf8",
+  it("keeps candidates outside executable profiles and the live adapter registry", async () => {
+    const executionProfiles = JSON.parse(
+      readFileSync("config/ai-execution-profiles.json", "utf8"),
+    ) as {
+      profiles: {
+        provider_id: string;
+        enabled: boolean;
+        sandbox_controls?: { configuration_status: string };
+      }[];
+    };
+    assert.ok(
+      executionProfiles.profiles
+        .filter((profile) =>
+          ["openrouter", "minimax-direct"].includes(profile.provider_id),
+        )
+        .every(
+          (profile) =>
+            !profile.enabled &&
+            profile.sandbox_controls?.configuration_status === "proposal_only",
+        ),
     );
-    assert.doesNotMatch(executionProfiles, /openrouter|minimax-direct/i);
     const { ProviderAdapterRegistry } =
       await import("../../src/providers/adapter-registry.js");
     assert.deepEqual(new ProviderAdapterRegistry().listProviderAdapters(), []);

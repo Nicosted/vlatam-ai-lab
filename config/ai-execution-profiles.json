@@ -10,8 +10,17 @@
       "lifecycle_status": "candidate",
       "enabled": true,
       "contract_version": "1.1.0",
-      "configuration": { "temperature": 0, "max_output_tokens": 2048, "timeout_ms": 5000, "response_format": "json" },
-      "eligibility": { "privacy_compatibility": "declared_not_enforced", "budget_class": "development", "evaluation_status": "fixture_verified" },
+      "configuration": {
+        "temperature": 0,
+        "max_output_tokens": 2048,
+        "timeout_ms": 5000,
+        "response_format": "json"
+      },
+      "eligibility": {
+        "privacy_compatibility": "declared_not_enforced",
+        "budget_class": "development",
+        "evaluation_status": "fixture_verified"
+      },
       "privacy": {
         "max_data_classification": "internal",
         "external_processing": "forbidden",
@@ -36,9 +45,18 @@
       "lifecycle_status": "candidate",
       "enabled": false,
       "contract_version": "1.1.0",
-      "configuration": { "temperature": 0.1, "max_output_tokens": 2048, "timeout_ms": 30000, "response_format": "json" },
+      "configuration": {
+        "temperature": 0.1,
+        "max_output_tokens": 2048,
+        "timeout_ms": 30000,
+        "response_format": "json"
+      },
       "provider_configuration_ref": "AI_LAB_DEEPSEEK",
-      "eligibility": { "privacy_compatibility": "declared_not_enforced", "budget_class": "unclassified", "evaluation_status": "not_evaluated" },
+      "eligibility": {
+        "privacy_compatibility": "declared_not_enforced",
+        "budget_class": "unclassified",
+        "evaluation_status": "not_evaluated"
+      },
       "privacy": {
         "max_data_classification": "public",
         "external_processing": "allowed",
@@ -60,9 +78,18 @@
       "lifecycle_status": "candidate",
       "enabled": false,
       "contract_version": "1.1.0",
-      "configuration": { "temperature": 0.1, "max_output_tokens": 2048, "timeout_ms": 30000, "response_format": "json" },
+      "configuration": {
+        "temperature": 0.1,
+        "max_output_tokens": 2048,
+        "timeout_ms": 30000,
+        "response_format": "json"
+      },
       "provider_configuration_ref": "AI_LAB_DASHSCOPE",
-      "eligibility": { "privacy_compatibility": "declared_not_enforced", "budget_class": "unclassified", "evaluation_status": "not_evaluated" },
+      "eligibility": {
+        "privacy_compatibility": "declared_not_enforced",
+        "budget_class": "unclassified",
+        "evaluation_status": "not_evaluated"
+      },
       "privacy": {
         "max_data_classification": "public",
         "external_processing": "allowed",
@@ -73,6 +100,63 @@
         "pre_execution_redaction_required": true,
         "regulated_data_permitted": false,
         "restricted_data_permitted": false
+      }
+    },
+    {
+      "profile_id": "openrouter.minimax-m2.7.normative-extraction.candidate",
+      "capability_id": "evidence.extraction.normative_claims",
+      "provider_id": "openrouter",
+      "model_id": "minimax/minimax-m2.7",
+      "mode": "live",
+      "lifecycle_status": "candidate",
+      "enabled": false,
+      "contract_version": "1.1.0",
+      "configuration": {
+        "temperature": 0,
+        "max_output_tokens": 2000,
+        "timeout_ms": 10000,
+        "response_format": "json"
+      },
+      "eligibility": {
+        "privacy_compatibility": "declared_not_enforced",
+        "budget_class": "unclassified",
+        "evaluation_status": "not_evaluated"
+      },
+      "privacy": {
+        "max_data_classification": "public",
+        "external_processing": "allowed",
+        "zdr_support": "declared_unverified",
+        "retention_behavior": "provider_unknown",
+        "training_use": "unknown",
+        "processing_region": "unknown",
+        "pre_execution_redaction_required": true,
+        "regulated_data_permitted": false,
+        "restricted_data_permitted": false
+      },
+      "sandbox_controls": {
+        "configuration_status": "proposal_only",
+        "adapter_config_id": "openrouter.disabled-adapter-config.v1",
+        "adapter_enabled": false,
+        "authentication_material": "absent",
+        "invocation_mode": "manual_only",
+        "fallback_enabled": false,
+        "automatic_retries": 0,
+        "maximum_requests": 10,
+        "maximum_input_tokens_per_request": 8000,
+        "maximum_output_tokens_per_request": 2000,
+        "maximum_total_spend_usd": "0.05",
+        "exact_model_only": true,
+        "intended_upstream_provider_id": "minimax",
+        "provider_order": ["minimax"],
+        "require_parameters": true,
+        "data_collection": "deny",
+        "zdr_required": true,
+        "exact_upstream_routing_status": "unresolved",
+        "route_id": "openrouter.minimax-m2.7.variable",
+        "required_dossier_hash": "dcf3431c303107908a033eef46fde189128ef0d047a43bb3c8e98d17227e7002",
+        "required_evidence_pack_hash": "5b5cc5337c3f8c0a47aef8f8ba8528dc245db7be3ae56ab3814a574a76cee906",
+        "expires_at": "2026-08-13T12:00:00.000Z",
+        "kill_switch_required": true
       }
     }
   ]
