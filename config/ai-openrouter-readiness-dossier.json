@@ -35,10 +35,10 @@
       "claims": { "openrouter_model_id": "minimax/minimax-m2.7" },
       "sources": [
         {
-          "source_kind": "repository_evidence",
-          "evidence_id": "openrouter.model-identity.v2",
-          "locator": "config/ai-provider-evidence.json#openrouter.model-identity.v2",
-          "integrity_hash": "3fef07e37d2441127da103a74212d0ab0df538066c39fedbe35fab523258ba13"
+          "source_kind": "externally_reviewed_evidence",
+          "evidence_id": "openrouter.external.model-identity.v1",
+          "locator": "config/ai-openrouter-external-evidence-pack.json#openrouter.external.model-identity.v1",
+          "integrity_hash": "485b4e999a5a44b2a4b53d805086c36585323b2e12c5cb24a171496095db9f7b"
         }
       ],
       "retrieved_at": "2026-07-13T00:00:00.000Z",
@@ -61,10 +61,10 @@
       },
       "sources": [
         {
-          "source_kind": "repository_evidence",
-          "evidence_id": "openrouter.provider-routing.v2",
-          "locator": "config/ai-provider-evidence.json#openrouter.provider-routing.v2",
-          "integrity_hash": "868d9dcf15676869d6b8375e6a877fa5bfa8011cbe0b2a2008487f4ef0fece6e"
+          "source_kind": "externally_reviewed_evidence",
+          "evidence_id": "openrouter.external.routing.v1",
+          "locator": "config/ai-openrouter-external-evidence-pack.json#openrouter.external.routing.v1",
+          "integrity_hash": "d983aff46c57f618597efd619de0a641936f8bec51779c58e54bec796af1c017"
         }
       ],
       "retrieved_at": "2026-07-13T00:00:00.000Z",
@@ -87,10 +87,10 @@
       },
       "sources": [
         {
-          "source_kind": "repository_evidence",
-          "evidence_id": "openrouter.model-lifecycle.v2",
-          "locator": "config/ai-provider-evidence.json#openrouter.model-lifecycle.v2",
-          "integrity_hash": "c146a43b660e7cc33caa762dc749f4cfa8994b0ee90c79ef041542909c58e16b"
+          "source_kind": "externally_reviewed_evidence",
+          "evidence_id": "openrouter.external.model-release.v1",
+          "locator": "config/ai-openrouter-external-evidence-pack.json#openrouter.external.model-release.v1",
+          "integrity_hash": "290e1937091c0c6fefee958641a260872c2b85cfdb180b1b8036ed7ddcbca0e2"
         }
       ],
       "retrieved_at": "2026-07-13T00:00:00.000Z",
@@ -112,10 +112,10 @@
       },
       "sources": [
         {
-          "source_kind": "repository_evidence",
-          "evidence_id": "openrouter.context-limits.v2",
-          "locator": "config/ai-provider-evidence.json#openrouter.context-limits.v2",
-          "integrity_hash": "fd373ae8aa3224bab15e2267662c377a9d3e955844e3ec587c8a19c339bff69f"
+          "source_kind": "externally_reviewed_evidence",
+          "evidence_id": "openrouter.external.context-window.v1",
+          "locator": "config/ai-openrouter-external-evidence-pack.json#openrouter.external.context-window.v1",
+          "integrity_hash": "f9a31f024e0e4e4d864ead300db4fdb2b3f380b1a14a3fb159440ac82b9af4ca"
         }
       ],
       "retrieved_at": "2026-07-13T00:00:00.000Z",
@@ -132,10 +132,10 @@
       "claims": { "input": ["text"], "output": ["text"] },
       "sources": [
         {
-          "source_kind": "repository_evidence",
-          "evidence_id": "openrouter.multimodal.v2",
-          "locator": "config/ai-provider-evidence.json#openrouter.multimodal.v2",
-          "integrity_hash": "ce535da05c148e89b31a376ed1fdbafcecda26157fb8e74bf6e065d56f98df44"
+          "source_kind": "externally_reviewed_evidence",
+          "evidence_id": "openrouter.external.modalities.v1",
+          "locator": "config/ai-openrouter-external-evidence-pack.json#openrouter.external.modalities.v1",
+          "integrity_hash": "638e191de649294ddb17997fff75f4934270ca6aad3cbb3fced14e2a915fc397"
         }
       ],
       "retrieved_at": "2026-07-13T00:00:00.000Z",
@@ -154,10 +154,10 @@
       "claims": { "json_object": true, "json_schema_suitable": false },
       "sources": [
         {
-          "source_kind": "repository_evidence",
-          "evidence_id": "openrouter.structured-outputs.v2",
-          "locator": "config/ai-provider-evidence.json#openrouter.structured-outputs.v2",
-          "integrity_hash": "b7d977b173b19b535ab364ee4fabe334329849b7c0083bf917b41f143ee02f49"
+          "source_kind": "externally_reviewed_evidence",
+          "evidence_id": "openrouter.external.structured-output.v1",
+          "locator": "config/ai-openrouter-external-evidence-pack.json#openrouter.external.structured-output.v1",
+          "integrity_hash": "083cfcb5b336a686e2d4a52d117f40f3b3d93a26057eb4aad3dff7a3eb165042"
         }
       ],
       "retrieved_at": "2026-07-13T00:00:00.000Z",
@@ -178,10 +178,10 @@
       },
       "sources": [
         {
-          "source_kind": "repository_evidence",
-          "evidence_id": "openrouter.tool-calling.v2",
-          "locator": "config/ai-provider-evidence.json#openrouter.tool-calling.v2",
-          "integrity_hash": "a66de77aa741d8925717d69040e7568a246f1c0f9d85ea7ebdcbde7bfe2ebe36"
+          "source_kind": "externally_reviewed_evidence",
+          "evidence_id": "openrouter.external.tool-calling.v1",
+          "locator": "config/ai-openrouter-external-evidence-pack.json#openrouter.external.tool-calling.v1",
+          "integrity_hash": "aecae2cda098a043375a10a0e5033651ba0a2f9ffca24e06ec20cf1d780e0857"
         }
       ],
       "retrieved_at": "2026-07-13T00:00:00.000Z",
@@ -208,10 +208,10 @@
       },
       "sources": [
         {
-          "source_kind": "repository_evidence",
-          "evidence_id": "openrouter.pricing.v2",
-          "locator": "config/ai-provider-evidence.json#openrouter.pricing.v2",
-          "integrity_hash": "a7ab6947ed90f0093844abe056a26d2004ace3c1b7599767c82f37242c21b032"
+          "source_kind": "externally_reviewed_evidence",
+          "evidence_id": "openrouter.external.pricing.v1",
+          "locator": "config/ai-openrouter-external-evidence-pack.json#openrouter.external.pricing.v1",
+          "integrity_hash": "aa0509ba054cab3c87634a2371eac1b9c5be81560eababb38f6644c2630a4b76"
         }
       ],
       "retrieved_at": "2026-07-13T00:00:00.000Z",
@@ -233,10 +233,10 @@
       },
       "sources": [
         {
-          "source_kind": "repository_evidence",
-          "evidence_id": "openrouter.provider-identity.v2",
-          "locator": "config/ai-provider-evidence.json#openrouter.provider-identity.v2",
-          "integrity_hash": "afb077600833e035c27cb537b75dfd621fd42c25b1c901283dd179a71861c117"
+          "source_kind": "externally_reviewed_evidence",
+          "evidence_id": "openrouter.external.privacy.v1",
+          "locator": "config/ai-openrouter-external-evidence-pack.json#openrouter.external.privacy.v1",
+          "integrity_hash": "cec22fb65dd0b34dbb399f81748040dfe49b2bcc93a3db939dca9adbec0ed018"
         }
       ],
       "retrieved_at": "2026-07-13T00:00:00.000Z",
@@ -255,10 +255,10 @@
       "claims": { "openrouter_retention": null, "upstream_retention": null },
       "sources": [
         {
-          "source_kind": "repository_evidence",
-          "evidence_id": "openrouter.retention.v2",
-          "locator": "config/ai-provider-evidence.json#openrouter.retention.v2",
-          "integrity_hash": "5b749a8b0536627c59ca2cca0257852cb1e1b0d7fe1dba6ae0f571317ae018e1"
+          "source_kind": "externally_reviewed_evidence",
+          "evidence_id": "openrouter.external.retention.v1",
+          "locator": "config/ai-openrouter-external-evidence-pack.json#openrouter.external.retention.v1",
+          "integrity_hash": "5151ecd491307e4a437dea9fae55ae6fa1b85df1a0fd2f9c34a3e2d51aa90c14"
         }
       ],
       "retrieved_at": "2026-07-13T00:00:00.000Z",
@@ -278,10 +278,10 @@
       },
       "sources": [
         {
-          "source_kind": "repository_evidence",
-          "evidence_id": "openrouter.training-use.v2",
-          "locator": "config/ai-provider-evidence.json#openrouter.training-use.v2",
-          "integrity_hash": "9cb0cf3bc72ba54501ec38aa9ff2d762138b16ec4aa114e3f90d02e86dfb97fe"
+          "source_kind": "externally_reviewed_evidence",
+          "evidence_id": "openrouter.external.training-use.v1",
+          "locator": "config/ai-openrouter-external-evidence-pack.json#openrouter.external.training-use.v1",
+          "integrity_hash": "bc19c7448090e0ea60dddf4766f441e36037535b9e0def1b62527e2e0ad64469"
         }
       ],
       "retrieved_at": "2026-07-13T00:00:00.000Z",
@@ -302,10 +302,10 @@
       },
       "sources": [
         {
-          "source_kind": "repository_evidence",
-          "evidence_id": "openrouter.zdr.v2",
-          "locator": "config/ai-provider-evidence.json#openrouter.zdr.v2",
-          "integrity_hash": "1a76cc388b02b67cef75a35f106e67686c243422fa3fdd6b01def7dfd06afd48"
+          "source_kind": "externally_reviewed_evidence",
+          "evidence_id": "openrouter.external.zdr.v1",
+          "locator": "config/ai-openrouter-external-evidence-pack.json#openrouter.external.zdr.v1",
+          "integrity_hash": "8b8dad3b55313bd043ff123e1ec1fe31b887a1f2cfec684f262cbfd551522bfb"
         }
       ],
       "retrieved_at": "2026-07-13T00:00:00.000Z",
@@ -325,10 +325,10 @@
       },
       "sources": [
         {
-          "source_kind": "repository_evidence",
-          "evidence_id": "openrouter.processing-regions.v2",
-          "locator": "config/ai-provider-evidence.json#openrouter.processing-regions.v2",
-          "integrity_hash": "b7bf1955aac7ddf9f166602809d300c184fdaf481d735d6ab9f5d11c27947232"
+          "source_kind": "externally_reviewed_evidence",
+          "evidence_id": "openrouter.external.geography.v1",
+          "locator": "config/ai-openrouter-external-evidence-pack.json#openrouter.external.geography.v1",
+          "integrity_hash": "8b8c5648ec8395f0778ddcd0f8b414e732c6b5ae521914e40102fe59588ddf83"
         }
       ],
       "retrieved_at": "2026-07-13T00:00:00.000Z",
@@ -348,10 +348,10 @@
       },
       "sources": [
         {
-          "source_kind": "repository_evidence",
-          "evidence_id": "openrouter.restrictions.v2",
-          "locator": "config/ai-provider-evidence.json#openrouter.restrictions.v2",
-          "integrity_hash": "e5a722e0015f266b4d3b06ee69974cb08cebc1740b7eb47277bbba8c18d8d063"
+          "source_kind": "externally_reviewed_evidence",
+          "evidence_id": "openrouter.external.terms.v1",
+          "locator": "config/ai-openrouter-external-evidence-pack.json#openrouter.external.terms.v1",
+          "integrity_hash": "b522a2cb87132008739d01790ac76bdb3d2b0a1ad14e365548fa2998b257eef7"
         }
       ],
       "retrieved_at": "2026-07-13T00:00:00.000Z",
@@ -370,10 +370,10 @@
       "claims": { "capability_id": null, "benchmark_report_id": null },
       "sources": [
         {
-          "source_kind": "repository_evidence",
-          "evidence_id": "openrouter.normative-extraction.v2",
-          "locator": "config/ai-provider-evidence.json#openrouter.normative-extraction.v2",
-          "integrity_hash": "ad6b844d4ed8718e44de3ca49142c04db650b9508e32198e7af95067d370a34c"
+          "source_kind": "externally_reviewed_evidence",
+          "evidence_id": "openrouter.external.capability-benchmark.v1",
+          "locator": "config/ai-openrouter-external-evidence-pack.json#openrouter.external.capability-benchmark.v1",
+          "integrity_hash": "0be228aa4cc4dd986a5bd7d9ab9530eb3aa028e7e30fb907a1587cb60fa788e8"
         }
       ],
       "retrieved_at": "2026-07-13T00:00:00.000Z",
@@ -390,10 +390,10 @@
       "claims": { "latency": null, "reliability": null, "rate_limits": null },
       "sources": [
         {
-          "source_kind": "repository_evidence",
-          "evidence_id": "openrouter.rate-limits.v2",
-          "locator": "config/ai-provider-evidence.json#openrouter.rate-limits.v2",
-          "integrity_hash": "d4ffbe5caaf6470f7c47972a647e34bfc72fe30c4abe7f51c41b654794f4515c"
+          "source_kind": "externally_reviewed_evidence",
+          "evidence_id": "openrouter.external.operations.v1",
+          "locator": "config/ai-openrouter-external-evidence-pack.json#openrouter.external.operations.v1",
+          "integrity_hash": "0095fb35a0592f5df625fb20f12629aa51562deacedfc4be4966e1990bb62d07"
         }
       ],
       "retrieved_at": "2026-07-13T00:00:00.000Z",
@@ -410,10 +410,10 @@
       "claims": { "unresolved_risk_count": 7 },
       "sources": [
         {
-          "source_kind": "repository_evidence",
-          "evidence_id": "openrouter.provider-routing.v2",
-          "locator": "config/ai-provider-evidence.json#openrouter.provider-routing.v2",
-          "integrity_hash": "868d9dcf15676869d6b8375e6a877fa5bfa8011cbe0b2a2008487f4ef0fece6e"
+          "source_kind": "externally_reviewed_evidence",
+          "evidence_id": "openrouter.external.known-limitations.v1",
+          "locator": "config/ai-openrouter-external-evidence-pack.json#openrouter.external.known-limitations.v1",
+          "integrity_hash": "4aa946529d358ca9245d819020602fc346bc337d71bea369dd7fc4b11b79dda9"
         }
       ],
       "retrieved_at": "2026-07-13T00:00:00.000Z",
@@ -486,5 +486,5 @@
     "decision_reason": null
   },
   "created_at": "2026-07-14T00:00:00.000Z",
-  "dossier_hash": "c6bae9d5f4032bbcb765abb7fd658dc0bf43963587cee6c91975f244643a3bdc"
+  "dossier_hash": "dcf3431c303107908a033eef46fde189128ef0d047a43bb3c8e98d17227e7002"
 }

@@ -315,7 +315,7 @@ describe("OpenRouter readiness dossier", () => {
     assert.equal(evaluate(dossier).outcome, "invalid_dossier");
   });
 
-  it("rejects a tampered repository evidence hash", () => {
+  it("rejects a tampered external evidence hash", () => {
     const dossier = clone(fixture);
     section(dossier, "exact_model_identifier").sources[0]!.integrity_hash =
       "f".repeat(64);
@@ -325,17 +325,18 @@ describe("OpenRouter readiness dossier", () => {
     assert.ok(result.reason_codes.includes("evidence_hash_mismatch"));
   });
 
-  it("rejects a repository evidence locator mismatch", () => {
+  it("rejects an external evidence locator mismatch", () => {
     const dossier = clone(fixture);
     (
       section(dossier, "exact_model_identifier").sources[0] as {
         locator?: string;
       }
-    ).locator = "config/ai-provider-evidence.json#openrouter.other";
+    ).locator =
+      "config/ai-openrouter-external-evidence-pack.json#openrouter.other";
     rehash(dossier);
     assert.ok(
       evaluate(dossier).reason_codes.includes(
-        "repository_evidence_locator_mismatch",
+        "external_evidence_locator_mismatch",
       ),
     );
   });
