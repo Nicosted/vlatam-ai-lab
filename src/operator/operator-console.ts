@@ -30,12 +30,28 @@ const ROUTES = [
   ["Gobernanza", "/operator/governance"],
   ["Bloqueos", "/operator/blockers"],
   ["Acciones requeridas", "/operator/actions"],
+  ["Revisión humana", "/operator/review"],
   ["Ejecución", "/operator/execution"],
   ["Auditoría", "/operator/audit"],
 ] as const;
 
 const NEXT_GOVERNED_MILESTONE =
-  "Contratos de revisión humana (Human Review Contracts), según el mapa de dependencias gobernado." as const;
+  "Activación controlada de sandbox (una sola llamada sintética), solo tras resolver los bloqueos gobernados y registrar las decisiones humanas de la revisión de activación." as const;
+
+const NEXT_ACTION_LABELS: Readonly<Record<string, string>> = {
+  repair_invalid_review_artifact:
+    "Reparar el artefacto de revisión inválido mediante un cambio de código revisado.",
+  resolve_governed_blockers:
+    "Resolver los bloqueos gobernados listados antes de registrar decisiones humanas.",
+  record_human_decisions:
+    "Registrar las decisiones humanas pendientes (revisión de evidencia, aprobación, titularidades y aceptación del caso de referencia).",
+  propose_activation_configuration_pr:
+    "Proponer un PR separado de configuración de activación (una sola llamada); la ejecución seguirá sin autorizarse en esta revisión.",
+  renew_expired_review:
+    "Renovar la revisión vencida con una nueva versión gobernada.",
+  address_rejection_or_supersede:
+    "Atender el rechazo registrado o sustituir la revisión por una nueva versión.",
+};
 
 const escapeHtml = (value: unknown): string =>
   String(value ?? "")
@@ -394,6 +410,135 @@ function openrouter(model: OperatorReadModel): string {
     .join(
       "",
     )}</ol><p class="quiet">El plan completo está en Acciones requeridas.</p></section>`;
+}
+
+function review(model: OperatorReadModel): string {
+  const r = model.activation_review;
+  const g = model.gold_case_state;
+  const m = model.models[0];
+  const p = model.providers[0] ?? {};
+  const reviewBlockers = model.blockers.filter(
+    (blocker) =>
+      blocker.source_evaluator === "sandbox_activation_review" ||
+      blocker.source_evaluator === "sandbox_gold_case",
+  );
+  const nextAction = NEXT_ACTION_LABELS[r.next_governed_action];
+  const decisionRow = (
+    label: string,
+    status: string,
+  ): readonly [string, string] => [label, badge(status)];
+  return `<h2>Revisión humana</h2><p class="lead">Estado de la revisión humana de activación del sandbox. La consola solo muestra decisiones registradas en artefactos gobernados; no ofrece controles de aprobación, mutación ni ejecución.</p>${blockedNotice(model)}<section class="card"><h3>Estado de la revisión de activación</h3>${dl(
+    [
+      [FIELD_LABELS["review_status"]!, badge(r.outcome)],
+      ["Ciclo de vida", badge(r.lifecycle)],
+      [FIELD_LABELS["review_scope"]!, code(r.scope)],
+      [FIELD_LABELS["review_expiry"]!, text(r.expires_at ?? "ausente")],
+      ["Decisiones humanas pendientes", text(r.pending_human_decisions.length)],
+      [FIELD_LABELS["version"]!, text(r.version ?? "ausente")],
+      ["Hash de la revisión (abreviado)", hashSummary(r.source_artifact_hash)],
+    ],
+  )}<p><strong>Alcance:</strong> la única aprobación representable es exactamente una activación de sandbox con un caso de referencia sintético (${code("one_synthetic_gold_case_sandbox_activation")}). Ninguna aprobación de proveedor, producción, recurrencia, autonomía ni datos de clientes es posible en este contrato.</p>${disclosure("Hash completo de la revisión", r.source_artifact_hash)}</section><section class="card"><h3>Identidad del candidato</h3>${dl(
+    [
+      [FIELD_LABELS["provider_id"]!, code(p["provider_id"] ?? "ausente")],
+      [
+        FIELD_LABELS["candidate_model"]!,
+        m ? code(m.model_id) : badge("absent"),
+      ],
+      ["Capacidad", code(g.capability_id ?? "ausente")],
+    ],
+  )}</section><div class="grid2"><section class="card"><h3>Decisiones humanas</h3>${dl(
+    [
+      decisionRow(
+        FIELD_LABELS["evidence_reviewer_state"]!,
+        r.evidence_review_status,
+      ),
+      decisionRow(
+        FIELD_LABELS["activation_approver_state"]!,
+        r.activation_approval_status,
+      ),
+      decisionRow(
+        FIELD_LABELS["kill_switch_owner_state"]!,
+        r.kill_switch_owner_status,
+      ),
+      decisionRow(
+        FIELD_LABELS["incident_owner_state"]!,
+        r.incident_owner_status,
+      ),
+    ],
+  )}<p class="quiet">Independencia exigida: la revisión de evidencia y la aprobación de activación deben provenir de personas distintas; ninguna puede ser el sistema; las titularidades de kill switch e incidentes no pueden recaer en la persona aprobadora (pueden coincidir entre sí).</p>${codeList(
+    "Decisiones pendientes (códigos canónicos)",
+    [...r.pending_human_decisions],
+  )}</section><section class="card"><h3>Límites de la primera ejecución</h3>${dl(
+    [
+      [
+        FIELD_LABELS["allowed_first_run_data"]!,
+        badge(r.allowed_data_classification ?? "unknown"),
+      ],
+      [
+        FIELD_LABELS["maximum_requests"]!,
+        text(r.ceilings.maximum_requests ?? "ausente"),
+      ],
+      [
+        FIELD_LABELS["maximum_input_tokens"]!,
+        text(r.ceilings.maximum_input_tokens_per_request ?? "ausente"),
+      ],
+      [
+        FIELD_LABELS["maximum_output_tokens"]!,
+        text(r.ceilings.maximum_output_tokens_per_request ?? "ausente"),
+      ],
+      [FIELD_LABELS["timeout_ms"]!, text(r.ceilings.timeout_ms ?? "ausente")],
+      [
+        FIELD_LABELS["automatic_retries"]!,
+        text(r.ceilings.automatic_retries ?? "ausente"),
+      ],
+      [
+        FIELD_LABELS["fallback_enabled"]!,
+        yesNo(r.ceilings.fallback_enabled === true),
+      ],
+      [
+        FIELD_LABELS["maximum_total_spend_usd"]!,
+        text(r.ceilings.maximum_total_spend_usd ?? "ausente"),
+      ],
+    ],
+  )}</section></div><section class="card"><h3>Caso de referencia sintético</h3>${dl(
+    [
+      [FIELD_LABELS["gold_case_readiness"]!, badge(g.outcome)],
+      ["Campaña", badge(g.campaign_status ?? "unknown")],
+      [
+        FIELD_LABELS["gold_case_acceptance"]!,
+        badge(g.acceptance_status ?? "unknown"),
+      ],
+      ["Identidad", code(g.source_artifact_id ?? "ausente")],
+      [FIELD_LABELS["version"]!, text(g.version ?? "ausente")],
+      ["Hash (abreviado)", hashSummary(g.source_artifact_hash)],
+    ],
+  )}<p class="quiet">El caso es completamente sintético: sin datos de clientes, personales, productivos ni regulados. No se ha ejecutado ninguna campaña ni existe resultado alguno; el estado preparado nunca representa una llamada al proveedor.</p>${disclosure(
+    "Hash completo del caso de referencia",
+    g.source_artifact_hash,
+  )}</section><section class="card"><h3>Artefactos vinculados</h3><p class="quiet">Hashes abreviados; cada binding exacto queda verificado por el evaluador determinista y falla cerrado ante cualquier desvío.</p>${dl(
+    r.bound_artifacts.map(
+      (artifact) =>
+        [
+          artifact.name,
+          artifact.hash
+            ? `${hashSummary(artifact.hash)} <span class="quiet">(v${escapeHtml(artifact.version ?? "—")})</span>`
+            : badge(artifact.status ?? "absent"),
+        ] as const,
+    ),
+  )}${codeList(
+    "Identidades y hashes completos",
+    r.bound_artifacts.map(
+      (artifact) =>
+        `${artifact.name}: ${artifact.id ?? "sin resolver"} @ ${artifact.version ?? "—"} — ${artifact.hash ?? artifact.status ?? "ausente"}`,
+    ),
+  )}</section><section class="card"><h3>Bloqueos de la revisión</h3><p class="quiet">Bloqueos generados por los evaluadores de la revisión de activación y del caso de referencia; el listado canónico completo está en Bloqueos.</p><ul>${reviewBlockers
+    .map((blocker) => {
+      const summary = presentBlockerSummary(blocker);
+      return `<li>${escapeHtml(summary.label)}${summary.known ? "" : untranslated()} ${code(blocker.blocker_code)}</li>`;
+    })
+    .join(
+      "",
+    )}</ul></section><section class="card"><h3>Próxima acción gobernada</h3><p>${nextAction ? escapeHtml(nextAction) : `${code(r.next_governed_action)}${untranslated()}`}</p><p class="quiet">Incluso una revisión elegible nunca autoriza ejecución, acceso a secretos ni habilitación de runtime: solo permite proponer un PR separado y revisado de configuración.</p></section>`;
 }
 
 function governance(model: OperatorReadModel): string {
@@ -788,6 +933,24 @@ function audit(model: OperatorReadModel): string {
       hash: profile?.hash ?? null,
       path: pathFor("execution-profiles"),
     }),
+    artifact({
+      name: "Revisión humana de activación",
+      purpose: "Contrato gobernado de revisión humana del sandbox.",
+      id: v.activation_review_id,
+      version: model.activation_review.version,
+      status: v.activation_review_outcome,
+      hash: v.activation_review_hash,
+      path: pathFor("activation-review"),
+    }),
+    artifact({
+      name: "Caso de referencia sintético",
+      purpose: "Caso de referencia sintético y contrato de aceptación.",
+      id: v.gold_case_id,
+      version: model.gold_case_state.version,
+      status: v.gold_case_outcome,
+      hash: v.gold_case_hash,
+      path: pathFor("gold-case"),
+    }),
   ].join(
     "",
   )}</div><section class="card"><h3>Evidencia y documentación</h3>${codeList(
@@ -819,15 +982,17 @@ export function renderOperatorConsole(
         ? providers(model)
         : pathname === "/operator/providers/openrouter"
           ? openrouter(model)
-          : pathname === "/operator/governance"
-            ? governance(model)
-            : pathname === "/operator/blockers"
-              ? blockers(model)
-              : pathname === "/operator/actions"
-                ? actions(model)
-                : pathname === "/operator/execution"
-                  ? execution(model)
-                  : audit(model);
+          : pathname === "/operator/review"
+            ? review(model)
+            : pathname === "/operator/governance"
+              ? governance(model)
+              : pathname === "/operator/blockers"
+                ? blockers(model)
+                : pathname === "/operator/actions"
+                  ? actions(model)
+                  : pathname === "/operator/execution"
+                    ? execution(model)
+                    : audit(model);
   return shell(model, pathname, content);
 }
 

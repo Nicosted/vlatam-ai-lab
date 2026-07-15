@@ -1,0 +1,241 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/ai-openrouter-sandbox-gold-case.schema.json",
+  "title": "Governed OpenRouter sandbox synthetic gold case",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "gold_case_contract_version",
+    "gold_case_id",
+    "gold_case_version",
+    "canonicalization_version",
+    "capability_id",
+    "classification",
+    "created_by",
+    "created_at",
+    "fixture_binding",
+    "input",
+    "expected_output",
+    "usage_restrictions",
+    "acceptance_contract",
+    "campaign_status",
+    "execution_results",
+    "human_acceptance",
+    "gold_case_hash"
+  ],
+  "properties": {
+    "gold_case_contract_version": { "const": "1.0.0" },
+    "gold_case_id": { "$ref": "#/$defs/id" },
+    "gold_case_version": { "$ref": "#/$defs/semver" },
+    "canonicalization_version": { "const": "registry-json-v1" },
+    "capability_id": { "const": "evidence.extraction.normative_claims" },
+    "classification": { "const": "synthetic" },
+    "created_by": { "$ref": "#/$defs/id" },
+    "created_at": { "$ref": "#/$defs/date_time" },
+    "fixture_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fixture_id",
+        "fixture_path",
+        "fixture_hash",
+        "classification"
+      ],
+      "properties": {
+        "fixture_id": { "$ref": "#/$defs/id" },
+        "fixture_path": { "type": "string", "minLength": 1 },
+        "fixture_hash": { "$ref": "#/$defs/hash" },
+        "classification": { "const": "synthetic" }
+      }
+    },
+    "input": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_title",
+        "source_text",
+        "data_provenance",
+        "contains_customer_data",
+        "contains_personal_data",
+        "contains_production_data",
+        "contains_privileged_data",
+        "contains_regulated_data"
+      ],
+      "properties": {
+        "source_title": { "type": "string", "minLength": 1 },
+        "source_text": { "type": "string", "minLength": 1 },
+        "data_provenance": { "const": "entirely_synthetic" },
+        "contains_customer_data": { "const": false },
+        "contains_personal_data": { "const": false },
+        "contains_production_data": { "const": false },
+        "contains_privileged_data": { "const": false },
+        "contains_regulated_data": { "const": false }
+      }
+    },
+    "expected_output": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "required_top_level_fields",
+        "minimum_claims",
+        "claim_fields",
+        "required_claims",
+        "evidence_must_be_source_substring",
+        "claim_ids_unique",
+        "additional_properties_allowed"
+      ],
+      "properties": {
+        "required_top_level_fields": {
+          "type": "array",
+          "prefixItems": [{ "const": "claims" }, { "const": "uncertainty" }],
+          "items": false,
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "minimum_claims": { "type": "integer", "minimum": 1 },
+        "claim_fields": {
+          "type": "array",
+          "prefixItems": [
+            { "const": "claim_id" },
+            { "const": "claim" },
+            { "const": "evidence" }
+          ],
+          "items": false,
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "required_claims": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["claim_id", "claim_contains", "evidence_exact"],
+            "properties": {
+              "claim_id": { "type": "string", "minLength": 1 },
+              "claim_contains": { "type": "string", "minLength": 1 },
+              "evidence_exact": { "type": "string", "minLength": 1 }
+            }
+          }
+        },
+        "evidence_must_be_source_substring": { "const": true },
+        "claim_ids_unique": { "const": true },
+        "additional_properties_allowed": { "const": false }
+      }
+    },
+    "usage_restrictions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "legal_advice_prohibited",
+        "automatic_downstream_publication_prohibited",
+        "human_review_required",
+        "single_live_request_only"
+      ],
+      "properties": {
+        "legal_advice_prohibited": { "const": true },
+        "automatic_downstream_publication_prohibited": { "const": true },
+        "human_review_required": { "const": true },
+        "single_live_request_only": { "const": true }
+      }
+    },
+    "acceptance_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "acceptance_contract_version",
+        "scoring_method",
+        "output_schema_validity_required",
+        "minimum_required_claim_recall",
+        "maximum_unsupported_claims",
+        "evidence_reference_rule",
+        "required_uncertainty_substrings",
+        "prohibited_conclusion_substrings",
+        "expected_provider_id",
+        "expected_model_id",
+        "usage_metadata_required",
+        "cost_metadata_compatibility",
+        "maximum_cost_usd_micro",
+        "maximum_latency_ms",
+        "timeout_behavior",
+        "maximum_automatic_retries",
+        "fallback_allowed"
+      ],
+      "properties": {
+        "acceptance_contract_version": { "const": "1.0.0" },
+        "scoring_method": { "const": "deterministic_rule_based_v1" },
+        "output_schema_validity_required": { "const": true },
+        "minimum_required_claim_recall": { "const": "all" },
+        "maximum_unsupported_claims": { "const": 0 },
+        "evidence_reference_rule": { "const": "verbatim_source_substring" },
+        "required_uncertainty_substrings": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "prohibited_conclusion_substrings": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "expected_provider_id": { "const": "openrouter" },
+        "expected_model_id": { "const": "minimax/minimax-m2.7" },
+        "usage_metadata_required": { "const": true },
+        "cost_metadata_compatibility": {
+          "const": "usd_micro_integer_ceiling"
+        },
+        "maximum_cost_usd_micro": {
+          "type": "string",
+          "pattern": "^(0|[1-9]\\d*)$"
+        },
+        "maximum_latency_ms": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10000
+        },
+        "timeout_behavior": { "const": "fail_closed_no_result" },
+        "maximum_automatic_retries": { "const": 0 },
+        "fallback_allowed": { "const": false }
+      }
+    },
+    "campaign_status": { "const": "prepared_not_executed" },
+    "execution_results": {
+      "type": "array",
+      "maxItems": 0,
+      "items": false
+    },
+    "human_acceptance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "reviewer_id",
+        "reviewer_role",
+        "decided_at",
+        "reason",
+        "accepted_gold_case_hash"
+      ],
+      "properties": {
+        "status": { "enum": ["pending", "approved", "rejected"] },
+        "reviewer_id": { "type": ["string", "null"] },
+        "reviewer_role": {
+          "enum": ["evidence_reviewer", null]
+        },
+        "decided_at": {
+          "oneOf": [{ "$ref": "#/$defs/date_time" }, { "type": "null" }]
+        },
+        "reason": { "type": ["string", "null"] },
+        "accepted_gold_case_hash": {
+          "oneOf": [{ "$ref": "#/$defs/hash" }, { "type": "null" }]
+        }
+      }
+    },
+    "gold_case_hash": { "$ref": "#/$defs/hash" }
+  },
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._:-]+$" },
+    "semver": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "date_time": { "type": "string", "format": "date-time" }
+  }
+}

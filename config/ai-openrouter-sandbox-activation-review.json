@@ -1,0 +1,163 @@
+{
+  "review_contract_version": "1.0.0",
+  "review_id": "openrouter.minimax-m2.7.sandbox-activation-review.v1",
+  "review_version": "1.0.0",
+  "canonicalization_version": "registry-json-v1",
+  "lifecycle": "pending",
+  "scope": "one_synthetic_gold_case_sandbox_activation",
+  "created_by": "claude.repository.agent",
+  "created_at": "2026-07-15T00:00:00.000Z",
+  "expires_at": "2026-08-13T12:00:00.000Z",
+  "superseded_by": null,
+  "candidate": {
+    "provider_id": "openrouter",
+    "openrouter_model_id": "minimax/minimax-m2.7",
+    "intended_upstream_provider_id": "minimax",
+    "upstream_model_id": null,
+    "model_registry_entry_id": "openrouter.minimax-m2.7.variable.v1",
+    "route_id": "openrouter.minimax-m2.7.variable",
+    "route_record_id": "openrouter.minimax-m2.7.variable-route.v1",
+    "capability_id": "evidence.extraction.normative_claims",
+    "execution_profile_id": "openrouter.minimax-m2.7.normative-extraction.candidate",
+    "execution_profile_contract_version": "1.1.0",
+    "adapter_config_id": "openrouter.disabled-adapter-config.v1"
+  },
+  "artifact_bindings": {
+    "readiness_dossier": {
+      "id": "openrouter.minimax-m2.7.normative-extraction.v1",
+      "version": "1.0.0",
+      "hash": "dcf3431c303107908a033eef46fde189128ef0d047a43bb3c8e98d17227e7002"
+    },
+    "external_evidence_pack": {
+      "id": "openrouter.minimax-m2.7.normative-extraction.external-evidence.v1",
+      "version": "1.0.0",
+      "hash": "5b5cc5337c3f8c0a47aef8f8ba8528dc245db7be3ae56ab3814a574a76cee906"
+    },
+    "sandbox_proposal": {
+      "id": "openrouter.minimax-m2.7.sandbox-enablement-proposal.v1",
+      "version": "1.0.0",
+      "hash": "5ad5cf7f14289454a96e7de1d0e9084e54e9d52b21183759f173d548518fa995"
+    },
+    "runtime_configuration": {
+      "id": "openrouter.minimax-m2.7.manual-sandbox-runtime.v1",
+      "version": "1.0.0",
+      "hash": "940d88d1e8cbb82f7085d007fb451c01584110d658b47d1e2a070aade9d1e1d8"
+    },
+    "execution_profile": {
+      "id": "openrouter.minimax-m2.7.normative-extraction.candidate",
+      "version": "1.1.0",
+      "hash": "74886e256dbd672c4825dbf485378e56db35e354605c1a4ec90e812c4e492641"
+    },
+    "model_registry_entry": {
+      "id": "openrouter.minimax-m2.7.variable.v1",
+      "version": "1.0.0",
+      "hash": "962d96be424974f40ba95ac3cb0fdc147cc59d90b687e4ee8ca05750cc0fa9cd"
+    },
+    "route_record": {
+      "id": "openrouter.minimax-m2.7.variable-route.v1",
+      "version": "1.0.0",
+      "hash": "b70b10f24627e60ca6faf749637f01fba993ad75a404833392fb2ad3dbe7aba1"
+    },
+    "pricing_policy": {
+      "status": "unresolved",
+      "id": null,
+      "hash": null
+    },
+    "privacy_zdr_evidence": {
+      "status": "unresolved",
+      "id": null,
+      "hash": null
+    },
+    "gold_case": {
+      "id": "openrouter.minimax-m2.7.normative-claims.gold-case.v1",
+      "version": "1.0.0",
+      "hash": "03af337eed0adda99b84a8dbf220210c5b8b897d9f994d4b33d543ad51688b27"
+    },
+    "first_run_fixture": {
+      "fixture_id": "openrouter.normative-claim.synthetic.v1",
+      "fixture_hash": "bead2de9336e7962aa1dc842192a9b126ef3af1bf34c118c19420968665e42f9",
+      "classification": "synthetic"
+    }
+  },
+  "ceilings": {
+    "maximum_requests": 1,
+    "maximum_input_tokens_per_request": 8000,
+    "maximum_output_tokens_per_request": 2000,
+    "timeout_ms": 10000,
+    "automatic_retries": 0,
+    "fallback_enabled": false,
+    "maximum_total_spend_usd": "0.05"
+  },
+  "routing_acknowledgment": {
+    "exact_upstream_route_status": "unresolved",
+    "limitations_acknowledged": false
+  },
+  "decisions": {
+    "evidence_review": {
+      "status": "pending",
+      "reviewer_id": null,
+      "reviewer_role": "evidence_reviewer",
+      "decision": null,
+      "reason": null,
+      "decided_at": null,
+      "reviewed_hashes": {
+        "dossier_hash": null,
+        "evidence_pack_hash": null,
+        "proposal_hash": null,
+        "gold_case_hash": null,
+        "runtime_configuration_hash": null
+      }
+    },
+    "activation_approval": {
+      "status": "pending",
+      "reviewer_id": null,
+      "reviewer_role": "sandbox_activation_approver",
+      "decision": null,
+      "reason": null,
+      "decided_at": null,
+      "reviewed_hashes": {
+        "dossier_hash": null,
+        "evidence_pack_hash": null,
+        "proposal_hash": null,
+        "gold_case_hash": null,
+        "runtime_configuration_hash": null
+      }
+    }
+  },
+  "operational_ownership": {
+    "kill_switch_owner": {
+      "status": "unassigned",
+      "identity": null,
+      "role": "kill_switch_owner"
+    },
+    "incident_owner": {
+      "status": "unassigned",
+      "identity": null,
+      "role": "incident_owner"
+    }
+  },
+  "secret_management_plan": {
+    "status": "defined",
+    "reference": "docs/operations/openrouter-sandbox-adapter-runbook.md",
+    "storage": "local_environment_variable_at_final_boundary",
+    "repository_storage_prohibited": true,
+    "secret_reference_name": "OPENROUTER_API_KEY"
+  },
+  "allowed_data": {
+    "classification": "synthetic",
+    "customer_data_allowed": false,
+    "personal_data_allowed": false,
+    "production_documents_allowed": false
+  },
+  "downstream_restrictions": {
+    "legal_reliance_allowed": false,
+    "automatic_downstream_publication_allowed": false,
+    "human_review_required": true,
+    "outputs_classification": "experimental"
+  },
+  "execution_authorized": false,
+  "secret_access_allowed": false,
+  "runtime_enabled": false,
+  "provider_call_performed": false,
+  "review_hash": "1d086d01ca3d97b5430f3bc03b7bf1e49473a3b29d1df99de92a3292a68c18d1"
+}

@@ -61,6 +61,15 @@ clipboard JavaScript is used.
 - `/operator/blockers` — Bloqueos: readable operator records with read-only
   Spanish filters, visible result counts, and unchanged deterministic order
 - `/operator/actions` — Acciones requeridas: an ordered informational plan
+- `/operator/review` — Revisión humana: the sandbox activation human-review
+  state from the read model — review outcome and lifecycle, the exact bounded
+  scope (`one_synthetic_gold_case_sandbox_activation`), candidate identity,
+  pending human decisions, evidence-reviewer / activation-approver /
+  kill-switch-owner / incident-owner states, allowed first-run data, request /
+  token / timeout / retry / fallback / spend ceilings, synthetic gold-case
+  readiness and acceptance state, bound artifact versions with abbreviated
+  hashes, expiry, and the deterministic next governed action. Informational
+  only: no approval buttons, forms, uploads, or mutation endpoints
 - `/operator/execution` — Ejecución: the governed chain
   `Registro → Resolución → Autorización → Política exacta → Consumo atómico → Gateway → Adaptador`
   with honest absent/blocked/disabled/not-attempted distinctions
@@ -119,4 +128,10 @@ The dependency remains:
 
 `Operator Read Model → Spanish Operator Console UX → Human Review Contracts → Human Review Workflow UI → Controlled Sandbox Activation`
 
-Human review must be a separate, named-reviewer workflow with its own contracts and approvals; the console will not infer or persist decisions.
+The Human Review Contracts stage is now delivered (see
+`docs/architecture/ai-openrouter-sandbox-activation-review.md`): the console
+renders the activation-review and gold-case state read-only from the Operator
+Read Model 1.1.0 through `/operator/review`. Decisions are still recorded only
+in governed repository artifacts through reviewed PRs; the console never
+infers, collects, or persists a decision. Controlled sandbox activation
+remains a separately reviewed future PR.

@@ -23,6 +23,11 @@ import {
   type OpenRouterSandboxConfigurationApproval,
 } from "../providers/openrouter-sandbox-enablement-proposal.js";
 import {
+  evaluateOpenRouterSandboxActivationReview,
+  type OpenRouterSandboxActivationReviewDependencies,
+} from "../providers/openrouter-sandbox-activation-review.js";
+import { evaluateOpenRouterSandboxGoldCase } from "../providers/openrouter-sandbox-gold-case.js";
+import {
   evaluateOpenRouterSandboxPreflight,
   type OpenRouterSandboxRuntimeConfig,
 } from "../providers/openrouter-sandbox-preflight.js";
@@ -33,7 +38,7 @@ import {
 } from "./operator-read-model.js";
 
 export const REPOSITORY_OPERATOR_EVALUATED_AT =
-  "2026-07-14T23:30:00.000Z" as const;
+  "2026-07-15T12:00:00.000Z" as const;
 
 const APPROVED_ARTIFACTS = {
   models: "config/ai-openrouter-model-registry.json",
@@ -45,6 +50,12 @@ const APPROVED_ARTIFACTS = {
   proposal: "config/ai-openrouter-sandbox-enablement-proposal.json",
   approval: "config/ai-openrouter-sandbox-configuration-approval.json",
   runtime: "config/ai-openrouter-sandbox-runtime.json",
+  activation_review: "config/ai-openrouter-sandbox-activation-review.json",
+  gold_case: "config/ai-openrouter-sandbox-gold-case.json",
+  fixture:
+    "data/fixtures/providers/openrouter-normative-claim-synthetic-v1.json",
+  pricing: "config/ai-pricing.json",
+  zdr: "config/ai-zdr-evidence.json",
 } as const;
 
 type ArtifactKey = keyof typeof APPROVED_ARTIFACTS;
@@ -173,6 +184,70 @@ export async function loadRepositoryOperatorReadModel(
     };
   }
 
+  const activationReview = loaded.activation_review.value;
+  const goldCase = loaded.gold_case.value;
+  const fixture = loaded.fixture.value;
+  const pricing = loaded.pricing.value;
+  const zdr = loaded.zdr.value;
+
+  const goldCaseResult = evaluateOpenRouterSandboxGoldCase(
+    goldCase,
+    evaluatedAt,
+    fixture,
+  );
+  let activationResult;
+  try {
+    activationResult = evaluateOpenRouterSandboxActivationReview(
+      activationReview,
+      evaluatedAt,
+      {
+        proposal,
+        proposal_dependencies: {
+          dossier,
+          evidence_pack: evidence,
+          approval,
+          model_entries:
+            isRecord(models) && Array.isArray(models.entries)
+              ? models.entries
+              : [],
+          routes:
+            isRecord(routes) && Array.isArray(routes.routes)
+              ? routes.routes
+              : [],
+          profiles:
+            isRecord(profiles) && Array.isArray(profiles.profiles)
+              ? profiles.profiles
+              : [],
+          adapter,
+        },
+        runtime,
+        pricing,
+        zdr_evidence: zdr,
+        gold_case: goldCase,
+        first_run_fixture: fixture,
+      } as OpenRouterSandboxActivationReviewDependencies,
+    );
+  } catch {
+    sourceErrors.push("activation_review:evaluator_dependency_invalid");
+    activationResult = {
+      contract_version: "1.0.0" as const,
+      review_id:
+        isRecord(activationReview) &&
+        typeof activationReview.review_id === "string"
+          ? activationReview.review_id
+          : null,
+      evaluated_at: options.evaluated_at,
+      outcome: "invalid_review" as const,
+      reason_codes: ["evaluator_dependency_invalid"] as const,
+      pending_human_decisions: [] as const,
+      activation_configuration_authorized: false,
+      execution_authorized: false as const,
+      provider_call_performed: false as const,
+      secret_access_allowed: false as const,
+      runtime_enabled: false as const,
+    };
+  }
+
   const runtimeRecord = isRecord(runtime) ? runtime : {};
   const bindings = isRecord(runtimeRecord.bindings)
     ? runtimeRecord.bindings
@@ -249,7 +324,9 @@ export async function loadRepositoryOperatorReadModel(
       readinessResult.outcome !== "invalid_dossier" &&
       evidenceResult.outcome !== "invalid_pack" &&
       proposalResult.outcome !== "invalid_proposal" &&
-      preflightResult.outcome !== "invalid_configuration",
+      preflightResult.outcome !== "invalid_configuration" &&
+      activationResult.outcome !== "invalid_review" &&
+      goldCaseResult.outcome !== "invalid_gold_case",
     source_errors: [...new Set(sourceErrors)].sort(),
     provider: {
       provider_id: "openrouter",
@@ -284,6 +361,7 @@ export async function loadRepositoryOperatorReadModel(
         "reports/ai-lab-openrouter-reviewed-evidence-pack-2026-07-14.md",
         "reports/ai-lab-openrouter-sandbox-enablement-proposal-2026-07-14.md",
         "docs/evidence/openrouter-sandbox-adapter-harness-2026-07-14.md",
+        "reports/ai-lab-openrouter-sandbox-human-review-2026-07-15.md",
       ],
     },
     models: Array.isArray(typedModels?.entries)
@@ -381,6 +459,154 @@ export async function loadRepositoryOperatorReadModel(
           ? runtimeRecord.runtime_contract_version
           : null,
       runtime_config_hash: runtimeHash,
+    },
+    activation_review: (() => {
+      const review = isRecord(activationReview) ? activationReview : {};
+      const decisions = isRecord(review.decisions) ? review.decisions : {};
+      const evidenceDecision = isRecord(decisions.evidence_review)
+        ? decisions.evidence_review
+        : {};
+      const approvalDecision = isRecord(decisions.activation_approval)
+        ? decisions.activation_approval
+        : {};
+      const ownership = isRecord(review.operational_ownership)
+        ? review.operational_ownership
+        : {};
+      const killSwitchOwner = isRecord(ownership.kill_switch_owner)
+        ? ownership.kill_switch_owner
+        : {};
+      const incidentOwner = isRecord(ownership.incident_owner)
+        ? ownership.incident_owner
+        : {};
+      const allowed = isRecord(review.allowed_data) ? review.allowed_data : {};
+      const ceilings = isRecord(review.ceilings) ? review.ceilings : {};
+      const bindings = isRecord(review.artifact_bindings)
+        ? review.artifact_bindings
+        : {};
+      const decisionStatus = (
+        value: unknown,
+      ): "pending" | "approved" | "rejected" =>
+        value === "approved" || value === "rejected" ? value : "pending";
+      const ownerStatus = (value: unknown): "unassigned" | "assigned" =>
+        value === "assigned" ? "assigned" : "unassigned";
+      const integer = (value: unknown): number | null =>
+        Number.isSafeInteger(value) ? (value as number) : null;
+      const boundArtifact = (
+        name: string,
+        value: unknown,
+      ): {
+        name: string;
+        id: string | null;
+        version: string | null;
+        hash: string | null;
+        status: string | null;
+      } => {
+        const binding = isRecord(value) ? value : {};
+        return {
+          name,
+          id:
+            typeof binding.id === "string"
+              ? binding.id
+              : typeof binding.fixture_id === "string"
+                ? binding.fixture_id
+                : null,
+          version: typeof binding.version === "string" ? binding.version : null,
+          hash:
+            typeof binding.hash === "string"
+              ? binding.hash
+              : typeof binding.fixture_hash === "string"
+                ? binding.fixture_hash
+                : null,
+          status: typeof binding.status === "string" ? binding.status : null,
+        };
+      };
+      return {
+        outcome: activationResult.outcome,
+        reason_codes: [
+          ...new Set([
+            ...activationResult.reason_codes,
+            ...activationResult.pending_human_decisions,
+          ]),
+        ].sort(),
+        source_artifact_id: activationResult.review_id,
+        source_artifact_hash:
+          typeof review.review_hash === "string" ? review.review_hash : null,
+        version:
+          typeof review.review_version === "string"
+            ? review.review_version
+            : null,
+        lifecycle:
+          typeof review.lifecycle === "string" ? review.lifecycle : "unknown",
+        scope: typeof review.scope === "string" ? review.scope : "unknown",
+        expires_at:
+          typeof review.expires_at === "string" ? review.expires_at : null,
+        pending_human_decisions: activationResult.pending_human_decisions,
+        evidence_review_status: decisionStatus(evidenceDecision.status),
+        activation_approval_status: decisionStatus(approvalDecision.status),
+        kill_switch_owner_status: ownerStatus(killSwitchOwner.status),
+        incident_owner_status: ownerStatus(incidentOwner.status),
+        allowed_data_classification:
+          typeof allowed.classification === "string"
+            ? allowed.classification
+            : null,
+        ceilings: {
+          maximum_requests: integer(ceilings.maximum_requests),
+          maximum_input_tokens_per_request: integer(
+            ceilings.maximum_input_tokens_per_request,
+          ),
+          maximum_output_tokens_per_request: integer(
+            ceilings.maximum_output_tokens_per_request,
+          ),
+          timeout_ms: integer(ceilings.timeout_ms),
+          automatic_retries: integer(ceilings.automatic_retries),
+          fallback_enabled:
+            typeof ceilings.fallback_enabled === "boolean"
+              ? ceilings.fallback_enabled
+              : null,
+          maximum_total_spend_usd:
+            typeof ceilings.maximum_total_spend_usd === "string"
+              ? ceilings.maximum_total_spend_usd
+              : null,
+        },
+        bound_artifacts: [
+          boundArtifact("readiness_dossier", bindings.readiness_dossier),
+          boundArtifact(
+            "external_evidence_pack",
+            bindings.external_evidence_pack,
+          ),
+          boundArtifact("sandbox_proposal", bindings.sandbox_proposal),
+          boundArtifact(
+            "runtime_configuration",
+            bindings.runtime_configuration,
+          ),
+          boundArtifact("execution_profile", bindings.execution_profile),
+          boundArtifact("model_registry_entry", bindings.model_registry_entry),
+          boundArtifact("route_record", bindings.route_record),
+          boundArtifact("pricing_policy", bindings.pricing_policy),
+          boundArtifact("privacy_zdr_evidence", bindings.privacy_zdr_evidence),
+          boundArtifact("gold_case", bindings.gold_case),
+          boundArtifact("first_run_fixture", bindings.first_run_fixture),
+        ],
+      };
+    })(),
+    gold_case: {
+      outcome: goldCaseResult.outcome,
+      reason_codes: goldCaseResult.reason_codes,
+      source_artifact_id: goldCaseResult.gold_case_id,
+      source_artifact_hash:
+        isRecord(goldCase) && typeof goldCase.gold_case_hash === "string"
+          ? goldCase.gold_case_hash
+          : null,
+      version:
+        isRecord(goldCase) && typeof goldCase.gold_case_version === "string"
+          ? goldCase.gold_case_version
+          : null,
+      capability_id:
+        isRecord(goldCase) && typeof goldCase.capability_id === "string"
+          ? goldCase.capability_id
+          : null,
+      campaign_status: goldCaseResult.campaign_status,
+      acceptance_status: goldCaseResult.acceptance_status,
     },
     authorization: {
       status: "no_policy_issued",

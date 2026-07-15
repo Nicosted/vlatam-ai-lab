@@ -1,18 +1,43 @@
 # AI LAB Operator Read Model
 
-Status: backend read model implemented; future API and console not implemented.
+Status: backend read model implemented (contract `1.1.0`); local read-only
+console implemented; future internal API not implemented.
 
 ## Purpose
 
-The Operator Read Model contract `1.0.0` consolidates already-evaluated,
+The Operator Read Model contract `1.1.0` consolidates already-evaluated,
 repository-governed state into one concise, deterministic, audit-safe JSON
-representation. It is designed for a future internal read-only API and Operator
-Console. It cannot approve, authorize, configure, mutate, consume, or execute
-anything.
+representation. It feeds the local read-only Operator Console and a future
+internal read-only API. It cannot approve, authorize, configure, mutate,
+consume, or execute anything.
 
 The dependency direction is:
 
-`registries + evidence + readiness + proposal + preflight + authorization + consumption + gateway metadata → pure builder → future internal API → future read-only console`
+`registries + evidence + readiness + proposal + preflight + activation review + gold case + authorization + consumption + gateway metadata → pure builder → read-only console → future internal API`
+
+## Contract 1.1.0 additions (2026-07-15)
+
+Version `1.1.0` adds two normalized sections for the sandbox activation
+human-review workflow (see
+`docs/architecture/ai-openrouter-sandbox-activation-review.md`):
+
+- `activation_review` — the activation-review evaluator outcome and reason
+  codes, lifecycle, exact bounded scope, expiry, pending human decisions,
+  evidence-review / activation-approval decision statuses, kill-switch and
+  incident ownership statuses, allowed first-run data classification, request
+  / token / timeout / retry / fallback / spend ceilings, the bound artifacts
+  (identity, version, hash, resolution status), and a deterministic
+  `next_governed_action` code derived only from the outcome;
+- `gold_case_state` — the synthetic gold-case evaluator outcome, campaign
+  status (`prepared_not_executed`), human-acceptance status, capability, and
+  content hash.
+
+Two blocker sources were added (`sandbox_activation_review`,
+`sandbox_gold_case`), their outcomes participate in `invalid_state`
+detection and in `pending_approvals`, and the audit metadata carries the
+review and gold-case identities, hashes, and outcomes. No existing section
+changed semantics; identities and reviewer names are never invented — the
+model exposes decision _statuses_ only.
 
 ## Source-of-truth boundaries
 
@@ -98,7 +123,8 @@ read-only output and must not add action endpoints to this dependency. A future
 Operator Console may render statuses, blockers, actions, and audit references,
 but it must not import governance evaluators or infer missing policy state.
 
-Human-review workflow, internal API, console, and controlled sandbox activation
+The human-review contracts are now a governed input to the read model; the
+human-review workflow UI, internal API, and controlled sandbox activation
 remain separate future layers. The read model cannot authorize or mutate
 execution because it has no authorization grant, consumption store mutation,
 gateway method, adapter transport, secret resolver, or provider client.

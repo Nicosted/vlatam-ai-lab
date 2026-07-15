@@ -1,0 +1,89 @@
+{
+  "gold_case_contract_version": "1.0.0",
+  "gold_case_id": "openrouter.minimax-m2.7.normative-claims.gold-case.v1",
+  "gold_case_version": "1.0.0",
+  "canonicalization_version": "registry-json-v1",
+  "capability_id": "evidence.extraction.normative_claims",
+  "classification": "synthetic",
+  "created_by": "claude.repository.agent",
+  "created_at": "2026-07-15T00:00:00.000Z",
+  "fixture_binding": {
+    "fixture_id": "openrouter.normative-claim.synthetic.v1",
+    "fixture_path": "data/fixtures/providers/openrouter-normative-claim-synthetic-v1.json",
+    "fixture_hash": "bead2de9336e7962aa1dc842192a9b126ef3af1bf34c118c19420968665e42f9",
+    "classification": "synthetic"
+  },
+  "input": {
+    "source_title": "Synthetic Labeling Rule",
+    "source_text": "A fictional laboratory rule requires blue sample boxes to display the lot code on the front panel. The rule applies from 1 September 2030. Red sample boxes are outside this fictional rule.",
+    "data_provenance": "entirely_synthetic",
+    "contains_customer_data": false,
+    "contains_personal_data": false,
+    "contains_production_data": false,
+    "contains_privileged_data": false,
+    "contains_regulated_data": false
+  },
+  "expected_output": {
+    "required_top_level_fields": ["claims", "uncertainty"],
+    "minimum_claims": 2,
+    "claim_fields": ["claim_id", "claim", "evidence"],
+    "required_claims": [
+      {
+        "claim_id": "claim-1",
+        "claim_contains": "blue sample boxes",
+        "evidence_exact": "requires blue sample boxes to display the lot code on the front panel"
+      },
+      {
+        "claim_id": "claim-2",
+        "claim_contains": "1 September 2030",
+        "evidence_exact": "applies from 1 September 2030"
+      }
+    ],
+    "evidence_must_be_source_substring": true,
+    "claim_ids_unique": true,
+    "additional_properties_allowed": false
+  },
+  "usage_restrictions": {
+    "legal_advice_prohibited": true,
+    "automatic_downstream_publication_prohibited": true,
+    "human_review_required": true,
+    "single_live_request_only": true
+  },
+  "acceptance_contract": {
+    "acceptance_contract_version": "1.0.0",
+    "scoring_method": "deterministic_rule_based_v1",
+    "output_schema_validity_required": true,
+    "minimum_required_claim_recall": "all",
+    "maximum_unsupported_claims": 0,
+    "evidence_reference_rule": "verbatim_source_substring",
+    "required_uncertainty_substrings": ["does not specify"],
+    "prohibited_conclusion_substrings": [
+      "legal advice",
+      "you must comply",
+      "is compliant",
+      "is non-compliant",
+      "violates the law",
+      "red sample boxes must"
+    ],
+    "expected_provider_id": "openrouter",
+    "expected_model_id": "minimax/minimax-m2.7",
+    "usage_metadata_required": true,
+    "cost_metadata_compatibility": "usd_micro_integer_ceiling",
+    "maximum_cost_usd_micro": "50000",
+    "maximum_latency_ms": 10000,
+    "timeout_behavior": "fail_closed_no_result",
+    "maximum_automatic_retries": 0,
+    "fallback_allowed": false
+  },
+  "campaign_status": "prepared_not_executed",
+  "execution_results": [],
+  "human_acceptance": {
+    "status": "pending",
+    "reviewer_id": null,
+    "reviewer_role": null,
+    "decided_at": null,
+    "reason": null,
+    "accepted_gold_case_hash": null
+  },
+  "gold_case_hash": "03af337eed0adda99b84a8dbf220210c5b8b897d9f994d4b33d543ad51688b27"
+}
