@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 
 import { canonicalizeOpenRouterRegistryJson } from "../providers/openrouter-registry.js";
 
-export const OPERATOR_READ_MODEL_CONTRACT_VERSION = "1.0.0" as const;
+export const OPERATOR_READ_MODEL_CONTRACT_VERSION = "1.1.0" as const;
 export const OPERATOR_READ_MODEL_HASH_DOMAIN =
   "vlatam-ai-lab:operator-read-model:v1" as const;
 
@@ -90,6 +90,40 @@ export interface OperatorReadModelInput {
     readonly runtime_config_id: string | null;
     readonly runtime_config_version: string | null;
     readonly runtime_config_hash: string | null;
+  };
+  readonly activation_review: OperatorEvaluatorResult & {
+    readonly version: string | null;
+    readonly lifecycle: string;
+    readonly scope: string;
+    readonly expires_at: string | null;
+    readonly pending_human_decisions: readonly string[];
+    readonly evidence_review_status: "pending" | "approved" | "rejected";
+    readonly activation_approval_status: "pending" | "approved" | "rejected";
+    readonly kill_switch_owner_status: "unassigned" | "assigned";
+    readonly incident_owner_status: "unassigned" | "assigned";
+    readonly allowed_data_classification: string | null;
+    readonly ceilings: {
+      readonly maximum_requests: number | null;
+      readonly maximum_input_tokens_per_request: number | null;
+      readonly maximum_output_tokens_per_request: number | null;
+      readonly timeout_ms: number | null;
+      readonly automatic_retries: number | null;
+      readonly fallback_enabled: boolean | null;
+      readonly maximum_total_spend_usd: string | null;
+    };
+    readonly bound_artifacts: readonly {
+      readonly name: string;
+      readonly id: string | null;
+      readonly version: string | null;
+      readonly hash: string | null;
+      readonly status: string | null;
+    }[];
+  };
+  readonly gold_case: OperatorEvaluatorResult & {
+    readonly version: string | null;
+    readonly capability_id: string | null;
+    readonly campaign_status: string | null;
+    readonly acceptance_status: string | null;
   };
   readonly authorization: {
     readonly status:
@@ -179,6 +213,10 @@ export interface OperatorReadModel {
   readonly evidence: OperatorReadModelInput["evidence"];
   readonly sandbox_proposals: readonly OperatorReadModelInput["proposal"][];
   readonly runtime_preflight: OperatorReadModelInput["preflight"];
+  readonly activation_review: OperatorReadModelInput["activation_review"] & {
+    readonly next_governed_action: string;
+  };
+  readonly gold_case_state: OperatorReadModelInput["gold_case"];
   readonly authorization: OperatorReadModelInput["authorization"];
   readonly consumption: OperatorReadModelInput["consumption"];
   readonly gateway_adapter_state: OperatorReadModelInput["gateway"];
@@ -203,6 +241,12 @@ export interface OperatorReadModel {
     readonly runtime_config_version: string | null;
     readonly runtime_config_hash: string | null;
     readonly preflight_outcome: string;
+    readonly activation_review_id: string | null;
+    readonly activation_review_hash: string | null;
+    readonly activation_review_outcome: string;
+    readonly gold_case_id: string | null;
+    readonly gold_case_hash: string | null;
+    readonly gold_case_outcome: string;
   };
   readonly audit_references: readonly string[];
 }
@@ -218,6 +262,20 @@ const deepFreeze = <T>(value: T): T => {
 
 const humanize = (code: string): string =>
   code.replaceAll(":", ": ").replaceAll("_", " ");
+
+/**
+ * Deterministic canonical next-step code per activation-review outcome. The
+ * read model never invents reviewers or approvals; it only names the class of
+ * governed action that a human must take next.
+ */
+const NEXT_GOVERNED_ACTIONS: Readonly<Record<string, string>> = {
+  invalid_review: "repair_invalid_review_artifact",
+  blocked: "resolve_governed_blockers",
+  pending_human_review: "record_human_decisions",
+  eligible_for_activation_configuration: "propose_activation_configuration_pr",
+  expired: "renew_expired_review",
+  rejected: "address_rejection_or_supersede",
+};
 
 function classify(code: string): {
   category: string;
@@ -248,7 +306,13 @@ function classify(code: string): {
       resolvable: ["security_review", "external_account_configuration"],
       severity: "high",
     };
-  if (/evidence|benchmark|route|pricing|schema|risk/.test(code))
+  if (/owner_unassigned|ownership/.test(code))
+    return {
+      category: "approval",
+      resolvable: ["human_approval"],
+      severity: "high",
+    };
+  if (/evidence|benchmark|gold|route|pricing|schema|risk/.test(code))
     return {
       category: "evidence",
       resolvable: ["evidence_review"],
@@ -287,6 +351,8 @@ function blockersFrom(input: OperatorReadModelInput): OperatorBlocker[] {
     ["external_evidence_pack", input.evidence],
     ["sandbox_proposal", input.proposal],
     ["sandbox_preflight", input.preflight],
+    ["sandbox_activation_review", input.activation_review],
+    ["sandbox_gold_case", input.gold_case],
   ];
   const seen = new Set<string>();
   const blockers: OperatorBlocker[] = [];
@@ -376,6 +442,8 @@ export function buildOperatorReadModel(
       input.evidence.outcome,
       input.proposal.outcome,
       input.preflight.outcome,
+      input.activation_review.outcome,
+      input.gold_case.outcome,
     ].some((outcome) => outcome.startsWith("invalid"));
   const overall: OperatorOverallStatus = invalid
     ? "invalid_state"
@@ -396,7 +464,8 @@ export function buildOperatorReadModel(
       blocked_routes: input.routes.filter((route) => !route.enabled).length,
       pending_approvals:
         Number(input.evidence.review_status === "pending") +
-        Number(input.proposal.approval_status === "pending"),
+        Number(input.proposal.approval_status === "pending") +
+        input.activation_review.pending_human_decisions.length,
       active_blockers: blockers.length,
       execution_authorized_count: executionAllowed ? 1 : 0,
       last_evaluated_at: input.evaluated_at,
@@ -435,6 +504,13 @@ export function buildOperatorReadModel(
     evidence: input.evidence,
     sandbox_proposals: [input.proposal],
     runtime_preflight: input.preflight,
+    activation_review: {
+      ...input.activation_review,
+      next_governed_action:
+        NEXT_GOVERNED_ACTIONS[input.activation_review.outcome] ??
+        "resolve_governed_blockers",
+    },
+    gold_case_state: input.gold_case,
     authorization: input.authorization,
     consumption: input.consumption,
     gateway_adapter_state: input.gateway,
@@ -458,6 +534,12 @@ export function buildOperatorReadModel(
       runtime_config_version: input.preflight.runtime_config_version,
       runtime_config_hash: input.preflight.runtime_config_hash,
       preflight_outcome: input.preflight.outcome,
+      activation_review_id: input.activation_review.source_artifact_id,
+      activation_review_hash: input.activation_review.source_artifact_hash,
+      activation_review_outcome: input.activation_review.outcome,
+      gold_case_id: input.gold_case.source_artifact_id,
+      gold_case_hash: input.gold_case.source_artifact_hash,
+      gold_case_outcome: input.gold_case.outcome,
     },
     audit_references: [...input.audit_references].sort(),
   };

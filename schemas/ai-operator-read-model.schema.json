@@ -15,6 +15,8 @@
     "evidence",
     "sandbox_proposals",
     "runtime_preflight",
+    "activation_review",
+    "gold_case_state",
     "authorization",
     "consumption",
     "gateway_adapter_state",
@@ -27,7 +29,7 @@
     "audit_references"
   ],
   "properties": {
-    "contract_version": { "const": "1.0.0" },
+    "contract_version": { "const": "1.1.0" },
     "system_summary": {
       "type": "object",
       "required": [
@@ -57,7 +59,7 @@
         "active_blockers": { "type": "integer", "minimum": 0 },
         "execution_authorized_count": { "type": "integer", "minimum": 0 },
         "last_evaluated_at": { "type": "string", "format": "date-time" },
-        "read_model_contract_version": { "const": "1.0.0" },
+        "read_model_contract_version": { "const": "1.1.0" },
         "read_model_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
       },
       "additionalProperties": false
@@ -70,6 +72,89 @@
     "evidence": { "type": "object" },
     "sandbox_proposals": { "type": "array", "items": { "type": "object" } },
     "runtime_preflight": { "type": "object" },
+    "activation_review": {
+      "type": "object",
+      "required": [
+        "outcome",
+        "reason_codes",
+        "source_artifact_id",
+        "source_artifact_hash",
+        "version",
+        "lifecycle",
+        "scope",
+        "expires_at",
+        "pending_human_decisions",
+        "evidence_review_status",
+        "activation_approval_status",
+        "kill_switch_owner_status",
+        "incident_owner_status",
+        "allowed_data_classification",
+        "ceilings",
+        "bound_artifacts",
+        "next_governed_action"
+      ],
+      "properties": {
+        "outcome": {
+          "enum": [
+            "invalid_review",
+            "blocked",
+            "pending_human_review",
+            "eligible_for_activation_configuration",
+            "expired",
+            "rejected"
+          ]
+        },
+        "reason_codes": { "type": "array", "items": { "type": "string" } },
+        "scope": { "type": "string" },
+        "pending_human_decisions": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "evidence_review_status": {
+          "enum": ["pending", "approved", "rejected"]
+        },
+        "activation_approval_status": {
+          "enum": ["pending", "approved", "rejected"]
+        },
+        "kill_switch_owner_status": { "enum": ["unassigned", "assigned"] },
+        "incident_owner_status": { "enum": ["unassigned", "assigned"] },
+        "ceilings": { "type": "object" },
+        "bound_artifacts": {
+          "type": "array",
+          "items": { "type": "object" }
+        },
+        "next_governed_action": { "type": "string" }
+      }
+    },
+    "gold_case_state": {
+      "type": "object",
+      "required": [
+        "outcome",
+        "reason_codes",
+        "source_artifact_id",
+        "source_artifact_hash",
+        "version",
+        "capability_id",
+        "campaign_status",
+        "acceptance_status"
+      ],
+      "properties": {
+        "outcome": {
+          "enum": [
+            "invalid_gold_case",
+            "prepared_pending_acceptance",
+            "accepted",
+            "rejected"
+          ]
+        },
+        "campaign_status": {
+          "enum": ["prepared_not_executed", null]
+        },
+        "acceptance_status": {
+          "enum": ["pending", "approved", "rejected", null]
+        }
+      }
+    },
     "authorization": { "type": "object" },
     "consumption": { "type": "object" },
     "gateway_adapter_state": { "type": "object" },

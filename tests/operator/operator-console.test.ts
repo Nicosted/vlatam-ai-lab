@@ -36,6 +36,7 @@ const NAV_LABELS = [
   "Gobernanza",
   "Bloqueos",
   "Acciones requeridas",
+  "Revisión humana",
   "Ejecución",
   "Auditoría",
 ] as const;
@@ -99,7 +100,7 @@ describe("read-only AI LAB Operator Console (Spanish UX)", () => {
   it("renders the exact repository OpenRouter blocked state in Spanish", async () => {
     const model = await load();
     const html = renderOperatorConsole(model, "/operator/providers/openrouter");
-    assert.equal(model.blockers.length, 23);
+    assert.equal(model.blockers.length, 33);
     assert.equal(model.required_human_actions.length, 6);
     for (const expected of [
       "minimax/minimax-m2.7",
@@ -157,9 +158,9 @@ describe("read-only AI LAB Operator Console (Spanish UX)", () => {
       /No se ha consumido ninguna autorización de ejecución\./,
     );
     assert.match(html, /kill switch permanece activo/);
-    assert.match(html, /Bloqueos activos<\/span><strong>23/);
+    assert.match(html, /Bloqueos activos<\/span><strong>33/);
     assert.match(html, /Acciones requeridas<\/span><strong>6/);
-    assert.match(html, /Revisiones pendientes<\/span><strong>2/);
+    assert.match(html, /Revisiones pendientes<\/span><strong>8/);
     assert.match(html, /Próximos pasos/);
     assert.match(html, /Próximo hito gobernado/);
     const top = topBlockersBySeverity(model.blockers, 5);
@@ -184,7 +185,7 @@ describe("read-only AI LAB Operator Console (Spanish UX)", () => {
     const html = renderOperatorConsole(model, "/operator/providers");
     assert.match(
       html,
-      /La ejecución permanece deshabilitada mientras existan 23 bloqueos gobernados sin resolver\./,
+      /La ejecución permanece deshabilitada mientras existan 33 bloqueos gobernados sin resolver\./,
     );
     for (const group of [
       "Evidencia y preparación",
@@ -214,6 +215,40 @@ describe("read-only AI LAB Operator Console (Spanish UX)", () => {
     assert.match(html, /No existe una política exacta de ejecución\./);
     assert.match(html, /adaptador de transporte está deshabilitado/);
     assert.match(html, /<details class="tech">/);
+  });
+
+  it("Human-review view shows the bounded scope, decisions, ceilings, and gold case", async () => {
+    const model = await load();
+    const html = renderOperatorConsole(model, "/operator/review");
+    for (const section of [
+      "Estado de la revisión de activación",
+      "Identidad del candidato",
+      "Decisiones humanas",
+      "Límites de la primera ejecución",
+      "Caso de referencia sintético",
+      "Artefactos vinculados",
+      "Bloqueos de la revisión",
+      "Próxima acción gobernada",
+    ])
+      assert.match(html, new RegExp(`<h3>${section}</h3>`));
+    assert.match(html, /one_synthetic_gold_case_sandbox_activation/);
+    assert.match(html, /Preparado, no ejecutado/);
+    assert.match(html, /Sin asignar/);
+    assert.match(
+      html,
+      new RegExp(model.activation_review.source_artifact_hash!),
+    );
+    assert.match(html, new RegExp(model.gold_case_state.source_artifact_hash!));
+    for (const pending of model.activation_review.pending_human_decisions)
+      assert.match(html, new RegExp(pending));
+    // The view is informational only: no approval, upload, or execution UI.
+    assert.doesNotMatch(html, /<(form|button|input|textarea|select)\b/i);
+    assert.doesNotMatch(
+      html,
+      /Aprobar ahora|Registrar decisión|Ejecutar|Subir|Configurar secreto/,
+    );
+    // Audit-safe: no reviewer identities are invented, no secret values shown.
+    assert.doesNotMatch(html, /OPENROUTER_API_KEY|sk-or-|Bearer\s/);
   });
 
   it("Governance uses at most two columns and explains every group", async () => {
@@ -267,7 +302,7 @@ describe("read-only AI LAB Operator Console (Spanish UX)", () => {
       /<span class="badge status-unknown"><code>(high|medium)/,
     );
     assert.match(html, /Severidad|Categoría|Clase de resolución/);
-    assert.match(html, /Mostrando 23 de 23 bloqueos/);
+    assert.match(html, /Mostrando 33 de 33 bloqueos/);
     assert.match(html, /aria-live="polite"/);
     let position = -1;
     for (const blocker of model.blockers) {

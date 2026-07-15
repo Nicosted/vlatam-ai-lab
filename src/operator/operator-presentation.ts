@@ -54,6 +54,19 @@ export const STATUS_LABELS: Readonly<Record<string, string>> = {
   evidence_incomplete: "Evidencia incompleta",
   true: "Sí",
   false: "No",
+  unassigned: "Sin asignar",
+  assigned: "Asignada",
+  superseded: "Sustituida",
+  expired: "Vencida",
+  invalid_review: "Revisión inválida",
+  pending_human_review: "Pendiente de revisión humana",
+  eligible_for_activation_configuration:
+    "Elegible para configurar la activación",
+  invalid_gold_case: "Caso de referencia inválido",
+  prepared_pending_acceptance: "Preparado, aceptación pendiente",
+  prepared_not_executed: "Preparado, no ejecutado",
+  accepted: "Aceptado",
+  synthetic: "Sintético",
 };
 
 export const SEVERITY_LABELS: Readonly<Record<string, string>> = {
@@ -99,6 +112,8 @@ export const EVALUATOR_LABELS: Readonly<Record<string, string>> = {
   external_evidence_pack: "Paquete de evidencia externa",
   sandbox_proposal: "Propuesta de sandbox",
   sandbox_preflight: "Preflight de sandbox",
+  sandbox_activation_review: "Revisión humana de activación",
+  sandbox_gold_case: "Caso de referencia sintético",
 };
 
 export const EXECUTION_STAGE_LABELS: Readonly<Record<string, string>> = {
@@ -155,6 +170,22 @@ export const FIELD_LABELS: Readonly<Record<string, string>> = {
   required_artifact: "Artefacto o decisión requerida",
   related_blockers: "Bloqueos relacionados",
   test_totals: "Totales de pruebas",
+  review_status: "Estado de la revisión de activación",
+  review_scope: "Alcance exacto aprobable",
+  review_expiry: "Vencimiento de la revisión",
+  evidence_reviewer_state: "Revisión de evidencia (decisión humana)",
+  activation_approver_state: "Aprobación de activación (decisión humana)",
+  kill_switch_owner_state: "Titularidad del kill switch",
+  incident_owner_state: "Titularidad de incidentes",
+  allowed_first_run_data: "Datos permitidos para la primera ejecución",
+  gold_case_readiness: "Preparación del caso de referencia",
+  gold_case_acceptance: "Aceptación humana del caso de referencia",
+  next_governed_action: "Próxima acción gobernada",
+  timeout_ms: "Tiempo máximo (ms)",
+  automatic_retries: "Reintentos automáticos",
+  fallback_enabled: "Fallback habilitado",
+  maximum_input_tokens: "Tokens de entrada máximos",
+  maximum_output_tokens: "Tokens de salida máximos",
 };
 
 export const REASON_CODE_SUMMARIES: Readonly<Record<string, string>> = {
@@ -199,6 +230,59 @@ export const REASON_CODE_SUMMARIES: Readonly<Record<string, string>> = {
   structured_output_unverified: "La salida estructurada no está verificada.",
   evaluator_dependency_invalid:
     "Una dependencia del evaluador es inválida; el estado falla cerrado.",
+  pricing_policy_unresolved:
+    "No existe una política de precios exacta y revisada para el candidato.",
+  privacy_zdr_evidence_unresolved:
+    "No existe evidencia revisada de privacidad y ZDR para el candidato.",
+  sandbox_proposal_blocked:
+    "La propuesta de sandbox permanece bloqueada por la gobernanza.",
+  sandbox_proposal_invalid: "La propuesta de sandbox es inválida.",
+  sandbox_proposal_approval_pending:
+    "La aprobación humana de la propuesta de sandbox está pendiente.",
+  evidence_review_pending:
+    "La decisión humana de revisión de evidencia está pendiente.",
+  activation_approval_pending:
+    "La decisión humana de aprobación de activación está pendiente.",
+  gold_case_acceptance_pending:
+    "La aceptación humana del caso de referencia sintético está pendiente.",
+  exact_routing_limitation_unacknowledged:
+    "La limitación de la ruta upstream exacta no fue reconocida por una persona revisora.",
+  kill_switch_owner_unassigned:
+    "La titularidad del kill switch no está asignada a una persona.",
+  incident_owner_unassigned:
+    "La titularidad de incidentes no está asignada a una persona.",
+  review_superseded: "La revisión fue sustituida por una revisión posterior.",
+  review_expired: "La revisión humana está vencida.",
+  review_rejected: "La revisión humana fue rechazada.",
+  gold_case_invalid: "El caso de referencia sintético es inválido.",
+  gold_case_rejected: "El caso de referencia sintético fue rechazado.",
+  kill_switch_not_active:
+    "El kill switch no está activo; el estado falla cerrado.",
+  secret_plan_undefined_or_repository_based:
+    "El plan de manejo del secreto es inexistente o basado en el repositorio.",
+  first_run_data_not_synthetic:
+    "Los datos de la primera ejecución no son estrictamente sintéticos.",
+  downstream_restrictions_weakened:
+    "Las restricciones de uso posterior fueron debilitadas.",
+  request_ceiling_not_single_call:
+    "El límite de solicitudes no es exactamente una llamada.",
+  token_ceiling_exceeds_proposal:
+    "Un límite de tokens excede el techo de la propuesta revisada.",
+  spend_ceiling_exceeds_proposal:
+    "El límite de gasto excede el techo de la propuesta revisada.",
+  timeout_ceiling_invalid: "El límite de tiempo de espera es inválido.",
+  retry_policy_weakened: "La política de reintentos fue debilitada.",
+  fallback_policy_weakened: "La política de fallback fue debilitada.",
+  adapter_enabled_before_eligibility:
+    "El adaptador está habilitado antes de la elegibilidad.",
+  model_enabled_before_eligibility:
+    "El modelo está habilitado antes de la elegibilidad.",
+  route_enabled_before_eligibility:
+    "La ruta está habilitada antes de la elegibilidad.",
+  profile_enabled_before_eligibility:
+    "El perfil está habilitado antes de la elegibilidad.",
+  live_budget_enabled_before_eligibility:
+    "El presupuesto real está habilitado antes de la elegibilidad.",
 };
 
 export const KNOWN_EXECUTION_IMPACTS: Readonly<Record<string, string>> = {

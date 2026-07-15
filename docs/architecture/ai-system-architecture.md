@@ -47,25 +47,25 @@ count; the HTTP `API Server` lives under `src/server/`, not `src/agents/`,
 and is listed separately. Every component below is reflected in the
 machine-readable catalog at `config/ai-capabilities.json`.
 
-| Component | Path | Status |
-| --- | --- | --- |
-| Source Monitor | `src/agents/source-monitor.ts` | existing |
-| Snapshot Writer | `src/agents/snapshot-writer.ts` | existing |
-| Delta Analyzer | `src/agents/delta-analyzer.ts` | existing |
-| Evidence Writer | `src/agents/evidence-writer.ts` | existing |
-| Human Review Gate | `src/agents/human-review-gate.ts` | existing |
-| Export Contract | `src/agents/export-contract.ts` | existing |
-| Normative Evidence Agent (DeepSeek) | `src/agents/normative-evidence-agent.ts` | existing (fixture-driven) |
-| Router Agent + specialized agents (ARCA/VUCE/InfoLEG) | `src/agents/router-agent.ts` | existing |
-| API Server (read-only HTTP) | `src/server/api-server.ts` | existing |
-| Cloudflare AI Gateway wrapper (skeleton) | `src/ai/ai-gateway.ts` | partial |
-| CountryAdapter interface (CL/UY/PY planned) | `src/adapters/types.ts` | partial (interface only) |
-| Regulatory Research Workspace | `src/advisory/regulatory-research-workspace.ts` | partial (read-only HTML, draft) |
-| Regulatory Advisory Read Model | `src/advisory/regulatory-advisory-read-model.ts` | partial (checklist, draft) |
-| Qwen/DashScope extraction spike | `docs/qwen-langgraph-evidence-extraction-spike.md`, `snapshots/qwen/` | partial (spike only) |
-| Schema registry | `schemas/schema-registry.json` | existing |
-| Approved export bundle | `exports/approved-catalog/`, `docs/approved-export-bundle-consumer-contract.md` | existing |
-| Multi-country design (doc only) | `docs/multi-country-architecture-design.md` | partial (design only) |
+| Component                                             | Path                                                                            | Status                          |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------- | ------------------------------- |
+| Source Monitor                                        | `src/agents/source-monitor.ts`                                                  | existing                        |
+| Snapshot Writer                                       | `src/agents/snapshot-writer.ts`                                                 | existing                        |
+| Delta Analyzer                                        | `src/agents/delta-analyzer.ts`                                                  | existing                        |
+| Evidence Writer                                       | `src/agents/evidence-writer.ts`                                                 | existing                        |
+| Human Review Gate                                     | `src/agents/human-review-gate.ts`                                               | existing                        |
+| Export Contract                                       | `src/agents/export-contract.ts`                                                 | existing                        |
+| Normative Evidence Agent (DeepSeek)                   | `src/agents/normative-evidence-agent.ts`                                        | existing (fixture-driven)       |
+| Router Agent + specialized agents (ARCA/VUCE/InfoLEG) | `src/agents/router-agent.ts`                                                    | existing                        |
+| API Server (read-only HTTP)                           | `src/server/api-server.ts`                                                      | existing                        |
+| Cloudflare AI Gateway wrapper (skeleton)              | `src/ai/ai-gateway.ts`                                                          | partial                         |
+| CountryAdapter interface (CL/UY/PY planned)           | `src/adapters/types.ts`                                                         | partial (interface only)        |
+| Regulatory Research Workspace                         | `src/advisory/regulatory-research-workspace.ts`                                 | partial (read-only HTML, draft) |
+| Regulatory Advisory Read Model                        | `src/advisory/regulatory-advisory-read-model.ts`                                | partial (checklist, draft)      |
+| Qwen/DashScope extraction spike                       | `docs/qwen-langgraph-evidence-extraction-spike.md`, `snapshots/qwen/`           | partial (spike only)            |
+| Schema registry                                       | `schemas/schema-registry.json`                                                  | existing                        |
+| Approved export bundle                                | `exports/approved-catalog/`, `docs/approved-export-bundle-consumer-contract.md` | existing                        |
+| Multi-country design (doc only)                       | `docs/multi-country-architecture-design.md`                                     | partial (design only)           |
 
 The current implementation already enforces the doctrine:
 
@@ -250,8 +250,8 @@ AI-70 only defines the shape.
 - **Model:** a provider-exposed model/version, e.g. `deepseek-chat`,
   `qwen-plus`, `@cf/baai/bge-m3`.
 - **Execution profile:** a governed combination of `(capability, provider,
-  model, configuration, privacy policy, budget policy, lifecycle status,
-  evaluation record)`. AI-78 selects profiles; the runtime executes them.
+model, configuration, privacy policy, budget policy, lifecycle status,
+evaluation record)`. AI-78 selects profiles; the runtime executes them.
 - **Adapter contract:** the only place provider-specific knowledge lives.
   Every adapter normalizes to a shared `AIGatewayResponse` shape (see
   `src/ai/ai-gateway.ts`).
@@ -330,6 +330,22 @@ it.
 - **`vlatam-global` consumer boundary:** AI Lab is the source of reviewed
   exports; `vlatam-global` is an external, read-only HTTP consumer with
   no provider credentials and no shared database.
+
+### Layer 8.1 — Sandbox activation human review (delivered 2026-07-15)
+
+A governed human-review layer between the sandbox-enablement proposal and any
+future controlled sandbox activation, documented in
+`docs/architecture/ai-openrouter-sandbox-activation-review.md`. It adds a
+versioned activation-review contract with exact artifact/hash bindings and
+separation-of-duties enforcement, one synthetic gold case with a deterministic
+acceptance contract (prepared, never executed by this layer), and a pure
+fail-closed eligibility evaluator whose best outcome
+(`eligible_for_activation_configuration`) still reports execution, secret
+access, and runtime enablement as false. The execution chain
+`registry → resolution → authorization → exact policy → atomic consumption → gateway → adapter`
+is unchanged; the review layer sits strictly before it and cannot invoke it.
+The Operator Read Model (`1.1.0`) and the Spanish read-only console
+(`/operator/review`) expose the workflow state without any mutation surface.
 
 ## 4. Architectural terminology (defined here, used everywhere)
 
