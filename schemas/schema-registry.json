@@ -849,6 +849,19 @@
       "downstream_allowed_field_present": false
     },
     {
+      "contract_name": "ai_operator_read_model",
+      "schema_file": "schemas/ai-operator-read-model.schema.json",
+      "valid_fixture": null,
+      "invalid_fixtures": [],
+      "test_file": "tests/operator/operator-read-model.test.ts",
+      "status": "implemented",
+      "purpose": "Versioned deterministic audit-safe read model over already-evaluated governed AI LAB state.",
+      "downstream_role": "Read-only metadata for a future internal API and Operator Console; never policy, authorization, mutation, or execution.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": false
+    },
+    {
       "contract_name": "ai_openrouter_sandbox_runtime",
       "schema_file": "schemas/ai-openrouter-sandbox-runtime.schema.json",
       "valid_fixture": "config/ai-openrouter-sandbox-runtime.json",

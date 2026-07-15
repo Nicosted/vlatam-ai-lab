@@ -55,6 +55,8 @@ const read = (relPath: string): string =>
 const isProviderLayer = (relPath: string): boolean =>
   relPath.startsWith("src/providers/") ||
   relPath === "scripts/openrouter-sandbox-harness.ts";
+const isOperatorReadLayer = (relPath: string): boolean =>
+  relPath.startsWith("src/operator/");
 
 describe("governed OpenRouter provider boundary", () => {
   it("keeps the OpenRouter endpoint literal inside the provider layer only", () => {
@@ -101,7 +103,9 @@ describe("governed OpenRouter provider boundary", () => {
   it("keeps domain capabilities and the gateway free of OpenRouter references", () => {
     const violations = runtimeSources.filter(
       (relPath) =>
-        !isProviderLayer(relPath) && /openrouter/i.test(read(relPath)),
+        !isProviderLayer(relPath) &&
+        !isOperatorReadLayer(relPath) &&
+        /openrouter/i.test(read(relPath)),
     );
     assert.deepEqual(violations, []);
   });
