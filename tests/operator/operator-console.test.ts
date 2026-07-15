@@ -13,6 +13,10 @@ import {
   OPERATOR_CONSOLE_PATHS,
   renderOperatorConsole,
 } from "../../src/operator/operator-console.js";
+import {
+  GOVERNANCE_GROUPS,
+  topBlockersBySeverity,
+} from "../../src/operator/operator-presentation.js";
 import type { OperatorReadModel } from "../../src/operator/operator-read-model.js";
 import {
   loadRepositoryOperatorReadModel,
@@ -25,6 +29,16 @@ const load = () =>
     repository_root: root,
     evaluated_at: REPOSITORY_OPERATOR_EVALUATED_AT,
   });
+
+const NAV_LABELS = [
+  "Resumen",
+  "Proveedores",
+  "Gobernanza",
+  "Bloqueos",
+  "Acciones requeridas",
+  "Ejecución",
+  "Auditoría",
+] as const;
 
 function response(): {
   res: ServerResponse;
@@ -63,60 +77,291 @@ async function request(
   return { handled, ...capture.result() };
 }
 
-describe("read-only AI LAB Operator Console", () => {
-  it("renders every console route from the valid blocked read model", async () => {
+describe("read-only AI LAB Operator Console (Spanish UX)", () => {
+  it("renders every console route with Spanish navigation and no forms", async () => {
     for (const path of OPERATOR_CONSOLE_PATHS) {
       const result = await request(path);
       assert.equal(result.handled, true);
       assert.equal(result.status, 200, path);
       assert.match(result.headers["Cache-Control"] ?? "", /no-store/);
+      assert.match(result.body, /<html lang="es">/);
       assert.match(result.body, /<main id="main">/);
-      assert.match(result.body, /aria-label="Operator console"/);
+      assert.match(result.body, /aria-label="Consola del operador"/);
+      assert.match(result.body, /Saltar al contenido principal/);
       assert.match(result.body, /focus-visible/);
       assert.doesNotMatch(result.body, /<form\b/i);
+      assert.doesNotMatch(result.body, /<(button|input|textarea)\b/i);
+      for (const label of NAV_LABELS)
+        assert.match(result.body, new RegExp(label));
     }
   });
 
-  it("renders the exact repository OpenRouter blocked state", async () => {
+  it("renders the exact repository OpenRouter blocked state in Spanish", async () => {
     const model = await load();
     const html = renderOperatorConsole(model, "/operator/providers/openrouter");
     assert.equal(model.blockers.length, 23);
     assert.equal(model.required_human_actions.length, 6);
     for (const expected of [
       "minimax/minimax-m2.7",
-      "Execution allowed: false",
-      "blocked",
-      "disabled",
-      "active",
-      "not configured",
-      "absent",
-      "not attempted",
+      "Ejecución permitida",
+      "Bloqueado",
+      "Deshabilitado",
+      "Activo",
+      "No configurado",
+      "Ausente",
+      "Sin política emitida",
+      "No intentado",
       model.models[0]!.hash,
       model.routes[0]!.hash,
       model.execution_profiles[0]!.hash!,
     ])
-      assert.match(html, new RegExp(expected.replaceAll("/", "\\/"), "i"));
+      assert.match(html, new RegExp(expected.replaceAll("/", "\\/")));
   });
 
-  it("preserves blocker and action order without recalculation", async () => {
+  it("keeps canonical machine values unchanged while translating labels", async () => {
     const model = await load();
-    const blockerHtml = renderOperatorConsole(
-      model,
-      "/operator/blockers",
-    ).split("<tbody>")[1]!;
-    const actionHtml = renderOperatorConsole(model, "/operator/actions");
+    const all = [...OPERATOR_CONSOLE_PATHS]
+      .map((path) => renderOperatorConsole(model, path))
+      .join("\n");
+    for (const blocker of model.blockers)
+      assert.match(
+        all,
+        new RegExp(blocker.blocker_code.replaceAll(".", "\\.")),
+      );
+    for (const canonical of [
+      model.system_summary.read_model_hash,
+      model.validation_evidence_metadata.dossier_id!,
+      model.validation_evidence_metadata.evidence_pack_hash!,
+      model.validation_evidence_metadata.proposal_hash!,
+      model.validation_evidence_metadata.runtime_config_hash!,
+      "openrouter.transport.chat-completions",
+      "minimax/minimax-m2.7",
+      "no_policy_issued",
+      "not_attempted",
+    ])
+      assert.match(all, new RegExp(canonical.replaceAll(/[./]/g, "\\$&")));
+  });
+
+  it("Overview communicates blocked execution, top blockers, counts, and next steps", async () => {
+    const model = await load();
+    const html = renderOperatorConsole(model, "/operator");
+    assert.match(
+      html,
+      /Bloqueado es un estado gobernado y seguro, no una falla de la aplicación\./,
+    );
+    assert.match(html, /No permitida/);
+    assert.match(html, /Situación actual/);
+    assert.match(html, /No se ha realizado ninguna llamada al proveedor\./);
+    assert.match(
+      html,
+      /No se ha consumido ninguna autorización de ejecución\./,
+    );
+    assert.match(html, /kill switch permanece activo/);
+    assert.match(html, /Bloqueos activos<\/span><strong>23/);
+    assert.match(html, /Acciones requeridas<\/span><strong>6/);
+    assert.match(html, /Revisiones pendientes<\/span><strong>2/);
+    assert.match(html, /Próximos pasos/);
+    assert.match(html, /Próximo hito gobernado/);
+    const top = topBlockersBySeverity(model.blockers, 5);
+    assert.equal(top.length, 5);
     let position = -1;
-    for (const blocker of model.blockers) {
-      const next = blockerHtml.indexOf(blocker.blocker_code);
-      assert.ok(next > position);
+    for (const blocker of top) {
+      const next = html.indexOf(blocker.blocker_code);
+      assert.ok(next > position, blocker.blocker_code);
       position = next;
     }
-    const renderedActions = [
-      ...actionHtml.matchAll(/<dt>Action code<\/dt><dd><code>([^<]+)<\/code>/g),
-    ].map((match) => match[1]);
+    const section = html
+      .split("Bloqueos principales")[1]!
+      .split("Próximos pasos")[0]!;
+    assert.doesNotMatch(
+      section,
+      /external_evidence_pack:provider_routing_variability_explicit/,
+    );
+  });
+
+  it("provider card shows a Spanish explanation, grouped state, and detail link", async () => {
+    const model = await load();
+    const html = renderOperatorConsole(model, "/operator/providers");
+    assert.match(
+      html,
+      /La ejecución permanece deshabilitada mientras existan 23 bloqueos gobernados sin resolver\./,
+    );
+    for (const group of [
+      "Evidencia y preparación",
+      "Configuración de sandbox",
+      "Seguridad",
+      "Ejecución",
+    ])
+      assert.match(html, new RegExp(`<h4>${group}</h4>`));
+    assert.match(html, /Ver detalle gobernado/);
+    assert.match(html, /Modelo candidato/);
+  });
+
+  it("OpenRouter detail groups content into the required Spanish sections", async () => {
+    const model = await load();
+    const html = renderOperatorConsole(model, "/operator/providers/openrouter");
+    for (const section of [
+      "Estado actual",
+      "Identidad del candidato",
+      "Evidencia y preparación",
+      "Seguridad y privacidad",
+      "Configuración de ejecución",
+      "Presupuesto sandbox",
+      "Artefactos y hashes",
+      "Próximas acciones",
+    ])
+      assert.match(html, new RegExp(`<h3>${section}</h3>`));
+    assert.match(html, /No existe una política exacta de ejecución\./);
+    assert.match(html, /adaptador de transporte está deshabilitado/);
+    assert.match(html, /<details class="tech">/);
+  });
+
+  it("Governance uses at most two columns and explains every group", async () => {
+    const model = await load();
+    const html = renderOperatorConsole(model, "/operator/governance");
+    assert.doesNotMatch(html, /repeat\(6,/);
+    assert.match(html, /\.grid2\{display:grid;grid-template-columns:1fr 1fr/);
+    assert.match(
+      html,
+      /@media\(max-width:920px\)\{\.grid2\{grid-template-columns:1fr\}/,
+    );
+    for (const group of GOVERNANCE_GROUPS) {
+      assert.match(html, new RegExp(group.title.replaceAll(",", ",")));
+      assert.match(html, new RegExp(group.description.slice(0, 40)));
+    }
+    assert.match(html, /Por qué importa/);
+    assert.match(html, /La ejecución permanece bloqueada\./);
+    assert.doesNotMatch(html, /revisión completada|revisión aprobada/i);
+  });
+
+  it("never lets canonical codes wrap character by character", async () => {
+    const model = await load();
+    const all = [...OPERATOR_CONSOLE_PATHS]
+      .map((path) => renderOperatorConsole(model, path))
+      .join("\n");
+    assert.match(all, /\.code-block\{[^}]*overflow-x:auto/);
+    assert.match(all, /\.code-block\{[^}]*white-space:pre/);
+    assert.doesNotMatch(all, /break-all/);
+    assert.doesNotMatch(all, /overflow-wrap:anywhere/);
+    for (const blocker of model.blockers)
+      assert.match(
+        all,
+        new RegExp(
+          `blocker_code: ${blocker.blocker_code.replaceAll(/[./]/g, "\\$&")}`,
+        ),
+      );
+  });
+
+  it("renders blockers as Spanish operator records preserving order", async () => {
+    const model = await load();
+    const html = renderOperatorConsole(model, "/operator/blockers");
+    assert.match(
+      html,
+      /Las fuentes de precios del proveedor son contradictorias\./,
+    );
+    assert.match(html, /ZDR \(Zero Data Retention\) sin verificar\./);
+    assert.match(html, /Severidad: Alta/);
+    assert.match(html, /Severidad: Media/);
+    assert.doesNotMatch(
+      html,
+      /<span class="badge status-unknown"><code>(high|medium)/,
+    );
+    assert.match(html, /Severidad|Categoría|Clase de resolución/);
+    assert.match(html, /Mostrando 23 de 23 bloqueos/);
+    assert.match(html, /aria-live="polite"/);
+    let position = -1;
+    for (const blocker of model.blockers) {
+      const next = html.indexOf(`blocker_code: ${blocker.blocker_code}`);
+      assert.ok(next > position, blocker.blocker_code);
+      position = next;
+    }
+  });
+
+  it("renders required actions as an ordered Spanish plan preserving order", async () => {
+    const model = await load();
+    const html = renderOperatorConsole(model, "/operator/actions");
+    assert.match(html, /Resolver bloqueos de revisión de evidencia/);
+    assert.match(html, /Por qué es requerida/);
+    assert.match(
+      html,
+      /La ejecución permanece bloqueada hasta que evidencia revisada confirme la resolución\./,
+    );
+    const rendered = [...html.matchAll(/action_code: (resolve:[a-z_]+)/g)].map(
+      (match) => match[1],
+    );
     assert.deepEqual(
-      renderedActions,
+      rendered,
       model.required_human_actions.map((action) => action.action_code),
+    );
+    assert.doesNotMatch(html, /<(form|button|input|select)\b/i);
+  });
+
+  it("renders the execution chain with Spanish labels and honest distinctions", async () => {
+    const model = await load();
+    const html = renderOperatorConsole(model, "/operator/execution");
+    for (const stage of [
+      "Registro",
+      "Resolución",
+      "Autorización",
+      "Política exacta",
+      "Consumo atómico",
+      "Gateway",
+      "Adaptador",
+    ])
+      assert.match(html, new RegExp(`<strong>${stage}</strong>`));
+    for (const canonical of [
+      "registry",
+      "resolution",
+      "authorization",
+      "exact_policy",
+      "atomic_consumption",
+      "gateway",
+      "adapter",
+    ])
+      assert.match(
+        html,
+        new RegExp(`<code>${canonical.replaceAll("_", "_(?:<wbr>)?")}</code>`),
+      );
+    for (const fact of [
+      "No existe una política exacta\\.",
+      "No se ha emitido ninguna autorización de ejecución\\.",
+      "No se ha intentado ningún consumo de autorización\\.",
+      "No se ha realizado ninguna llamada al proveedor\\.",
+      "No existe ninguna salida de modelo\\.",
+      "No existe uso facturado\\.",
+    ])
+      assert.match(html, new RegExp(fact));
+    assert.match(
+      html,
+      /Ausente<\/strong> significa que el artefacto no existe/,
+    );
+  });
+
+  it("Audit uses friendly artifact names with full identities disclosed", async () => {
+    const model = await load();
+    const html = renderOperatorConsole(model, "/operator/audit");
+    for (const name of [
+      "Dossier de preparación",
+      "Paquete de evidencia externa",
+      "Propuesta de sandbox",
+      "Configuración de runtime",
+      "Registro del modelo",
+      "Registro de ruta",
+      "Perfil de ejecución",
+    ])
+      assert.match(html, new RegExp(`<h4>${name}</h4>`));
+    for (const section of [
+      "Identidad de la evaluación",
+      "Artefactos gobernados",
+      "Evidencia y documentación",
+      "Metadatos técnicos",
+    ])
+      assert.match(html, new RegExp(section));
+    for (const reference of model.audit_references)
+      assert.match(html, new RegExp(reference.replaceAll(/[./]/g, "\\$&")));
+    assert.match(
+      html,
+      new RegExp(model.validation_evidence_metadata.dossier_hash!),
     );
   });
 
@@ -127,6 +372,8 @@ describe("read-only AI LAB Operator Console", () => {
       .join("\n");
     for (const forbidden of [
       /<form\b/i,
+      /<button\b/i,
+      /<input\b/i,
       /type=["'](?:submit|password)["']/i,
       /authorization_token/i,
       /raw_document/i,
@@ -134,12 +381,14 @@ describe("read-only AI LAB Operator Console", () => {
       /prompt_payload/i,
       /Bearer\s/i,
       /sk-or-/i,
-      />\s*(?:Run|Execute|Enable|Approve|Retry)\s*</i,
+      />\s*(?:Ejecutar|Habilitar ahora|Aprobar|Reintentar|Desactivar kill switch|Configurar secreto|Run|Execute|Approve|Retry)\s*</,
+      /navigator\.clipboard/,
+      /fetch\(/,
     ])
       assert.doesNotMatch(all, forbidden);
   });
 
-  it("fails closed with a safe page for invalid state or loader failure", async () => {
+  it("fails closed with a safe Spanish page for invalid state or loader failure", async () => {
     const valid = await load();
     const invalid = structuredClone(valid) as OperatorReadModel;
     (invalid.system_summary as { overall_status: string }).overall_status =
@@ -154,7 +403,7 @@ describe("read-only AI LAB Operator Console", () => {
         load_read_model: loader,
       });
       assert.equal(result.status, 500);
-      assert.match(result.body, /Invalid repository state/);
+      assert.match(result.body, /Estado del repositorio inválido/);
       assert.doesNotMatch(result.body, new RegExp(root));
       assert.doesNotMatch(result.body, /Error:/);
     }
@@ -168,19 +417,21 @@ describe("read-only AI LAB Operator Console", () => {
   });
 
   it("keeps the presentation dependency limited to the read-model contract", () => {
-    const presentation = readFileSync(
-      resolve(root, "src/operator/operator-console.ts"),
-      "utf8",
-    );
-    assert.match(presentation, /operator-read-model\.js/);
-    const imports = presentation
-      .split("\n")
-      .filter((line) => line.startsWith("import "))
-      .join("\n");
-    assert.doesNotMatch(
-      imports,
-      /providers\/|gateway|harness|authorization-store|process\.env/,
-    );
+    for (const file of [
+      "src/operator/operator-console.ts",
+      "src/operator/operator-presentation.ts",
+    ]) {
+      const source = readFileSync(resolve(root, file), "utf8");
+      const imports = source
+        .split("\n")
+        .filter((line) => line.startsWith("import "))
+        .join("\n");
+      assert.doesNotMatch(
+        imports,
+        /providers\/|gateway|harness|authorization-store|readiness|proposal|preflight|resolver/,
+      );
+      assert.doesNotMatch(source, /process\.env|node:fs|node:http|node:net/);
+    }
     const domainFiles = [
       "src/providers/openrouter-adapter.ts",
       "src/execution/multi-provider-gateway.ts",
@@ -188,7 +439,20 @@ describe("read-only AI LAB Operator Console", () => {
     for (const file of domainFiles)
       assert.doesNotMatch(
         readFileSync(resolve(root, file), "utf8"),
-        /operator-console/,
+        /operator-console|operator-presentation/,
       );
+  });
+
+  it("preserves semantic landmarks, headings, and text-based status meaning", async () => {
+    const model = await load();
+    for (const path of OPERATOR_CONSOLE_PATHS) {
+      const html = renderOperatorConsole(model, path);
+      assert.match(html, /<header>/);
+      assert.match(html, /<nav aria-label=/);
+      assert.match(html, /<main id="main">/);
+      assert.match(html, /<h2>/);
+      assert.match(html, /class="skip"/);
+      assert.match(html, /Bloqueado|Operativo|Requiere atención/);
+    }
   });
 });
