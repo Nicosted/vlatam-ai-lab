@@ -46,6 +46,7 @@
     "ai:handoff:profile-version-mismatch": "tsx scripts/handoff.ts profile-version-mismatch",
     "ai:authorization-store": "tsx scripts/authorization-store.ts",
     "ai:openrouter:sandbox": "tsx scripts/openrouter-sandbox-harness.ts",
+    "operator:snapshot": "tsx scripts/operator-snapshot.ts",
     "ai:budget-ledger": "tsx scripts/budget-ledger.ts",
     "lint": "eslint .",
     "format": "prettier --check .",

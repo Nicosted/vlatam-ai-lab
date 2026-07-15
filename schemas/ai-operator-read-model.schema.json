@@ -1,0 +1,221 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/ai-operator-read-model.schema.json",
+  "title": "AI LAB Operator Read Model",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract_version",
+    "system_summary",
+    "providers",
+    "models",
+    "routes",
+    "execution_profiles",
+    "readiness",
+    "evidence",
+    "sandbox_proposals",
+    "runtime_preflight",
+    "authorization",
+    "consumption",
+    "gateway_adapter_state",
+    "budget_state",
+    "kill_switch_state",
+    "secret_configuration_status",
+    "blockers",
+    "required_human_actions",
+    "validation_evidence_metadata",
+    "audit_references"
+  ],
+  "properties": {
+    "contract_version": { "const": "1.0.0" },
+    "system_summary": {
+      "type": "object",
+      "required": [
+        "overall_status",
+        "total_providers",
+        "enabled_providers",
+        "blocked_providers",
+        "disabled_adapters",
+        "blocked_routes",
+        "pending_approvals",
+        "active_blockers",
+        "execution_authorized_count",
+        "last_evaluated_at",
+        "read_model_contract_version",
+        "read_model_hash"
+      ],
+      "properties": {
+        "overall_status": {
+          "enum": ["healthy", "attention_required", "blocked", "invalid_state"]
+        },
+        "total_providers": { "type": "integer", "minimum": 0 },
+        "enabled_providers": { "type": "integer", "minimum": 0 },
+        "blocked_providers": { "type": "integer", "minimum": 0 },
+        "disabled_adapters": { "type": "integer", "minimum": 0 },
+        "blocked_routes": { "type": "integer", "minimum": 0 },
+        "pending_approvals": { "type": "integer", "minimum": 0 },
+        "active_blockers": { "type": "integer", "minimum": 0 },
+        "execution_authorized_count": { "type": "integer", "minimum": 0 },
+        "last_evaluated_at": { "type": "string", "format": "date-time" },
+        "read_model_contract_version": { "const": "1.0.0" },
+        "read_model_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      },
+      "additionalProperties": false
+    },
+    "providers": { "type": "array", "items": { "type": "object" } },
+    "models": { "type": "array", "items": { "$ref": "#/$defs/component" } },
+    "routes": { "type": "array", "items": { "type": "object" } },
+    "execution_profiles": { "type": "array", "items": { "type": "object" } },
+    "readiness": { "$ref": "#/$defs/evaluation" },
+    "evidence": { "type": "object" },
+    "sandbox_proposals": { "type": "array", "items": { "type": "object" } },
+    "runtime_preflight": { "type": "object" },
+    "authorization": { "type": "object" },
+    "consumption": { "type": "object" },
+    "gateway_adapter_state": { "type": "object" },
+    "budget_state": { "type": "object" },
+    "kill_switch_state": {
+      "type": "object",
+      "required": ["status"],
+      "properties": {
+        "status": { "enum": ["active", "inactive", "missing", "unknown"] }
+      },
+      "additionalProperties": false
+    },
+    "secret_configuration_status": {
+      "type": "object",
+      "required": ["status"],
+      "properties": {
+        "status": {
+          "enum": ["not_configured", "configured_unknown", "not_required"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "blockers": { "type": "array", "items": { "$ref": "#/$defs/blocker" } },
+    "required_human_actions": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/action" }
+    },
+    "validation_evidence_metadata": { "type": "object" },
+    "audit_references": {
+      "type": "array",
+      "items": { "type": "string" },
+      "uniqueItems": true
+    }
+  },
+  "$defs": {
+    "component": {
+      "type": "object",
+      "required": [
+        "entry_id",
+        "version",
+        "model_id",
+        "hash",
+        "enabled",
+        "lifecycle"
+      ],
+      "properties": {
+        "entry_id": { "type": "string" },
+        "version": { "type": "string" },
+        "model_id": { "type": "string" },
+        "hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "enabled": { "type": "boolean" },
+        "lifecycle": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "evaluation": {
+      "type": "object",
+      "required": [
+        "outcome",
+        "reason_codes",
+        "source_artifact_id",
+        "source_artifact_hash"
+      ],
+      "properties": {
+        "outcome": { "type": "string" },
+        "reason_codes": { "type": "array", "items": { "type": "string" } },
+        "source_artifact_id": { "type": ["string", "null"] },
+        "source_artifact_hash": {
+          "type": ["string", "null"],
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "blocker": {
+      "type": "object",
+      "required": [
+        "blocker_code",
+        "severity",
+        "category",
+        "provider_id",
+        "candidate_id",
+        "summary",
+        "source_evaluator",
+        "source_artifact_id",
+        "source_artifact_hash",
+        "resolvable_by",
+        "blocking_execution"
+      ],
+      "properties": {
+        "blocker_code": { "type": "string" },
+        "severity": { "enum": ["critical", "high", "medium", "low"] },
+        "category": { "type": "string" },
+        "provider_id": { "type": ["string", "null"] },
+        "candidate_id": { "type": ["string", "null"] },
+        "summary": { "type": "string" },
+        "source_evaluator": { "type": "string" },
+        "source_artifact_id": { "type": ["string", "null"] },
+        "source_artifact_hash": { "type": ["string", "null"] },
+        "resolvable_by": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "code_change",
+              "evidence_review",
+              "legal_review",
+              "security_review",
+              "human_approval",
+              "runtime_configuration",
+              "external_account_configuration"
+            ]
+          }
+        },
+        "blocking_execution": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "action": {
+      "type": "object",
+      "required": [
+        "action_code",
+        "title",
+        "owner_role",
+        "source_blocker_codes",
+        "prerequisite_actions",
+        "status",
+        "execution_impact",
+        "required_artifact"
+      ],
+      "properties": {
+        "action_code": { "type": "string" },
+        "title": { "type": "string" },
+        "owner_role": { "type": "string" },
+        "source_blocker_codes": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "prerequisite_actions": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "status": { "enum": ["not_started", "pending", "blocked", "complete"] },
+        "execution_impact": { "type": "string" },
+        "required_artifact": { "type": ["string", "null"] }
+      },
+      "additionalProperties": false
+    }
+  }
+}
