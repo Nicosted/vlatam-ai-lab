@@ -16,6 +16,7 @@ import {
   ReviewBindingError,
   type ReviewPolicyExpectation,
 } from "../review/review-artifact-binding.js";
+import { handleOperatorConsoleRequest } from "../operator/operator-console-handler.js";
 
 export interface ApiRequest {
   method: string;
@@ -38,6 +39,7 @@ export type RequestHandler = (
 
 export interface ApiServerOptions {
   data_root?: string;
+  operator_repository_root?: string;
   review_policy?: ReviewPolicyExpectation;
   clock?: () => Date;
 }
@@ -177,6 +179,12 @@ export async function handleClassifierRequest(
   res: ServerResponse,
   options?: ApiServerOptions,
 ): Promise<void> {
+  if (
+    await handleOperatorConsoleRequest(req, res, {
+      repository_root: options?.operator_repository_root ?? process.cwd(),
+    })
+  )
+    return;
   const rateLimit = checkRateLimit(req.socket.remoteAddress ?? "unknown");
   if (!rateLimit.allowed) {
     sendJson(
