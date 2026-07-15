@@ -1,14 +1,41 @@
-import type { OperatorReadModel } from "./operator-read-model.js";
+import {
+  BLOCKER_CATEGORY_LABELS,
+  EXECUTION_STAGE_LABELS,
+  FIELD_LABELS,
+  GOVERNANCE_GROUPS,
+  RESOLUTION_LABELS,
+  SEVERITY_LABELS,
+  UNTRANSLATED_MARKER,
+  groupBlockersForGovernance,
+  presentBlockerSummary,
+  presentEvaluator,
+  presentExecutionImpact,
+  presentOwnerRole,
+  presentResolution,
+  presentRequiredActionTitle,
+  presentSeverity,
+  presentStatus,
+  shortHash,
+  topBlockersBySeverity,
+} from "./operator-presentation.js";
+import type {
+  OperatorBlocker,
+  OperatorReadModel,
+  OperatorRequiredAction,
+} from "./operator-read-model.js";
 
 const ROUTES = [
-  ["Overview", "/operator"],
-  ["Providers", "/operator/providers"],
-  ["Governance", "/operator/governance"],
-  ["Blockers", "/operator/blockers"],
-  ["Actions", "/operator/actions"],
-  ["Execution", "/operator/execution"],
-  ["Audit", "/operator/audit"],
+  ["Resumen", "/operator"],
+  ["Proveedores", "/operator/providers"],
+  ["Gobernanza", "/operator/governance"],
+  ["Bloqueos", "/operator/blockers"],
+  ["Acciones requeridas", "/operator/actions"],
+  ["Ejecución", "/operator/execution"],
+  ["Auditoría", "/operator/audit"],
 ] as const;
+
+const NEXT_GOVERNED_MILESTONE =
+  "Contratos de revisión humana (Human Review Contracts), según el mapa de dependencias gobernado." as const;
 
 const escapeHtml = (value: unknown): string =>
   String(value ?? "")
@@ -18,24 +45,42 @@ const escapeHtml = (value: unknown): string =>
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
 
-const label = (value: unknown): string =>
-  String(value ?? "unknown").replaceAll("_", " ");
-const badge = (value: unknown): string =>
-  `<span class="badge status-${escapeHtml(value)}">${escapeHtml(label(value))}</span>`;
+const untranslated = (): string =>
+  ` <span class="untranslated">(${UNTRANSLATED_MARKER})</span>`;
+
+const badge = (value: unknown): string => {
+  const presented = presentStatus(value);
+  const body = `<span class="badge status-${escapeHtml(presented.canonical)}">${escapeHtml(presented.label)}</span>`;
+  return presented.known
+    ? body
+    : `<span class="badge status-unknown"><code>${escapeHtml(presented.canonical)}</code></span>${untranslated()}`;
+};
+
+const severityBadge = (value: OperatorBlocker["severity"]): string => {
+  const presented = presentSeverity(value);
+  return `<span class="badge severity-${escapeHtml(presented.canonical)}">Severidad: ${escapeHtml(presented.label)}</span>`;
+};
+
+const yesNo = (value: unknown): string => badge(String(value === true));
 const code = (value: unknown): string => `<code>${escapeHtml(value)}</code>`;
-const providerValue = (
-  provider: Record<string, unknown>,
-  key: string,
-): unknown => provider[key] ?? "unknown";
-const metric = (name: string, value: unknown): string =>
-  `<div class="metric"><span>${escapeHtml(name)}</span><strong>${escapeHtml(value)}</strong></div>`;
-const rows = (items: readonly [string, unknown][]): string =>
-  items
-    .map(
-      ([key, value]) =>
-        `<dt>${escapeHtml(key)}</dt><dd>${typeof value === "string" && value.length > 28 ? code(value) : escapeHtml(label(value))}</dd>`,
-    )
-    .join("");
+const text = (value: unknown): string => escapeHtml(value);
+
+/** dd values are pre-rendered safe HTML built with the helpers above. */
+const dl = (items: readonly (readonly [string, string])[]): string =>
+  `<dl>${items.map(([key, value]) => `<dt>${escapeHtml(key)}</dt><dd>${value}</dd>`).join("")}</dl>`;
+
+const metric = (name: string, valueHtml: string): string =>
+  `<div class="metric"><span>${escapeHtml(name)}</span><strong>${valueHtml}</strong></div>`;
+
+/** Full canonical value behind an accessible disclosure; no clipboard JS. */
+const disclosure = (summaryLabel: string, value: unknown): string =>
+  `<details class="tech"><summary>${escapeHtml(summaryLabel)}</summary><pre class="code-block" aria-label="${escapeHtml(summaryLabel)}"><code>${escapeHtml(value ?? "ausente")}</code></pre></details>`;
+
+const codeList = (summaryLabel: string, values: readonly string[]): string =>
+  `<details class="tech"><summary>${escapeHtml(summaryLabel)}</summary><pre class="code-block" aria-label="${escapeHtml(summaryLabel)}"><code>${values.map((value) => escapeHtml(value)).join("\n") || "ninguno"}</code></pre></details>`;
+
+const hashSummary = (value: string | null | undefined): string =>
+  value ? code(shortHash(value)) : badge("absent");
 
 function shell(
   model: OperatorReadModel,
@@ -43,23 +88,67 @@ function shell(
   content: string,
 ): string {
   const summary = model.system_summary;
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AI LAB Operator Console</title><style>
-  :root{color-scheme:light;--ink:#18201f;--muted:#5d6a67;--line:#d8dfdc;--panel:#fff;--bg:#f4f6f5;--blocked:#9a2f2f;--pending:#765b00;--ok:#176b45;--focus:#005fcc}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,sans-serif}a{color:inherit}.skip{position:absolute;left:-999px}.skip:focus{left:1rem;top:1rem;background:#fff;padding:.7rem;z-index:2}header{background:#172321;color:#fff;padding:1rem 1.5rem}.top{display:flex;gap:1rem;align-items:center;justify-content:space-between;flex-wrap:wrap}.top h1{font-size:1.15rem;margin:0}.meta{display:flex;gap:.75rem;flex-wrap:wrap;color:#d7e0dd;font-size:.84rem}nav{background:#fff;border-bottom:1px solid var(--line);padding:.55rem 1.5rem;display:flex;gap:.25rem;overflow:auto}nav a{padding:.45rem .65rem;text-decoration:none;border-radius:.25rem;white-space:nowrap}nav a[aria-current=page]{background:#e5ece9;font-weight:700}a:focus-visible,select:focus-visible{outline:3px solid var(--focus);outline-offset:2px}main{max-width:1440px;margin:auto;padding:1.25rem}h2{font-size:1.4rem;margin:.2rem 0 1rem}h3{font-size:1rem;margin:0 0 .7rem}.notice{border-left:5px solid var(--blocked);background:#fff;padding:1rem;margin-bottom:1rem}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:.8rem}.card,.table-wrap{background:var(--panel);border:1px solid var(--line);border-radius:.35rem;padding:1rem;margin-bottom:1rem}.metric span{display:block;color:var(--muted);font-size:.8rem}.metric strong{font-size:1.35rem}.badge{display:inline-block;border:1px solid currentColor;border-radius:999px;padding:.12rem .5rem;font-size:.78rem;font-weight:700;text-transform:capitalize}.status-blocked,.status-invalid_state,.status-disabled,.status-active,.status-absent{color:var(--blocked);background:#fff0f0}.status-pending,.status-not_configured,.status-not_attempted{color:var(--pending);background:#fff9dc}.status-healthy,.status-enabled,.status-completed{color:var(--ok);background:#edf9f2}dl{display:grid;grid-template-columns:minmax(120px,1fr) 2fr;gap:.4rem 1rem;margin:0}dt{color:var(--muted)}dd{margin:0;overflow-wrap:anywhere}code{font:12px/1.5 ui-monospace,SFMono-Regular,monospace;overflow-wrap:anywhere}table{border-collapse:collapse;width:100%;font-size:.86rem}th,td{text-align:left;vertical-align:top;border-bottom:1px solid var(--line);padding:.6rem}th{color:var(--muted)}.filters{display:flex;gap:.7rem;flex-wrap:wrap;margin-bottom:1rem}.filters label{font-size:.8rem;color:var(--muted)}select{display:block;padding:.35rem;background:#fff;border:1px solid #87928f}.chain{display:grid;grid-template-columns:repeat(7,1fr);gap:.5rem}.stage{background:#fff;border:1px solid var(--line);padding:.75rem;text-align:center}.stage:not(:last-child)::after{content:"→";float:right;margin-right:-1.15rem}.quiet{color:var(--muted)}ul{padding-left:1.2rem}@media(max-width:800px){.chain{grid-template-columns:1fr}.stage:not(:last-child)::after{content:"↓";float:none;display:block;margin:1rem 0 -1.4rem}.table-wrap{overflow:auto}main{padding:.8rem}header,nav{padding-left:.8rem;padding-right:.8rem}}@media(max-width:480px){dl{grid-template-columns:1fr}dd{margin-bottom:.4rem}.meta{display:block}}
-  </style></head><body><a class="skip" href="#main">Skip to content</a><header><div class="top"><h1>AI LAB Operator Console</h1><div class="meta"><span>Overall ${badge(summary.overall_status)}</span><span>Evaluated ${escapeHtml(summary.last_evaluated_at)}</span><span>Read model ${escapeHtml(summary.read_model_contract_version)}</span></div></div></header><nav aria-label="Operator console">${ROUTES.map(([name, href]) => `<a href="${href}"${pathname === href || (href === "/operator/providers" && pathname.startsWith("/operator/providers/")) ? ' aria-current="page"' : ""}>${name}</a>`).join("")}</nav><main id="main">${content}</main></body></html>`;
+  return `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AI LAB — Consola del operador</title><style>
+  :root{color-scheme:light;--ink:#18201f;--muted:#5d6a67;--line:#d8dfdc;--panel:#fff;--bg:#f4f6f5;--blocked:#9a2f2f;--pending:#765b00;--ok:#176b45;--focus:#005fcc}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 system-ui,-apple-system,sans-serif}a{color:inherit}.skip{position:absolute;left:-999px}.skip:focus{left:1rem;top:1rem;background:#fff;padding:.7rem;z-index:2}header{background:#172321;color:#fff;padding:1rem 1.5rem}.top{display:flex;gap:1rem;align-items:center;justify-content:space-between;flex-wrap:wrap}.top h1{font-size:1.15rem;margin:0}.meta{display:flex;gap:.75rem;flex-wrap:wrap;color:#d7e0dd;font-size:.84rem;align-items:center}.meta code{color:#d7e0dd}nav{background:#fff;border-bottom:1px solid var(--line);padding:.55rem 1.5rem;display:flex;gap:.25rem;overflow:auto}nav a{padding:.45rem .65rem;text-decoration:none;border-radius:.25rem;white-space:nowrap}nav a[aria-current=page]{background:#e5ece9;font-weight:700}a:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid var(--focus);outline-offset:2px}main{max-width:1080px;margin:auto;padding:1.25rem}h2{font-size:1.4rem;margin:.2rem 0 .4rem}.lead{margin:0 0 1rem;color:var(--muted)}h3{font-size:1.05rem;margin:0 0 .7rem}h4{font-size:.9rem;margin:0 0 .45rem;color:var(--muted)}.notice{border-left:5px solid var(--blocked);background:#fff;padding:1rem;margin-bottom:1rem}.grid-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.8rem;margin-bottom:1rem}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:.9rem}.card{background:var(--panel);border:1px solid var(--line);border-radius:.35rem;padding:1rem;margin-bottom:1rem;min-width:0}.grid2>.card{margin-bottom:0}.metric{background:var(--panel);border:1px solid var(--line);border-radius:.35rem;padding:.8rem;min-width:0}.metric span{display:block;color:var(--muted);font-size:.8rem}.metric strong{font-size:1.15rem;overflow-wrap:break-word}.badge{display:inline-block;border:1px solid currentColor;border-radius:999px;padding:.12rem .55rem;font-size:.78rem;font-weight:700}.status-blocked,.status-invalid_state,.status-disabled,.status-rejected,.status-absent,.status-missing,.status-unavailable{color:var(--blocked);background:#fff0f0}.status-pending,.status-not_configured,.status-not_attempted,.status-no_policy_issued,.status-not_invoked,.status-authorization_pending,.status-not_started,.status-unknown,.status-evidence_incomplete,.status-none{color:var(--pending);background:#fff9dc}.status-healthy,.status-enabled,.status-valid,.status-approved,.status-available,.status-complete,.status-active,.status-true{color:var(--ok);background:#edf9f2}.status-false{color:var(--blocked);background:#fff0f0}.severity-critical,.severity-high{color:var(--blocked);background:#fff0f0}.severity-medium{color:var(--pending);background:#fff9dc}.severity-low{color:var(--muted);background:#f0f3f2}.untranslated{color:var(--muted);font-size:.78rem}dl{display:grid;grid-template-columns:minmax(150px,1fr) 2fr;gap:.4rem 1rem;margin:0}dt{color:var(--muted)}dd{margin:0;min-width:0;overflow-wrap:break-word}code{font:12px/1.5 ui-monospace,SFMono-Regular,monospace;overflow-wrap:break-word}.code-block{display:block;margin:.4rem 0 0;padding:.55rem .75rem;background:#f0f3f2;border:1px solid var(--line);border-radius:.25rem;overflow-x:auto;white-space:pre;user-select:text}.code-block code{overflow-wrap:normal;white-space:pre}details.tech{margin-top:.5rem}details.tech summary{cursor:pointer;color:var(--muted);font-size:.84rem}.filters{display:flex;gap:.7rem;flex-wrap:wrap;margin-bottom:.6rem}.filters label{font-size:.8rem;color:var(--muted)}select{display:block;padding:.35rem;background:#fff;border:1px solid #87928f}ol.records{list-style:none;margin:0;padding:0;counter-reset:record}ol.records>li{counter-increment:record}ol.records h3::before{content:counter(record) ". ";color:var(--muted)}.chain{display:grid;grid-template-columns:repeat(7,1fr);gap:.5rem;margin-bottom:1rem}.stage{background:#fff;border:1px solid var(--line);padding:.75rem;text-align:center;min-width:0}.stage p{font-size:.8rem;color:var(--muted);margin:.4rem 0 0}.stage:not(:last-child)::after{content:"→";float:right;margin-right:-1.15rem}.quiet{color:var(--muted)}ul{padding-left:1.2rem}@media(max-width:920px){.grid2{grid-template-columns:1fr}.chain{grid-template-columns:1fr}.stage:not(:last-child)::after{content:"↓";float:none;display:block;margin:.6rem 0 -1rem}}@media(max-width:800px){main{padding:.8rem}header,nav{padding-left:.8rem;padding-right:.8rem}}@media(max-width:480px){dl{grid-template-columns:1fr}dd{margin-bottom:.4rem}.meta{display:block}}
+  </style></head><body><a class="skip" href="#main">Saltar al contenido principal</a><header><div class="top"><h1>AI LAB — Consola del operador</h1><div class="meta"><span>Estado global ${badge(summary.overall_status)}</span><span>Evaluado ${escapeHtml(summary.last_evaluated_at)}</span><span>Contrato ${escapeHtml(summary.read_model_contract_version)}</span><span>Hash ${code(shortHash(summary.read_model_hash))}</span></div></div></header><nav aria-label="Consola del operador">${ROUTES.map(([name, href]) => `<a href="${href}"${pathname === href || (href === "/operator/providers" && pathname.startsWith("/operator/providers/")) ? ' aria-current="page"' : ""}>${name}</a>`).join("")}</nav><main id="main">${content}</main></body></html>`;
 }
+
+const blockedNotice = (model: OperatorReadModel): string =>
+  model.system_summary.overall_status === "healthy"
+    ? ""
+    : `<div class="notice"><strong>Bloqueado es un estado gobernado y seguro, no una falla de la aplicación.</strong><br>La consola muestra la decisión del repositorio tal como fue evaluada y no ofrece controles de ejecución ni de aprobación.</div>`;
 
 function overview(model: OperatorReadModel): string {
   const s = model.system_summary;
-  return `<h2>Overview</h2><div class="notice"><strong>Blocked is a governed state, not an application failure.</strong><br>The console is reporting the repository decision normally and does not provide execution or approval controls.</div><div class="grid">${metric("Overall status", label(s.overall_status))}${metric("Contract version", s.read_model_contract_version)}${metric("Providers", s.total_providers)}${metric("Enabled providers", s.enabled_providers)}${metric("Blocked providers", s.blocked_providers)}${metric("Disabled adapters", s.disabled_adapters)}${metric("Blocked routes", s.blocked_routes)}${metric("Pending approvals", s.pending_approvals)}${metric("Active blockers", s.active_blockers)}${metric("Required actions", model.required_human_actions.length)}${metric("Execution authorized", s.execution_authorized_count)}</div><section class="card"><h3>Deterministic snapshot</h3><dl>${rows(
+  const provider = model.providers[0] ?? {};
+  const candidate = model.models[0];
+  const executionAllowed = provider["execution_allowed"] === true;
+  const situacion: string[] = [];
+  if (typeof provider["provider_id"] === "string")
+    situacion.push(
+      `El proveedor evaluado actualmente es ${code(provider["provider_id"])}.`,
+    );
+  if (candidate)
+    situacion.push(`El candidato actual es ${code(candidate.model_id)}.`);
+  situacion.push(
+    executionAllowed
+      ? "La ejecución de modelos está permitida por el estado gobernado."
+      : "La ejecución de modelos no está permitida.",
+  );
+  if (model.gateway_adapter_state.gateway_invoked === false)
+    situacion.push("No se ha realizado ninguna llamada al proveedor.");
+  if (model.consumption.status === "not_attempted")
+    situacion.push("No se ha consumido ninguna autorización de ejecución.");
+  if (model.kill_switch_state.status === "active")
+    situacion.push(
+      "El kill switch permanece activo: cualquier intento de ejecución falla cerrado.",
+    );
+  const top = topBlockersBySeverity(model.blockers, 5);
+  return `<h2>Resumen</h2><p class="lead">Estado gobernado actual del laboratorio y del proveedor evaluado.</p>${blockedNotice(model)}<div class="grid-metrics">${metric("Estado gobernado", badge(s.overall_status))}${metric("Ejecución de modelos", executionAllowed ? badge("enabled") : `<span class="badge status-blocked">No permitida</span>`)}${metric("Proveedor evaluado", code(provider["provider_id"] ?? "ausente"))}${metric("Candidato actual", code(candidate?.model_id ?? "ausente"))}${metric("Bloqueos activos", text(s.active_blockers))}${metric("Acciones requeridas", text(model.required_human_actions.length))}${metric("Revisiones pendientes", text(s.pending_approvals))}${metric("Evaluación", text(s.last_evaluated_at))}${metric("Versión del modelo de lectura", text(s.read_model_contract_version))}${metric("Hash (abreviado)", code(shortHash(s.read_model_hash)))}</div><section class="card"><h3>Situación actual</h3><ul>${situacion.map((item) => `<li>${item}</li>`).join("")}</ul></section><section class="card"><h3>Bloqueos principales</h3><p class="quiet">Los cinco bloqueos de mayor prioridad (orden estable por severidad; el listado canónico completo está en Bloqueos).</p><ul>${top
+    .map((blocker) => {
+      const summary = presentBlockerSummary(blocker);
+      return `<li>${escapeHtml(summary.label)}${summary.known ? "" : untranslated()} ${severityBadge(blocker.severity)} ${code(blocker.blocker_code)}</li>`;
+    })
+    .join(
+      "",
+    )}</ul></section><section class="card"><h3>Próximos pasos</h3><p class="quiet">Generados únicamente desde las acciones requeridas existentes, en su orden determinista.</p><ol>${model.required_human_actions
+    .map((action) => {
+      const title = presentRequiredActionTitle(action);
+      return `<li>${escapeHtml(title.label)}${title.known ? "" : untranslated()} — ${escapeHtml(presentOwnerRole(action.owner_role).label)} ${badge(action.status)}</li>`;
+    })
+    .join(
+      "",
+    )}</ol><p><strong>Próximo hito gobernado:</strong> ${escapeHtml(NEXT_GOVERNED_MILESTONE)}</p></section><section class="card"><h3>Instantánea determinista</h3>${dl(
     [
-      ["Evaluated at", s.last_evaluated_at],
-      ["Read-model hash", s.read_model_hash],
+      [FIELD_LABELS["evaluated_at"]!, text(s.last_evaluated_at)],
+      [FIELD_LABELS["contract_version"]!, text(s.read_model_contract_version)],
+      [FIELD_LABELS["read_model_hash"]!, hashSummary(s.read_model_hash)],
     ],
-  )}</dl></section>`;
+  )}${disclosure("Hash completo del modelo de lectura", s.read_model_hash)}</section>`;
 }
 
 function providers(model: OperatorReadModel): string {
-  return `<h2>Providers</h2><p class="quiet">Every row is rendered from the Operator Read Model; the console does not interpret provider source artifacts.</p>${model.providers
+  return `<h2>Proveedores</h2><p class="lead">Cada tarjeta se genera desde el Operator Read Model; la consola no interpreta artefactos del proveedor.</p>${model.providers
     .map((p) => {
       const registeredModels =
         (p["registered_models"] as readonly string[] | undefined) ?? [];
@@ -76,34 +165,65 @@ function providers(model: OperatorReadModel): string {
       const profile = model.execution_profiles.find((item) =>
         registeredProfiles.includes(item.profile_id),
       );
-      const providerId = providerValue(p, "provider_id");
-      const detail =
+      const providerId = String(p["provider_id"] ?? "unknown");
+      const executionAllowed = p["execution_allowed"] === true;
+      const blockerCount =
+        (p["reason_codes"] as readonly unknown[] | undefined)?.length ?? 0;
+      const explanation = executionAllowed
+        ? `${providerId} tiene la ejecución permitida por el estado gobernado del repositorio.`
+        : `${providerId} es el proveedor evaluado actualmente. La ejecución permanece deshabilitada mientras existan ${blockerCount} bloqueos gobernados sin resolver.`;
+      const detailLink =
         providerId === "openrouter"
-          ? `<p><a href="/operator/providers/openrouter">View governed provider detail</a></p>`
+          ? `<p><a href="/operator/providers/openrouter">Ver detalle gobernado</a></p>`
           : "";
-      return `<article class="card"><h3>${escapeHtml(p["display_name"] || providerId)} ${badge(providerValue(p, "readiness_status"))}</h3><dl>${rows(
+      return `<article class="card"><h3>${escapeHtml(p["display_name"] || providerId)} ${badge(executionAllowed ? "healthy" : "blocked")}</h3>${dl(
         [
-          ["Provider identity", providerId],
-          ["Candidate model", candidate?.model_id ?? "unknown"],
-          ["Readiness", providerValue(p, "readiness_status")],
-          ["Evidence", model.evidence.review_status],
-          ["Sandbox proposal", providerValue(p, "proposal_status")],
-          ["Runtime preflight", providerValue(p, "preflight_status")],
-          ["Model", candidate?.enabled ? "enabled" : "disabled"],
-          ["Route", route?.enabled ? "enabled" : "disabled"],
-          ["Profile", profile?.enabled ? "enabled" : "disabled"],
-          ["Adapter", providerValue(p, "adapter_state")],
-          ["Budget", model.budget_state.status],
-          ["Secret", providerValue(p, "secret_status")],
-          ["Kill switch", providerValue(p, "kill_switch_status")],
-          ["Execution allowed", providerValue(p, "execution_allowed")],
+          [FIELD_LABELS["provider_id"]!, code(providerId)],
           [
-            "Blocker count",
-            (providerValue(p, "reason_codes") as readonly unknown[] | undefined)
-              ?.length ?? 0,
+            FIELD_LABELS["candidate_model"]!,
+            candidate ? code(candidate.model_id) : badge("absent"),
+          ],
+          [
+            "Estado del proveedor",
+            badge(executionAllowed ? "healthy" : "blocked"),
+          ],
+          [FIELD_LABELS["execution_allowed"]!, yesNo(executionAllowed)],
+          [FIELD_LABELS["blocker_count"]!, text(blockerCount)],
+        ],
+      )}<p>${escapeHtml(explanation)}</p><div class="grid2"><section class="card"><h4>Evidencia y preparación</h4>${dl(
+        [
+          [FIELD_LABELS["readiness_status"]!, badge(p["readiness_status"])],
+          [
+            FIELD_LABELS["evidence_review"]!,
+            badge(model.evidence.review_status),
           ],
         ],
-      )}</dl>${detail}</article>`;
+      )}</section><section class="card"><h4>Configuración de sandbox</h4>${dl([
+        [FIELD_LABELS["proposal_status"]!, badge(p["proposal_status"])],
+        [FIELD_LABELS["preflight_status"]!, badge(p["preflight_status"])],
+        [FIELD_LABELS["budget_status"]!, badge(p["budget_status"])],
+      ])}</section><section class="card"><h4>Seguridad</h4>${dl([
+        [FIELD_LABELS["secret_status"]!, badge(p["secret_status"])],
+        [FIELD_LABELS["kill_switch_status"]!, badge(p["kill_switch_status"])],
+        [
+          FIELD_LABELS["live_traffic_permitted"]!,
+          yesNo(p["live_traffic_permitted"]),
+        ],
+      ])}</section><section class="card"><h4>Ejecución</h4>${dl([
+        [FIELD_LABELS["adapter_state"]!, badge(p["adapter_state"])],
+        [
+          FIELD_LABELS["model_state"]!,
+          badge(candidate?.enabled ? "enabled" : "disabled"),
+        ],
+        [
+          FIELD_LABELS["route_state"]!,
+          badge(route?.enabled ? "enabled" : "disabled"),
+        ],
+        [
+          FIELD_LABELS["profile_state"]!,
+          badge(profile?.enabled ? "enabled" : "disabled"),
+        ],
+      ])}</section></div>${detailLink}</article>`;
     })
     .join("")}`;
 }
@@ -111,205 +231,583 @@ function providers(model: OperatorReadModel): string {
 function openrouter(model: OperatorReadModel): string {
   const p =
     model.providers.find((item) => item["provider_id"] === "openrouter") ?? {};
-  const m = model.models[0],
-    r = model.routes[0],
-    profile = model.execution_profiles[0],
-    v = model.validation_evidence_metadata;
-  return `<h2>OpenRouter detail</h2><div class="notice"><strong>Execution allowed: false.</strong> No provider call, model output, or billed usage exists.</div><div class="grid"><section class="card"><h3>Governed state</h3><dl>${rows(
+  const m = model.models[0];
+  const r = model.routes[0];
+  const profile = model.execution_profiles[0];
+  const v = model.validation_evidence_metadata;
+  const proposal = model.sandbox_proposals[0];
+  const blockerCount =
+    (p["reason_codes"] as readonly unknown[] | undefined)?.length ?? 0;
+  const reasons: string[] = [];
+  if (p["execution_allowed"] !== true)
+    reasons.push(
+      `El estado gobernado del proveedor es Bloqueado, con ${blockerCount} bloqueos activos.`,
+    );
+  if (model.evidence.review_status === "pending")
+    reasons.push("La evidencia externa está pendiente de revisión humana.");
+  if (proposal?.approval_status === "pending")
+    reasons.push(
+      "La aprobación humana de la propuesta de sandbox está pendiente.",
+    );
+  if (model.authorization.exact_policy_hash === null)
+    reasons.push("No existe una política exacta de ejecución.");
+  if (model.gateway_adapter_state.adapter_status === "disabled")
+    reasons.push("El adaptador de transporte está deshabilitado.");
+  if (model.kill_switch_state.status === "active")
+    reasons.push("El kill switch permanece activo.");
+  return `<h2>OpenRouter — detalle gobernado</h2>${blockedNotice(model)}<section class="card"><h3>Estado actual</h3><p><strong>Ejecución permitida:</strong> ${yesNo(p["execution_allowed"])}. No existe ninguna llamada al proveedor, salida de modelo ni uso facturado.</p><ul>${reasons.map((reason) => `<li>${escapeHtml(reason)}</li>`).join("")}</ul>${dl(
     [
-      ["Candidate", m?.model_id],
+      [FIELD_LABELS["readiness_status"]!, badge(p["readiness_status"])],
+      [FIELD_LABELS["evidence_review"]!, badge(model.evidence.review_status)],
+      [FIELD_LABELS["proposal_status"]!, badge(p["proposal_status"])],
+      [FIELD_LABELS["preflight_status"]!, badge(p["preflight_status"])],
+      [FIELD_LABELS["approval_status"]!, badge(proposal?.approval_status)],
+    ],
+  )}</section><section class="card"><h3>Identidad del candidato</h3>${dl([
+    [FIELD_LABELS["provider_id"]!, code(p["provider_id"] ?? "ausente")],
+    [FIELD_LABELS["candidate_model"]!, m ? code(m.model_id) : badge("absent")],
+    ["Ruta gobernada", r ? code(r.route_id) : badge("absent")],
+    [
+      "Perfil de ejecución",
+      profile ? code(profile.profile_id) : badge("absent"),
+    ],
+    [
+      "Cadena del candidato",
+      code(
+        `${String(p["provider_id"] ?? "?")} → ${r?.route_id ?? "?"} → ${m?.model_id ?? "?"} → ${profile?.profile_id ?? "?"}`,
+      ),
+    ],
+    ["Versión del modelo (registro)", text(m?.version ?? "ausente")],
+    ["Versión de la ruta (registro)", text(r?.version ?? "ausente")],
+    ["Versión del perfil", text(profile?.version ?? "ausente")],
+  ])}</section><div class="grid2"><section class="card"><h3>Evidencia y preparación</h3>${dl(
+    [
+      ["Dossier de preparación", badge(v.dossier_outcome)],
+      ["Versión del dossier", text(v.dossier_version ?? "ausente")],
+      ["Paquete de evidencia externa", badge(model.evidence.outcome)],
+      [FIELD_LABELS["evidence_review"]!, badge(v.evidence_review_status)],
       [
-        "Candidate path",
-        `${p["provider_id"]} → ${r?.route_id} → ${m?.model_id} → ${profile?.profile_id}`,
+        "Versión del paquete de evidencia",
+        text(v.evidence_pack_version ?? "ausente"),
       ],
-      ["Readiness", p["readiness_status"]],
-      ["Evidence verification", model.evidence.review_status],
-      ["Sandbox proposal", p["proposal_status"]],
-      ["Preflight", p["preflight_status"]],
-      ["Model", m?.enabled ? "enabled" : "disabled"],
-      ["Route", r?.enabled ? "enabled" : "disabled"],
-      ["Route executable", (r?.executable_profile_ids.length ?? 0) > 0],
-      ["Execution profile", profile?.enabled ? "enabled" : "disabled"],
-      ["Adapter", p["adapter_state"]],
-      ["Budget", model.budget_state.status],
-      ["Approval", model.sandbox_proposals[0]?.approval_status],
-      ["Exact policy", model.authorization.exact_policy_hash ?? "absent"],
-      ["Consumption", model.consumption.status],
-      ["Kill switch", model.kill_switch_state.status],
-      ["Secret", model.secret_configuration_status.status],
     ],
-  )}</dl></section><section class="card"><h3>Artifact identities</h3><dl>${rows(
+  )}${codeList(
+    "Informes de evidencia (rutas del repositorio)",
+    (p["evidence_paths"] as readonly string[] | undefined) ?? [],
+  )}</section><section class="card"><h3>Seguridad y privacidad</h3>${dl([
     [
-      ["Dossier", v.dossier_id],
-      ["Dossier version", v.dossier_version],
-      ["Dossier hash", v.dossier_hash],
-      ["Evidence pack", v.evidence_pack_id],
-      ["Evidence version", v.evidence_pack_version],
-      ["Evidence hash", v.evidence_pack_hash],
-      ["Proposal", v.proposal_id],
-      ["Proposal hash", v.proposal_hash],
-      ["Runtime config", v.runtime_config_id],
-      ["Runtime version", v.runtime_config_version],
-      ["Runtime hash", v.runtime_config_hash],
-      ["Model record", m?.entry_id],
-      ["Model hash", m?.hash],
-      ["Route record", r?.record_id],
-      ["Route hash", r?.hash],
-      ["Profile", profile?.profile_id],
-      ["Profile version", profile?.version],
-      ["Profile hash", profile?.hash],
+      FIELD_LABELS["secret_status"]!,
+      badge(model.secret_configuration_status.status),
     ],
-  )}</dl></section></div><section class="card"><h3>Metadata-only sandbox limits</h3><dl>${rows(
     [
-      ["Maximum requests", model.budget_state.maximum_requests],
-      ["Maximum spend USD", model.budget_state.maximum_total_spend_usd],
-      ["Synthetic fixture", "openrouter.manual-sandbox.synthetic.v1"],
+      FIELD_LABELS["kill_switch_status"]!,
+      badge(model.kill_switch_state.status),
     ],
-  )}</dl></section><section class="card"><h3>Latest evidence reports</h3><ul>${((p["evidence_paths"] as readonly string[] | undefined) ?? []).map((path) => `<li>${code(path)}</li>`).join("")}</ul></section>`;
+    [
+      FIELD_LABELS["live_traffic_permitted"]!,
+      yesNo(p["live_traffic_permitted"]),
+    ],
+  ])}<p class="quiet">Los bloqueos de privacidad, retención, entrenamiento y ZDR se listan en Gobernanza.</p></section><section class="card"><h3>Configuración de ejecución</h3>${dl(
+    [
+      [FIELD_LABELS["adapter_identity"]!, code(p["adapter_identity"])],
+      [FIELD_LABELS["adapter_version"]!, text(p["adapter_version"])],
+      [FIELD_LABELS["adapter_state"]!, badge(p["adapter_state"])],
+      [
+        FIELD_LABELS["model_state"]!,
+        badge(m?.enabled ? "enabled" : "disabled"),
+      ],
+      [
+        FIELD_LABELS["route_state"]!,
+        badge(r?.enabled ? "enabled" : "disabled"),
+      ],
+      [
+        FIELD_LABELS["route_executable"]!,
+        yesNo((r?.executable_profile_ids.length ?? 0) > 0),
+      ],
+      [
+        FIELD_LABELS["profile_state"]!,
+        badge(profile?.enabled ? "enabled" : "disabled"),
+      ],
+      [
+        FIELD_LABELS["authorization_status"]!,
+        badge(model.authorization.status),
+      ],
+      [
+        FIELD_LABELS["exact_policy"]!,
+        model.authorization.exact_policy_hash
+          ? hashSummary(model.authorization.exact_policy_hash)
+          : badge("absent"),
+      ],
+      [FIELD_LABELS["consumption_status"]!, badge(model.consumption.status)],
+    ],
+  )}</section><section class="card"><h3>Presupuesto sandbox</h3>${dl([
+    [FIELD_LABELS["budget_status"]!, badge(model.budget_state.status)],
+    [
+      FIELD_LABELS["maximum_requests"]!,
+      text(model.budget_state.maximum_requests ?? "ausente"),
+    ],
+    [
+      FIELD_LABELS["maximum_total_spend_usd"]!,
+      text(model.budget_state.maximum_total_spend_usd ?? "ausente"),
+    ],
+    [
+      "Fixture sintético (solo metadatos)",
+      code("openrouter.manual-sandbox.synthetic.v1"),
+    ],
+  ])}</section></div><section class="card"><h3>Artefactos y hashes</h3><p class="quiet">Hashes abreviados; el valor completo está disponible en cada detalle técnico.</p>${dl(
+    [
+      ["Dossier de preparación", hashSummary(v.dossier_hash)],
+      ["Paquete de evidencia externa", hashSummary(v.evidence_pack_hash)],
+      ["Propuesta de sandbox", hashSummary(v.proposal_hash)],
+      ["Configuración de runtime", hashSummary(v.runtime_config_hash)],
+      ["Registro del modelo", hashSummary(m?.hash ?? null)],
+      ["Registro de ruta", hashSummary(r?.hash ?? null)],
+      ["Perfil de ejecución", hashSummary(profile?.hash ?? null)],
+      [
+        "Adaptador",
+        hashSummary(
+          typeof p["adapter_hash"] === "string" ? p["adapter_hash"] : null,
+        ),
+      ],
+    ],
+  )}${codeList("Identidades y hashes completos", [
+    `dossier_id: ${v.dossier_id ?? "ausente"}`,
+    `dossier_hash: ${v.dossier_hash ?? "ausente"}`,
+    `evidence_pack_id: ${v.evidence_pack_id ?? "ausente"}`,
+    `evidence_pack_hash: ${v.evidence_pack_hash ?? "ausente"}`,
+    `proposal_id: ${v.proposal_id ?? "ausente"}`,
+    `proposal_hash: ${v.proposal_hash ?? "ausente"}`,
+    `runtime_config_id: ${v.runtime_config_id ?? "ausente"}`,
+    `runtime_config_hash: ${v.runtime_config_hash ?? "ausente"}`,
+    `model_record: ${m?.entry_id ?? "ausente"}`,
+    `model_hash: ${m?.hash ?? "ausente"}`,
+    `route_record: ${r?.record_id ?? "ausente"}`,
+    `route_hash: ${r?.hash ?? "ausente"}`,
+    `profile_id: ${profile?.profile_id ?? "ausente"}`,
+    `profile_hash: ${profile?.hash ?? "ausente"}`,
+    `adapter_hash: ${typeof p["adapter_hash"] === "string" ? p["adapter_hash"] : "ausente"}`,
+  ])}</section><section class="card"><h3>Próximas acciones</h3><ol>${model.required_human_actions
+    .map((action) => {
+      const title = presentRequiredActionTitle(action);
+      return `<li>${escapeHtml(title.label)}${title.known ? "" : untranslated()} — ${escapeHtml(presentOwnerRole(action.owner_role).label)} ${badge(action.status)}</li>`;
+    })
+    .join(
+      "",
+    )}</ol><p class="quiet">El plan completo está en Acciones requeridas.</p></section>`;
 }
 
-const GOVERNANCE_GROUPS = [
-  ["Evidence and readiness", "readiness_dossier", "evidence"],
-  ["Pricing and budget", "readiness_dossier", "evidence"],
-  ["Routing", "sandbox_preflight", "runtime"],
-  [
-    "Privacy, retention, training use, geography, and ZDR",
-    "readiness_dossier",
-    "security_privacy",
-  ],
-  ["Structured-output suitability", "sandbox_proposal", "runtime"],
-  ["Benchmarks and gold cases", "sandbox_proposal", "evidence"],
-  ["Legal and security review", "sandbox_proposal", "legal"],
-  ["Human approval", "sandbox_proposal", "approval"],
-  ["Runtime configuration", "sandbox_preflight", "runtime"],
-] as const;
 function governance(model: OperatorReadModel): string {
-  return `<h2>Governance</h2><div class="grid">${GOVERNANCE_GROUPS.map(
-    ([title, evaluator, category]) => {
-      const matching = model.blockers.filter(
-        (b) => b.category === category || b.source_evaluator === evaluator,
-      );
-      return `<section class="card"><h3>${title}</h3><p>${badge(matching.length ? "blocked" : "healthy")}</p><dl>${rows(
+  const grouped = groupBlockersForGovernance(model.blockers);
+  return `<h2>Gobernanza</h2><p class="lead">Agrupación de presentación sobre los bloqueos existentes del modelo de lectura; ningún resultado de gobernanza se recalcula.</p>${blockedNotice(model)}<div class="grid2">${GOVERNANCE_GROUPS.map(
+    (group) => {
+      const matching = grouped.get(group.title) ?? [];
+      const statusBadge = matching.length
+        ? badge("blocked")
+        : `<span class="badge status-none">Sin bloqueos registrados</span>`;
+      const resolutions = [
+        ...new Set(matching.flatMap((b) => b.resolvable_by)),
+      ].map((kind) => presentResolution(kind).label);
+      const evaluators = [
+        ...new Set(matching.map((b) => b.source_evaluator)),
+      ].map((evaluator) => presentEvaluator(evaluator).label);
+      return `<section class="card"><h3>${escapeHtml(group.title)} ${statusBadge}</h3><p>${escapeHtml(group.description)}</p>${dl(
         [
-          ["Source evaluator", evaluator],
+          ["Por qué importa", text(group.why_it_matters)],
           [
-            "Blocker codes",
-            matching.map((b) => b.blocker_code).join(", ") || "none",
-          ],
-          ["Explanation", matching[0]?.summary ?? "No blocker reported"],
-          [
-            "Execution impact",
+            FIELD_LABELS["execution_impact"]!,
             matching.some((b) => b.blocking_execution)
-              ? "execution blocked"
-              : "no blocking impact",
+              ? "La ejecución permanece bloqueada."
+              : "Sin impacto bloqueante registrado.",
           ],
           [
-            "Responsible resolution",
-            [...new Set(matching.flatMap((b) => b.resolvable_by))].join(", ") ||
-              "none",
+            "Revisión o resolución responsable",
+            resolutions.length ? text(resolutions.join(", ")) : "—",
+          ],
+          [FIELD_LABELS["blocker_count"]!, text(matching.length)],
+          [
+            FIELD_LABELS["source_evaluator"]!,
+            evaluators.length ? text(evaluators.join(", ")) : "—",
           ],
         ],
-      )}</dl></section>`;
+      )}${codeList(
+        "Códigos canónicos de bloqueo",
+        matching.map((b) => b.blocker_code),
+      )}</section>`;
     },
   ).join("")}</div>`;
 }
 
-function blockers(model: OperatorReadModel): string {
-  const options = (values: readonly string[]) =>
-    [...new Set(values)]
-      .map(
-        (v) =>
-          `<option value="${escapeHtml(v)}">${escapeHtml(label(v))}</option>`,
-      )
-      .join("");
-  return `<h2>Blockers</h2><div class="filters" aria-label="Read-only blocker filters">${[
-    ["severity", model.blockers.map((b) => b.severity)],
-    ["category", model.blockers.map((b) => b.category)],
-    ["provider", model.blockers.map((b) => b.provider_id ?? "none")],
-    ["resolution", model.blockers.flatMap((b) => b.resolvable_by)],
-    ["blocking", model.blockers.map((b) => String(b.blocking_execution))],
-  ]
+const filterOptions = (
+  values: readonly string[],
+  labels: Readonly<Record<string, string>>,
+): string =>
+  [...new Set(values)]
     .map(
-      ([name, values]) =>
-        `<label>${label(name)}<select data-filter="${name}"><option value="">All</option>${options(values as string[])}</select></label>`,
+      (value) =>
+        `<option value="${escapeHtml(value)}">${escapeHtml(labels[value] ?? value)}</option>`,
     )
+    .join("");
+
+function blockers(model: OperatorReadModel): string {
+  const total = model.blockers.length;
+  const record = (blocker: OperatorBlocker): string => {
+    const summary = presentBlockerSummary(blocker);
+    const roles = [
+      ...new Set(
+        model.required_human_actions
+          .filter((action) =>
+            action.source_blocker_codes.includes(blocker.blocker_code),
+          )
+          .map((action) => presentOwnerRole(action.owner_role).label),
+      ),
+    ];
+    return `<li data-blocker data-severity="${escapeHtml(blocker.severity)}" data-category="${escapeHtml(blocker.category)}" data-provider="${escapeHtml(blocker.provider_id ?? "none")}" data-resolution="${escapeHtml(blocker.resolvable_by.join(" "))}" data-blocking="${blocker.blocking_execution}"><article class="card"><h3>${escapeHtml(summary.label)}${summary.known ? "" : untranslated()} ${severityBadge(blocker.severity)}</h3>${dl(
+      [
+        [
+          FIELD_LABELS["category"]!,
+          text(BLOCKER_CATEGORY_LABELS[blocker.category] ?? blocker.category) +
+            (BLOCKER_CATEGORY_LABELS[blocker.category] ? "" : untranslated()),
+        ],
+        [
+          FIELD_LABELS["scope"]!,
+          `${code(blocker.provider_id ?? "ninguno")} / ${code(blocker.candidate_id ?? "ninguno")}`,
+        ],
+        [
+          FIELD_LABELS["execution_impact"]!,
+          blocker.blocking_execution
+            ? "Bloquea la ejecución."
+            : "No bloquea la ejecución.",
+        ],
+        [
+          FIELD_LABELS["resolution"]!,
+          text(
+            blocker.resolvable_by
+              .map((kind) => presentResolution(kind).label)
+              .join(", "),
+          ),
+        ],
+        [
+          FIELD_LABELS["owner_role"]!,
+          roles.length ? text(roles.join(", ")) : "—",
+        ],
+        [
+          FIELD_LABELS["source_evaluator"]!,
+          `${text(presentEvaluator(blocker.source_evaluator).label)} (${code(blocker.source_evaluator)})`,
+        ],
+      ],
+    )}${codeList("Detalle técnico canónico", [
+      `blocker_code: ${blocker.blocker_code}`,
+      `source_artifact_id: ${blocker.source_artifact_id ?? "ausente"}`,
+      `source_artifact_hash: ${blocker.source_artifact_hash ?? "ausente"}`,
+    ])}</article></li>`;
+  };
+  return `<h2>Bloqueos</h2><p class="lead">Registros de bloqueo del modelo de lectura, en su orden determinista original. Los filtros son de solo lectura y no alteran el orden.</p><div class="filters" aria-label="Filtros de bloqueos (solo lectura)"><label>Severidad<select data-filter="severity"><option value="">Todas</option>${filterOptions(
+    model.blockers.map((b) => b.severity),
+    SEVERITY_LABELS,
+  )}</select></label><label>Categoría<select data-filter="category"><option value="">Todas</option>${filterOptions(
+    model.blockers.map((b) => b.category),
+    BLOCKER_CATEGORY_LABELS,
+  )}</select></label><label>Proveedor<select data-filter="provider"><option value="">Todos</option>${filterOptions(
+    model.blockers.map((b) => b.provider_id ?? "none"),
+    {},
+  )}</select></label><label>Clase de resolución<select data-filter="resolution"><option value="">Todas</option>${filterOptions(
+    model.blockers.flatMap((b) => b.resolvable_by),
+    RESOLUTION_LABELS,
+  )}</select></label><label>Bloquea la ejecución<select data-filter="blocking"><option value="">Todos</option><option value="true">Sí</option><option value="false">No</option></select></label></div><p class="quiet" id="blocker-count" aria-live="polite">Mostrando ${total} de ${total} bloqueos</p><ol class="records">${model.blockers
+    .map(record)
     .join(
       "",
-    )}</div><div class="table-wrap"><table><thead><tr><th>Code</th><th>Severity</th><th>Category</th><th>Provider</th><th>Resolution</th><th>Execution blocking</th></tr></thead><tbody>${model.blockers.map((b) => `<tr data-severity="${b.severity}" data-category="${escapeHtml(b.category)}" data-provider="${escapeHtml(b.provider_id)}" data-resolution="${escapeHtml(b.resolvable_by.join(" "))}" data-blocking="${b.blocking_execution}"><td>${code(b.blocker_code)}<br>${escapeHtml(b.summary)}</td><td>${badge(b.severity)}</td><td>${escapeHtml(b.category)}</td><td>${escapeHtml(b.provider_id)}</td><td>${escapeHtml(b.resolvable_by.join(", "))}</td><td>${escapeHtml(String(b.blocking_execution))}</td></tr>`).join("")}</tbody></table></div><script>document.querySelectorAll('[data-filter]').forEach(function(s){s.addEventListener('change',function(){var f={};document.querySelectorAll('[data-filter]').forEach(function(x){f[x.dataset.filter]=x.value});document.querySelectorAll('tbody tr').forEach(function(r){r.hidden=Object.keys(f).some(function(k){return f[k]&&!r.dataset[k].includes(f[k])})})})})</script>`;
+    )}</ol><script>(function(){var selects=document.querySelectorAll('[data-filter]');var items=document.querySelectorAll('[data-blocker]');var count=document.getElementById('blocker-count');function apply(){var active={};selects.forEach(function(s){if(s.value)active[s.dataset.filter]=s.value});var visible=0;items.forEach(function(item){var hide=Object.keys(active).some(function(key){return (item.dataset[key]||'').split(' ').indexOf(active[key])===-1});item.hidden=hide;if(!hide)visible+=1});if(count)count.textContent='Mostrando '+visible+' de '+items.length+' bloqueos'}selects.forEach(function(s){s.addEventListener('change',apply)})})()</script>`;
 }
 
 function actions(model: OperatorReadModel): string {
-  return `<h2>Required actions</h2><p class="quiet">Informational only. No assignments, transitions, approvals, comments, or persistence are available.</p>${model.required_human_actions
-    .map(
-      (a) =>
-        `<article class="card"><h3>${escapeHtml(a.title)} ${badge(a.status)}</h3><dl><dt>Action code</dt><dd>${code(a.action_code)}</dd>${rows(
-          [
-            ["Owner role", a.owner_role],
-            ["Prerequisites", a.prerequisite_actions.join(", ") || "none"],
-            ["Source blocker codes", a.source_blocker_codes.join(", ")],
-            ["Required artifact", a.required_artifact],
-            ["Execution impact", a.execution_impact],
-          ],
-        )}</dl></article>`,
-    )
-    .join("")}`;
+  const record = (action: OperatorRequiredAction): string => {
+    const title = presentRequiredActionTitle(action);
+    const impact = presentExecutionImpact(action.execution_impact);
+    const resolutionKind = action.action_code.startsWith("resolve:")
+      ? RESOLUTION_LABELS[action.action_code.slice("resolve:".length)]
+      : undefined;
+    const why = resolutionKind
+      ? `Existen ${action.source_blocker_codes.length} bloqueos gobernados que requieren ${resolutionKind.toLowerCase()}.`
+      : `Existen ${action.source_blocker_codes.length} bloqueos gobernados asociados a esta acción.`;
+    return `<li><article class="card"><h3>${escapeHtml(title.label)}${title.known ? "" : untranslated()} ${badge(action.status)}</h3>${dl(
+      [
+        [
+          FIELD_LABELS["owner_role"]!,
+          `${text(presentOwnerRole(action.owner_role).label)} (${code(action.owner_role)})`,
+        ],
+        ["Por qué es requerida", text(why)],
+        [
+          FIELD_LABELS["related_blockers"]!,
+          text(action.source_blocker_codes.length),
+        ],
+        [
+          FIELD_LABELS["prerequisites"]!,
+          action.prerequisite_actions.length
+            ? text(action.prerequisite_actions.join(", "))
+            : "Ninguno",
+        ],
+        [
+          FIELD_LABELS["required_artifact"]!,
+          action.required_artifact ? code(action.required_artifact) : "—",
+        ],
+        [
+          FIELD_LABELS["execution_impact"]!,
+          `${text(impact.label)}${impact.known ? "" : untranslated()}`,
+        ],
+      ],
+    )}${codeList("Detalle técnico canónico", [
+      `action_code: ${action.action_code}`,
+      ...action.source_blocker_codes.map((code_) => `blocker: ${code_}`),
+    ])}</article></li>`;
+  };
+  return `<h2>Acciones requeridas</h2><p class="lead">Plan operativo informativo, en el orden determinista del modelo de lectura. No hay asignaciones, transiciones, aprobaciones, comentarios ni persistencia.</p><ol class="records">${model.required_human_actions.map(record).join("")}</ol>`;
 }
+
 function execution(model: OperatorReadModel): string {
-  const stages: [[string, string], ...[string, string][]] = [
-    ["Registry", model.models[0]?.enabled ? "available" : "disabled"],
-    ["Resolution", model.routes[0]?.enabled ? "available" : "blocked"],
-    [
-      "Authorization",
-      model.authorization.status === "no_policy_issued"
-        ? "absent"
-        : model.authorization.status,
-    ],
-    [
-      "Exact policy",
-      model.authorization.exact_policy_hash ? "available" : "absent",
-    ],
-    ["Atomic consumption", model.consumption.status],
-    [
-      "Gateway",
-      model.gateway_adapter_state.gateway_invoked
-        ? "completed"
-        : "not attempted",
-    ],
-    ["Adapter", model.gateway_adapter_state.adapter_status],
+  const m = model.models[0];
+  const r = model.routes[0];
+  const stages: readonly {
+    canonical: keyof typeof EXECUTION_STAGE_LABELS;
+    status: string;
+    explanation: string;
+  }[] = [
+    {
+      canonical: "registry",
+      status: m ? (m.enabled ? "enabled" : "disabled") : "absent",
+      explanation: m
+        ? m.enabled
+          ? "El registro del modelo está habilitado."
+          : "El registro del modelo existe pero está deshabilitado."
+        : "No hay modelos registrados.",
+    },
+    {
+      canonical: "resolution",
+      status: r ? (r.enabled ? "available" : "blocked") : "absent",
+      explanation: r
+        ? r.enabled
+          ? "La ruta gobernada está habilitada."
+          : "La ruta gobernada está deshabilitada; no existe una resolución ejecutable."
+        : "No hay rutas registradas.",
+    },
+    {
+      canonical: "authorization",
+      status:
+        model.authorization.status === "no_policy_issued"
+          ? "absent"
+          : model.authorization.status,
+      explanation:
+        model.authorization.status === "no_policy_issued"
+          ? "No se ha emitido ninguna autorización de ejecución."
+          : "Estado canónico de autorización según el modelo de lectura.",
+    },
+    {
+      canonical: "exact_policy",
+      status: model.authorization.exact_policy_hash ? "available" : "absent",
+      explanation: model.authorization.exact_policy_hash
+        ? "Existe una política exacta emitida."
+        : "No existe una política exacta.",
+    },
+    {
+      canonical: "atomic_consumption",
+      status: model.consumption.status,
+      explanation:
+        model.consumption.status === "not_attempted"
+          ? "No se ha intentado ningún consumo de autorización."
+          : model.consumption.status === "consumed"
+            ? "Se registró un consumo atómico."
+            : "Un intento de consumo fue rechazado.",
+    },
+    {
+      canonical: "gateway",
+      status: model.gateway_adapter_state.gateway_invoked
+        ? "complete"
+        : "not_invoked",
+      explanation: model.gateway_adapter_state.gateway_invoked
+        ? "El gateway registró una invocación."
+        : "El gateway no ha sido invocado.",
+    },
+    {
+      canonical: "adapter",
+      status: model.gateway_adapter_state.adapter_status,
+      explanation:
+        model.gateway_adapter_state.adapter_status === "enabled"
+          ? "El adaptador de transporte está habilitado."
+          : "El adaptador de transporte está deshabilitado.",
+    },
   ];
-  return `<h2>Execution boundary</h2><div class="chain" aria-label="Governed execution chain">${stages.map(([n, s]) => `<div class="stage"><strong>${n}</strong><br>${badge(s.replaceAll(" ", "_"))}</div>`).join("")}</div><section class="card"><h3>OpenRouter execution facts</h3><ul><li>No exact policy.</li><li>No authorization issued for execution.</li><li>No consumption attempt.</li><li>No provider call.</li><li>No model output.</li><li>No billed usage.</li></ul></section>`;
+  const facts: string[] = [];
+  if (model.authorization.exact_policy_hash === null)
+    facts.push("No existe una política exacta.");
+  if (
+    model.authorization.status === "no_policy_issued" &&
+    model.authorization.issued_count === 0
+  )
+    facts.push("No se ha emitido ninguna autorización de ejecución.");
+  if (
+    model.consumption.status === "not_attempted" &&
+    model.consumption.attempted_count === 0
+  )
+    facts.push("No se ha intentado ningún consumo de autorización.");
+  if (
+    model.gateway_adapter_state.gateway_invoked === false &&
+    model.gateway_adapter_state.transport_invoked === false
+  ) {
+    facts.push("No se ha realizado ninguna llamada al proveedor.");
+    facts.push("No existe ninguna salida de modelo.");
+  }
+  if (
+    model.consumption.consumed_count === 0 &&
+    model.gateway_adapter_state.transport_invoked === false
+  )
+    facts.push("No existe uso facturado.");
+  return `<h2>Ejecución</h2><p class="lead">Frontera de ejecución gobernada. Cadena canónica: ${code("Registro → Resolución → Autorización → Política exacta → Consumo atómico → Gateway → Adaptador")}.</p><div class="chain" aria-label="Cadena de ejecución gobernada">${stages
+    .map(
+      (stage) =>
+        `<div class="stage"><strong>${escapeHtml(EXECUTION_STAGE_LABELS[stage.canonical])}</strong><br><code>${escapeHtml(stage.canonical).replaceAll("_", "_<wbr>")}</code><br>${badge(stage.status)}<p>${escapeHtml(stage.explanation)}</p></div>`,
+    )
+    .join(
+      "",
+    )}</div><section class="card"><h3>Hechos actuales de OpenRouter</h3><ul>${facts.map((fact) => `<li>${escapeHtml(fact)}</li>`).join("")}</ul><p class="quiet">Distinción de estados: <strong>Ausente</strong> significa que el artefacto no existe; <strong>Bloqueado</strong>, que la gobernanza lo impide; <strong>Deshabilitado</strong>, que está apagado por configuración gobernada; <strong>No intentado</strong>, que nunca se intentó.</p></section>`;
 }
+
 function audit(model: OperatorReadModel): string {
   const v = model.validation_evidence_metadata;
+  const m = model.models[0];
+  const r = model.routes[0];
+  const profile = model.execution_profiles[0];
   const evidencePaths = model.providers.flatMap(
     (provider) =>
       (provider["evidence_paths"] as readonly string[] | undefined) ?? [],
   );
-  return `<h2>Audit references</h2><section class="card"><dl>${rows([
-    ["Contract version", model.contract_version],
-    ["Read-model hash", model.system_summary.read_model_hash],
-    ["Evaluation timestamp", model.system_summary.last_evaluated_at],
-    ["Dossier ID", v.dossier_id],
-    ["Dossier hash", v.dossier_hash],
-    ["Evidence pack ID", v.evidence_pack_id],
-    ["Evidence pack hash", v.evidence_pack_hash],
-    ["Proposal ID", v.proposal_id],
-    ["Proposal hash", v.proposal_hash],
-    ["Runtime config ID", v.runtime_config_id],
-    ["Runtime config hash", v.runtime_config_hash],
+  const pathFor = (fragment: string): string | null =>
+    model.audit_references.find((path) => path.includes(fragment)) ?? null;
+  const artifact = (entry: {
+    name: string;
+    purpose: string;
+    id: string | null;
+    version: string | null;
+    status: string | null;
+    hash: string | null;
+    path: string | null;
+  }): string =>
+    `<section class="card"><h4>${escapeHtml(entry.name)}</h4>${dl([
+      ["Propósito", text(entry.purpose)],
+      [FIELD_LABELS["version"]!, text(entry.version ?? "ausente")],
+      ["Estado", entry.status === null ? badge("absent") : badge(entry.status)],
+      ["Hash (abreviado)", hashSummary(entry.hash)],
+    ])}${codeList("Identidad completa", [
+      `id: ${entry.id ?? "ausente"}`,
+      `hash: ${entry.hash ?? "ausente"}`,
+      `ruta: ${entry.path ?? "ausente"}`,
+    ])}</section>`;
+  return `<h2>Auditoría</h2><p class="lead">Identidades, artefactos gobernados y metadatos aprobados para auditoría. No se exponen documentos fuente completos.</p><section class="card"><h3>Identidad de la evaluación</h3>${dl(
     [
-      "Test totals",
-      v.test_totals
-        ? `${v.test_totals.tests} tests / ${v.test_totals.suites} suites`
-        : "not injected",
+      [FIELD_LABELS["contract_version"]!, text(model.contract_version)],
+      [
+        FIELD_LABELS["read_model_hash"]!,
+        hashSummary(model.system_summary.read_model_hash),
+      ],
+      [
+        FIELD_LABELS["evaluated_at"]!,
+        text(model.system_summary.last_evaluated_at),
+      ],
+      [
+        FIELD_LABELS["test_totals"]!,
+        v.test_totals
+          ? text(
+              `${v.test_totals.tests} pruebas / ${v.test_totals.suites} suites`,
+            )
+          : "No inyectados",
+      ],
     ],
-  ])}</dl></section><section class="card"><h3>Approved metadata paths</h3><ul>${[...model.audit_references, ...evidencePaths, "docs/architecture/ai-lab-operator-console.md", "docs/architecture/ai-roadmap-dependency-map.md"].map((p) => `<li>${code(p)}</li>`).join("")}</ul></section>`;
+  )}${disclosure(
+    "Hash completo del modelo de lectura",
+    model.system_summary.read_model_hash,
+  )}</section><h3>Artefactos gobernados</h3><div class="grid2">${[
+    artifact({
+      name: "Dossier de preparación",
+      purpose: "Evidencia gobernada de preparación del candidato.",
+      id: v.dossier_id,
+      version: v.dossier_version,
+      status: v.dossier_outcome,
+      hash: v.dossier_hash,
+      path: pathFor("readiness-dossier"),
+    }),
+    artifact({
+      name: "Paquete de evidencia externa",
+      purpose: "Colección revisable de fuentes externas del candidato.",
+      id: v.evidence_pack_id,
+      version: v.evidence_pack_version,
+      status: v.evidence_review_status,
+      hash: v.evidence_pack_hash,
+      path: pathFor("external-evidence-pack"),
+    }),
+    artifact({
+      name: "Propuesta de sandbox",
+      purpose: "Propuesta gobernada de habilitación de sandbox.",
+      id: v.proposal_id,
+      version: model.sandbox_proposals[0]?.version ?? null,
+      status: v.proposal_outcome,
+      hash: v.proposal_hash,
+      path: pathFor("sandbox-enablement-proposal"),
+    }),
+    artifact({
+      name: "Configuración de runtime",
+      purpose: "Configuración exacta del runtime sandbox (metadatos).",
+      id: v.runtime_config_id,
+      version: v.runtime_config_version,
+      status: v.preflight_outcome,
+      hash: v.runtime_config_hash,
+      path: pathFor("sandbox-runtime"),
+    }),
+    artifact({
+      name: "Registro del modelo",
+      purpose: "Entrada gobernada del registro de modelos.",
+      id: m?.entry_id ?? null,
+      version: m?.version ?? null,
+      status: m?.lifecycle ?? null,
+      hash: m?.hash ?? null,
+      path: pathFor("model-registry"),
+    }),
+    artifact({
+      name: "Registro de ruta",
+      purpose: "Entrada gobernada del registro de rutas.",
+      id: r?.record_id ?? null,
+      version: r?.version ?? null,
+      status: r?.lifecycle ?? null,
+      hash: r?.hash ?? null,
+      path: pathFor("route-registry"),
+    }),
+    artifact({
+      name: "Perfil de ejecución",
+      purpose: "Perfil de ejecución candidato (deshabilitado).",
+      id: profile?.profile_id ?? null,
+      version: profile?.version ?? null,
+      status: profile?.lifecycle ?? null,
+      hash: profile?.hash ?? null,
+      path: pathFor("execution-profiles"),
+    }),
+  ].join(
+    "",
+  )}</div><section class="card"><h3>Evidencia y documentación</h3>${codeList(
+    "Informes y documentación (rutas del repositorio)",
+    [
+      ...evidencePaths,
+      "docs/architecture/ai-lab-operator-console.md",
+      "docs/architecture/ai-roadmap-dependency-map.md",
+    ],
+  )}</section><section class="card"><h3>Metadatos técnicos</h3>${codeList(
+    "Artefactos gobernados aprobados (rutas del repositorio)",
+    [...model.audit_references],
+  )}</section>`;
 }
 
 export const OPERATOR_CONSOLE_PATHS = new Set([
   ...ROUTES.map(([, path]) => path),
   "/operator/providers/openrouter",
 ]);
+
 export function renderOperatorConsole(
   model: OperatorReadModel,
   pathname: string,
@@ -334,5 +832,5 @@ export function renderOperatorConsole(
 }
 
 export function renderOperatorInvalidState(): string {
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Operator Console — Invalid state</title></head><body><main><h1>Invalid repository state</h1><p>The Operator Read Model failed closed. Review repository validation locally; no execution was attempted.</p></main></body></html>`;
+  return `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Consola del operador — Estado inválido</title></head><body><main><h1>Estado del repositorio inválido</h1><p>El Operator Read Model falló cerrado (fail-closed). Revise la validación del repositorio localmente; no se intentó ninguna ejecución.</p></main></body></html>`;
 }
