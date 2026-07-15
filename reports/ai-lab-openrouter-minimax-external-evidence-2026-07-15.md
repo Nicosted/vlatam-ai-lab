@@ -4,7 +4,9 @@ Status: `unreviewed`; public official and repository evidence only; execution re
 
 ## CEO summary (ES)
 
-OpenRouter/MiniMax M2.7 sigue siendo un candidato rápido para avanzar, pero sólo de forma condicional. Ya sabemos que OpenRouter publica 14 endpoints y permite apuntar al endpoint propio de MiniMax con el identificador `minimax/fp8`, sin fallback y con topes de precio. Para esa ruta, el precio publicado hoy es USD 0,30 por millón de tokens de entrada, USD 1,20 por millón de salida y USD 0,06 por millón de lectura de caché. El precio de USD 0,24/0,96 corresponde a otro proveedor, no a MiniMax.
+OpenRouter/MiniMax M2.7 sigue siendo un candidato rápido para avanzar, pero sólo de forma condicional. Ya sabemos que la captura oficial de OpenRouter contenía 14 endpoints y permite apuntar al endpoint propio de MiniMax con el identificador `minimax/fp8`, sin fallback y con topes de precio. Para esa ruta, el precio publicado en la captura es USD 0,30 por millón de tokens de entrada, USD 1,20 por millón de salida y USD 0,06 por millón de lectura de caché. La fila rotulada `mara` mostraba USD 0,24/0,96, pero no se atribuye con mayor precisión sin un registro oficial exacto capturado por separado.
+
+Las diferencias de pocos centavos no deben decidir el proveedor. El objetivo es una automatización confiable y auditable: un endpoint más caro puede justificarse si mejora exactitud, privacidad, cumplimiento del esquema o ahorro de tiempo del operador. El costo debe permanecer acotado, observable y predecible. El techo de USD 0,05 para la primera llamada sintética es un control técnico de seguridad, no la futura política comercial; esa política deberá valorar el beneficio para el cliente, la complejidad documental, latencia, exactitud y horas humanas ahorradas.
 
 Todavía no sabemos si la cuenta de Nicolás tiene activados los controles correctos de privacidad, ZDR, proveedores y presupuesto. OpenRouter etiqueta `minimax/fp8` como ZDR, pero la política pública de MiniMax no confirma para ese endpoint un plazo cero de retención, una prohibición completa de entrenamiento ni una región exacta de procesamiento. Tampoco hay prueba pública suficiente de que esa ruta cumpla en forma estricta todo el esquema JSON requerido.
 
@@ -56,36 +58,72 @@ No blog, social post, aggregator, unofficial calculator, search snippet, or gene
 
 ## 3. RC-01 — exact bounded pricing
 
-### Current public prices
+### Published pricing layers
 
-OpenRouter returned 14 endpoint records. Prices below are USD per one million tokens and were retrieved at `2026-07-15T18:02:26Z`.
+The exact endpoint feed returned 14 records at `2026-07-15T18:02:26Z`. Prices below are USD per one million tokens. This is a time-sensitive captured inventory, not a stable endpoint-count contract.
 
-| Endpoint slug       |    Input |   Output |  Cache read | Structured metadata note               |
-| ------------------- | -------: | -------: | ----------: | -------------------------------------- |
-| `mara`              |     0.24 |     0.96 | not exposed | status `-2`; not the intended route    |
-| `deepinfra/fp8`     |     0.25 |     1.00 |        0.05 | third party                            |
-| `novita/fp8`        |     0.27 |     1.08 |       0.054 | discounted third party                 |
-| `morph`             |    0.279 |     1.20 | not exposed | third party                            |
-| `minimax/fp8`       | **0.30** | **1.20** |    **0.06** | intended first-party standard endpoint |
-| `minimax/highspeed` |     0.60 |     2.40 |        0.06 | first-party high-speed variant         |
+| Endpoint slug       |    Input |   Output |  Cache read | Structured metadata note                                        |
+| ------------------- | -------: | -------: | ----------: | --------------------------------------------------------------- |
+| `mara`              |     0.24 |     0.96 | not exposed | captured row label; status `-2`; identity attribution qualified |
+| `deepinfra/fp8`     |     0.25 |     1.00 |        0.05 | third party                                                     |
+| `novita/fp8`        |     0.27 |     1.08 |       0.054 | discounted third party                                          |
+| `morph`             |    0.279 |     1.20 | not exposed | third party                                                     |
+| `minimax/fp8`       | **0.30** | **1.20** |    **0.06** | intended first-party standard endpoint                          |
+| `minimax/highspeed` |     0.60 |     2.40 |        0.06 | first-party high-speed variant                                  |
 
-The remaining endpoint offers and exact slugs are preserved in JSON. The aggregate Models API reports 0.30/1.20/0.06, which matches the intended first-party standard endpoint but not every provider. MiniMax direct pricing independently publishes 0.30 input, 1.20 output, 0.06 cache read, and 0.375 cache write. OpenRouter does not expose a cache-write rate on `minimax/fp8`, so the direct cache-write figure is not promoted into an OpenRouter route price.
+The exact endpoint feed, its UTC retrieval timestamp, and its SHA-256 evidence hash are authoritative for endpoint claims in this report. The aggregate Models API reports 0.30/1.20/0.06, which happens to match the intended first-party standard endpoint but does not describe every endpoint and must not substitute for exact endpoint pricing. MiniMax direct pricing independently publishes 0.30 input, 1.20 output, 0.06 cache read, and 0.375 cache write. OpenRouter does not expose a cache-write rate on `minimax/fp8`, so the direct cache-write figure is not promoted into an OpenRouter route price.
 
 No separate reasoning-token or per-request charge is exposed for this endpoint. The model declares mandatory reasoning, so the absence of a separate rate is recorded rather than interpreted. OpenRouter says inference rates pass through without markup; its public FAQ separately states a 5.5% credit-purchase fee with USD 0.80 minimum and separate BYOK mechanics. The applicable account plan was not inspected.
 
-`provider.max_price` is documented as a hard filter: unlike performance preferences, it prevents execution when no qualifying price is available. Non-streaming responses provide usage and an authenticated generation record can provide provider, token, and final cost metadata after execution. No claim is made that a pre-execution estimate is final.
+`provider.max_price` is documented as a hard filter: unlike performance preferences, it prevents execution when no qualifying price is available. Exact pricing drift must still fail closed when it exceeds an approved ceiling. Non-streaming responses provide usage and an authenticated generation record can provide provider, token, and final cost metadata after execution. No claim is made that a pre-execution estimate is final.
+
+### Operational cost bands
+
+These unreviewed bands classify estimated model cost per bounded operation. They are governance bands, not model-ranking scores, and they do not resolve the governed pricing-policy blocker.
+
+| Band                                | Estimated model cost per bounded operation |
+| ----------------------------------- | ------------------------------------------ |
+| `preferred`                         | USD 0.00 through USD 0.05, inclusive       |
+| `acceptable`                        | above USD 0.05 through USD 0.25            |
+| `review_required`                   | above USD 0.25 through USD 1.00            |
+| `commercial_justification_required` | above USD 1.00                             |
+
+The USD 0.05 sandbox hard ceiling applies only to the first controlled synthetic call. It is disabled, is not an authorization, and is distinct from the operational bands and any future commercial policy. Future customer-operation economics must be assessed against customer value, document complexity, latency, accuracy, and human time saved. An endpoint must not be selected merely because it is cheaper: predictable bounded cost is more important than the lowest finite cost.
 
 Closure: `partially_resolved`. Exact current intended-route list rates and a fail-closed ceiling are public, but account commercial posture, governed reviewed pricing, post-run final cost, and mutable endpoint freshness remain open.
 
 ## 4. RC-02 — routing and endpoint identity
 
-The 14 public endpoint slugs were:
+The 14 endpoint slugs in the captured official snapshot were:
 
 `mara`, `deepinfra/fp8`, `novita/fp8`, `morph`, `gmicloud/fp8`, `minimax/fp8`, `atlas-cloud/fp8`, `fireworks`, `together/fp4`, `sambanova/minimax-m2.7-dedicated`, `deepinfra/turbo`, `groq`, `minimax/highspeed`, and `sambanova`.
 
-OpenRouter documents full endpoint-slug targeting. Base slug `minimax` would match both standard and high-speed endpoints, so the future policy must use full slug `minimax/fp8`. `only` supplies the allowlist, `order` makes the single choice explicit, and `allow_fallbacks: false` forbids another provider. A single `model` value must be used; no `models` fallback array or alternative model is permitted.
+Endpoint inventories are mutable snapshots: the count is not a stable contract, and availability or metadata may change. Future activation must refresh the exact endpoint metadata before authorization and bind the retrieved record, UTC timestamp, and evidence hash. Aggregate model pricing may never stand in for that exact endpoint record.
 
-Proposed future request controls, not executable configuration:
+OpenRouter documents full endpoint-slug targeting. Base slug `minimax` would match both standard and high-speed endpoints, so any future policy considering that route must use full slug `minimax/fp8`. `only` supplies the allowlist, `order` makes the single choice explicit, and `allow_fallbacks: false` forbids another provider. A single `model` value must be used; no `models` fallback array or alternative model is permitted.
+
+### Ranked endpoint decision framework
+
+The criteria are ranked in this order; pricing is deliberately last and operates as a bounded-cost gate rather than a cheapest-endpoint score:
+
+1. strict structured-output capability;
+2. privacy and ZDR evidence;
+3. exact endpoint pinning;
+4. disabled fallbacks;
+5. required-parameter enforcement;
+6. observable served identity;
+7. predictable latency;
+8. bounded pricing within an approved band.
+
+| Endpoint       | Current assessment       | Evidence-preserving conclusion                                                                                                                                                                                 |
+| -------------- | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `minimax/fp8`  | `requires_more_evidence` | Exact pinning, fail-closed controls, served-identity observation, and captured exact pricing are available; strict schema capability, upstream endpoint-specific ZDR, and predictable latency remain unproven. |
+| `fireworks`    | `requires_more_evidence` | The exact slug is captured; the higher-ranked strict-output, privacy/ZDR, parameter-enforcement, identity, latency, and exact bounded-operation pricing evidence is insufficient here.                         |
+| `together/fp4` | `requires_more_evidence` | The exact slug is captured; the higher-ranked strict-output, privacy/ZDR, parameter-enforcement, identity, latency, and exact bounded-operation pricing evidence is insufficient here.                         |
+
+Assessment outcomes: `preferred_for_controlled_test` — unassigned; `viable_alternative` — unassigned; `requires_more_evidence` — all three candidates; `not_recommended` — unassigned. The report therefore preserves uncertainty and does not select a final endpoint. Incomplete evidence is not grounds to reject an endpoint solely on price.
+
+Illustrative controls for the previously intended route, not executable configuration and not a final endpoint selection:
 
 ```json
 {
@@ -145,9 +183,9 @@ Closure: `requires_controlled_capability_execution`.
 
 ## 8. Contradictions, limitations, and decision
 
-Material contradictions:
+Material contradictions and qualifications:
 
-- USD 0.24/0.96 is the current cheapest provider offer, not the intended MiniMax first-party route; aggregate and intended-route pricing are USD 0.30/1.20.
+- The captured endpoint-feed row labeled `mara` reported USD 0.24/0.96, while aggregate and intended-route pricing were USD 0.30/1.20. No stronger Mara provider attribution is made without a separately captured exact official endpoint record, and the lower rate is not an endpoint-selection reason.
 - Aggregate model metadata advertises `structured_outputs`, while `minimax/fp8` does not.
 - OpenRouter lists `minimax/fp8` as ZDR, while public MiniMax policy does not expose an endpoint-specific ZDR term.
 
@@ -161,7 +199,7 @@ All five investigated root causes remain blocked in the Operator because this re
 | RC-04      | `requires_authenticated_account_evidence`  |
 | RC-05      | `requires_controlled_capability_execution` |
 
-Candidate decision: `continue_conditionally`. OpenRouter/M2.7 remains worth advancing because endpoint targeting, bounded prices, and ZDR filtering are publicly available. It must not execute until authenticated account evidence and provider/privacy review are complete; strict capability remains a controlled first-call observation risk.
+Candidate decision: `continue_conditionally`. OpenRouter/M2.7 remains worth advancing because endpoint targeting, bounded prices, and ZDR filtering are publicly available. This is not a final endpoint recommendation. It must not execute until authenticated account evidence and provider/privacy review are complete; strict capability remains a controlled first-call observation risk.
 
 ## 9. Account-evidence checklist for Nicolás or the account owner
 
@@ -185,14 +223,14 @@ Re-review deadlines are fail-closed:
 - technical documentation: `2026-08-14T18:02:26Z`;
 - privacy policies and terms: `2026-10-13T18:02:26Z`.
 
-The companion deterministic test validates JSON parsing, unique source IDs and URLs, official publisher/classification allowlists, timestamps and deadline ordering, SHA-256 format, exact candidate/endpoint binding, RC-01–RC-05 coverage, required missing-evidence/checklist fields, contradiction preservation, conservative closure values, non-executable invariants, and absence of credential-shaped values or absolute local paths.
+The companion deterministic test validates JSON parsing, unique source IDs and URLs, official publisher/classification allowlists, timestamps and deadline ordering, SHA-256 format, exact candidate/endpoint binding, RC-01–RC-05 coverage, ordered non-overlapping cost bands, sandbox/commercial separation, ranked endpoint criteria, mutable snapshot bindings, required missing-evidence/checklist fields, contradiction preservation, conservative closure values, non-executable invariants, and absence of credential-shaped values or absolute local paths.
 
 | Validation            | Result                       |
 | --------------------- | ---------------------------- |
-| Evidence report test  | 9/9 passed; 1 suite          |
+| Evidence report test  | 13/13 passed; 1 suite        |
 | Operator tests        | 33/33 passed; 3 suites       |
 | Architecture tests    | 50/50 passed; 7 suites       |
-| Full repository suite | 1001/1001 passed; 146 suites |
+| Full repository suite | 1005/1005 passed; 146 suites |
 | Typecheck             | passed                       |
 | Build                 | passed                       |
 | Scoped ESLint         | passed; zero findings        |

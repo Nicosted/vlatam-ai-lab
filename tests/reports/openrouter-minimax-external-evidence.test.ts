@@ -35,6 +35,43 @@ interface EvidenceInventory {
   retrieval: { started_at: string; completed_at: string };
   source_records: EvidenceSource[];
   freshness_deadlines: Record<string, string>;
+  pricing_findings: {
+    pricing_layers: {
+      exact_published_endpoint_pricing: {
+        retrieved_at: string;
+        content_hash_sha256: string;
+        authoritative_for_route_evaluation: boolean;
+      };
+      model_level_aggregate_pricing: {
+        authoritative_for_exact_endpoint: boolean;
+      };
+      operational_cost_bands: {
+        status: string;
+        purpose: string;
+        bands: Array<{
+          name: string;
+          minimum_usd: string;
+          minimum_inclusive: boolean;
+          maximum_usd: string | null;
+          maximum_inclusive: boolean;
+        }>;
+      };
+      experiment_specific_hard_ceiling: {
+        amount_usd: string;
+        scope: string;
+        status: string;
+        commercial_pricing_policy: boolean;
+      };
+      future_customer_operation_economics: {
+        assessment_factors: string[];
+        lowest_price_optimization_forbidden: boolean;
+        principle: string;
+      };
+    };
+    max_price_fail_closed: boolean;
+    pricing_drift_rule: string;
+    endpoint_selection_rule: string;
+  };
   root_causes_addressed: Record<string, string>;
   root_causes_still_open: string[];
   recommended_candidate_decision: string;
@@ -47,6 +84,30 @@ interface EvidenceInventory {
   };
   zdr_findings: { upstream_contract_publicly_verified: boolean };
   routing_findings: {
+    visible_endpoint_count: number;
+    mutable_endpoint_snapshot: {
+      time_sensitive_snapshot: boolean;
+      endpoint_count_is_stable_contract: boolean;
+      authoritative_evidence: {
+        retrieved_at: string;
+        content_hash_sha256: string;
+      };
+      refresh_exact_endpoint_metadata_before_future_authorization: boolean;
+      aggregate_model_pricing_may_substitute_for_exact_endpoint_pricing: boolean;
+      mara_rate_attribution: string;
+    };
+    endpoint_selection_framework: {
+      criteria_ranked: string[];
+      governance_rule: string;
+      final_endpoint_selected: boolean;
+      candidates: Array<{ endpoint: string; assessment: string }>;
+      assessment_outcomes: {
+        preferred_for_controlled_test: { endpoint: string | null };
+        viable_alternative: { endpoint: string | null };
+        requires_more_evidence: { endpoints: string[] };
+        not_recommended: { endpoint: string | null };
+      };
+    };
     future_request_policy: {
       model: string;
       models_array_forbidden: boolean;
@@ -189,6 +250,147 @@ describe("OpenRouter MiniMax external evidence report", () => {
       inventory.recommended_candidate_decision,
       "continue_conditionally",
     );
+  });
+
+  it("defines ordered, non-overlapping operational cost bands", () => {
+    const framework =
+      inventory.pricing_findings.pricing_layers.operational_cost_bands;
+    assert.equal(
+      framework.status,
+      "unreviewed_governance_framework_not_governed_pricing_policy",
+    );
+    assert.match(
+      framework.purpose,
+      /governance bands, not model-ranking scores/,
+    );
+    assert.deepEqual(
+      framework.bands.map((band) => band.name),
+      [
+        "preferred",
+        "acceptable",
+        "review_required",
+        "commercial_justification_required",
+      ],
+    );
+    for (const [index, band] of framework.bands.entries()) {
+      const minimum = Number(band.minimum_usd);
+      assert.ok(Number.isFinite(minimum));
+      if (band.maximum_usd !== null) {
+        const maximum = Number(band.maximum_usd);
+        assert.ok(Number.isFinite(maximum));
+        assert.ok(minimum < maximum);
+      }
+      if (index > 0) {
+        const previous = framework.bands[index - 1]!;
+        assert.equal(previous.maximum_usd, band.minimum_usd);
+        assert.notEqual(previous.maximum_inclusive, band.minimum_inclusive);
+      }
+    }
+    assert.equal(framework.bands.at(-1)?.maximum_usd, null);
+  });
+
+  it("separates the first-call sandbox ceiling from commercial bands", () => {
+    const pricing = inventory.pricing_findings;
+    const ceiling = pricing.pricing_layers.experiment_specific_hard_ceiling;
+    assert.equal(ceiling.amount_usd, "0.05");
+    assert.equal(ceiling.scope, "first_controlled_synthetic_call_only");
+    assert.equal(ceiling.status, "disabled_and_not_authorized");
+    assert.equal(ceiling.commercial_pricing_policy, false);
+    assert.deepEqual(
+      pricing.pricing_layers.future_customer_operation_economics
+        .assessment_factors,
+      [
+        "customer_value",
+        "document_complexity",
+        "latency",
+        "accuracy",
+        "human_time_saved",
+      ],
+    );
+  });
+
+  it("ranks endpoint criteria without choosing solely by price", () => {
+    const framework = inventory.routing_findings.endpoint_selection_framework;
+    assert.deepEqual(framework.criteria_ranked, [
+      "strict_structured_output_capability",
+      "privacy_and_zdr_evidence",
+      "exact_endpoint_pinning",
+      "disabled_fallbacks",
+      "required_parameter_enforcement",
+      "observable_served_identity",
+      "predictable_latency",
+      "bounded_pricing_within_an_approved_band",
+    ]);
+    assert.equal(framework.final_endpoint_selected, false);
+    assert.match(framework.governance_rule, /not a lowest-price ranking score/);
+    assert.equal(
+      inventory.pricing_findings.pricing_layers
+        .future_customer_operation_economics
+        .lowest_price_optimization_forbidden,
+      true,
+    );
+    assert.match(
+      inventory.pricing_findings.endpoint_selection_rule,
+      /must not be selected merely because it is cheaper/,
+    );
+    assert.deepEqual(
+      framework.candidates.map(({ endpoint, assessment }) => ({
+        endpoint,
+        assessment,
+      })),
+      [
+        { endpoint: "minimax/fp8", assessment: "requires_more_evidence" },
+        { endpoint: "fireworks", assessment: "requires_more_evidence" },
+        { endpoint: "together/fp4", assessment: "requires_more_evidence" },
+      ],
+    );
+    assert.equal(
+      framework.assessment_outcomes.preferred_for_controlled_test.endpoint,
+      null,
+    );
+    assert.equal(
+      framework.assessment_outcomes.viable_alternative.endpoint,
+      null,
+    );
+    assert.deepEqual(
+      framework.assessment_outcomes.requires_more_evidence.endpoints,
+      ["minimax/fp8", "fireworks", "together/fp4"],
+    );
+    assert.equal(framework.assessment_outcomes.not_recommended.endpoint, null);
+  });
+
+  it("binds mutable endpoint claims to the captured snapshot", () => {
+    const snapshot = inventory.routing_findings.mutable_endpoint_snapshot;
+    const exact =
+      inventory.pricing_findings.pricing_layers
+        .exact_published_endpoint_pricing;
+    assert.equal(snapshot.time_sensitive_snapshot, true);
+    assert.equal(snapshot.endpoint_count_is_stable_contract, false);
+    assert.equal(
+      snapshot.refresh_exact_endpoint_metadata_before_future_authorization,
+      true,
+    );
+    assert.equal(
+      snapshot.aggregate_model_pricing_may_substitute_for_exact_endpoint_pricing,
+      false,
+    );
+    assert.equal(
+      inventory.pricing_findings.pricing_layers.model_level_aggregate_pricing
+        .authoritative_for_exact_endpoint,
+      false,
+    );
+    assert.equal(exact.authoritative_for_route_evaluation, true);
+    assert.equal(
+      snapshot.authoritative_evidence.retrieved_at,
+      exact.retrieved_at,
+    );
+    assert.equal(
+      snapshot.authoritative_evidence.content_hash_sha256,
+      exact.content_hash_sha256,
+    );
+    assert.match(snapshot.authoritative_evidence.retrieved_at, ISO_UTC);
+    assert.match(snapshot.authoritative_evidence.content_hash_sha256, SHA256);
+    assert.match(snapshot.mara_rate_attribution, /row labeled mara/);
   });
 
   it("preserves conflicts, missing evidence, and the account checklist", () => {

@@ -276,6 +276,70 @@
   "pricing_findings": {
     "currency": "USD",
     "unit": "per_1_million_tokens",
+    "pricing_layers": {
+      "exact_published_endpoint_pricing": {
+        "source_id": "or-model-endpoints-api",
+        "retrieved_at": "2026-07-15T18:02:26Z",
+        "content_hash_sha256": "c6d99635d58f152a46d5f0deb051b100c3b503bf2db6a6dbdd060afd4b423e08",
+        "authoritative_for_route_evaluation": true
+      },
+      "model_level_aggregate_pricing": {
+        "source_id": "or-models-api",
+        "authoritative_for_exact_endpoint": false,
+        "reason": "Aggregate model pricing does not describe every endpoint and must not substitute for the exact endpoint record."
+      },
+      "operational_cost_bands": {
+        "status": "unreviewed_governance_framework_not_governed_pricing_policy",
+        "purpose": "Classify estimated bounded-operation cost; these bands are governance bands, not model-ranking scores.",
+        "bands": [
+          {
+            "name": "preferred",
+            "minimum_usd": "0.00",
+            "minimum_inclusive": true,
+            "maximum_usd": "0.05",
+            "maximum_inclusive": true
+          },
+          {
+            "name": "acceptable",
+            "minimum_usd": "0.05",
+            "minimum_inclusive": false,
+            "maximum_usd": "0.25",
+            "maximum_inclusive": true
+          },
+          {
+            "name": "review_required",
+            "minimum_usd": "0.25",
+            "minimum_inclusive": false,
+            "maximum_usd": "1.00",
+            "maximum_inclusive": true
+          },
+          {
+            "name": "commercial_justification_required",
+            "minimum_usd": "1.00",
+            "minimum_inclusive": false,
+            "maximum_usd": null,
+            "maximum_inclusive": false
+          }
+        ]
+      },
+      "experiment_specific_hard_ceiling": {
+        "amount_usd": "0.05",
+        "scope": "first_controlled_synthetic_call_only",
+        "status": "disabled_and_not_authorized",
+        "commercial_pricing_policy": false
+      },
+      "future_customer_operation_economics": {
+        "assessment_factors": [
+          "customer_value",
+          "document_complexity",
+          "latency",
+          "accuracy",
+          "human_time_saved"
+        ],
+        "lowest_price_optimization_forbidden": true,
+        "principle": "Predictable bounded cost is more important than the lowest finite cost."
+      }
+    },
     "model_level": { "input": "0.30", "output": "1.20", "cache_read": "0.06" },
     "intended_endpoint": {
       "input": "0.30",
@@ -291,6 +355,8 @@
     "endpoint_prices_public": true,
     "pricing_varies_by_endpoint": true,
     "max_price_fail_closed": true,
+    "pricing_drift_rule": "Exact endpoint pricing drift must fail closed when it exceeds an approved ceiling.",
+    "endpoint_selection_rule": "An endpoint must not be selected merely because it is cheaper.",
     "usage_and_cost": "usage_in_non_streaming_response; authenticated_generation_record_provides_provider_token_and_cost_metadata_after_execution",
     "cost_finality": "post_generation_cost_is_the_auditable_value; no official guarantee found that preflight estimates are final",
     "closure": "partially_resolved"
@@ -317,6 +383,94 @@
     "exact_variant_publicly_targetable": true,
     "actual_served_endpoint_observable_only_after_attempt": true,
     "routing_can_change_after_capture": true,
+    "mutable_endpoint_snapshot": {
+      "time_sensitive_snapshot": true,
+      "endpoint_count_is_stable_contract": false,
+      "authoritative_evidence": {
+        "source_id": "or-model-endpoints-api",
+        "retrieved_at": "2026-07-15T18:02:26Z",
+        "content_hash_sha256": "c6d99635d58f152a46d5f0deb051b100c3b503bf2db6a6dbdd060afd4b423e08"
+      },
+      "refresh_exact_endpoint_metadata_before_future_authorization": true,
+      "aggregate_model_pricing_may_substitute_for_exact_endpoint_pricing": false,
+      "mara_rate_attribution": "The captured official endpoint feed contained a row labeled mara with USD 0.24/M input and USD 0.96/M output; no separately captured official endpoint record supports a stronger provider-identity attribution."
+    },
+    "endpoint_selection_framework": {
+      "criteria_ranked": [
+        "strict_structured_output_capability",
+        "privacy_and_zdr_evidence",
+        "exact_endpoint_pinning",
+        "disabled_fallbacks",
+        "required_parameter_enforcement",
+        "observable_served_identity",
+        "predictable_latency",
+        "bounded_pricing_within_an_approved_band"
+      ],
+      "governance_rule": "Pricing is the eighth criterion and is a bounded-cost gate, not a lowest-price ranking score.",
+      "final_endpoint_selected": false,
+      "candidates": [
+        {
+          "endpoint": "minimax/fp8",
+          "assessment": "requires_more_evidence",
+          "known_strengths": [
+            "exact_endpoint_pinning_available",
+            "fallbacks_can_be_disabled",
+            "required_parameter_enforcement_available",
+            "served_identity_observable_after_attempt",
+            "exact_published_pricing_captured"
+          ],
+          "open_evidence": [
+            "strict_structured_output_capability",
+            "endpoint_specific_upstream_zdr_contract",
+            "predictable_latency"
+          ]
+        },
+        {
+          "endpoint": "fireworks",
+          "assessment": "requires_more_evidence",
+          "known_strengths": ["exact_endpoint_slug_captured"],
+          "open_evidence": [
+            "strict_structured_output_capability",
+            "privacy_and_zdr_evidence",
+            "required_parameter_enforcement",
+            "observable_served_identity",
+            "predictable_latency",
+            "exact_endpoint_pricing_for_bounded_operation"
+          ]
+        },
+        {
+          "endpoint": "together/fp4",
+          "assessment": "requires_more_evidence",
+          "known_strengths": ["exact_endpoint_slug_captured"],
+          "open_evidence": [
+            "strict_structured_output_capability",
+            "privacy_and_zdr_evidence",
+            "required_parameter_enforcement",
+            "observable_served_identity",
+            "predictable_latency",
+            "exact_endpoint_pricing_for_bounded_operation"
+          ]
+        }
+      ],
+      "assessment_outcomes": {
+        "preferred_for_controlled_test": {
+          "endpoint": null,
+          "reason": "No candidate has complete evidence for the higher-ranked strict-output, privacy/ZDR, and latency criteria."
+        },
+        "viable_alternative": {
+          "endpoint": null,
+          "reason": "No alternative is yet supported across the ranked criteria."
+        },
+        "requires_more_evidence": {
+          "endpoints": ["minimax/fp8", "fireworks", "together/fp4"],
+          "reason": "The captured evidence is insufficient for a defensible final endpoint choice."
+        },
+        "not_recommended": {
+          "endpoint": null,
+          "reason": "Current evidence does not justify rejecting a candidate solely on price or incomplete evidence."
+        }
+      }
+    },
     "future_request_policy": {
       "model": "minimax/minimax-m2.7",
       "models_array_forbidden": true,
@@ -401,7 +555,7 @@
     "closure": "requires_controlled_capability_execution"
   },
   "contradictions": [
-    "The cheapest live endpoint was Mara at USD 0.24/M input and USD 0.96/M output, while model-level metadata and the intended first-party endpoint were USD 0.30/M and USD 1.20/M.",
+    "The captured endpoint-feed row labeled mara reported USD 0.24/M input and USD 0.96/M output, while model-level metadata and the intended first-party endpoint were USD 0.30/M and USD 1.20/M; no stronger Mara provider attribution is made without a separately captured exact official endpoint record.",
     "The model aggregate advertises structured_outputs, while the intended minimax/fp8 endpoint advertises response_format but not structured_outputs.",
     "OpenRouter lists minimax/fp8 as ZDR, while MiniMax public policy and terms do not provide an endpoint-specific ZDR commitment or bounded prompt/output retention term."
   ],
