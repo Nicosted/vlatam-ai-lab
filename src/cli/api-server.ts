@@ -30,7 +30,10 @@ try {
 }
 
 const server = createServer((req, res) => {
-  handleClassifierRequest(req, res, { data_root: dataRoot }).catch(() => {
+  handleClassifierRequest(req, res, {
+    data_root: dataRoot,
+    operator_repository_root: process.cwd()
+  }).catch(() => {
     console.error('Unhandled server error');
     if (!res.headersSent) {
       res.writeHead(500, { 'Content-Type': 'application/json' });
@@ -51,6 +54,7 @@ server.listen(port, () => {
   console.log(`[api-server]   port      : ${port}`);
   console.log('[api-server]   endpoint  : GET /api/classifier/:source_id/:artifact_id');
   console.log('[api-server]   research  : GET /research/regulatory/ar-es-ecological-agrochemicals');
+  console.log('[api-server]   operator  : GET /operator');
   console.log('[api-server]   health    : GET /health');
   console.log(`[api-server]   data_root : ${dataRoot}`);
 });
