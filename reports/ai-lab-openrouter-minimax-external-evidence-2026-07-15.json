@@ -1,0 +1,615 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "ai-lab-openrouter-minimax-external-evidence-2026-07-15",
+  "candidate": {
+    "router": "openrouter",
+    "model_id": "minimax/minimax-m2.7",
+    "canonical_model_slug": "minimax/minimax-m2.7-20260318",
+    "intended_endpoint_slug": "minimax/fp8",
+    "intended_endpoint_name": "Minimax | minimax/minimax-m2.7-20260318",
+    "assessment_scope": "public_official_and_repository_evidence_only"
+  },
+  "retrieval": {
+    "started_at": "2026-07-15T17:59:00Z",
+    "completed_at": "2026-07-15T18:02:26Z",
+    "no_authenticated_access": true,
+    "no_inference_call": true
+  },
+  "source_records": [
+    {
+      "source_id": "or-model-endpoints-api",
+      "title": "List all endpoints for MiniMax M2.7",
+      "canonical_url": "https://openrouter.ai/api/v1/models/minimax/minimax-m2.7/endpoints",
+      "publisher": "OpenRouter",
+      "retrieved_at": "2026-07-15T18:02:26Z",
+      "effective_or_published_date": null,
+      "subject": "Exact public endpoint inventory, endpoint slugs, prices, status, and supported parameters",
+      "precise_paraphrase": "The feed returned 14 endpoints. The first-party standard endpoint is minimax/fp8 at USD 0.30/M prompt, USD 1.20/M completion, and USD 0.06/M cache read; it advertises response_format but not structured_outputs.",
+      "evidence_class": "official_public_machine_readable_metadata",
+      "applicability": "exact_candidate_and_endpoint",
+      "freshness": "current_at_retrieval_mutable",
+      "conflict_state": "conflicts_with_aggregate_headline_and_prior_cheapest-price_lead",
+      "reviewer_status": "unreviewed_candidate_evidence",
+      "content_hash_sha256": "c6d99635d58f152a46d5f0deb051b100c3b503bf2db6a6dbdd060afd4b423e08"
+    },
+    {
+      "source_id": "or-models-api",
+      "title": "OpenRouter Models API",
+      "canonical_url": "https://openrouter.ai/api/v1/models",
+      "publisher": "OpenRouter",
+      "retrieved_at": "2026-07-15T18:02:26Z",
+      "effective_or_published_date": null,
+      "subject": "Model-level identity, aggregate pricing, and supported parameters",
+      "precise_paraphrase": "The M2.7 record identifies canonical slug minimax/minimax-m2.7-20260318, aggregate USD 0.30/M prompt, USD 1.20/M completion, USD 0.06/M cache read, mandatory reasoning, response_format, and structured_outputs.",
+      "evidence_class": "official_public_machine_readable_metadata",
+      "applicability": "exact_model_but_not_exact_endpoint",
+      "freshness": "current_at_retrieval_mutable",
+      "conflict_state": "aggregate_values_do_not_describe_all_endpoints",
+      "reviewer_status": "unreviewed_candidate_evidence",
+      "content_hash_sha256": "2c0dd252ba312e1a85238e1a7a070c20d403646b7580771bcaaae7f9e0b2f5ed"
+    },
+    {
+      "source_id": "or-zdr-endpoints-api",
+      "title": "OpenRouter Zero Retention Endpoints API",
+      "canonical_url": "https://openrouter.ai/api/v1/endpoints/zdr",
+      "publisher": "OpenRouter",
+      "retrieved_at": "2026-07-15T18:02:26Z",
+      "effective_or_published_date": null,
+      "subject": "Current OpenRouter-asserted ZDR endpoint eligibility",
+      "precise_paraphrase": "The feed contained 13 M2.7 endpoints, including minimax/fp8 and minimax/highspeed; this is OpenRouter's endpoint classification, not authenticated account evidence or a MiniMax contractual commitment.",
+      "evidence_class": "official_public_machine_readable_metadata",
+      "applicability": "exact_candidate_router_asserted",
+      "freshness": "current_at_retrieval_mutable",
+      "conflict_state": "no_direct_conflict_but_upstream_contract_missing",
+      "reviewer_status": "unreviewed_candidate_evidence",
+      "content_hash_sha256": "c1aabf5f9cefc04a532bee6b08e88f573b5e14d5718e7ee0ce05423248246423"
+    },
+    {
+      "source_id": "or-provider-routing",
+      "title": "Provider Routing",
+      "canonical_url": "https://openrouter.ai/docs/guides/routing/provider-selection",
+      "publisher": "OpenRouter",
+      "retrieved_at": "2026-07-15T18:02:26Z",
+      "effective_or_published_date": null,
+      "subject": "Default routing, endpoint targeting, fallback, parameter, privacy, ZDR, and price controls",
+      "precise_paraphrase": "Default routing balances across providers and fallbacks default true. Full endpoint slugs can target variants; only/order, allow_fallbacks false, require_parameters true, data_collection deny, zdr true, and max_price are documented filters. max_price prevents execution when no price-qualified endpoint is available.",
+      "evidence_class": "official_public_documentation",
+      "applicability": "router_control_contract_applicable_to_candidate",
+      "freshness": "current_at_retrieval_mutable",
+      "conflict_state": "none",
+      "reviewer_status": "unreviewed_candidate_evidence",
+      "content_hash_sha256": "d0499ffa86ae51665b3a9cf27b4866db8a8455401a325b712bf54c8cd259841f"
+    },
+    {
+      "source_id": "or-structured-outputs",
+      "title": "Structured Outputs",
+      "canonical_url": "https://openrouter.ai/docs/guides/features/structured-outputs",
+      "publisher": "OpenRouter",
+      "retrieved_at": "2026-07-15T18:02:26Z",
+      "effective_or_published_date": null,
+      "subject": "General json_schema strict-output contract and endpoint compatibility caveat",
+      "precise_paraphrase": "Compatible routes accept response_format.type json_schema with strict true and schemas using additionalProperties false. The documentation directs callers to inspect model parameters and set require_parameters true; it does not prove the exact minimax/fp8 schema feature set.",
+      "evidence_class": "official_public_documentation",
+      "applicability": "general_router_feature_not_exact_capability_proof",
+      "freshness": "current_at_retrieval",
+      "conflict_state": "exact_endpoint_metadata_omits_structured_outputs",
+      "reviewer_status": "unreviewed_candidate_evidence",
+      "content_hash_sha256": "8c9dd3ff234a7bb790c425c7f86ab76b2c9a361b6bba7df960891a9d01c07b0d"
+    },
+    {
+      "source_id": "or-zdr-doc",
+      "title": "Zero Data Retention",
+      "canonical_url": "https://openrouter.ai/docs/guides/features/zdr",
+      "publisher": "OpenRouter",
+      "retrieved_at": "2026-07-15T18:02:26Z",
+      "effective_or_published_date": null,
+      "subject": "OpenRouter ZDR meaning and enforcement layers",
+      "precise_paraphrase": "OpenRouter defines ZDR as no provider storage for any period, supports account, guardrail, and per-request enforcement, and says provider.zdr true routes only to endpoints it classifies as ZDR. In-memory prompt caches are not considered retention by OpenRouter.",
+      "evidence_class": "official_public_documentation",
+      "applicability": "router_policy_and_router_asserted_endpoint_tags",
+      "freshness": "current_at_retrieval_mutable",
+      "conflict_state": "definition_does_not_supply_upstream_contract_or_account_state",
+      "reviewer_status": "unreviewed_candidate_evidence",
+      "content_hash_sha256": "d0b571639c00e7921facd603204df1f0647c8255d546f01c602c3f1486860918"
+    },
+    {
+      "source_id": "or-data-collection",
+      "title": "Data Collection",
+      "canonical_url": "https://openrouter.ai/docs/guides/privacy/data-collection",
+      "publisher": "OpenRouter",
+      "retrieved_at": "2026-07-15T18:02:26Z",
+      "effective_or_published_date": null,
+      "subject": "OpenRouter content and metadata handling defaults",
+      "precise_paraphrase": "OpenRouter says prompt/response storage and product-improvement use are opt-in and off by default. It stores request metadata without content and describes small anonymous prompt categorization using a ZDR model.",
+      "evidence_class": "official_public_documentation",
+      "applicability": "router_level_public_default_not_account_attestation",
+      "freshness": "current_at_retrieval_mutable",
+      "conflict_state": "account_specific_toggles_unverified",
+      "reviewer_status": "unreviewed_candidate_evidence",
+      "content_hash_sha256": "af6354747b1e4dc4c1fa84f34de8205d7e2578764341aa06ccd9c4998a4dde17"
+    },
+    {
+      "source_id": "or-provider-logging",
+      "title": "Provider Logging",
+      "canonical_url": "https://openrouter.ai/docs/guides/privacy/provider-logging/",
+      "publisher": "OpenRouter",
+      "retrieved_at": "2026-07-15T18:02:26Z",
+      "effective_or_published_date": null,
+      "subject": "Upstream data-policy filtering and limits of router tags",
+      "precise_paraphrase": "Provider data handling differs by endpoint. OpenRouter exposes training/data-policy filters and account settings, but its classifications reflect provider terms and do not replace upstream primary evidence.",
+      "evidence_class": "official_public_documentation",
+      "applicability": "router_level_policy_tags",
+      "freshness": "current_at_retrieval_mutable",
+      "conflict_state": "upstream_primary_evidence_incomplete",
+      "reviewer_status": "unreviewed_candidate_evidence",
+      "content_hash_sha256": "62eb97f0642db9a2d69e7ef3a6dad80e9c72a4592ef61171a7627194ef48d782"
+    },
+    {
+      "source_id": "or-api-overview",
+      "title": "OpenRouter API Reference Overview",
+      "canonical_url": "https://openrouter.ai/docs/api/reference/overview",
+      "publisher": "OpenRouter",
+      "retrieved_at": "2026-07-15T18:02:26Z",
+      "effective_or_published_date": null,
+      "subject": "Request transformation, response usage, cost, and generation metadata",
+      "precise_paraphrase": "OpenRouter normalizes and may transform parameters for upstream APIs. Non-streaming responses expose usage; generation records expose token counts, provider, and cost after completion. Public docs do not promise that pre-execution cost is final.",
+      "evidence_class": "official_public_documentation",
+      "applicability": "router_api_contract",
+      "freshness": "current_at_retrieval",
+      "conflict_state": "none",
+      "reviewer_status": "unreviewed_candidate_evidence",
+      "content_hash_sha256": "9e875311863ee3fff6b07768ee7b5dced108b7b7674f9f583ab8fc53df9bd3ae"
+    },
+    {
+      "source_id": "or-router-metadata",
+      "title": "Router Metadata",
+      "canonical_url": "https://openrouter.ai/docs/guides/features/router-metadata",
+      "publisher": "OpenRouter",
+      "retrieved_at": "2026-07-15T18:02:26Z",
+      "effective_or_published_date": null,
+      "subject": "Observable routing identity and fail-closed filtering",
+      "precise_paraphrase": "Opt-in metadata can show available and selected providers and per-attempt routing. A zero-attempt no-provider response can result when only or max_price filters remove all endpoints; some early and internal failures omit metadata, and cache hits strip it.",
+      "evidence_class": "official_public_documentation",
+      "applicability": "future_observation_contract_only",
+      "freshness": "current_at_retrieval",
+      "conflict_state": "identity_not_observed_without_execution",
+      "reviewer_status": "unreviewed_candidate_evidence",
+      "content_hash_sha256": "508f4083f6de8027428288a4315c0ed9a841d318e01de6dd1d32366be3a7ced4"
+    },
+    {
+      "source_id": "or-faq-fees",
+      "title": "OpenRouter Frequently Asked Questions",
+      "canonical_url": "https://openrouter.ai/docs/faq",
+      "publisher": "OpenRouter",
+      "retrieved_at": "2026-07-15T18:02:26Z",
+      "effective_or_published_date": null,
+      "subject": "Inference pricing pass-through, credit-purchase fees, and BYOK fees",
+      "precise_paraphrase": "OpenRouter says inference prices are passed through without markup. Credit purchases have a 5.5 percent fee with USD 0.80 minimum; BYOK has a separate threshold/fee. These are commercial/account mechanics, not an endpoint request fee.",
+      "evidence_class": "official_public_documentation",
+      "applicability": "public_commercial_terms_account_plan_may_vary",
+      "freshness": "current_at_retrieval_mutable",
+      "conflict_state": "pricing_page_plan_presentation_requires_account_confirmation",
+      "reviewer_status": "unreviewed_candidate_evidence",
+      "content_hash_sha256": "d30115868e9c8f07aa399d091d8acbbcaf30292c1d40de9434940371c271484e"
+    },
+    {
+      "source_id": "or-privacy-policy",
+      "title": "OpenRouter Privacy Policy",
+      "canonical_url": "https://openrouter.ai/privacy",
+      "publisher": "OpenRouter",
+      "retrieved_at": "2026-07-15T18:02:26Z",
+      "effective_or_published_date": "2026-07-06",
+      "subject": "Router personal-data retention, third parties, and deletion",
+      "precise_paraphrase": "The policy applies to OpenRouter, not upstream services; it uses necessity/legal-obligation retention rather than a fixed metadata period and provides deletion-request rights subject to exceptions.",
+      "evidence_class": "official_public_policy",
+      "applicability": "router_level_not_upstream",
+      "freshness": "effective_nine_days_before_retrieval",
+      "conflict_state": "no_fixed_metadata_retention_period",
+      "reviewer_status": "unreviewed_candidate_evidence",
+      "content_hash_sha256": "6d879e876c7a3bb99f5dcd98199536751549d5468d083e78d9cedfa7b2dbf657"
+    },
+    {
+      "source_id": "minimax-paygo-pricing",
+      "title": "MiniMax Pay as You Go Pricing",
+      "canonical_url": "https://platform.minimax.io/docs/guides/pricing-paygo",
+      "publisher": "MiniMax",
+      "retrieved_at": "2026-07-15T18:02:26Z",
+      "effective_or_published_date": null,
+      "subject": "First-party M2.7 list pricing",
+      "precise_paraphrase": "MiniMax publishes USD 0.30/M input, USD 1.20/M output, USD 0.06/M prompt-cache read, and USD 0.375/M prompt-cache write for MiniMax-M2.7; the highspeed output rate is USD 2.40/M.",
+      "evidence_class": "official_public_documentation",
+      "applicability": "first_party_direct_service_corrobates_openrouter_first_party_endpoint_except_cache_write_exposure",
+      "freshness": "current_at_retrieval_mutable",
+      "conflict_state": "openrouter_endpoint_feed_does_not_publish_cache_write_rate",
+      "reviewer_status": "unreviewed_candidate_evidence",
+      "content_hash_sha256": "6fb04752a61ad7eb01c976fd77e94c19bdca5adc42c1f9eecbf35724facb31f3"
+    },
+    {
+      "source_id": "minimax-api-privacy",
+      "title": "MiniMax API Privacy Policy",
+      "canonical_url": "https://platform.minimax.io/protocol/privacy-policy",
+      "publisher": "MiniMax",
+      "retrieved_at": "2026-07-15T18:02:26Z",
+      "effective_or_published_date": "2026-03-30",
+      "subject": "MiniMax API personal-data purposes, vendors, transfers, security, and retention",
+      "precise_paraphrase": "The policy permits service provision, improvement, security, and legal processing; describes vendors and cross-border processing, including US storage in the general policy; and uses necessity/legal criteria for retention. It does not publish a fixed API prompt/output retention period, exact M2.7 inference geography, or an unqualified no-training commitment.",
+      "evidence_class": "official_public_policy",
+      "applicability": "first_party_minimax_api_policy_not_explicit_openrouter_endpoint_addendum",
+      "freshness": "effective_at_retrieval",
+      "conflict_state": "insufficient_to_substantiate_openrouter_zdr_tag_contractually",
+      "reviewer_status": "unreviewed_candidate_evidence",
+      "content_hash_sha256": "986cd65f6be7ead6dbbf0ca1474ef8ccb6a03d41a66e834cc02c466712b473ff"
+    },
+    {
+      "source_id": "minimax-platform-terms",
+      "title": "MiniMax Terms of Service",
+      "canonical_url": "https://platform.minimax.io/protocol/terms-of-service",
+      "publisher": "MiniMax",
+      "retrieved_at": "2026-07-15T18:02:26Z",
+      "effective_or_published_date": "2026-03-30",
+      "subject": "Client-data processing and applicable service rules",
+      "precise_paraphrase": "MiniMax may access and process client data to provide the service, perform maintenance/support, and comply with law. Current platform service rules control pricing, privacy, and security; no endpoint-specific OpenRouter ZDR addendum is public here.",
+      "evidence_class": "official_public_terms",
+      "applicability": "first_party_platform_general_terms",
+      "freshness": "effective_at_retrieval",
+      "conflict_state": "missing_endpoint_specific_commitment",
+      "reviewer_status": "unreviewed_candidate_evidence",
+      "content_hash_sha256": "b3612fdc8dac00c8c359fc1ce7f607f1b586bf82d4e7567145061b366998edff"
+    },
+    {
+      "source_id": "minimax-m27-model-page",
+      "title": "MiniMax M2.7",
+      "canonical_url": "https://www.minimax.io/models/text/m27",
+      "publisher": "MiniMax",
+      "retrieved_at": "2026-07-15T18:02:26Z",
+      "effective_or_published_date": null,
+      "subject": "Official model and first-party endpoint identity",
+      "precise_paraphrase": "MiniMax documents standard M2.7 and M2.7-highspeed variants and the first-party API model identifier MiniMax-M2.7. It does not document OpenRouter route identity or strict JSON Schema guarantees.",
+      "evidence_class": "official_public_model_documentation",
+      "applicability": "model_identity_not_router_binding",
+      "freshness": "current_at_retrieval",
+      "conflict_state": "none",
+      "reviewer_status": "unreviewed_candidate_evidence",
+      "content_hash_sha256": "58a1e0c9e594f404fa2765b2c41298e829a4d647e8c6dd0dc9162dd518ccd6ea"
+    }
+  ],
+  "pricing_findings": {
+    "currency": "USD",
+    "unit": "per_1_million_tokens",
+    "pricing_layers": {
+      "exact_published_endpoint_pricing": {
+        "source_id": "or-model-endpoints-api",
+        "retrieved_at": "2026-07-15T18:02:26Z",
+        "content_hash_sha256": "c6d99635d58f152a46d5f0deb051b100c3b503bf2db6a6dbdd060afd4b423e08",
+        "authoritative_for_route_evaluation": true
+      },
+      "model_level_aggregate_pricing": {
+        "source_id": "or-models-api",
+        "authoritative_for_exact_endpoint": false,
+        "reason": "Aggregate model pricing does not describe every endpoint and must not substitute for the exact endpoint record."
+      },
+      "operational_cost_bands": {
+        "status": "unreviewed_governance_framework_not_governed_pricing_policy",
+        "purpose": "Classify estimated bounded-operation cost; these bands are governance bands, not model-ranking scores.",
+        "bands": [
+          {
+            "name": "preferred",
+            "minimum_usd": "0.00",
+            "minimum_inclusive": true,
+            "maximum_usd": "0.05",
+            "maximum_inclusive": true
+          },
+          {
+            "name": "acceptable",
+            "minimum_usd": "0.05",
+            "minimum_inclusive": false,
+            "maximum_usd": "0.25",
+            "maximum_inclusive": true
+          },
+          {
+            "name": "review_required",
+            "minimum_usd": "0.25",
+            "minimum_inclusive": false,
+            "maximum_usd": "1.00",
+            "maximum_inclusive": true
+          },
+          {
+            "name": "commercial_justification_required",
+            "minimum_usd": "1.00",
+            "minimum_inclusive": false,
+            "maximum_usd": null,
+            "maximum_inclusive": false
+          }
+        ]
+      },
+      "experiment_specific_hard_ceiling": {
+        "amount_usd": "0.05",
+        "scope": "first_controlled_synthetic_call_only",
+        "status": "disabled_and_not_authorized",
+        "commercial_pricing_policy": false
+      },
+      "future_customer_operation_economics": {
+        "assessment_factors": [
+          "customer_value",
+          "document_complexity",
+          "latency",
+          "accuracy",
+          "human_time_saved"
+        ],
+        "lowest_price_optimization_forbidden": true,
+        "principle": "Predictable bounded cost is more important than the lowest finite cost."
+      }
+    },
+    "model_level": { "input": "0.30", "output": "1.20", "cache_read": "0.06" },
+    "intended_endpoint": {
+      "input": "0.30",
+      "output": "1.20",
+      "cache_read": "0.06",
+      "cache_write": null
+    },
+    "minimax_direct_cache_write": "0.375",
+    "reasoning_token_price": null,
+    "reasoning_billing_conclusion": "mandatory_reasoning_is_advertised_but_no_separate_endpoint_rate_is_published",
+    "request_fee": null,
+    "platform_fee": "credit_purchase_fee_5.5_percent_with_0.80_usd_minimum_not_per_inference; account_plan_requires_confirmation",
+    "endpoint_prices_public": true,
+    "pricing_varies_by_endpoint": true,
+    "max_price_fail_closed": true,
+    "pricing_drift_rule": "Exact endpoint pricing drift must fail closed when it exceeds an approved ceiling.",
+    "endpoint_selection_rule": "An endpoint must not be selected merely because it is cheaper.",
+    "usage_and_cost": "usage_in_non_streaming_response; authenticated_generation_record_provides_provider_token_and_cost_metadata_after_execution",
+    "cost_finality": "post_generation_cost_is_the_auditable_value; no official guarantee found that preflight estimates are final",
+    "closure": "partially_resolved"
+  },
+  "routing_findings": {
+    "visible_endpoint_count": 14,
+    "visible_endpoint_slugs": [
+      "mara",
+      "deepinfra/fp8",
+      "novita/fp8",
+      "morph",
+      "gmicloud/fp8",
+      "minimax/fp8",
+      "atlas-cloud/fp8",
+      "fireworks",
+      "together/fp4",
+      "sambanova/minimax-m2.7-dedicated",
+      "deepinfra/turbo",
+      "groq",
+      "minimax/highspeed",
+      "sambanova"
+    ],
+    "first_party_available": true,
+    "exact_variant_publicly_targetable": true,
+    "actual_served_endpoint_observable_only_after_attempt": true,
+    "routing_can_change_after_capture": true,
+    "mutable_endpoint_snapshot": {
+      "time_sensitive_snapshot": true,
+      "endpoint_count_is_stable_contract": false,
+      "authoritative_evidence": {
+        "source_id": "or-model-endpoints-api",
+        "retrieved_at": "2026-07-15T18:02:26Z",
+        "content_hash_sha256": "c6d99635d58f152a46d5f0deb051b100c3b503bf2db6a6dbdd060afd4b423e08"
+      },
+      "refresh_exact_endpoint_metadata_before_future_authorization": true,
+      "aggregate_model_pricing_may_substitute_for_exact_endpoint_pricing": false,
+      "mara_rate_attribution": "The captured official endpoint feed contained a row labeled mara with USD 0.24/M input and USD 0.96/M output; no separately captured official endpoint record supports a stronger provider-identity attribution."
+    },
+    "endpoint_selection_framework": {
+      "criteria_ranked": [
+        "strict_structured_output_capability",
+        "privacy_and_zdr_evidence",
+        "exact_endpoint_pinning",
+        "disabled_fallbacks",
+        "required_parameter_enforcement",
+        "observable_served_identity",
+        "predictable_latency",
+        "bounded_pricing_within_an_approved_band"
+      ],
+      "governance_rule": "Pricing is the eighth criterion and is a bounded-cost gate, not a lowest-price ranking score.",
+      "final_endpoint_selected": false,
+      "candidates": [
+        {
+          "endpoint": "minimax/fp8",
+          "assessment": "requires_more_evidence",
+          "known_strengths": [
+            "exact_endpoint_pinning_available",
+            "fallbacks_can_be_disabled",
+            "required_parameter_enforcement_available",
+            "served_identity_observable_after_attempt",
+            "exact_published_pricing_captured"
+          ],
+          "open_evidence": [
+            "strict_structured_output_capability",
+            "endpoint_specific_upstream_zdr_contract",
+            "predictable_latency"
+          ]
+        },
+        {
+          "endpoint": "fireworks",
+          "assessment": "requires_more_evidence",
+          "known_strengths": ["exact_endpoint_slug_captured"],
+          "open_evidence": [
+            "strict_structured_output_capability",
+            "privacy_and_zdr_evidence",
+            "required_parameter_enforcement",
+            "observable_served_identity",
+            "predictable_latency",
+            "exact_endpoint_pricing_for_bounded_operation"
+          ]
+        },
+        {
+          "endpoint": "together/fp4",
+          "assessment": "requires_more_evidence",
+          "known_strengths": ["exact_endpoint_slug_captured"],
+          "open_evidence": [
+            "strict_structured_output_capability",
+            "privacy_and_zdr_evidence",
+            "required_parameter_enforcement",
+            "observable_served_identity",
+            "predictable_latency",
+            "exact_endpoint_pricing_for_bounded_operation"
+          ]
+        }
+      ],
+      "assessment_outcomes": {
+        "preferred_for_controlled_test": {
+          "endpoint": null,
+          "reason": "No candidate has complete evidence for the higher-ranked strict-output, privacy/ZDR, and latency criteria."
+        },
+        "viable_alternative": {
+          "endpoint": null,
+          "reason": "No alternative is yet supported across the ranked criteria."
+        },
+        "requires_more_evidence": {
+          "endpoints": ["minimax/fp8", "fireworks", "together/fp4"],
+          "reason": "The captured evidence is insufficient for a defensible final endpoint choice."
+        },
+        "not_recommended": {
+          "endpoint": null,
+          "reason": "Current evidence does not justify rejecting a candidate solely on price or incomplete evidence."
+        }
+      }
+    },
+    "future_request_policy": {
+      "model": "minimax/minimax-m2.7",
+      "models_array_forbidden": true,
+      "provider": {
+        "only": ["minimax/fp8"],
+        "order": ["minimax/fp8"],
+        "allow_fallbacks": false,
+        "require_parameters": true,
+        "data_collection": "deny",
+        "zdr": true,
+        "max_price": { "prompt": 0.3, "completion": 1.2 }
+      },
+      "response_format": {
+        "type": "json_schema",
+        "json_schema": { "strict": true, "additionalProperties": false }
+      },
+      "plugins": [],
+      "router_metadata_header": "X-OpenRouter-Metadata: enabled",
+      "expected_unavailable_behavior": "no_provider_error_without_alternative_endpoint_or_model"
+    },
+    "closure": "partially_resolved"
+  },
+  "privacy_findings": {
+    "openrouter": {
+      "content_logging_public_default": "off",
+      "product_improvement_use_public_default": "off",
+      "metadata_collection": "retained_without_prompt_or_response_content",
+      "anonymous_categorization": "small_sample_described_using_zdr_model",
+      "fixed_metadata_retention": null,
+      "geography": "EU_in_region_is_enterprise_and_account_specific; otherwise_unresolved",
+      "classification": "verified_official_public"
+    },
+    "minimax_first_party": {
+      "transient_processing": "service_delivery_maintenance_support_and_legal_processing_permitted",
+      "prompt_completion_retention_period": null,
+      "human_access": "not_bounded_for_exact_endpoint_in_public_sources",
+      "abuse_monitoring": "security_and_compliance_purposes_described_generally",
+      "training_or_model_improvement": "no_unqualified_no_training_commitment_found_for_all_api_inputs_and_outputs",
+      "subprocessors": "categories_described_but_exact_endpoint_chain_not_published",
+      "geography": "US_storage_and_cross_border_processing_described_generally; exact_inference_region_unresolved",
+      "deletion": "rights_and_necessity_based_retention_subject_to_legal_exceptions",
+      "classification": "missing"
+    },
+    "closure": "requires_provider_confirmation"
+  },
+  "zdr_findings": {
+    "openrouter_definition": "provider_will_not_store_request_data_for_any_period; OpenRouter excludes in_memory_prompt_cache_from_retention",
+    "per_request_available": true,
+    "restricts_to_router_classified_zdr_endpoints": true,
+    "candidate_zdr_endpoint_count": 13,
+    "intended_endpoint_listed": true,
+    "upstream_contract_publicly_verified": false,
+    "metadata_may_remain": true,
+    "geography_resolved_by_zdr": false,
+    "classification": "provider_asserted_unverified",
+    "closure": "requires_authenticated_account_evidence"
+  },
+  "account_posture_findings": {
+    "status": "unverified",
+    "reason": "No authenticated account export or screenshot was present or accessed.",
+    "privacy_settings": "unknown",
+    "account_data_collection": "unknown",
+    "account_zdr": "unknown",
+    "guardrails": "unknown",
+    "provider_allow_or_ignore": "unknown",
+    "workspace_budget": "unknown",
+    "closure": "requires_authenticated_account_evidence"
+  },
+  "structured_output_findings": {
+    "model_advertises_response_format": true,
+    "model_advertises_structured_outputs": true,
+    "intended_endpoint_advertises_response_format": true,
+    "intended_endpoint_advertises_structured_outputs": false,
+    "json_schema_strict_exact_endpoint_proven": false,
+    "additional_properties_false_exact_endpoint_proven": false,
+    "all_required_schema_features_proven": false,
+    "openrouter_transformations_possible": true,
+    "response_healing_first_call_allowed": false,
+    "require_parameters_expected_behavior": "filters endpoints lacking requested parameter but does not prove semantic schema conformance",
+    "deterministic_failure_proven_without_call": false,
+    "classification": "requires_controlled_capability_execution",
+    "closure": "requires_controlled_capability_execution"
+  },
+  "contradictions": [
+    "The captured endpoint-feed row labeled mara reported USD 0.24/M input and USD 0.96/M output, while model-level metadata and the intended first-party endpoint were USD 0.30/M and USD 1.20/M; no stronger Mara provider attribution is made without a separately captured exact official endpoint record.",
+    "The model aggregate advertises structured_outputs, while the intended minimax/fp8 endpoint advertises response_format but not structured_outputs.",
+    "OpenRouter lists minimax/fp8 as ZDR, while MiniMax public policy and terms do not provide an endpoint-specific ZDR commitment or bounded prompt/output retention term."
+  ],
+  "missing_evidence": [
+    "Authenticated OpenRouter workspace privacy, ZDR, guardrail, provider, and budget posture.",
+    "MiniMax endpoint-specific contractual retention, training-use, human-access, subprocessor, and processing-region terms for OpenRouter minimax/fp8.",
+    "A public guarantee that minimax/fp8 supports strict json_schema and every schema keyword required by the normative-claims contract.",
+    "Observed selected endpoint, raw strict-schema behavior, token accounting, and final cost from the separately authorized controlled synthetic call.",
+    "A reviewed governed pricing policy and reviewed ZDR evidence binding."
+  ],
+  "freshness_deadlines": {
+    "endpoint_pricing_routing_and_zdr": "2026-07-22T18:02:26Z",
+    "technical_documentation": "2026-08-14T18:02:26Z",
+    "privacy_and_terms": "2026-10-13T18:02:26Z"
+  },
+  "root_causes_addressed": {
+    "RC-01": "partially_resolved",
+    "RC-02": "partially_resolved",
+    "RC-03": "requires_provider_confirmation",
+    "RC-04": "requires_authenticated_account_evidence",
+    "RC-05": "requires_controlled_capability_execution"
+  },
+  "root_causes_still_open": ["RC-01", "RC-02", "RC-03", "RC-04", "RC-05"],
+  "account_evidence_checklist": [
+    "Capture the current Privacy settings page for the applicable organization/workspace.",
+    "Show account-wide paid-model data collection/training setting and non-frontier ZDR setting.",
+    "Show applicable guardrail ZDR scopes and provider allowlist/ignore settings.",
+    "Show workspace/project and API-key budget configuration without balances or keys.",
+    "Show current M2.7 endpoint availability and endpoint data-policy labels, including minimax/fp8.",
+    "Record organization/workspace identity, UTC timestamp, and page URLs.",
+    "Export or screenshot with an SHA-256 integrity hash.",
+    "Redact API keys, bearer tokens, cookies, personal data, billing details, and credit balance.",
+    "Confirm explicitly that no API key or credit balance is visible."
+  ],
+  "recommended_candidate_decision": "continue_conditionally",
+  "review": {
+    "status": "unreviewed",
+    "human_approval_implied": false,
+    "governed_configuration_changed": false,
+    "runtime_enablement_changed": false
+  },
+  "mandatory_invariants": {
+    "operator_expected_blocked": true,
+    "activation_review_non_executable": true,
+    "provider_model_route_profile_adapter_disabled": true,
+    "live_budget_disabled": true,
+    "kill_switch_active": true,
+    "secret_not_configured_or_accessed": true,
+    "authorization_issued": false,
+    "authorization_consumed": false,
+    "gateway_adapter_harness_transport_invoked": false,
+    "model_inference_occurred": false,
+    "account_setting_changed": false,
+    "human_approval_fabricated": false,
+    "production_or_customer_data_accessed": false
+  }
+}
