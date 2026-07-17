@@ -1,0 +1,84 @@
+{
+  "missing_source_url": {
+    "base": "eve",
+    "remove": "sources.0.source_url",
+    "expected_error": "schema_invalid"
+  },
+  "missing_retrieval_timestamp": {
+    "base": "eve",
+    "remove": "sources.0.retrieved_at",
+    "expected_error": "schema_invalid"
+  },
+  "missing_hash": {
+    "base": "eve",
+    "remove": "sources.0.content_hash",
+    "expected_error": "schema_invalid"
+  },
+  "unsupported_provider": {
+    "base": "eve",
+    "set": { "sources.0.provider": "other" },
+    "expected_error": "schema_invalid"
+  },
+  "unpinned_repository_without_limitation": {
+    "base": "eve",
+    "set": {
+      "sources.0.commit_sha": null,
+      "sources.0.immutable": false,
+      "sources.0.evidence_limitations": ["No limitation recorded."]
+    },
+    "expected_error": "mutable_source_limitation_missing"
+  },
+  "marketing_claim_as_verified_guarantee": {
+    "base": "eve",
+    "set": {
+      "findings.0.source_ids": ["eve.blog.introducing"],
+      "findings.0.claim_status": "verified"
+    },
+    "expected_error": "marketing_guarantee_forbidden"
+  },
+  "missing_evidence_limitation": {
+    "base": "eve",
+    "set": { "sources.0.evidence_limitations": [] },
+    "expected_error": "schema_invalid"
+  },
+  "eve_reasoning_privacy_risk_omitted": {
+    "base": "eve",
+    "set": { "privacy_findings": ["No issue recorded."] },
+    "expected_error": "eve_reasoning_privacy_risk_omitted"
+  },
+  "workers_ai_modeled_as_runtime": {
+    "base": "cloudflare",
+    "set": { "findings.5.claim_status": "verified" },
+    "expected_error": "workers_ai_modeled_as_runtime"
+  },
+  "runtime_automatically_promoted": {
+    "base": "eve",
+    "set": { "runtime_candidate.lifecycle_status": "approved" },
+    "expected_error": "schema_invalid"
+  },
+  "expired_evidence_treated_as_current": {
+    "base": "eve",
+    "set": { "review_expires_at": "2026-07-01T00:00:00Z" },
+    "expected_error": "evidence_expired"
+  },
+  "missing_independent_review_state": {
+    "base": "eve",
+    "remove": "sources.0.independent_review_status",
+    "expected_error": "schema_invalid"
+  },
+  "unsupported_lifecycle_transition": {
+    "base": "eve",
+    "set": { "lifecycle_recommendation": "promote" },
+    "expected_error": "schema_invalid"
+  },
+  "activation_enabled": {
+    "base": "eve",
+    "set": { "runtime_candidate.enabled": true },
+    "expected_error": "schema_invalid"
+  },
+  "kill_switch_disabled": {
+    "base": "eve",
+    "set": { "runtime_candidate.kill_switch_active": false },
+    "expected_error": "schema_invalid"
+  }
+}

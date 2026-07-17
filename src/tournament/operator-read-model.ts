@@ -2,6 +2,11 @@ import type {
   RuntimeCandidate,
   TournamentLifecycleState,
 } from "./contracts.js";
+import {
+  projectRuntimeEvidenceForOperator,
+  type RuntimeEvidenceOperatorProjection,
+  type RuntimeEvidencePack,
+} from "./runtime-evidence.js";
 
 export interface TournamentOperatorCandidate {
   readonly candidate_id: string;
@@ -18,11 +23,14 @@ export interface TournamentOperatorCandidate {
 
 export interface TournamentOperatorReadModel {
   readonly registered_candidates: readonly TournamentOperatorCandidate[];
+  readonly runtime_evidence: readonly RuntimeEvidenceOperatorProjection[];
   readonly write_actions_available: false;
 }
 
 export function buildTournamentOperatorReadModel(
   candidates: readonly RuntimeCandidate[],
+  evidencePacks: readonly RuntimeEvidencePack[] = [],
+  evaluatedAt: Date = new Date(),
 ): TournamentOperatorReadModel {
   return Object.freeze({
     registered_candidates: candidates
@@ -47,6 +55,9 @@ export function buildTournamentOperatorReadModel(
         promotion_recommendation: "none" as const,
         human_decision_required: true as const,
       }))
+      .sort((a, b) => a.candidate_id.localeCompare(b.candidate_id)),
+    runtime_evidence: evidencePacks
+      .map((pack) => projectRuntimeEvidenceForOperator(pack, evaluatedAt))
       .sort((a, b) => a.candidate_id.localeCompare(b.candidate_id)),
     write_actions_available: false as const,
   });

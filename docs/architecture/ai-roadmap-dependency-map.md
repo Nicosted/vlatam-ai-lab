@@ -177,3 +177,17 @@ AI-70 is documentation and a declarative inventory. It does not:
 - change the API surface;
 - replace any existing module under `src/agents/`, `src/advisory/`,
   `src/contracts/`, or `src/server/`.
+
+## 6. Runtime tournament follow-up after AI-121
+
+These are separate future, approval-gated work items; none is activated by evidence capture:
+
+1. Eve sandbox runner using synthetic/local fixtures only.
+2. Cloudflare sandbox runner using synthetic/local fixtures only.
+3. Common runtime adapter with strict event normalization and reasoning redaction.
+4. Runtime conformance gold cases for durability, replay, cancellation, tools and review.
+5. Cost reconciliation across runtime, workflow, storage, gateway and inference units.
+6. Daily tournament scheduler only after runner admission.
+7. Weekly independent review with no universal winner.
+8. Independent security review.
+9. Legal and privacy review.

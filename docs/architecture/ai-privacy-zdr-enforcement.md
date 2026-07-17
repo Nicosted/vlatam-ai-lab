@@ -7,6 +7,19 @@ quality, latency, cost, replay convenience, lifecycle preference, and any
 future routing score. The enforcer never chooses or replaces a profile,
 never retries, and never falls back.
 
+## Private reasoning prohibition (AI-121)
+
+AI LAB adapters must not persist private model reasoning or chain-of-thought,
+even when a vendor runtime exposes reasoning deltas or completed reasoning as
+public protocol events. Adapters must keep capture disabled or redact/drop
+those events before normalization.
+
+Permitted evidence is limited to user inputs allowed by the applicable data
+policy, normalized model outputs, tool requests and results, structured
+decisions, policy decisions, costs, latency, errors, approvals and evidence
+lineage. A concise reviewed rationale remains a separate explicitly approved
+artifact; it is never raw hidden reasoning.
+
 > **Enforcement boundary.** AI-73 enforcement applies only to
 > gateway-mediated execution until legacy direct-provider paths are
 > migrated. Gateway privacy enforcement does not protect legacy

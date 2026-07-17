@@ -1,0 +1,631 @@
+{
+  "schema_version": "1.0.0",
+  "pack_id": "runtime-evidence.cloudflare.2026-07-17",
+  "runtime_candidate": {
+    "candidate_id": "cloudflare-agents-workflows",
+    "provider": "cloudflare",
+    "observed_version": "0.17.4",
+    "lifecycle_status": "discovered",
+    "activation_prohibited": true,
+    "enabled": false,
+    "kill_switch_active": true
+  },
+  "captured_at": "2026-07-17T12:01:09Z",
+  "review_expires_at": "2026-08-16T12:01:09Z",
+  "sources": [
+    {
+      "source_id": "cf.agents.repo.03cdc82",
+      "source_url": "https://github.com/cloudflare/agents/tree/03cdc828c0bc3c6bb1d9aa636bb46ceb00a4e0ea",
+      "provider": "cloudflare",
+      "component": "agents_sdk",
+      "document_title": "Cloudflare Agents repository",
+      "retrieved_at": "2026-07-17T12:01:09Z",
+      "source_type": "official_repository",
+      "document_version": "0.17.4",
+      "commit_sha": "03cdc828c0bc3c6bb1d9aa636bb46ceb00a4e0ea",
+      "published_or_updated_at": "2026-07-13T17:09:00Z",
+      "immutable": true,
+      "capture_method": "public_unauthenticated_http",
+      "normalized_findings": [
+        "Agents are persistent stateful environments powered by Durable Objects.",
+        "Repository documents state, SQLite, WebSockets, scheduling, model calls, MCP, Workflows, subagents, sandboxed execution and observability.",
+        "The agent requires a Durable Object binding and SQLite migration in Wrangler configuration.",
+        "Repository says the SDK is evolving quickly and is not accepting external pull requests."
+      ],
+      "evidence_limitations": [
+        "Repository feature descriptions require independent runtime conformance testing."
+      ],
+      "review_expires_at": "2026-10-15T12:01:09Z",
+      "independent_review_status": "pending",
+      "approval_status": "pending",
+      "content_hash": "db08324323cd6ba5e83c6dc7b6689e57de75fd366b72652aa157986152c7d6ed"
+    },
+    {
+      "source_id": "cf.agents.release.0.17.4",
+      "source_url": "https://github.com/cloudflare/agents/releases/tag/agents%400.17.4",
+      "provider": "cloudflare",
+      "component": "agents_sdk",
+      "document_title": "agents 0.17.4 release",
+      "retrieved_at": "2026-07-17T12:01:09Z",
+      "source_type": "official_release",
+      "document_version": "0.17.4",
+      "commit_sha": "03cdc828c0bc3c6bb1d9aa636bb46ceb00a4e0ea",
+      "published_or_updated_at": "2026-07-13T17:09:00Z",
+      "immutable": true,
+      "capture_method": "public_unauthenticated_http",
+      "normalized_findings": [
+        "The current public agents package release is 0.17.4.",
+        "Release notes show active changes to MCP elicitation and hibernation recovery behavior."
+      ],
+      "evidence_limitations": [
+        "A 0.x version and rapid release activity indicate API change risk; no general stability guarantee was found."
+      ],
+      "review_expires_at": "2026-08-16T12:01:09Z",
+      "independent_review_status": "pending",
+      "approval_status": "pending",
+      "content_hash": "ff250f95a3de9a7286d16aefa721f46f5f9771327dd38593b392958bdc58a766"
+    },
+    {
+      "source_id": "cf.agents.docs.overview",
+      "source_url": "https://developers.cloudflare.com/agents/",
+      "provider": "cloudflare",
+      "component": "agents_sdk",
+      "document_title": "Build Agents on Cloudflare",
+      "retrieved_at": "2026-07-17T12:01:09Z",
+      "source_type": "official_documentation",
+      "document_version": null,
+      "commit_sha": null,
+      "published_or_updated_at": "2026-06-24T00:00:00Z",
+      "immutable": false,
+      "capture_method": "public_unauthenticated_http",
+      "normalized_findings": [
+        "Each Cloudflare-hosted agent session is documented with durable identity, local SQL storage, real-time connections, scheduled work and recoverable execution.",
+        "Deployment is explicitly coupled to Cloudflare's global network."
+      ],
+      "evidence_limitations": [
+        "Mutable vendor documentation; hosting, durability and scale claims are not independent guarantees."
+      ],
+      "review_expires_at": "2026-08-16T12:01:09Z",
+      "independent_review_status": "pending",
+      "approval_status": "pending",
+      "content_hash": "b91174eef98a00d6cb654a9f60ece8170c3052221b75ae943f0f8a569e6bcc47"
+    },
+    {
+      "source_id": "cf.agents.docs.observability",
+      "source_url": "https://developers.cloudflare.com/agents/runtime/operations/observability/",
+      "provider": "cloudflare",
+      "component": "agents_sdk",
+      "document_title": "Agents observability",
+      "retrieved_at": "2026-07-17T12:01:09Z",
+      "source_type": "official_documentation",
+      "document_version": null,
+      "commit_sha": null,
+      "published_or_updated_at": "2026-06-05T00:00:00Z",
+      "immutable": false,
+      "capture_method": "public_unauthenticated_http",
+      "normalized_findings": [
+        "Agents emit structured diagnostic events for RPC, state, schedules, workflows, MCP, lifecycle and chat recovery.",
+        "Workflow diagnostics include start, event, approval, rejection, termination, pause, resume and restart."
+      ],
+      "evidence_limitations": [
+        "Mutable documentation; diagnostic events are implementation-specific and do not match AI LAB's normalized vocabulary one-for-one."
+      ],
+      "review_expires_at": "2026-08-16T12:01:09Z",
+      "independent_review_status": "pending",
+      "approval_status": "pending",
+      "content_hash": "feb43bf7e43debc230d75008a65d75f611929110894529c6d7b4bcb1354e02be"
+    },
+    {
+      "source_id": "cf.agents.docs.hitl",
+      "source_url": "https://developers.cloudflare.com/agents/concepts/agentic-patterns/human-in-the-loop/",
+      "provider": "cloudflare",
+      "component": "agents_sdk",
+      "document_title": "Human-in-the-loop patterns",
+      "retrieved_at": "2026-07-17T12:01:09Z",
+      "source_type": "official_documentation",
+      "document_version": null,
+      "commit_sha": null,
+      "published_or_updated_at": "2026-07-14T00:00:00Z",
+      "immutable": false,
+      "capture_method": "public_unauthenticated_http",
+      "normalized_findings": [
+        "Documented patterns include MCP elicitation, durable Workflow approval and Code Mode tool approval.",
+        "Workflow approvals can wait for months or longer without keeping an Agent running."
+      ],
+      "evidence_limitations": [
+        "Mutable documentation; vendor approval primitives are not AI LAB authorization decisions."
+      ],
+      "review_expires_at": "2026-08-16T12:01:09Z",
+      "independent_review_status": "pending",
+      "approval_status": "pending",
+      "content_hash": "d48c0034919472e61e5cc217e0e62e3c22900737dfa5da82c0c5186a977601fb"
+    },
+    {
+      "source_id": "cf.workflows.docs.overview",
+      "source_url": "https://developers.cloudflare.com/workflows/",
+      "provider": "cloudflare",
+      "component": "workflows",
+      "document_title": "Cloudflare Workflows overview",
+      "retrieved_at": "2026-07-17T12:01:09Z",
+      "source_type": "official_documentation",
+      "document_version": null,
+      "commit_sha": null,
+      "published_or_updated_at": "2026-06-02T00:00:00Z",
+      "immutable": false,
+      "capture_method": "public_unauthenticated_http",
+      "normalized_findings": [
+        "Workflows documents durable multi-step execution, persisted state, retries, external-event waits, approvals, pause, resume and termination.",
+        "Built-in observability and debugging are documented."
+      ],
+      "evidence_limitations": [
+        "Mutable documentation; exact-once side effects are not promised."
+      ],
+      "review_expires_at": "2026-08-16T12:01:09Z",
+      "independent_review_status": "pending",
+      "approval_status": "pending",
+      "content_hash": "fff563b5daa26688074cd2dff8ed3f299bb22f23e11e22b2cc43a17e3236ace7"
+    },
+    {
+      "source_id": "cf.workflows.docs.rules",
+      "source_url": "https://developers.cloudflare.com/workflows/build/rules-of-workflows/",
+      "provider": "cloudflare",
+      "component": "workflows",
+      "document_title": "Rules of Workflows",
+      "retrieved_at": "2026-07-17T12:01:09Z",
+      "source_type": "official_documentation",
+      "document_version": null,
+      "commit_sha": null,
+      "published_or_updated_at": "2026-04-29T00:00:00Z",
+      "immutable": false,
+      "capture_method": "public_unauthenticated_http",
+      "normalized_findings": [
+        "Each step is individually retryable and may persist state for continuation after failure.",
+        "Documentation tells developers to make side-effecting steps idempotent because steps can retry.",
+        "Batch instance creation is documented as idempotent for retained IDs, unlike the general create call."
+      ],
+      "evidence_limitations": [
+        "Mutable documentation; application side-effect idempotency remains the developer's responsibility."
+      ],
+      "review_expires_at": "2026-08-16T12:01:09Z",
+      "independent_review_status": "pending",
+      "approval_status": "pending",
+      "content_hash": "1b95c63c288b819f9821e864005287db78dfeb0f3ad4f32503231a69b6d07f7c"
+    },
+    {
+      "source_id": "cf.workflows.docs.limits",
+      "source_url": "https://developers.cloudflare.com/workflows/reference/limits/",
+      "provider": "cloudflare",
+      "component": "workflows",
+      "document_title": "Workflows limits",
+      "retrieved_at": "2026-07-17T12:01:09Z",
+      "source_type": "official_documentation",
+      "document_version": null,
+      "commit_sha": null,
+      "published_or_updated_at": "2026-06-15T00:00:00Z",
+      "immutable": false,
+      "capture_method": "public_unauthenticated_http",
+      "normalized_findings": [
+        "Published limits cover CPU per step, persisted state, steps, retries, concurrency, creation rate and completed-state retention.",
+        "Waiting instances do not count toward active instance concurrency."
+      ],
+      "evidence_limitations": [
+        "Mutable plan-dependent limits must be rechecked before any sandbox proposal."
+      ],
+      "review_expires_at": "2026-08-16T12:01:09Z",
+      "independent_review_status": "pending",
+      "approval_status": "pending",
+      "content_hash": "8fe6a5f035b0f9d90aaf8c92f6d75fa395ea983f7cd8c851af066f667e21e6af"
+    },
+    {
+      "source_id": "cf.workflows.docs.pricing",
+      "source_url": "https://developers.cloudflare.com/workflows/reference/pricing/",
+      "provider": "cloudflare",
+      "component": "workflows",
+      "document_title": "Workflows pricing",
+      "retrieved_at": "2026-07-17T12:01:09Z",
+      "source_type": "official_documentation",
+      "document_version": null,
+      "commit_sha": null,
+      "published_or_updated_at": "2026-07-07T00:00:00Z",
+      "immutable": false,
+      "capture_method": "public_unauthenticated_http",
+      "normalized_findings": [
+        "Pricing dimensions are CPU time, requests, persisted storage and executed steps.",
+        "Step and storage billing is announced to start no earlier than 2026-08-10.",
+        "Idle and waiting time does not incur CPU time."
+      ],
+      "evidence_limitations": [
+        "Mutable forward-looking pricing; rates and billing start require review before use."
+      ],
+      "review_expires_at": "2026-08-09T00:00:00Z",
+      "independent_review_status": "pending",
+      "approval_status": "pending",
+      "content_hash": "e381eaf71cb46690ea735b42b50f4d501bb1476baf00f67d3059d8ff88016bf5"
+    },
+    {
+      "source_id": "cf.do.docs.overview",
+      "source_url": "https://developers.cloudflare.com/durable-objects/concepts/what-are-durable-objects/",
+      "provider": "cloudflare",
+      "component": "durable_objects",
+      "document_title": "What are Durable Objects",
+      "retrieved_at": "2026-07-17T12:01:09Z",
+      "source_type": "official_documentation",
+      "document_version": null,
+      "commit_sha": null,
+      "published_or_updated_at": "2026-04-21T00:00:00Z",
+      "immutable": false,
+      "capture_method": "public_unauthenticated_http",
+      "normalized_findings": [
+        "Durable Objects provide globally unique identity, single-threaded coordination and private transactional strongly consistent storage per object.",
+        "Alarms wake an object for future work.",
+        "Storage is documented up to 10 GB per object."
+      ],
+      "evidence_limitations": [
+        "Mutable documentation; consistency is per object, not global distributed database consistency."
+      ],
+      "review_expires_at": "2026-08-16T12:01:09Z",
+      "independent_review_status": "pending",
+      "approval_status": "pending",
+      "content_hash": "8bb876794bda561ae96daf5328d2da6d2a58df4df0737be2d50c76220cbd3745"
+    },
+    {
+      "source_id": "cf.do.docs.location",
+      "source_url": "https://developers.cloudflare.com/durable-objects/reference/data-location/",
+      "provider": "cloudflare",
+      "component": "durable_objects",
+      "document_title": "Durable Objects data location",
+      "retrieved_at": "2026-07-17T12:01:09Z",
+      "source_type": "official_documentation",
+      "document_version": null,
+      "commit_sha": null,
+      "published_or_updated_at": "2026-06-26T00:00:00Z",
+      "immutable": false,
+      "capture_method": "public_unauthenticated_http",
+      "normalized_findings": [
+        "Jurisdiction restrictions are documented for EU, US and FedRAMP-Moderate locations.",
+        "Durable Object IDs may be logged outside the jurisdiction for billing and debugging.",
+        "Jurisdiction controls object compute and persistence but not request-response regions."
+      ],
+      "evidence_limitations": [
+        "Mutable documentation; legal and privacy review is required for identifiers logged outside the selected jurisdiction."
+      ],
+      "review_expires_at": "2026-08-16T12:01:09Z",
+      "independent_review_status": "pending",
+      "approval_status": "pending",
+      "content_hash": "25eeed6fa24a01d66b9622817c3f363fa173a857ea35b8fca47ddefec66e84db"
+    },
+    {
+      "source_id": "cf.do.docs.pricing",
+      "source_url": "https://developers.cloudflare.com/durable-objects/platform/pricing/",
+      "provider": "cloudflare",
+      "component": "durable_objects",
+      "document_title": "Durable Objects pricing",
+      "retrieved_at": "2026-07-17T12:01:09Z",
+      "source_type": "official_documentation",
+      "document_version": null,
+      "commit_sha": null,
+      "published_or_updated_at": "2026-06-19T00:00:00Z",
+      "immutable": false,
+      "capture_method": "public_unauthenticated_http",
+      "normalized_findings": [
+        "Durable Objects billing surfaces include requests, compute duration and storage operations/bytes.",
+        "WebSocket hibernation avoids duration billing while eligible and idle."
+      ],
+      "evidence_limitations": [
+        "Mutable plan-dependent pricing and metering require exact reconciliation design."
+      ],
+      "review_expires_at": "2026-08-16T12:01:09Z",
+      "independent_review_status": "pending",
+      "approval_status": "pending",
+      "content_hash": "39ffb3298910cbe8de8494cdffe0d4d090862fdf87f8ba218d2362201e32d58b"
+    },
+    {
+      "source_id": "cf.workersai.docs.bundle",
+      "source_url": "https://developers.cloudflare.com/workers-ai/",
+      "provider": "cloudflare",
+      "component": "workers_ai",
+      "document_title": "Workers AI public documentation bundle",
+      "retrieved_at": "2026-07-17T12:01:09Z",
+      "source_type": "official_documentation",
+      "document_version": null,
+      "commit_sha": null,
+      "published_or_updated_at": "2026-07-08T00:00:00Z",
+      "immutable": false,
+      "capture_method": "public_unauthenticated_http",
+      "normalized_findings": [
+        "Workers AI is a model inference service and is not an agent runtime.",
+        "Pricing is published in per-model units and neurons; the catalog changes over time.",
+        "JSON Mode supports schema-requested structured output for selected models but does not guarantee schema satisfaction.",
+        "Cloudflare says Workers AI customer content is not used to train models or improve services without explicit consent; storage occurs when a storage product is deliberately combined with Workers AI."
+      ],
+      "evidence_limitations": [
+        "Mutable documentation bundle normalized from overview, pricing, JSON Mode, data-usage and changelog pages; per-model behavior and terms require separate review."
+      ],
+      "review_expires_at": "2026-08-16T12:01:09Z",
+      "independent_review_status": "pending",
+      "approval_status": "pending",
+      "content_hash": "513255a3dd7928829de0ffad459300fa5e37d3ed35defa6dd929c8d9241ee9a8"
+    }
+  ],
+  "findings": [
+    {
+      "finding_id": "cf.agents.identity",
+      "component": "agents_sdk",
+      "topic": "runtime_identity",
+      "claim": "Agents SDK 0.17.4 implements stateful agent identities as Durable Objects with SQLite state and WebSockets.",
+      "claim_status": "documented",
+      "evidence_strength": "strong",
+      "source_ids": [
+        "cf.agents.repo.03cdc82",
+        "cf.agents.release.0.17.4",
+        "cf.agents.docs.overview"
+      ],
+      "limitations": ["AI LAB conformance is pending."]
+    },
+    {
+      "finding_id": "cf.runtime.durability",
+      "component": "agents_sdk_workflows_do",
+      "topic": "durability",
+      "claim": "Durable Objects provide persistent per-object state and Workflows provide retryable persisted steps and external-event waits.",
+      "claim_status": "documented",
+      "evidence_strength": "strong",
+      "source_ids": [
+        "cf.workflows.docs.overview",
+        "cf.workflows.docs.rules",
+        "cf.do.docs.overview"
+      ],
+      "limitations": [
+        "Cross-component failure and recovery semantics are not yet tested."
+      ]
+    },
+    {
+      "finding_id": "cf.runtime.review",
+      "component": "agents_sdk_workflows",
+      "topic": "human_review",
+      "claim": "Workflow approval and MCP elicitation patterns support human pauses.",
+      "claim_status": "documented",
+      "evidence_strength": "moderate",
+      "source_ids": ["cf.agents.docs.hitl"],
+      "limitations": ["Not equivalent to AI LAB authorization."]
+    },
+    {
+      "finding_id": "cf.runtime.observability",
+      "component": "agents_sdk_workflows",
+      "topic": "observability",
+      "claim": "Structured diagnostics and built-in Workflow observability are documented.",
+      "claim_status": "documented",
+      "evidence_strength": "moderate",
+      "source_ids": [
+        "cf.agents.docs.observability",
+        "cf.workflows.docs.overview"
+      ],
+      "limitations": ["No exact AI LAB event-equivalence guarantee."]
+    },
+    {
+      "finding_id": "cf.runtime.cost",
+      "component": "workflows_do",
+      "topic": "cost_accounting",
+      "claim": "Public metering surfaces cover requests, CPU/duration, steps and storage.",
+      "claim_status": "documented",
+      "evidence_strength": "moderate",
+      "source_ids": ["cf.workflows.docs.pricing", "cf.do.docs.pricing"],
+      "limitations": [
+        "Exact per-run reconciliation and upcoming billing change remain unresolved."
+      ]
+    },
+    {
+      "finding_id": "cf.workersai.inference",
+      "component": "workers_ai",
+      "topic": "runtime_identity",
+      "claim": "Workers AI is an inference component and must not be modeled as an agent runtime.",
+      "claim_status": "unsupported",
+      "evidence_strength": "strong",
+      "source_ids": ["cf.workersai.docs.bundle"],
+      "limitations": [
+        "It may be bound as a separately governed inference candidate only."
+      ]
+    },
+    {
+      "finding_id": "cf.agents.stability",
+      "component": "agents_sdk",
+      "topic": "release_stability",
+      "claim": "The 0.x package and repository's evolving-quickly statement indicate material API change risk.",
+      "claim_status": "verified",
+      "evidence_strength": "strong",
+      "source_ids": ["cf.agents.repo.03cdc82", "cf.agents.release.0.17.4"],
+      "limitations": ["No GA/stability statement was captured."]
+    }
+  ],
+  "event_mapping": [
+    {
+      "normalized_event": "session_started",
+      "platform_event": "connect",
+      "mapping_status": "inferred",
+      "source_ids": ["cf.agents.docs.observability"],
+      "limitation": "Connection is not necessarily session creation."
+    },
+    {
+      "normalized_event": "turn_started",
+      "platform_event": "chat request diagnostics",
+      "mapping_status": "implementation_specific",
+      "source_ids": ["cf.agents.docs.observability"],
+      "limitation": "No exact normalized turn-start guarantee."
+    },
+    {
+      "normalized_event": "step_started",
+      "platform_event": null,
+      "mapping_status": "undocumented",
+      "source_ids": [],
+      "limitation": "No generic agent-step event captured."
+    },
+    {
+      "normalized_event": "action_requested",
+      "platform_event": null,
+      "mapping_status": "undocumented",
+      "source_ids": [],
+      "limitation": "Tool event equivalence requires implementation inspection."
+    },
+    {
+      "normalized_event": "action_completed",
+      "platform_event": null,
+      "mapping_status": "undocumented",
+      "source_ids": [],
+      "limitation": "Tool event equivalence requires implementation inspection."
+    },
+    {
+      "normalized_event": "input_requested",
+      "platform_event": "workflow:paused|MCP elicitation",
+      "mapping_status": "implementation_specific",
+      "source_ids": ["cf.agents.docs.hitl", "cf.agents.docs.observability"],
+      "limitation": "Several primitives implement different pause semantics."
+    },
+    {
+      "normalized_event": "authorization_required",
+      "platform_event": "mcp:client:authorize",
+      "mapping_status": "inferred",
+      "source_ids": ["cf.agents.docs.observability"],
+      "limitation": "MCP OAuth is not AI LAB authorization."
+    },
+    {
+      "normalized_event": "subagent_started",
+      "platform_event": "agent_tool recovery/run diagnostics",
+      "mapping_status": "implementation_specific",
+      "source_ids": ["cf.agents.repo.03cdc82", "cf.agents.docs.observability"],
+      "limitation": "No stable generic start event was established."
+    },
+    {
+      "normalized_event": "subagent_completed",
+      "platform_event": null,
+      "mapping_status": "undocumented",
+      "source_ids": [],
+      "limitation": "No stable generic completion event was established."
+    },
+    {
+      "normalized_event": "structured_result_completed",
+      "platform_event": null,
+      "mapping_status": "undocumented",
+      "source_ids": [],
+      "limitation": "No runtime-wide structured-result event guarantee was established."
+    },
+    {
+      "normalized_event": "usage_recorded",
+      "platform_event": null,
+      "mapping_status": "undocumented",
+      "source_ids": [],
+      "limitation": "Billing analytics are separate from a normalized per-step event."
+    },
+    {
+      "normalized_event": "step_completed",
+      "platform_event": "workflow step completion",
+      "mapping_status": "implementation_specific",
+      "source_ids": ["cf.workflows.docs.overview"],
+      "limitation": "Workflow steps do not cover every Agent step."
+    },
+    {
+      "normalized_event": "turn_completed",
+      "platform_event": null,
+      "mapping_status": "undocumented",
+      "source_ids": [],
+      "limitation": "No exact normalized turn-completion guarantee."
+    },
+    {
+      "normalized_event": "session_waiting",
+      "platform_event": "workflow:paused",
+      "mapping_status": "inferred",
+      "source_ids": ["cf.agents.docs.observability"],
+      "limitation": "Workflow pause is not equivalent to every agent session wait."
+    },
+    {
+      "normalized_event": "session_completed",
+      "platform_event": "destroy|workflow:terminated",
+      "mapping_status": "implementation_specific",
+      "source_ids": ["cf.agents.docs.observability"],
+      "limitation": "Lifecycle scopes differ."
+    },
+    {
+      "normalized_event": "cancelled",
+      "platform_event": "schedule:cancel|workflow:terminated",
+      "mapping_status": "implementation_specific",
+      "source_ids": ["cf.agents.docs.observability"],
+      "limitation": "No universal recursive agent-turn cancellation semantic was established."
+    },
+    {
+      "normalized_event": "failed",
+      "platform_event": "chat:request:failed|schedule:error|queue:error",
+      "mapping_status": "implementation_specific",
+      "source_ids": ["cf.agents.docs.observability"],
+      "limitation": "Several component-specific failures require normalization."
+    }
+  ],
+  "portability_findings": [
+    "Agents depend on Durable Objects, Wrangler bindings and Cloudflare deployment; runtime portability is low without a separate adapter/reimplementation.",
+    "Workers AI model/provider integration is separable from Agents runtime identity and must be governed independently."
+  ],
+  "privacy_findings": [
+    "Public evidence does not establish chain-of-thought access or retention behavior for Agents; it remains unknown.",
+    "AI LAB adapters must not persist private model reasoning or chain-of-thought.",
+    "Durable Object jurisdiction controls have scope limitations and identifiers may be logged outside the selected jurisdiction.",
+    "Workers AI data-use claims apply to its inference service and do not automatically cover every external model provider used through Agents."
+  ],
+  "durability_findings": [
+    "Strong per-object storage and retryable persisted Workflow steps provide credible durability primitives.",
+    "Ordering, idempotency, cancellation, replay and recovery across Agents, Workflows and external tools require conformance tests."
+  ],
+  "human_review_findings": [
+    "Workflow approvals and MCP elicitation are documented.",
+    "AI LAB authorization remains a separate control-plane decision and cannot be delegated to vendor primitives."
+  ],
+  "sandbox_findings": [
+    "The repository documents isolated Worker/virtual-filesystem execution as a feature.",
+    "Isolation, network egress, resource limits and persistence require independent security testing."
+  ],
+  "observability_findings": [
+    "Structured diagnostic events exist for multiple components.",
+    "The common AI-120 event vocabulary cannot be inferred wholesale; many mappings remain undocumented or implementation-specific."
+  ],
+  "cost_accounting_findings": [
+    "Workflows and Durable Objects publish metering units.",
+    "Exact Agent-session attribution across Workers, Durable Objects, Workflows, storage, inference and external providers is incomplete.",
+    "Workflows step/storage billing change is scheduled no earlier than 2026-08-10 and requires re-review."
+  ],
+  "unresolved_questions": [
+    "What package API stability commitment applies to Agents 0.x?",
+    "What generic turn, action, result, cancellation and usage events are stable and exportable?",
+    "What chain-of-thought and reasoning retention behavior applies across model providers?",
+    "How are all component costs attributed and reconciled to one AI LAB run?",
+    "What sandbox egress and isolation guarantees are contractual?",
+    "How do instance restart, duplicate delivery and external side effects behave under failure?"
+  ],
+  "legal_review_required": true,
+  "security_review_required": true,
+  "independent_review_required": true,
+  "lifecycle_recommendation": "remain_discovered",
+  "automatic_promotion_prohibited": true,
+  "reasoning_capture_policy": {
+    "persist_private_reasoning": false,
+    "adapter_mode": "disabled_or_redacted"
+  },
+  "historical_evidence_classification": [
+    {
+      "evidence_id": "repo.cloudflare-audit.2026-06-15",
+      "classification": "historical",
+      "reason": "Repository snapshot of a prior direct Cloudflare infrastructure design; not current Agents SDK evidence."
+    },
+    {
+      "evidence_id": "repo.cloudflare-pipeline-plan.2026-06-15",
+      "classification": "retired",
+      "reason": "The plan is explicitly retired as of 2026-07-13 and preserved only for lineage."
+    },
+    {
+      "evidence_id": "repo.cloudflare-setup.retired.2026-07-13",
+      "classification": "retired",
+      "reason": "The deployment guide is explicitly retired and cannot authorize or prove a current runtime."
+    },
+    {
+      "evidence_id": "repo.cloudflare-workflow-code.local",
+      "classification": "insufficient",
+      "reason": "Local mocked implementation proves repository behavior only, not current Cloudflare platform guarantees."
+    }
+  ],
+  "pack_hash": "61ccf95429c0b11b4d37f4e52bd7408d1c15ff2fd3cbbd57c25eb60edb214cd6"
+}
