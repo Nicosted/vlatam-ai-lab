@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { types as utilTypes } from "node:util";
 
 import { Ajv2020 as Ajv } from "ajv/dist/2020.js";
 import addFormatsModule from "ajv-formats";
@@ -13,9 +14,13 @@ import type {
   AuthorizationStateStore,
 } from "../handoff/authorization-store.js";
 import {
-  classifyGlmFireworksPreResponseFailure,
-  GlmFireworksCredentialUnavailableError,
-  sanitizeGlmFireworksNativeTransportError,
+  GLM_FIREWORKS_ADAPTER_ID,
+  GLM_FIREWORKS_FAILURE_CONTRACT_VERSION,
+  GLM_FIREWORKS_MODEL_ID,
+  GLM_FIREWORKS_PROFILE_ID,
+  GLM_FIREWORKS_ROUTE_ID,
+  GlmFireworksInvalidGovernanceMetadataError,
+  type GlmFireworksPreResponseFailureClassification,
   type GlmFireworksPreResponseFailureEvidence,
 } from "./glm-fireworks-pre-response-failure.js";
 import { OPENROUTER_BASE_URL } from "./openrouter-config.js";
@@ -37,6 +42,290 @@ export const GLM_CONFORMANCE_MAX_ATTEMPTS = 3 as const;
 
 type JsonRecord = Record<string, unknown>;
 type GoldCase = (typeof fixtureJson.gold_cases)[number];
+
+const NETWORK_ERROR_CODES = new Set([
+  "ECONNREFUSED",
+  "ECONNRESET",
+  "EHOSTUNREACH",
+  "ENETUNREACH",
+  "ENOTFOUND",
+  "EPIPE",
+  "ETIMEDOUT",
+  "EAI_AGAIN",
+  "UND_ERR_CONNECT_TIMEOUT",
+  "UND_ERR_HEADERS_TIMEOUT",
+  "UND_ERR_SOCKET",
+]);
+const GOVERNANCE_ID = /^[a-z0-9][a-z0-9._-]{1,191}$/;
+const FAILURE_INPUT_KEYS = new Set([
+  "attempt",
+  "timestamp",
+  "correlation_id",
+  "execution_evidence_id",
+  "timed_out",
+  "response_present",
+  "response_status",
+  "usable_provider_payload",
+  "thrown",
+]);
+
+type ValidatedFailureInput = Readonly<{
+  attempt: number;
+  timestamp: string;
+  correlation_id: string;
+  execution_evidence_id: string;
+  timed_out?: boolean;
+  response_present?: boolean;
+  response_status?: unknown;
+  usable_provider_payload?: boolean;
+  thrown?: unknown;
+}>;
+
+const credentialUnavailableErrors = new WeakSet<object>();
+const trustedNetworkTransportErrors = new WeakSet<object>();
+
+class GlmFireworksCredentialUnavailableError extends Error {
+  constructor() {
+    super("credential_unavailable");
+    this.name = "GlmFireworksCredentialUnavailableError";
+    credentialUnavailableErrors.add(this);
+  }
+}
+
+class GlmFireworksNetworkTransportError extends Error {
+  constructor() {
+    super("network_transport");
+    this.name = "GlmFireworksNetworkTransportError";
+    trustedNetworkTransportErrors.add(this);
+  }
+}
+
+const ownDataValue = (
+  descriptors: PropertyDescriptorMap,
+  key: string,
+): unknown => {
+  const descriptor = descriptors[key];
+  return descriptor !== undefined && "value" in descriptor
+    ? descriptor.value
+    : undefined;
+};
+
+const validCanonicalTimestamp = (value: unknown): value is string =>
+  typeof value === "string" &&
+  Number.isFinite(Date.parse(value)) &&
+  new Date(value).toISOString() === value;
+
+const validateFailureInput = (input: unknown): ValidatedFailureInput => {
+  if (
+    typeof input !== "object" ||
+    input === null ||
+    utilTypes.isProxy(input) ||
+    (Object.getPrototypeOf(input) !== Object.prototype &&
+      Object.getPrototypeOf(input) !== null)
+  )
+    throw new GlmFireworksInvalidGovernanceMetadataError();
+
+  const descriptors = Object.getOwnPropertyDescriptors(input);
+  if (
+    Object.keys(descriptors).some((key) => !FAILURE_INPUT_KEYS.has(key)) ||
+    Object.values(descriptors).some((descriptor) => !("value" in descriptor))
+  )
+    throw new GlmFireworksInvalidGovernanceMetadataError();
+
+  const attempt = ownDataValue(descriptors, "attempt");
+  const timestamp = ownDataValue(descriptors, "timestamp");
+  const correlationId = ownDataValue(descriptors, "correlation_id");
+  const evidenceId = ownDataValue(descriptors, "execution_evidence_id");
+  const timedOut = ownDataValue(descriptors, "timed_out");
+  const responsePresent = ownDataValue(descriptors, "response_present");
+  const responseStatus = ownDataValue(descriptors, "response_status");
+  const usablePayload = ownDataValue(descriptors, "usable_provider_payload");
+  const thrown = ownDataValue(descriptors, "thrown");
+
+  if (
+    typeof attempt !== "number" ||
+    !Number.isSafeInteger(attempt) ||
+    attempt < 1 ||
+    attempt > GLM_CONFORMANCE_MAX_ATTEMPTS ||
+    !validCanonicalTimestamp(timestamp) ||
+    typeof correlationId !== "string" ||
+    !GOVERNANCE_ID.test(correlationId) ||
+    typeof evidenceId !== "string" ||
+    !GOVERNANCE_ID.test(evidenceId) ||
+    (timedOut !== undefined && typeof timedOut !== "boolean") ||
+    (responsePresent !== undefined && typeof responsePresent !== "boolean") ||
+    (usablePayload !== undefined && typeof usablePayload !== "boolean")
+  )
+    throw new GlmFireworksInvalidGovernanceMetadataError();
+
+  return {
+    attempt,
+    timestamp,
+    correlation_id: correlationId,
+    execution_evidence_id: evidenceId,
+    ...(timedOut === undefined ? {} : { timed_out: timedOut }),
+    ...(responsePresent === undefined
+      ? {}
+      : { response_present: responsePresent }),
+    ...(responseStatus === undefined
+      ? {}
+      : { response_status: responseStatus }),
+    ...(usablePayload === undefined
+      ? {}
+      : { usable_provider_payload: usablePayload }),
+    ...(thrown === undefined ? {} : { thrown }),
+  };
+};
+
+const ownNativeErrorData = (value: unknown, key: "code" | "cause") => {
+  if (
+    typeof value !== "object" ||
+    value === null ||
+    utilTypes.isProxy(value) ||
+    !utilTypes.isNativeError(value)
+  )
+    return { valid: false } as const;
+  const descriptor = Object.getOwnPropertyDescriptor(value, key);
+  if (descriptor === undefined) return { valid: true } as const;
+  return "value" in descriptor
+    ? ({ valid: true, value: descriptor.value } as const)
+    : ({ valid: false } as const);
+};
+
+const allowlistedNativeNetworkCode = (value: unknown): string | null => {
+  const direct = ownNativeErrorData(value, "code");
+  if (!direct.valid) return null;
+  if (typeof direct.value === "string" && NETWORK_ERROR_CODES.has(direct.value))
+    return direct.value;
+
+  const cause = ownNativeErrorData(value, "cause");
+  if (!cause.valid || cause.value === value) return null;
+  const nested = ownNativeErrorData(cause.value, "code");
+  return nested.valid &&
+    typeof nested.value === "string" &&
+    NETWORK_ERROR_CODES.has(nested.value)
+    ? nested.value
+    : null;
+};
+
+const sanitizeGlmFireworksNativeTransportError = (
+  value: unknown,
+): Error | null =>
+  allowlistedNativeNetworkCode(value) === null
+    ? null
+    : new GlmFireworksNetworkTransportError();
+
+const isCredentialUnavailableError = (value: unknown): boolean =>
+  typeof value === "object" &&
+  value !== null &&
+  credentialUnavailableErrors.has(value);
+
+const isTrustedNetworkTransportError = (value: unknown): boolean =>
+  typeof value === "object" &&
+  value !== null &&
+  trustedNetworkTransportErrors.has(value);
+
+const safeHttpStatus = (value: unknown): number | null =>
+  typeof value === "number" &&
+  Number.isSafeInteger(value) &&
+  value >= 100 &&
+  value <= 599
+    ? value
+    : null;
+
+const httpFailureRetryable = (
+  status: number | null,
+  usable: boolean | undefined,
+) =>
+  status === 408 ||
+  status === 425 ||
+  status === 429 ||
+  (status !== null && status >= 500) ||
+  (status === 200 && usable === false);
+
+const freezeFailureEvidence = (
+  input: ValidatedFailureInput,
+  classification: GlmFireworksPreResponseFailureClassification,
+  reasonCode: string,
+  retryable: boolean,
+  httpStatusPresent = false,
+  httpStatusCode: number | null = null,
+): GlmFireworksPreResponseFailureEvidence =>
+  Object.freeze({
+    contract_version: GLM_FIREWORKS_FAILURE_CONTRACT_VERSION,
+    classification,
+    reason_code: reasonCode,
+    attempt: input.attempt,
+    adapter_id: GLM_FIREWORKS_ADAPTER_ID,
+    model_id: GLM_FIREWORKS_MODEL_ID,
+    route_id: GLM_FIREWORKS_ROUTE_ID,
+    profile_id: GLM_FIREWORKS_PROFILE_ID,
+    timestamp: input.timestamp,
+    http_status_present: httpStatusPresent,
+    http_status_code: httpStatusCode,
+    retryable,
+    terminal: !retryable,
+    correlation_id: input.correlation_id,
+    execution_evidence_id: input.execution_evidence_id,
+  });
+
+const classifyGlmFireworksPreResponseFailure = (
+  unvalidatedInput: unknown,
+): GlmFireworksPreResponseFailureEvidence => {
+  const input = validateFailureInput(unvalidatedInput);
+  if (input.timed_out === true)
+    return freezeFailureEvidence(
+      input,
+      "timeout",
+      "pre_response_timeout",
+      true,
+    );
+
+  if (isCredentialUnavailableError(input.thrown))
+    return freezeFailureEvidence(
+      input,
+      "credential_unavailable",
+      "pre_response_credential_unavailable",
+      false,
+    );
+
+  if (input.response_present === true) {
+    const status = safeHttpStatus(input.response_status);
+    const retryable = httpFailureRetryable(
+      status,
+      input.usable_provider_payload,
+    );
+    const reason =
+      status === null
+        ? "pre_response_http_status_unavailable"
+        : status === 200 && input.usable_provider_payload === false
+          ? "pre_response_http_200_unusable_payload"
+          : `pre_response_http_${status}`;
+    return freezeFailureEvidence(
+      input,
+      "http_response",
+      reason,
+      retryable,
+      true,
+      status,
+    );
+  }
+
+  if (isTrustedNetworkTransportError(input.thrown))
+    return freezeFailureEvidence(
+      input,
+      "network_transport",
+      "pre_response_network_transport",
+      true,
+    );
+
+  return freezeFailureEvidence(
+    input,
+    "unknown_pre_response_failure",
+    "pre_response_unknown_fail_closed",
+    false,
+  );
+};
 
 const isRecord = (value: unknown): value is JsonRecord =>
   typeof value === "object" && value !== null && !Array.isArray(value);
@@ -986,6 +1275,8 @@ export class GlmFireworksControlledConformanceHarness {
         const completed = this.options.clock?.() ?? new Date();
         const externallyCancelled = this.options.signal?.aborted === true;
         const timedOut = timeoutSignal.aborted && !externallyCancelled;
+        const boundaryFailure =
+          sanitizeGlmFireworksNativeTransportError(error) ?? error;
         const failure = externallyCancelled
           ? undefined
           : this.classifyPreResponseFailureOnly({
@@ -994,7 +1285,7 @@ export class GlmFireworksControlledConformanceHarness {
               correlation_id: controlled.correlation_id,
               execution_evidence_id: `${controlled.correlation_id}.attempt-${index + 1}.pre-response`,
               timed_out: timedOut,
-              thrown: error,
+              thrown: boundaryFailure,
             });
         attempts.push({
           attempt: index + 1,

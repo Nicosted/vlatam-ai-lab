@@ -3,7 +3,9 @@
 - Date: 2026-07-17
 - Repository: `vlatam-ai-lab`
 - Branch: `feat/ai-lab-glm-fireworks-controlled-conformance`
-- Remediation baseline: `2f69dc640d7e6e7696f39d77ca4ec70297f1e097`
+- Trusted-marker restriction baseline:
+  `740f1354821034f001d9d263e847a3654a9ea413`
+- First remediation baseline: `2f69dc640d7e6e7696f39d77ca4ec70297f1e097`
 - Original controlled-conformance commit: `c859cbf1ad95368dc9e2aeb3ff759f20aa39d43d`
 
 ## Scope and source snapshot
@@ -46,14 +48,20 @@ retry authority.
 
 ## Trusted marker and safe inspection boundaries
 
-The public `credential_available` assertion was removed. Credential absence is
-selected only for an object created by the local credential boundary and
-registered in a module-private `WeakSet`. A string code, plain object, generic
-error, or legacy boolean cannot impersonate the marker. The classifier does not
-read environment variables or credential values.
+The public `credential_available` assertion was removed. The credential marker
+class, constructor, registry, and recognition function now exist only as
+module-private declarations inside the controlled harness/adapter module. The
+only production construction site is the credential-presence boundary inside
+the approval-scoped transport. None of those marker-producing paths is exported
+from the provider contract or public conformance barrel. A string code, plain
+object, generic error, legacy boolean, or public API caller therefore cannot
+manufacture `credential_unavailable`. The private classifier does not read
+environment variables or credential values.
 
-Raw network errors are considered only at the approved transport adapter
-boundary. That sanitizer:
+The native-error sanitizer, trusted network marker class, registry, and private
+classifier also live only inside the controlled harness/adapter module. They are
+not exported from the public conformance API. Raw native errors are considered
+only after crossing the transport boundary. That private sanitizer:
 
 - accepts a native `Error` only and rejects Proxies before descriptor access;
 - reads only own `code` and `cause` data-property descriptors;
@@ -65,15 +73,23 @@ boundary. That sanitizer:
 - replaces an accepted code with a generic module-private network marker, so
   raw details do not enter classification evidence.
 
+The enforced flow is: untrusted native transport error -> private adapter
+sanitizer -> private trusted failure -> private classifier -> public sanitized
+evidence. The classification-only public harness operation cannot sanitize or
+register a caller-supplied error; a direct handcrafted `ENOTFOUND` error remains
+`unknown_pre_response_failure`.
+
 This is a narrow shape acceptance rule, not a claim that arbitrary JavaScript
 objects or Proxies can be safely introspected. Unsafe or malformed thrown values
 remain opaque and become `unknown_pre_response_failure`.
 
 ## Governance metadata validation
 
-The exported classifier accepts `unknown` and validates the complete input
-before emitting evidence. It accepts only a plain, non-Proxy record with an
-exact property allowlist and own data descriptors. It requires:
+The classifier is module-private. The public harness exposes only a
+classification-only operation returning sanitized evidence; it has no access to
+marker creation or transport execution. The private classifier validates its
+complete input before emitting evidence. It accepts only a plain, non-Proxy
+record with an exact property allowlist and own data descriptors. It requires:
 
 - a positive safe-integer attempt from `1` through the authorized maximum of
   `3`;
@@ -113,10 +129,12 @@ kill-switch, and no-fallback constraints.
 
 All validation was local and mock-only:
 
-- sanitized failure-classifier tests: **25/25 passed**;
-- directly affected conformance and harness tests: **39/39 passed** across 2
+- sanitized failure-classifier and boundary tests: **26/26 passed**;
+- public-export surface test: passed;
+- carriage-return and NUL identifier rejection: passed;
+- directly affected conformance and harness tests: **40/40 passed** across 2
   suites;
-- full repository suite: **1,087/1,087 passed** across 152 suites;
+- full repository suite: **1,088/1,088 passed** across 152 suites;
 - TypeScript typecheck: passed;
 - build: passed;
 - scoped ESLint: passed;
@@ -127,11 +145,22 @@ All validation was local and mock-only:
   `a167636fd6b96235d96f60a7c3493d2f1952d8d0fe4d6360b55018efcde30939`
   (must remain unchanged).
 
-The instrumented classifier-only test constructs the real harness with spies on
-global fetch, transport, idempotency reservation, and authorization consumption.
-It asserts zero calls to every boundary and therefore also proves zero retry
-execution. The test mock is owned and automatically restored by the Node test
-context.
+The public-surface test verifies that credential/network marker constructors,
+registries, and sanitizer functions are absent from both the provider contract
+and public conformance barrel. Boundary integration proves that the real
+credential boundary still yields sanitized `credential_unavailable` evidence
+inside an isolated child process with an empty environment, zero fetch calls,
+and zero authorization/idempotency operations.
+The transport-boundary tests prove that a native allowlisted error becomes
+`network_transport` only after the harness catches it, while the same direct
+error remains unknown.
+
+The instrumented classification-only test constructs the real harness with
+spies on global fetch, transport, idempotency reservation, and authorization
+consumption. It asserts zero calls to every boundary and therefore also proves
+zero retry execution. The test mock is owned and automatically restored by the
+Node test context. Identifier cases include carriage return and NUL rejection
+before evidence emission.
 
 ## Safety state and blockers
 

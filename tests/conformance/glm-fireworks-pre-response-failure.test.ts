@@ -1,13 +1,15 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import { describe, it } from "node:test";
+import { fileURLToPath } from "node:url";
 
+import * as publicConformance from "../../src/conformance/index.js";
+import * as publicFailureContract from "../../src/providers/glm-fireworks-pre-response-failure.js";
 import {
-  classifyGlmFireworksPreResponseFailure,
+  buildGlmConformanceRequest,
   GlmFireworksControlledConformanceHarness,
-  GlmFireworksCredentialUnavailableError,
   GlmFireworksInvalidGovernanceMetadataError,
-  isGlmFireworksCredentialUnavailableError,
-  sanitizeGlmFireworksNativeTransportError,
+  type GlmFireworksPreResponseFailureEvidence,
 } from "../../src/conformance/index.js";
 
 const base = Object.freeze({
@@ -29,65 +31,130 @@ const nativeNetworkError = (code: string): Error => {
   return error;
 };
 
-const trustedNetworkError = (code: string): Error => {
-  const sanitized = sanitizeGlmFireworksNativeTransportError(
-    nativeNetworkError(code),
+const classificationOnly = (
+  input: unknown,
+): GlmFireworksPreResponseFailureEvidence => {
+  const harness = new GlmFireworksControlledConformanceHarness({
+    authorizationStore: {
+      consume() {
+        throw new Error("authorization_must_not_run");
+      },
+    },
+    idempotencyStore: {
+      reserve() {
+        throw new Error("idempotency_must_not_run");
+      },
+      complete() {
+        throw new Error("idempotency_must_not_run");
+      },
+    },
+    async transport() {
+      throw new Error("transport_must_not_run");
+    },
+  });
+  return harness.classifyPreResponseFailureOnly(input);
+};
+
+const executeTransportBoundaryFailure = async (
+  thrown: unknown,
+): Promise<GlmFireworksPreResponseFailureEvidence> => {
+  let authorizationConsumes = 0;
+  let transportCalls = 0;
+  const harness = new GlmFireworksControlledConformanceHarness({
+    authorizationStore: {
+      consume() {
+        authorizationConsumes += 1;
+        return "consumed";
+      },
+    },
+    idempotencyStore: {
+      reserve() {
+        return "reserved";
+      },
+      complete() {},
+    },
+    async transport() {
+      transportCalls += 1;
+      throw thrown;
+    },
+    clock: () => new Date("2026-07-17T15:05:00.000Z"),
+  });
+  const evidence = await harness.execute(
+    buildGlmConformanceRequest("ai-122.structured-extraction", {
+      retry_limit: 0,
+    }),
   );
-  assert.ok(sanitized);
-  return sanitized;
+  assert.equal(authorizationConsumes, 1);
+  assert.equal(transportCalls, 1);
+  const failure = evidence.attempts[0]?.pre_response_failure;
+  assert.ok(failure);
+  return failure;
 };
 
 describe("GLM Fireworks sanitized pre-response failure classification", () => {
-  it("classifies only the trusted local missing-credential marker", () => {
-    const error = new GlmFireworksCredentialUnavailableError();
-    assert.equal(isGlmFireworksCredentialUnavailableError(error), true);
-    const result = classifyGlmFireworksPreResponseFailure({
-      ...base,
-      thrown: error,
-    });
-    assert.equal(result.classification, "credential_unavailable");
-    assert.equal(result.reason_code, "pre_response_credential_unavailable");
-    assert.equal(result.retryable, false);
-    assert.equal(result.terminal, true);
-    assert.equal(result.http_status_present, false);
-  });
-
-  it("rejects the removed public credential boolean and forged markers", () => {
-    for (const forged of [
-      { credential_available: false },
-      { name: "GlmFireworksCredentialUnavailableError" },
-      { governed_failure_code: "credential_unavailable" },
-      new Error("credential_unavailable"),
-      "credential_unavailable",
+  it("does not expose credential or network marker creation through public modules", () => {
+    for (const forbidden of [
+      "GlmFireworksCredentialUnavailableError",
+      "GlmFireworksNetworkTransportError",
+      "isGlmFireworksCredentialUnavailableError",
+      "sanitizeGlmFireworksNativeTransportError",
+      "createTrustedCredentialError",
+      "markNetworkError",
+      "registerTrustedFailure",
     ]) {
-      assert.equal(isGlmFireworksCredentialUnavailableError(forged), false);
-      if ("credential_available" in Object(forged)) {
-        assert.throws(
-          () =>
-            classifyGlmFireworksPreResponseFailure({
-              ...base,
-              ...(forged as object),
-            }),
-          GlmFireworksInvalidGovernanceMetadataError,
-        );
-      } else {
-        assert.equal(
-          classifyGlmFireworksPreResponseFailure({
-            ...base,
-            thrown: forged,
-          }).classification,
-          "unknown_pre_response_failure",
-        );
-      }
+      assert.equal(Object.hasOwn(publicConformance, forbidden), false);
+      assert.equal(Object.hasOwn(publicFailureContract, forbidden), false);
     }
   });
 
-  it("gives trusted timeout state precedence over an AbortError", () => {
-    const abortError = new DOMException("untrusted abort", "AbortError");
-    const result = classifyGlmFireworksPreResponseFailure({
+  it("fails direct credential and network impersonation closed", () => {
+    for (const thrown of [
+      new Error("credential_unavailable"),
+      { name: "GlmFireworksCredentialUnavailableError" },
+      { governed_failure_code: "credential_unavailable" },
+      "credential_unavailable",
+      nativeNetworkError("ENOTFOUND"),
+      { code: "ENOTFOUND" },
+    ])
+      assert.equal(
+        classificationOnly({ ...base, thrown }).classification,
+        "unknown_pre_response_failure",
+      );
+  });
+
+  it("rejects the removed public credential boolean", () => {
+    assert.throws(
+      () =>
+        classificationOnly({
+          ...base,
+          credential_available: false,
+          thrown: new Error("credential_unavailable"),
+        }),
+      GlmFireworksInvalidGovernanceMetadataError,
+    );
+  });
+
+  it("classifies credential absence only through the real credential boundary", () => {
+    const fixture = fileURLToPath(
+      new URL(
+        "./fixtures/glm-fireworks-credential-boundary.fixture.ts",
+        import.meta.url,
+      ),
+    );
+    const child = spawnSync(process.execPath, ["--import", "tsx", fixture], {
+      cwd: process.cwd(),
+      encoding: "utf8",
+      env: {},
+      timeout: 15_000,
+    });
+    assert.equal(child.status, 0, child.stderr || child.stdout);
+  });
+
+  it("gives explicit harness timeout state precedence over an AbortError", () => {
+    const result = classificationOnly({
       ...base,
       timed_out: true,
-      thrown: abortError,
+      thrown: new DOMException("untrusted abort", "AbortError"),
     });
     assert.equal(result.classification, "timeout");
     assert.equal(result.reason_code, "pre_response_timeout");
@@ -95,8 +162,8 @@ describe("GLM Fireworks sanitized pre-response failure classification", () => {
     assert.equal(result.terminal, false);
   });
 
-  it("does not trust an AbortError name without the harness timeout state", () => {
-    const result = classifyGlmFireworksPreResponseFailure({
+  it("does not trust an AbortError name without harness timeout state", () => {
+    const result = classificationOnly({
       ...base,
       thrown: new DOMException("untrusted abort", "AbortError"),
     });
@@ -104,24 +171,26 @@ describe("GLM Fireworks sanitized pre-response failure classification", () => {
     assert.equal(result.terminal, true);
   });
 
-  it("classifies allowlisted codes only after native adapter sanitization", () => {
+  it("classifies native allowlisted errors only through the transport boundary", async () => {
     for (const code of ["ENOTFOUND", "ECONNRESET", "UND_ERR_SOCKET"]) {
-      const result = classifyGlmFireworksPreResponseFailure({
-        ...base,
-        thrown: trustedNetworkError(code),
-      });
+      const result = await executeTransportBoundaryFailure(
+        nativeNetworkError(code),
+      );
       assert.equal(result.classification, "network_transport");
       assert.equal(result.reason_code, "pre_response_network_transport");
       assert.doesNotMatch(JSON.stringify(result), /untrusted-network-details/);
     }
   });
 
-  it("accepts one safe native cause level and rejects deeper or cyclic causes", () => {
+  it("accepts one safe native cause level and rejects deeper or cyclic causes", async () => {
     const outer = new Error("outer");
     Object.defineProperty(outer, "cause", {
       value: nativeNetworkError("EAI_AGAIN"),
     });
-    assert.ok(sanitizeGlmFireworksNativeTransportError(outer));
+    assert.equal(
+      (await executeTransportBoundaryFailure(outer)).classification,
+      "network_transport",
+    );
 
     const deep = new Error("deep");
     const middle = new Error("middle");
@@ -129,30 +198,33 @@ describe("GLM Fireworks sanitized pre-response failure classification", () => {
       value: nativeNetworkError("ENOTFOUND"),
     });
     Object.defineProperty(deep, "cause", { value: middle });
-    assert.equal(sanitizeGlmFireworksNativeTransportError(deep), null);
+    assert.equal(
+      (await executeTransportBoundaryFailure(deep)).classification,
+      "unknown_pre_response_failure",
+    );
 
     const cyclic = new Error("cyclic");
     Object.defineProperty(cyclic, "cause", { value: cyclic });
-    assert.equal(sanitizeGlmFireworksNativeTransportError(cyclic), null);
+    assert.equal(
+      (await executeTransportBoundaryFailure(cyclic)).classification,
+      "unknown_pre_response_failure",
+    );
   });
 
-  it("rejects plain objects, inherited codes, and unallowlisted native codes", () => {
+  it("rejects plain objects, inherited codes, and unallowlisted native codes", async () => {
     const inherited = Object.create({ code: "ENOTFOUND" });
     for (const value of [
       { code: "ENOTFOUND" },
       inherited,
       nativeNetworkError("NOT_ALLOWLISTED"),
-    ]) {
-      assert.equal(sanitizeGlmFireworksNativeTransportError(value), null);
+    ])
       assert.equal(
-        classifyGlmFireworksPreResponseFailure({ ...base, thrown: value })
-          .classification,
+        (await executeTransportBoundaryFailure(value)).classification,
         "unknown_pre_response_failure",
       );
-    }
   });
 
-  it("never invokes code or cause getters", () => {
+  it("never invokes code or cause getters", async () => {
     let codeGetterCalls = 0;
     let causeGetterCalls = 0;
     const codeGetter = new Error("getter");
@@ -169,13 +241,19 @@ describe("GLM Fireworks sanitized pre-response failure classification", () => {
         throw new Error("must_not_run");
       },
     });
-    assert.equal(sanitizeGlmFireworksNativeTransportError(codeGetter), null);
-    assert.equal(sanitizeGlmFireworksNativeTransportError(causeGetter), null);
+    assert.equal(
+      (await executeTransportBoundaryFailure(codeGetter)).classification,
+      "unknown_pre_response_failure",
+    );
+    assert.equal(
+      (await executeTransportBoundaryFailure(causeGetter)).classification,
+      "unknown_pre_response_failure",
+    );
     assert.equal(codeGetterCalls, 0);
     assert.equal(causeGetterCalls, 0);
   });
 
-  it("rejects proxies without triggering proxy traps", () => {
+  it("rejects proxies without triggering proxy traps", async () => {
     let trapCalls = 0;
     const forgedProxy = new Proxy(new Error("proxy"), {
       get(_target, property) {
@@ -201,18 +279,15 @@ describe("GLM Fireworks sanitized pre-response failure classification", () => {
         throw new Error("must_not_run");
       },
     });
-    for (const proxy of [forgedProxy, throwingProxy]) {
-      assert.equal(sanitizeGlmFireworksNativeTransportError(proxy), null);
+    for (const proxy of [forgedProxy, throwingProxy])
       assert.equal(
-        classifyGlmFireworksPreResponseFailure({ ...base, thrown: proxy })
-          .classification,
+        (await executeTransportBoundaryFailure(proxy)).classification,
         "unknown_pre_response_failure",
       );
-    }
     assert.equal(trapCalls, 0);
   });
 
-  it("does not invoke serialization or string-conversion hooks", () => {
+  it("does not invoke serialization or string-conversion hooks", async () => {
     let hookCalls = 0;
     const error = nativeNetworkError("ENETUNREACH") as Error & {
       toJSON?: () => never;
@@ -226,25 +301,23 @@ describe("GLM Fireworks sanitized pre-response failure classification", () => {
       hookCalls += 1;
       throw new Error("must_not_run");
     };
-    assert.ok(sanitizeGlmFireworksNativeTransportError(error));
+    assert.equal(
+      (await executeTransportBoundaryFailure(error)).classification,
+      "network_transport",
+    );
     assert.equal(hookCalls, 0);
   });
 
-  it("does not mutate a native error while sanitizing it", () => {
+  it("does not mutate boundary errors or classifier input", async () => {
     const error = nativeNetworkError("ECONNREFUSED");
-    const before = Object.getOwnPropertyDescriptors(error);
-    assert.ok(sanitizeGlmFireworksNativeTransportError(error));
-    assert.deepEqual(Object.getOwnPropertyDescriptors(error), before);
-  });
+    const errorBefore = Object.getOwnPropertyDescriptors(error);
+    await executeTransportBoundaryFailure(error);
+    assert.deepEqual(Object.getOwnPropertyDescriptors(error), errorBefore);
 
-  it("does not mutate classifier input metadata or its thrown value", () => {
-    const thrown = new Error("untrusted");
-    const input = { ...base, thrown };
+    const input = { ...base, thrown: new Error("untrusted") };
     const inputBefore = Object.getOwnPropertyDescriptors(input);
-    const thrownBefore = Object.getOwnPropertyDescriptors(thrown);
-    classifyGlmFireworksPreResponseFailure(input);
+    classificationOnly(input);
     assert.deepEqual(Object.getOwnPropertyDescriptors(input), inputBefore);
-    assert.deepEqual(Object.getOwnPropertyDescriptors(thrown), thrownBefore);
   });
 
   for (const [status, retryable] of [
@@ -255,7 +328,7 @@ describe("GLM Fireworks sanitized pre-response failure classification", () => {
     [503, true],
   ] as const) {
     it(`classifies HTTP ${status} as a sanitized HTTP response`, () => {
-      const result = classifyGlmFireworksPreResponseFailure({
+      const result = classificationOnly({
         ...base,
         response_present: true,
         response_status: status,
@@ -272,22 +345,21 @@ describe("GLM Fireworks sanitized pre-response failure classification", () => {
 
   it("fails absent and invalid HTTP status values closed", () => {
     for (const status of [undefined, "503", 99, 600, NaN, Infinity, 503.5]) {
-      const result = classifyGlmFireworksPreResponseFailure({
+      const result = classificationOnly({
         ...base,
         response_present: true,
         ...(status === undefined ? {} : { response_status: status }),
       });
       assert.equal(result.classification, "http_response");
       assert.equal(result.reason_code, "pre_response_http_status_unavailable");
-      assert.equal(result.http_status_present, true);
       assert.equal(result.http_status_code, null);
       assert.equal(result.retryable, false);
       assert.equal(result.terminal, true);
     }
   });
 
-  it("classifies an HTTP 200 without usable payload without reading a body", () => {
-    const result = classifyGlmFireworksPreResponseFailure({
+  it("classifies HTTP 200 without usable payload without reading a body", () => {
+    const result = classificationOnly({
       ...base,
       response_present: true,
       response_status: 200,
@@ -301,10 +373,7 @@ describe("GLM Fireworks sanitized pre-response failure classification", () => {
 
   it("fails malformed and unknown thrown values closed", () => {
     for (const thrown of [null, "failure", 17, Symbol("failure"), {}]) {
-      const result = classifyGlmFireworksPreResponseFailure({
-        ...base,
-        thrown,
-      });
+      const result = classificationOnly({ ...base, thrown });
       assert.equal(result.classification, "unknown_pre_response_failure");
       assert.equal(result.reason_code, "pre_response_unknown_fail_closed");
       assert.equal(result.retryable, false);
@@ -312,11 +381,13 @@ describe("GLM Fireworks sanitized pre-response failure classification", () => {
     }
   });
 
-  it("rejects absent, malformed, oversized, URL-like, and secret-like IDs", () => {
+  it("rejects malformed, oversized, URL-like, query-like, and control-character IDs", () => {
     const invalidValues: unknown[] = [
       {},
       { ...base, correlation_id: "" },
       { ...base, correlation_id: "bad\nidentifier" },
+      { ...base, correlation_id: "bad\ridentifier" },
+      { ...base, correlation_id: "bad\u0000identifier" },
       { ...base, correlation_id: "https://example.test/id" },
       { ...base, correlation_id: "id?token=secret" },
       { ...base, correlation_id: `a${"b".repeat(192)}` },
@@ -325,7 +396,7 @@ describe("GLM Fireworks sanitized pre-response failure classification", () => {
     ];
     for (const value of invalidValues)
       assert.throws(
-        () => classifyGlmFireworksPreResponseFailure(value),
+        () => classificationOnly(value),
         GlmFireworksInvalidGovernanceMetadataError,
       );
   });
@@ -337,7 +408,6 @@ describe("GLM Fireworks sanitized pre-response failure classification", () => {
         throw new Error("must_not_run");
       },
     });
-    const proxyInput = new Proxy({ ...base }, {});
     const invalidValues: unknown[] = [
       ...[-1, 0, 1.5, 4, NaN, Infinity].map((attempt) => ({
         ...base,
@@ -349,27 +419,23 @@ describe("GLM Fireworks sanitized pre-response failure classification", () => {
       { ...base, response_present: 1 },
       { ...base, usable_provider_payload: null },
       accessorInput,
-      proxyInput,
+      new Proxy({ ...base }, {}),
     ];
     for (const value of invalidValues)
       assert.throws(
-        () => classifyGlmFireworksPreResponseFailure(value),
+        () => classificationOnly(value),
         GlmFireworksInvalidGovernanceMetadataError,
       );
   });
 
   it("never persists a secret-bearing message, cause, body, or stack", () => {
     const secret = "example-secret-value-must-not-survive";
-    const cause = new Error(`nested Bearer ${secret}`);
     const thrown = new Error(
       `Bearer ${secret}; body={customer_data:true}; host=private.internal`,
-      { cause },
+      { cause: new Error(`nested Bearer ${secret}`) },
     );
     thrown.stack = `Error: ${secret}\nAuthorization: Bearer ${secret}`;
-    const result = classifyGlmFireworksPreResponseFailure({
-      ...base,
-      thrown,
-    });
+    const result = classificationOnly({ ...base, thrown });
     assert.doesNotMatch(
       JSON.stringify(result),
       /example-secret|Bearer|Authorization|customer_data|private\.internal/,
@@ -383,29 +449,12 @@ describe("GLM Fireworks sanitized pre-response failure classification", () => {
       response_status: 429,
       usable_provider_payload: false,
     } as const;
-    const first = classifyGlmFireworksPreResponseFailure(input);
-    assert.deepEqual(first, classifyGlmFireworksPreResponseFailure(input));
-    assert.deepEqual(Object.keys(first).sort(), [
-      "adapter_id",
-      "attempt",
-      "classification",
-      "contract_version",
-      "correlation_id",
-      "execution_evidence_id",
-      "http_status_code",
-      "http_status_present",
-      "model_id",
-      "profile_id",
-      "reason_code",
-      "retryable",
-      "route_id",
-      "terminal",
-      "timestamp",
-    ]);
+    const first = classificationOnly(input);
+    assert.deepEqual(first, classificationOnly(input));
     assert.equal(Object.isFrozen(first), true);
   });
 
-  it("uses the harness-connected classifier with zero fetch, transport, retry, or authorization", (context) => {
+  it("classification-only execution performs zero fetch, transport, retry, idempotency, or authorization work", (context) => {
     let transportAttempts = 0;
     let authorizationConsumes = 0;
     let idempotencyReservations = 0;
@@ -434,9 +483,9 @@ describe("GLM Fireworks sanitized pre-response failure classification", () => {
 
     const result = harness.classifyPreResponseFailureOnly({
       ...base,
-      thrown: trustedNetworkError("ENOTFOUND"),
+      thrown: nativeNetworkError("ENOTFOUND"),
     });
-    assert.equal(result.classification, "network_transport");
+    assert.equal(result.classification, "unknown_pre_response_failure");
     assert.equal(fetchMock.mock.callCount(), 0);
     assert.equal(transportAttempts, 0);
     assert.equal(authorizationConsumes, 0);
