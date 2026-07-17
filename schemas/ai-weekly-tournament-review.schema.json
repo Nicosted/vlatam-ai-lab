@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/ai-weekly-tournament-review.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "weekly_review_id",
+    "week_ending",
+    "daily_report_refs",
+    "rankings",
+    "universal_winner",
+    "reviewed_by_roles",
+    "review_status",
+    "evidence_refs"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "weekly_review_id": {
+      "$ref": "ai-tournament-common.schema.json#/$defs/id"
+    },
+    "week_ending": { "type": "string", "format": "date" },
+    "daily_report_refs": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "ai-tournament-common.schema.json#/$defs/id" },
+      "uniqueItems": true
+    },
+    "rankings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "quality",
+        "value",
+        "reliability",
+        "privacy_governance",
+        "capability_specific"
+      ],
+      "properties": {
+        "quality": { "$ref": "#/$defs/ranking" },
+        "value": { "$ref": "#/$defs/ranking" },
+        "reliability": { "$ref": "#/$defs/ranking" },
+        "privacy_governance": { "$ref": "#/$defs/ranking" },
+        "capability_specific": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": { "$ref": "#/$defs/ranking" }
+        }
+      }
+    },
+    "universal_winner": { "const": false },
+    "reviewed_by_roles": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "ai-tournament-common.schema.json#/$defs/id" },
+      "uniqueItems": true
+    },
+    "review_status": {
+      "$ref": "ai-tournament-common.schema.json#/$defs/approval"
+    },
+    "evidence_refs": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "ai-tournament-common.schema.json#/$defs/id" },
+      "uniqueItems": true
+    }
+  },
+  "$defs": {
+    "ranking": {
+      "type": "array",
+      "items": { "$ref": "ai-tournament-common.schema.json#/$defs/id" },
+      "uniqueItems": true
+    }
+  }
+}

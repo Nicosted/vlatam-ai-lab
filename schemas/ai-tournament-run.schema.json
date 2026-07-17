@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/ai-tournament-run.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "tournament_run_id",
+    "run_date",
+    "selection_ref",
+    "selection_hash",
+    "profile_refs",
+    "deterministic_fanout",
+    "candidate_isolation",
+    "equivalent_policy_hash",
+    "idempotency_key",
+    "budget_state",
+    "status",
+    "human_review_required",
+    "evidence_refs"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "tournament_run_id": {
+      "$ref": "ai-tournament-common.schema.json#/$defs/id"
+    },
+    "run_date": { "type": "string", "format": "date" },
+    "selection_ref": { "$ref": "ai-tournament-common.schema.json#/$defs/id" },
+    "selection_hash": {
+      "$ref": "ai-tournament-common.schema.json#/$defs/hash"
+    },
+    "profile_refs": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "ai-tournament-common.schema.json#/$defs/id" },
+      "uniqueItems": true
+    },
+    "deterministic_fanout": { "const": true },
+    "candidate_isolation": { "const": true },
+    "equivalent_policy_hash": {
+      "$ref": "ai-tournament-common.schema.json#/$defs/hash"
+    },
+    "idempotency_key": { "$ref": "ai-tournament-common.schema.json#/$defs/id" },
+    "budget_state": {
+      "$ref": "ai-tournament-common.schema.json#/$defs/budget_state"
+    },
+    "status": {
+      "enum": ["planned", "running", "completed", "failed", "blocked"]
+    },
+    "human_review_required": { "const": true },
+    "evidence_refs": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "ai-tournament-common.schema.json#/$defs/id" },
+      "uniqueItems": true
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "budget_state": {
+            "type": "object",
+            "properties": { "exhausted": { "const": true } }
+          }
+        }
+      },
+      "then": {
+        "type": "object",
+        "properties": { "status": { "const": "blocked" } }
+      }
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/ai-daily-tournament-report.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "daily_report_id",
+    "report_date",
+    "run_refs",
+    "result_refs",
+    "budget_states",
+    "unresolved_blockers",
+    "human_review_required",
+    "evidence_refs"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "daily_report_id": { "$ref": "ai-tournament-common.schema.json#/$defs/id" },
+    "report_date": { "type": "string", "format": "date" },
+    "run_refs": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "ai-tournament-common.schema.json#/$defs/id" },
+      "uniqueItems": true
+    },
+    "result_refs": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "ai-tournament-common.schema.json#/$defs/id" },
+      "uniqueItems": true
+    },
+    "budget_states": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "$ref": "ai-tournament-common.schema.json#/$defs/budget_state"
+      }
+    },
+    "unresolved_blockers": {
+      "type": "array",
+      "items": { "type": "string" },
+      "uniqueItems": true
+    },
+    "human_review_required": { "const": true },
+    "evidence_refs": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "ai-tournament-common.schema.json#/$defs/id" },
+      "uniqueItems": true
+    }
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "schema_version": "1.0.0",
+  "runtime_candidate_id": "ai-lab-native",
+  "runtime_kind": "native",
+  "version": "1.0.0",
+  "deployment_mode": "local_only",
+  "lifecycle_status": "sandbox_only",
+  "supported_capabilities": [
+    "technology.watch",
+    "regulatory.research",
+    "document.intake"
+  ],
+  "durability": {
+    "durable": false,
+    "mechanism": "repository-local fixtures only"
+  },
+  "session_resume": { "sessions": false, "resume": "unsupported" },
+  "cancellation": {
+    "supported": true,
+    "semantics": "cooperative local abort before external action"
+  },
+  "human_review_support": true,
+  "subagent_support": false,
+  "sandbox_support": true,
+  "observability_support": ["metadata_audit", "evidence_export"],
+  "reasoning_event_handling": { "capture": "disabled", "approval_id": null },
+  "privacy_constraints": [
+    "local_fixture_only",
+    "no_customer_data",
+    "metadata_only_events"
+  ],
+  "geographic_constraints": ["local_development_only"],
+  "cost_accounting_support": true,
+  "evidence_export_support": true,
+  "kill_switch": { "active": true },
+  "approval_state": "pending",
+  "enabled": false,
+  "evidence": [
+    {
+      "evidence_id": "repo.ai-system-architecture.2026-07-17",
+      "content_hash": "dbc0e92c134ecdc57079b7963ad4e1aaa4be83e8d5e2982b56757521050408c3",
+      "reviewed_at": "2026-07-17T12:00:00.000Z",
+      "reviewer_role": "architecture_author"
+    }
+  ]
+}

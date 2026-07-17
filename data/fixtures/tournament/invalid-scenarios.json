@@ -1,0 +1,71 @@
+{
+  "missing_runtime_identity": {
+    "base": "runtime_candidate",
+    "remove": "runtime_candidate_id",
+    "expected_error": "runtime_identity_missing"
+  },
+  "unapproved_provider": {
+    "base": "execution_profile",
+    "set": { "provider_endpoint_candidate_id": "endpoint.unapproved" },
+    "expected_error": "provider_endpoint_unapproved"
+  },
+  "missing_privacy_classification": {
+    "base": "execution_profile",
+    "remove": "privacy_classification",
+    "expected_error": "privacy_classification_missing"
+  },
+  "reasoning_capture_enabled_without_approval": {
+    "base": "execution_profile",
+    "set": {
+      "reasoning_capture": "approved_summary",
+      "reasoning_capture_approval_id": null
+    },
+    "expected_error": "reasoning_capture_approval_missing"
+  },
+  "exhausted_budget": {
+    "base": "tournament_run",
+    "set_nested": { "budget_state.exhausted": true },
+    "expected_error": "budget_exhausted"
+  },
+  "unsupported_resume_semantics": {
+    "base": "runtime_candidate",
+    "set_nested": {
+      "session_resume.sessions": false,
+      "session_resume.resume": "token"
+    },
+    "expected_error": "schema_invalid"
+  },
+  "stale_authorization": {
+    "base": "execution_profile",
+    "set": {
+      "authorization_id": "authorization.stale",
+      "authorization_expires_at": "2026-01-01T00:00:00.000Z"
+    },
+    "expected_error": "authorization_stale"
+  },
+  "invalid_lifecycle_transition": {
+    "base": "promotion_decision",
+    "set": { "from_state": "discovered", "to_state": "preferred" },
+    "expected_error": "lifecycle_transition_invalid"
+  },
+  "incomplete_evidence": {
+    "base": "candidate_result",
+    "set": { "evidence_refs": [] },
+    "expected_error": "evidence_incomplete"
+  },
+  "candidate_attempting_self_promotion": {
+    "base": "promotion_decision",
+    "set": { "candidate_is_decision_maker": true },
+    "expected_error": "candidate_self_promotion_forbidden"
+  },
+  "missing_cost_reconciliation": {
+    "base": "candidate_result",
+    "remove": "cost_reconciliation",
+    "expected_error": "cost_reconciliation_missing"
+  },
+  "disqualifying_governance_failure": {
+    "base": "candidate_result",
+    "set": { "status": "eligible", "disqualifying_failures": ["privacy"] },
+    "expected_error": "governance_failure_must_disqualify"
+  }
+}

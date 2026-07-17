@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/ai-tournament-common.schema.json",
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{1,127}$" },
+    "semver": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+    "hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "date_time": { "type": "string", "format": "date-time" },
+    "lifecycle": {
+      "enum": [
+        "discovered",
+        "sandbox_only",
+        "benchmark_candidate",
+        "shadow",
+        "canary",
+        "approved",
+        "preferred",
+        "degraded",
+        "suspended",
+        "blocked"
+      ]
+    },
+    "approval": { "enum": ["pending", "approved", "rejected"] },
+    "reasoning_capture": {
+      "enum": ["disabled", "redacted", "approved_summary"]
+    },
+    "evidence_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evidence_id",
+        "content_hash",
+        "reviewed_at",
+        "reviewer_role"
+      ],
+      "properties": {
+        "evidence_id": { "$ref": "#/$defs/id" },
+        "content_hash": { "$ref": "#/$defs/hash" },
+        "reviewed_at": { "$ref": "#/$defs/date_time" },
+        "reviewer_role": { "$ref": "#/$defs/id" }
+      }
+    },
+    "budget_state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "budget_id",
+        "window",
+        "currency",
+        "limit_units",
+        "consumed_units",
+        "exhausted"
+      ],
+      "properties": {
+        "budget_id": { "$ref": "#/$defs/id" },
+        "window": {
+          "enum": [
+            "daily_benchmark",
+            "weekly_exploration",
+            "monthly_provider_validation"
+          ]
+        },
+        "currency": { "const": "USD" },
+        "limit_units": { "type": "string", "pattern": "^[0-9]+$" },
+        "consumed_units": { "type": "string", "pattern": "^[0-9]+$" },
+        "exhausted": { "type": "boolean" }
+      }
+    }
+  }
+}

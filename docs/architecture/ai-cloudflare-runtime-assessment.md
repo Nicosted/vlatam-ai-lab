@@ -1,0 +1,9 @@
+# Cloudflare Agents SDK and Workflows Assessment — Repository Evidence Only
+
+Assessment date: 2026-07-17. No authenticated calls or external documentation access occurred.
+
+Accepted sources are the repository's 2026-06-15 `docs/cloudflare-audit.md` and `docs/cloudflare-pipeline-plan.md`. Both describe a historical Worker/Workflows/Queues/R2/Workers AI/AI Gateway plan. The pipeline plan and setup guide were explicitly retired on 2026-07-13, and the governed-execution-boundary work removed the direct-provider Worker, queues, embedding consumer and AI Gateway wrapper. The evidence is useful history, not current capability proof.
+
+Repository evidence suggests the historical design intended step retries/timeouts, durable workflow continuation, a human-review pause, queue dispatch, R2 artifacts, Workers AI and AI Gateway observability/cost features. It does not provide current, versioned evidence for the Cloudflare Agents SDK; session/agent state semantics; continuation or resume tokens; cancellation; replayable normalized events; subagents; structured-result guarantees; sandbox isolation; reasoning-event behavior; current eval APIs; current pricing; ZDR/retention/region; or portability. The old plan's provider fallback and request/response logging conflict with current no-fallback and metadata-only governance unless explicitly redesigned.
+
+Conclusion: `cloudflare-agents-workflows` remains `discovered`, version `0.0.0`, disabled, kill-switched and benchmark-ineligible. Before `sandbox_only`, capture and independently review current public documentation/version evidence for the missing topics, map it to the common contracts, and demonstrate that AI LAB retains provider selection, scoring, evidence approval and promotion control. Historical Cloudflare configuration identifiers are not runtime authority.

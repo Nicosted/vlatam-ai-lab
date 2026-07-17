@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/ai-inference-gateway-candidate.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "inference_gateway_candidate_id",
+    "gateway_kind",
+    "version",
+    "lifecycle_status",
+    "provider_selection_control",
+    "approved_provider_endpoint_ids",
+    "privacy_classifications",
+    "zdr_status",
+    "approval_state",
+    "kill_switch",
+    "enabled",
+    "evidence"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "inference_gateway_candidate_id": {
+      "$ref": "ai-tournament-common.schema.json#/$defs/id"
+    },
+    "gateway_kind": {
+      "enum": ["governed_aggregator", "vendor_gateway", "direct"]
+    },
+    "version": { "$ref": "ai-tournament-common.schema.json#/$defs/semver" },
+    "lifecycle_status": {
+      "$ref": "ai-tournament-common.schema.json#/$defs/lifecycle"
+    },
+    "provider_selection_control": {
+      "enum": ["ai_lab", "gateway_policy", "provider"]
+    },
+    "approved_provider_endpoint_ids": {
+      "type": "array",
+      "items": { "$ref": "ai-tournament-common.schema.json#/$defs/id" },
+      "uniqueItems": true
+    },
+    "privacy_classifications": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "enum": [
+          "public",
+          "internal",
+          "confidential",
+          "regulated",
+          "restricted"
+        ]
+      },
+      "uniqueItems": true
+    },
+    "zdr_status": { "enum": ["verified", "unverified", "not_applicable"] },
+    "approval_state": {
+      "$ref": "ai-tournament-common.schema.json#/$defs/approval"
+    },
+    "kill_switch": {
+      "type": "object",
+      "required": ["active"],
+      "properties": { "active": { "const": true } },
+      "additionalProperties": false
+    },
+    "enabled": { "const": false },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "$ref": "ai-tournament-common.schema.json#/$defs/evidence_ref"
+      }
+    }
+  }
+}

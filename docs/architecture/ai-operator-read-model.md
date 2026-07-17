@@ -1,11 +1,11 @@
 # AI LAB Operator Read Model
 
-Status: backend read model implemented (contract `1.1.0`); local read-only
+Status: backend read model implemented (contract `1.2.0`); local read-only
 console implemented; future internal API not implemented.
 
 ## Purpose
 
-The Operator Read Model contract `1.1.0` consolidates already-evaluated,
+The Operator Read Model contract `1.2.0` consolidates already-evaluated,
 repository-governed state into one concise, deterministic, audit-safe JSON
 representation. It feeds the local read-only Operator Console and a future
 internal read-only API. It cannot approve, authorize, configure, mutate,
@@ -14,6 +14,16 @@ consume, or execute anything.
 The dependency direction is:
 
 `registries + evidence + readiness + proposal + preflight + activation review + gold case + authorization + consumption + gateway metadata → pure builder → read-only console → future internal API`
+
+## Contract 1.2.0 additions (2026-07-17)
+
+Version `1.2.0` adds the read-only `tournament` section from AI-120. It exposes
+registered runtime candidates, lifecycle, benchmark eligibility, latest daily
+and weekly references, blockers, budget state, kill-switch state, promotion
+recommendation and the human-decision requirement. `write_actions_available`
+is contractually `false`. The repository state has no daily/weekly execution,
+disabled budgets, active kill switches, no promotion recommendation and zero
+eligible candidates. The section cannot schedule, authorize, promote or route.
 
 ## Contract 1.1.0 additions (2026-07-15)
 

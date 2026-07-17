@@ -46,6 +46,11 @@ import {
   type OperatorReadModel,
   type OperatorReadModelInput,
 } from "./operator-read-model.js";
+import {
+  buildTournamentOperatorReadModel,
+  validateRuntimeCandidate,
+  type RuntimeCandidate,
+} from "../tournament/index.js";
 
 export const REPOSITORY_OPERATOR_EVALUATED_AT =
   "2026-07-15T12:00:00.000Z" as const;
@@ -66,6 +71,9 @@ const APPROVED_ARTIFACTS = {
     "data/fixtures/providers/openrouter-normative-claim-synthetic-v1.json",
   pricing: "config/ai-pricing.json",
   zdr: "config/ai-zdr-evidence.json",
+  tournament_native: "config/ai-tournament-runtime-native.json",
+  tournament_eve: "config/ai-tournament-runtime-eve.json",
+  tournament_cloudflare: "config/ai-tournament-runtime-cloudflare.json",
 } as const;
 
 type ArtifactKey = keyof typeof APPROVED_ARTIFACTS;
@@ -133,6 +141,22 @@ export async function loadRepositoryOperatorReadModel(
   const proposal = loaded.proposal.value;
   const approval = loaded.approval.value;
   const runtime = loaded.runtime.value;
+  const tournamentCandidateInputs: unknown[] = [
+    loaded.tournament_native.value,
+    loaded.tournament_eve.value,
+    loaded.tournament_cloudflare.value,
+  ];
+  for (const candidate of tournamentCandidateInputs)
+    sourceErrors.push(
+      ...validateRuntimeCandidate(candidate).map(
+        (error) =>
+          `tournament:${isRecord(candidate) && typeof candidate.runtime_candidate_id === "string" ? candidate.runtime_candidate_id : "unknown"}:${error}`,
+      ),
+    );
+  const tournamentCandidates = tournamentCandidateInputs.filter(
+    (candidate): candidate is RuntimeCandidate =>
+      validateRuntimeCandidate(candidate).length === 0,
+  );
 
   const registryErrors = validateOpenRouterRegistry(
     models,
@@ -344,6 +368,7 @@ export async function loadRepositoryOperatorReadModel(
       goldCaseResult.outcome !== "invalid_gold_case" &&
       glmGovernance.outcome !== "invalid",
     source_errors: [...new Set(sourceErrors)].sort(),
+    tournament: buildTournamentOperatorReadModel(tournamentCandidates),
     provider: {
       provider_id: "openrouter",
       display_name: null,

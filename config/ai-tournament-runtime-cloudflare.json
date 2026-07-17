@@ -1,0 +1,48 @@
+{
+  "schema_version": "1.0.0",
+  "runtime_candidate_id": "cloudflare-agents-workflows",
+  "runtime_kind": "workflow_runtime",
+  "version": "0.0.0",
+  "deployment_mode": "external_managed",
+  "lifecycle_status": "discovered",
+  "supported_capabilities": [],
+  "durability": {
+    "durable": false,
+    "mechanism": "historical repository plan only; current capability unverified"
+  },
+  "session_resume": { "sessions": false, "resume": "unsupported" },
+  "cancellation": {
+    "supported": false,
+    "semantics": "not evidenced in current repository"
+  },
+  "human_review_support": false,
+  "subagent_support": false,
+  "sandbox_support": false,
+  "observability_support": [],
+  "reasoning_event_handling": { "capture": "disabled", "approval_id": null },
+  "privacy_constraints": [
+    "historical_evidence_only",
+    "external_validation_required",
+    "no_customer_data"
+  ],
+  "geographic_constraints": ["unverified"],
+  "cost_accounting_support": false,
+  "evidence_export_support": false,
+  "kill_switch": { "active": true },
+  "approval_state": "pending",
+  "enabled": false,
+  "evidence": [
+    {
+      "evidence_id": "repo.cloudflare-audit.2026-06-15",
+      "content_hash": "a381369c9641e149c3e24ca41777ef00cacdfa931a84cf02290db9b8b93ee9e8",
+      "reviewed_at": "2026-07-17T12:00:00.000Z",
+      "reviewer_role": "architecture_author"
+    },
+    {
+      "evidence_id": "repo.cloudflare-pipeline-plan.2026-06-15",
+      "content_hash": "d246355dc43759a3a5d8566ba2bf0036490cc1eee2fed5871965e56db00b79f6",
+      "reviewed_at": "2026-07-17T12:00:00.000Z",
+      "reviewer_role": "architecture_author"
+    }
+  ]
+}

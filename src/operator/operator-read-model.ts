@@ -1,8 +1,9 @@
 import { createHash } from "node:crypto";
 
 import { canonicalizeOpenRouterRegistryJson } from "../providers/openrouter-registry.js";
+import type { TournamentOperatorReadModel } from "../tournament/index.js";
 
-export const OPERATOR_READ_MODEL_CONTRACT_VERSION = "1.1.0" as const;
+export const OPERATOR_READ_MODEL_CONTRACT_VERSION = "1.2.0" as const;
 export const OPERATOR_READ_MODEL_HASH_DOMAIN =
   "vlatam-ai-lab:operator-read-model:v1" as const;
 
@@ -189,6 +190,7 @@ export interface OperatorReadModelInput {
   };
   readonly audit_references: readonly string[];
   readonly additional_governed_candidates?: readonly OperatorGovernedCandidate[];
+  readonly tournament?: TournamentOperatorReadModel;
 }
 
 export interface OperatorBlocker {
@@ -277,6 +279,7 @@ export interface OperatorReadModel {
     readonly gold_case_outcome: string;
   };
   readonly audit_references: readonly string[];
+  readonly tournament: TournamentOperatorReadModel;
 }
 
 const deepFreeze = <T>(value: T): T => {
@@ -630,6 +633,10 @@ export function buildOperatorReadModel(
       gold_case_outcome: input.gold_case.outcome,
     },
     audit_references: [...input.audit_references].sort(),
+    tournament: input.tournament ?? {
+      registered_candidates: [],
+      write_actions_available: false,
+    },
   };
   const hash = computeOperatorReadModelHash(withoutHash);
   return deepFreeze({

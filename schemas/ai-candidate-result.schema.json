@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/ai-candidate-result.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "candidate_result_id",
+    "tournament_run_id",
+    "execution_profile_ref",
+    "capability_id",
+    "status",
+    "scores",
+    "disqualifying_failures",
+    "cost_reconciliation",
+    "evidence_refs"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "candidate_result_id": {
+      "$ref": "ai-tournament-common.schema.json#/$defs/id"
+    },
+    "tournament_run_id": {
+      "$ref": "ai-tournament-common.schema.json#/$defs/id"
+    },
+    "execution_profile_ref": {
+      "$ref": "ai-tournament-common.schema.json#/$defs/id"
+    },
+    "capability_id": { "$ref": "ai-tournament-common.schema.json#/$defs/id" },
+    "status": { "enum": ["eligible", "disqualified", "failed"] },
+    "scores": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "quality",
+        "reliability",
+        "tool_correctness",
+        "latency",
+        "cost_efficiency",
+        "governance_compliance"
+      ],
+      "properties": {
+        "quality": { "$ref": "#/$defs/score" },
+        "reliability": { "$ref": "#/$defs/score" },
+        "tool_correctness": { "$ref": "#/$defs/score" },
+        "latency": { "$ref": "#/$defs/score" },
+        "cost_efficiency": { "$ref": "#/$defs/score" },
+        "governance_compliance": { "$ref": "#/$defs/score" }
+      }
+    },
+    "disqualifying_failures": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "privacy",
+          "authorization",
+          "safety",
+          "evidence",
+          "incorrect_external_action"
+        ]
+      },
+      "uniqueItems": true
+    },
+    "cost_reconciliation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["currency", "reserved_units", "actual_units", "reconciled"],
+      "properties": {
+        "currency": { "const": "USD" },
+        "reserved_units": { "type": "string", "pattern": "^[0-9]+$" },
+        "actual_units": { "type": "string", "pattern": "^[0-9]+$" },
+        "reconciled": { "const": true }
+      }
+    },
+    "evidence_refs": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "ai-tournament-common.schema.json#/$defs/id" },
+      "uniqueItems": true
+    }
+  },
+  "$defs": { "score": { "type": "number", "minimum": 0, "maximum": 1 } },
+  "allOf": [
+    {
+      "if": {
+        "type": "object",
+        "properties": {
+          "disqualifying_failures": { "type": "array", "minItems": 1 }
+        }
+      },
+      "then": {
+        "type": "object",
+        "properties": { "status": { "const": "disqualified" } }
+      }
+    }
+  ]
+}

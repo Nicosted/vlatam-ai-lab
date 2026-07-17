@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.0.0",
+  "runtime_candidate_id": "vercel-eve",
+  "runtime_kind": "vendor_runtime",
+  "version": "0.0.0",
+  "deployment_mode": "external_managed",
+  "lifecycle_status": "discovered",
+  "supported_capabilities": [],
+  "durability": {
+    "durable": false,
+    "mechanism": "unverified; external evidence collection prohibited in AI-120"
+  },
+  "session_resume": { "sessions": false, "resume": "unsupported" },
+  "cancellation": { "supported": false, "semantics": "unverified" },
+  "human_review_support": false,
+  "subagent_support": false,
+  "sandbox_support": false,
+  "observability_support": [],
+  "reasoning_event_handling": { "capture": "disabled", "approval_id": null },
+  "privacy_constraints": [
+    "public_documentation_evidence_missing",
+    "reasoning_capture_forbidden"
+  ],
+  "geographic_constraints": ["unverified"],
+  "cost_accounting_support": false,
+  "evidence_export_support": false,
+  "kill_switch": { "active": true },
+  "approval_state": "pending",
+  "enabled": false,
+  "evidence": []
+}

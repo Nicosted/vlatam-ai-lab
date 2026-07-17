@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/ai-promotion-decision.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "promotion_decision_id",
+    "weekly_review_ref",
+    "capability_id",
+    "candidate_id",
+    "from_state",
+    "to_state",
+    "decision",
+    "decided_by_role",
+    "candidate_is_decision_maker",
+    "evidence_refs"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "promotion_decision_id": {
+      "$ref": "ai-tournament-common.schema.json#/$defs/id"
+    },
+    "weekly_review_ref": {
+      "$ref": "ai-tournament-common.schema.json#/$defs/id"
+    },
+    "capability_id": { "$ref": "ai-tournament-common.schema.json#/$defs/id" },
+    "candidate_id": { "$ref": "ai-tournament-common.schema.json#/$defs/id" },
+    "from_state": {
+      "$ref": "ai-tournament-common.schema.json#/$defs/lifecycle"
+    },
+    "to_state": { "$ref": "ai-tournament-common.schema.json#/$defs/lifecycle" },
+    "decision": { "enum": ["approve", "reject", "defer"] },
+    "decided_by_role": { "$ref": "ai-tournament-common.schema.json#/$defs/id" },
+    "candidate_is_decision_maker": { "const": false },
+    "evidence_refs": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "ai-tournament-common.schema.json#/$defs/id" },
+      "uniqueItems": true
+    }
+  }
+}

@@ -123,6 +123,8 @@ Consumers must validate `schema_version`, fail closed on unsupported or invalid 
 - [AI Multi-Provider Gateway (AI-72)](docs/architecture/ai-multi-provider-gateway.md) — explicit execution profiles, normalized adapters, deterministic replay, strict output validation, and safe audit metadata.
 - [AI Privacy and ZDR Enforcement (AI-73)](docs/architecture/ai-privacy-zdr-enforcement.md) — data classification, deterministic redaction, retention compatibility, ZDR evidence verification, replay fixture provenance, and the gateway privacy gate.
 - [AI Usage, Cost, and Budget Governance (AI-74)](docs/architecture/ai-usage-cost-budget-governance.md) — normalized usage, exact rational pricing, conservative accounting conversion, durable reservations, reconciliation, and metadata-only audits.
+- [Continuous Runtime Tournament (AI-120)](docs/architecture/ai-continuous-runtime-tournament.md) — vendor-neutral runtime/gateway/model/endpoint contracts, daily evaluation, weekly human review, lifecycle, traffic, scoring and cost controls.
+- [ADR-004: AI LAB Neutral Tournament Control Plane](docs/decisions/004-ai-lab-neutral-tournament-control-plane.md) — evaluated components cannot control scoring, evidence approval or promotion.
 - [ADR-003: Capability-Oriented AI Execution](docs/decisions/003-capability-oriented-ai-execution.md) — vendor-neutral execution doctrine.
 - [AI Capabilities Catalog](config/ai-capabilities.json) — declarative capability inventory.
 - [AI Privacy Policy Catalog](config/ai-privacy-policies.json) — machine-readable privacy decisions per capability and classification.
