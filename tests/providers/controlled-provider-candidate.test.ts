@@ -198,6 +198,7 @@ describe("AI-83 controlled provider candidate", () => {
         provider_id: string;
         enabled: boolean;
         sandbox_controls?: { configuration_status: string };
+        supervised_controls?: { configuration_status: string };
       }[];
     };
     assert.ok(
@@ -208,7 +209,10 @@ describe("AI-83 controlled provider candidate", () => {
         .every(
           (profile) =>
             !profile.enabled &&
-            profile.sandbox_controls?.configuration_status === "proposal_only",
+            (profile.sandbox_controls?.configuration_status ===
+              "proposal_only" ||
+              profile.supervised_controls?.configuration_status ===
+                "blocked_candidate"),
         ),
     );
   });

@@ -54,7 +54,8 @@ const read = (relPath: string): string =>
   readFileSync(resolve(repoRoot, relPath), "utf-8");
 const isProviderLayer = (relPath: string): boolean =>
   relPath.startsWith("src/providers/") ||
-  relPath === "scripts/openrouter-sandbox-harness.ts";
+  relPath === "scripts/openrouter-sandbox-harness.ts" ||
+  relPath === "scripts/validate-glm-redacted-operation.ts";
 const isOperatorReadLayer = (relPath: string): boolean =>
   relPath.startsWith("src/operator/");
 
@@ -157,31 +158,48 @@ describe("governed OpenRouter provider boundary", () => {
             adapter_enabled: boolean;
             authentication_material: string;
           };
+          supervised_controls?: {
+            configuration_status: string;
+            adapter_enabled: boolean;
+            budget_enabled: boolean;
+            kill_switch_active: boolean;
+          };
         }[];
       }
     ).profiles;
     const openrouterProfiles = profiles.filter(
       (entry) => entry.provider_id === "openrouter",
     );
-    assert.equal(openrouterProfiles.length, 1);
-    assert.deepEqual(openrouterProfiles[0], {
-      ...openrouterProfiles[0],
+    assert.equal(openrouterProfiles.length, 2);
+    const minimax = openrouterProfiles.find((entry) =>
+      entry.profile_id.includes("minimax-m2.7"),
+    );
+    const glm = openrouterProfiles.find((entry) =>
+      entry.profile_id.includes("glm-5.2"),
+    );
+    assert.ok(minimax);
+    assert.ok(glm);
+    assert.deepEqual(minimax, {
+      ...minimax,
       profile_id: "openrouter.minimax-m2.7.normative-extraction.candidate",
       enabled: false,
       lifecycle_status: "candidate",
     });
     assert.equal(
-      openrouterProfiles[0]?.sandbox_controls?.configuration_status,
+      minimax.sandbox_controls?.configuration_status,
       "proposal_only",
     );
+    assert.equal(minimax.sandbox_controls?.adapter_enabled, false);
+    assert.equal(minimax.sandbox_controls?.authentication_material, "absent");
+    assert.equal(glm.enabled, false);
+    assert.equal(glm.lifecycle_status, "candidate");
     assert.equal(
-      openrouterProfiles[0]?.sandbox_controls?.adapter_enabled,
-      false,
+      glm.supervised_controls?.configuration_status,
+      "blocked_candidate",
     );
-    assert.equal(
-      openrouterProfiles[0]?.sandbox_controls?.authentication_material,
-      "absent",
-    );
+    assert.equal(glm.supervised_controls?.adapter_enabled, false);
+    assert.equal(glm.supervised_controls?.budget_enabled, false);
+    assert.equal(glm.supervised_controls?.kill_switch_active, true);
     const readiness = (
       JSON.parse(read("config/ai-candidate-profile-readiness.json")) as {
         profiles: {

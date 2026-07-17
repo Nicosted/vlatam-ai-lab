@@ -99,6 +99,7 @@ const REGULATED_CAPABILITY_IDS = new Set<string>([
   "source.regulatory_research.advisory_input",
   "source.regulatory_advisory.readiness_check",
   "evidence.extraction.normative_claims",
+  "commercial.document.extraction",
   "evidence.extraction.qwen_dashscope",
   "evidence.extraction.langgraph_workflow",
   "evidence.extraction.critic_review",
@@ -458,24 +459,24 @@ describe("AI-70 capabilities catalog — human review policy", () => {
 });
 
 describe("AI-70 capabilities catalog — count derivation", () => {
-  it("derives total count of 40 capabilities", () => {
-    assert.equal(catalog.capabilities.length, 40);
+  it("derives total count of 41 capabilities", () => {
+    assert.equal(catalog.capabilities.length, 41);
   });
 
-  it("derives status counts: existing=10, partial=7, planned=13, out_of_scope=1, retired=9", () => {
+  it("derives status counts: existing=10, partial=8, planned=13, out_of_scope=1, retired=9", () => {
     const counts = countByStatus();
     assert.deepEqual(counts, {
       existing: 10,
-      partial: 7,
+      partial: 8,
       planned: 13,
       out_of_scope: 1,
       retired: 9,
     });
   });
 
-  it("derives human_review counts: true=13, false=27", () => {
+  it("derives human_review counts: true=14, false=27", () => {
     const counts = countByHumanReview();
-    assert.deepEqual(counts, { true: 13, false: 27 });
+    assert.deepEqual(counts, { true: 14, false: 27 });
   });
 
   it("derives per-group counts consistent with the capability map summary table", () => {
@@ -539,7 +540,7 @@ describe("AI-70 capabilities catalog — count derivation", () => {
 
     const expected: Record<1 | 2 | 3 | 4, Record<string, number>> = {
       1: { existing: 3, partial: 4, planned: 0, out_of_scope: 0, retired: 1 },
-      2: { existing: 2, partial: 1, planned: 0, out_of_scope: 0, retired: 5 },
+      2: { existing: 2, partial: 2, planned: 0, out_of_scope: 0, retired: 5 },
       3: { existing: 5, partial: 2, planned: 0, out_of_scope: 0, retired: 0 },
       4: { existing: 0, partial: 0, planned: 13, out_of_scope: 1, retired: 3 },
     };

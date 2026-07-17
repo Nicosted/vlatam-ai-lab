@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/ai-commercial-document-extraction.schema.json",
+  "title": "Supervised commercial-document extraction draft",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "supplier_identity",
+    "invoice_number",
+    "date",
+    "currency",
+    "incoterm",
+    "line_items",
+    "total",
+    "inconsistencies",
+    "missing_information",
+    "risk_flags",
+    "questions_for_supplier",
+    "human_review_status"
+  ],
+  "properties": {
+    "supplier_identity": { "type": ["string", "null"] },
+    "invoice_number": { "type": ["string", "null"] },
+    "date": { "type": ["string", "null"] },
+    "currency": { "type": ["string", "null"] },
+    "incoterm": { "type": ["string", "null"] },
+    "line_items": {
+      "type": "array",
+      "items": { "type": "object" }
+    },
+    "total": { "type": ["string", "number", "null"] },
+    "inconsistencies": { "$ref": "#/$defs/string_list" },
+    "missing_information": { "$ref": "#/$defs/string_list" },
+    "risk_flags": { "$ref": "#/$defs/string_list" },
+    "questions_for_supplier": { "$ref": "#/$defs/string_list" },
+    "human_review_status": { "const": "pending" }
+  },
+  "$defs": {
+    "string_list": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}

@@ -217,8 +217,10 @@ describe("OpenRouter readiness dossier", () => {
   it("rejects an unsupported lifecycle", () => {
     const dossier = ready();
     const dependencies = clone(defaultOpenRouterReadinessDependencies());
-    (dependencies.registry.entries[0] as { lifecycle: string }).lifecycle =
-      "retired";
+    const minimax = dependencies.registry.entries.find(
+      (entry) => entry.model_id === "minimax/minimax-m2.7",
+    )!;
+    (minimax as { lifecycle: string }).lifecycle = "retired";
     const result = evaluateOpenRouterReadinessDossier(
       dossier,
       NOW,

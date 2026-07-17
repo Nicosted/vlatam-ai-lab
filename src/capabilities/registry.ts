@@ -32,14 +32,14 @@
  * after editing the catalog on disk (in test setups).
  */
 
-import { existsSync, readFileSync } from 'node:fs';
-import { dirname, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { existsSync, readFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
-import { Ajv2020 as AjvClass } from 'ajv/dist/2020.js';
-import addFormatsModule from 'ajv-formats';
+import { Ajv2020 as AjvClass } from "ajv/dist/2020.js";
+import addFormatsModule from "ajv-formats";
 
-import catalogSchema from '../../schemas/ai-capabilities.schema.json' with { type: 'json' };
+import catalogSchema from "../../schemas/ai-capabilities.schema.json" with { type: "json" };
 import {
   CAPABILITY_DOMAINS,
   CAPABILITY_RISK_TIERS,
@@ -50,7 +50,7 @@ import {
   isCapabilityRiskTier,
   isCapabilityStatus,
   isProviderExecution,
-} from './contracts.js';
+} from "./contracts.js";
 import type {
   CapabilityDefinition,
   CapabilityDomain,
@@ -60,18 +60,22 @@ import type {
   CapabilityStatus,
   DownstreamPolicy,
   ProviderExecution,
-} from './contracts.js';
+} from "./contracts.js";
 import {
   CAPABILITY_ID_PATTERN,
   CAPABILITY_CONTRACT_VERSION,
-} from './version.js';
-import { validateCapabilityDefinition, validatePolicy } from './validation.js';
-import type { ValidationResult } from './validation.js';
-import { DOMAIN_CAPABILITY_BINDINGS, getDomainCapabilityBinding } from './bindings.js';
+} from "./version.js";
+import { validateCapabilityDefinition, validatePolicy } from "./validation.js";
+import type { ValidationResult } from "./validation.js";
+import {
+  DOMAIN_CAPABILITY_BINDINGS,
+  getDomainCapabilityBinding,
+} from "./bindings.js";
 
 // ESM/CJS interop for ajv-formats
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const applyFormats = ((addFormatsModule as any).default ?? addFormatsModule) as (ajv: AjvClass) => void;
+const applyFormats = ((addFormatsModule as any).default ??
+  addFormatsModule) as (ajv: AjvClass) => void;
 
 interface CatalogRow {
   capability_id: string;
@@ -104,8 +108,12 @@ interface CatalogFile {
  * `loadCapabilityRegistry({ repoRoot })`.
  */
 const MODULE_DIR = dirname(fileURLToPath(import.meta.url));
-const DEFAULT_REPO_ROOT = resolve(MODULE_DIR, '..', '..');
-const DEFAULT_CATALOG_PATH = resolve(DEFAULT_REPO_ROOT, 'config', 'ai-capabilities.json');
+const DEFAULT_REPO_ROOT = resolve(MODULE_DIR, "..", "..");
+const DEFAULT_CATALOG_PATH = resolve(
+  DEFAULT_REPO_ROOT,
+  "config",
+  "ai-capabilities.json",
+);
 
 /**
  * Explicit policy overrides. The map is empty by default; rows here
@@ -123,50 +131,116 @@ const POLICY_OVERRIDES: ReadonlyMap<string, CapabilityPolicy> = new Map();
  * may use a `null` schema reference; the registry returns `null`
  * rather than fabricating a schema path.
  */
-const DEFAULT_SCHEMA_REFS: ReadonlyMap<string, { input: string | null; output: string | null }> =
-  new Map([
-    // Source layer
-    ['source.acquisition.monitor', { input: null, output: 'schemas/source-monitor-delta.schema.json' }],
-    ['source.snapshot.write', { input: null, output: 'schemas/intelligence-source-snapshot.schema.json' }],
-    ['source.delta.detect', { input: 'schemas/intelligence-source-snapshot.schema.json', output: 'schemas/delta-analyzer-evidence-packet.schema.json' }],
-    ['source.snapshot.embedded_evidence_demo', { input: null, output: 'schemas/extractable-evidence-packet.schema.json' }],
-    ['source.acquisition.cloudflare_pipeline_v1', { input: null, output: null }],
-    ['source.acquisition.multi_country', { input: null, output: null }],
-    // Evidence layer
-    ['evidence.extraction.qwen_dashscope', { input: 'schemas/extractable-evidence-packet.schema.json', output: 'schemas/ai-extraction-result.schema.json' }],
-    ['evidence.extraction.langgraph_workflow', { input: 'schemas/extractable-evidence-packet.schema.json', output: 'schemas/ai-extraction-result.schema.json' }],
-    ['evidence.extraction.critic_review', { input: 'schemas/ai-extraction-result.schema.json', output: 'schemas/ai-extraction-result.schema.json' }],
-    ['evidence.embedding.bge_m3', { input: null, output: null }],
-    ['evidence.embedding.refresh', { input: null, output: null }],
-    // Review and export layer
-    ['artifact.export_catalog.generate', { input: 'schemas/classifier-approved-artifact-export-contract.schema.json', output: 'schemas/classifier-approved-artifact-export-catalog.schema.json' }],
-    ['artifact.export_bundle.consumer_contract', { input: null, output: null }],
-    // Advisory layer
-    ['source.regulatory_research.advisory_input', { input: null, output: 'schemas/extractable-evidence-packet.schema.json' }],
-    ['evidence.regulatory_research.question_prep', { input: 'schemas/extractable-evidence-packet.schema.json', output: 'schemas/extractable-evidence-packet.schema.json' }],
-    ['review.human.gate.regulatory_research', { input: 'schemas/extractable-evidence-packet.schema.json', output: 'schemas/extractable-evidence-packet.schema.json' }],
-    // Provider execution layer
-    ['provider.execution.cloudflare_ai_gateway', { input: null, output: null }],
-    ['provider.execution.deepseek_direct', { input: null, output: null }],
-    ['provider.execution.qwen_dashscope_runtime', { input: null, output: null }],
-    ['provider.execution.local_runtime', { input: null, output: null }],
-    // Governance layer
-    ['governance.privacy.zdr', { input: null, output: null }],
-    ['governance.data.classification', { input: null, output: null }],
-    ['governance.budget.cost_governor', { input: null, output: null }],
-    ['governance.allowlist.providers', { input: 'schemas/ai-capabilities.schema.json', output: null }],
-    ['governance.audit.record', { input: null, output: null }],
-    ['governance.fail_closed', { input: null, output: null }],
-    // Evaluation layer
-    ['evaluation.gold_cases', { input: null, output: null }],
-    ['evaluation.evaluator', { input: null, output: null }],
-    ['evaluation.benchmark.run', { input: null, output: null }],
-    ['evaluation.profile.promote', { input: null, output: null }],
-    // Routing layer
-    ['routing.best_profile', { input: null, output: null }],
-    ['routing.lifecycle.production', { input: null, output: null }],
-    ['routing.lifecycle.shadow', { input: null, output: null }],
-  ]);
+const DEFAULT_SCHEMA_REFS: ReadonlyMap<
+  string,
+  { input: string | null; output: string | null }
+> = new Map([
+  // Source layer
+  [
+    "source.acquisition.monitor",
+    { input: null, output: "schemas/source-monitor-delta.schema.json" },
+  ],
+  [
+    "source.snapshot.write",
+    { input: null, output: "schemas/intelligence-source-snapshot.schema.json" },
+  ],
+  [
+    "source.delta.detect",
+    {
+      input: "schemas/intelligence-source-snapshot.schema.json",
+      output: "schemas/delta-analyzer-evidence-packet.schema.json",
+    },
+  ],
+  [
+    "source.snapshot.embedded_evidence_demo",
+    { input: null, output: "schemas/extractable-evidence-packet.schema.json" },
+  ],
+  ["source.acquisition.cloudflare_pipeline_v1", { input: null, output: null }],
+  ["source.acquisition.multi_country", { input: null, output: null }],
+  // Evidence layer
+  [
+    "evidence.extraction.qwen_dashscope",
+    {
+      input: "schemas/extractable-evidence-packet.schema.json",
+      output: "schemas/ai-extraction-result.schema.json",
+    },
+  ],
+  [
+    "evidence.extraction.langgraph_workflow",
+    {
+      input: "schemas/extractable-evidence-packet.schema.json",
+      output: "schemas/ai-extraction-result.schema.json",
+    },
+  ],
+  [
+    "evidence.extraction.critic_review",
+    {
+      input: "schemas/ai-extraction-result.schema.json",
+      output: "schemas/ai-extraction-result.schema.json",
+    },
+  ],
+  [
+    "commercial.document.extraction",
+    {
+      input: null,
+      output: "schemas/ai-commercial-document-extraction.schema.json",
+    },
+  ],
+  ["evidence.embedding.bge_m3", { input: null, output: null }],
+  ["evidence.embedding.refresh", { input: null, output: null }],
+  // Review and export layer
+  [
+    "artifact.export_catalog.generate",
+    {
+      input: "schemas/classifier-approved-artifact-export-contract.schema.json",
+      output: "schemas/classifier-approved-artifact-export-catalog.schema.json",
+    },
+  ],
+  ["artifact.export_bundle.consumer_contract", { input: null, output: null }],
+  // Advisory layer
+  [
+    "source.regulatory_research.advisory_input",
+    { input: null, output: "schemas/extractable-evidence-packet.schema.json" },
+  ],
+  [
+    "evidence.regulatory_research.question_prep",
+    {
+      input: "schemas/extractable-evidence-packet.schema.json",
+      output: "schemas/extractable-evidence-packet.schema.json",
+    },
+  ],
+  [
+    "review.human.gate.regulatory_research",
+    {
+      input: "schemas/extractable-evidence-packet.schema.json",
+      output: "schemas/extractable-evidence-packet.schema.json",
+    },
+  ],
+  // Provider execution layer
+  ["provider.execution.cloudflare_ai_gateway", { input: null, output: null }],
+  ["provider.execution.deepseek_direct", { input: null, output: null }],
+  ["provider.execution.qwen_dashscope_runtime", { input: null, output: null }],
+  ["provider.execution.local_runtime", { input: null, output: null }],
+  // Governance layer
+  ["governance.privacy.zdr", { input: null, output: null }],
+  ["governance.data.classification", { input: null, output: null }],
+  ["governance.budget.cost_governor", { input: null, output: null }],
+  [
+    "governance.allowlist.providers",
+    { input: "schemas/ai-capabilities.schema.json", output: null },
+  ],
+  ["governance.audit.record", { input: null, output: null }],
+  ["governance.fail_closed", { input: null, output: null }],
+  // Evaluation layer
+  ["evaluation.gold_cases", { input: null, output: null }],
+  ["evaluation.evaluator", { input: null, output: null }],
+  ["evaluation.benchmark.run", { input: null, output: null }],
+  ["evaluation.profile.promote", { input: null, output: null }],
+  // Routing layer
+  ["routing.best_profile", { input: null, output: null }],
+  ["routing.lifecycle.production", { input: null, output: null }],
+  ["routing.lifecycle.shadow", { input: null, output: null }],
+]);
 
 /**
  * The internal store, keyed by capability_id. The store is built
@@ -196,19 +270,19 @@ export interface CapabilityRegistry {
 }
 
 function isCatalogRowShape(value: unknown): value is CatalogRow {
-  if (typeof value !== 'object' || value === null) return false;
+  if (typeof value !== "object" || value === null) return false;
   const v = value as Record<string, unknown>;
   return (
-    typeof v['capability_id'] === 'string' &&
-    typeof v['name'] === 'string' &&
-    typeof v['domain'] === 'string' &&
-    typeof v['status'] === 'string' &&
-    typeof v['risk_tier'] === 'string' &&
-    typeof v['human_review'] === 'boolean' &&
-    typeof v['roadmap_owner'] === 'string' &&
-    typeof v['provider_execution'] === 'string' &&
-    typeof v['downstream_policy'] === 'object' &&
-    v['downstream_policy'] !== null
+    typeof v["capability_id"] === "string" &&
+    typeof v["name"] === "string" &&
+    typeof v["domain"] === "string" &&
+    typeof v["status"] === "string" &&
+    typeof v["risk_tier"] === "string" &&
+    typeof v["human_review"] === "boolean" &&
+    typeof v["roadmap_owner"] === "string" &&
+    typeof v["provider_execution"] === "string" &&
+    typeof v["downstream_policy"] === "object" &&
+    v["downstream_policy"] !== null
   );
 }
 
@@ -216,38 +290,42 @@ function asCapabilityId(value: string): CapabilityId {
   // The catalog is validated by the AI-70 schema; this assertion is a
   // belt-and-suspenders check on top of the structural validation.
   if (!CAPABILITY_ID_PATTERN.test(value)) {
-    throw new Error(`Catalog row carries an invalid capability_id: ${JSON.stringify(value)}`);
+    throw new Error(
+      `Catalog row carries an invalid capability_id: ${JSON.stringify(value)}`,
+    );
   }
   return value as CapabilityId;
 }
 
 function deriveDefaultPolicy(
   row: CatalogRow,
-  hasBinding: boolean
+  hasBinding: boolean,
 ): CapabilityPolicy {
-  const privacyTier: 'standard' | 'sensitive' | 'regulated' | 'restricted' =
-    row.risk_tier === 'high'
-      ? 'regulated'
-      : row.risk_tier === 'medium'
-        ? 'sensitive'
-        : 'standard';
+  const privacyTier: "standard" | "sensitive" | "regulated" | "restricted" =
+    row.risk_tier === "high"
+      ? "regulated"
+      : row.risk_tier === "medium"
+        ? "sensitive"
+        : "standard";
   const redactFields: readonly string[] =
-    row.risk_tier === 'high'
-      ? ['supplier_names', 'prices', 'bank_data', 'broker_pii']
-      : row.risk_tier === 'medium'
-        ? ['broker_pii']
+    row.risk_tier === "high"
+      ? ["supplier_names", "prices", "bank_data", "broker_pii"]
+      : row.risk_tier === "medium"
+        ? ["broker_pii"]
         : [];
 
-  const budget: CapabilityPolicy['budget_requirement'] =
-    row.provider_execution === 'required'
-      ? { max_cost_usd: 1.0, window: 'per_request' }
-      : row.provider_execution === 'optional'
-        ? { max_cost_usd: 1.0, window: 'per_request' }
-        : { window: 'per_request' };
+  const budget: CapabilityPolicy["budget_requirement"] =
+    row.provider_execution === "required"
+      ? { max_cost_usd: 1.0, window: "per_request" }
+      : row.provider_execution === "optional"
+        ? { max_cost_usd: 1.0, window: "per_request" }
+        : { window: "per_request" };
 
-  const evaluation: CapabilityPolicy['evaluation_requirement'] = {
-    gold_case_required: row.human_review && row.risk_tier === 'high',
-    metric_set: row.human_review ? ['quality', 'latency', 'cost', 'safety'] : ['quality'],
+  const evaluation: CapabilityPolicy["evaluation_requirement"] = {
+    gold_case_required: row.human_review && row.risk_tier === "high",
+    metric_set: row.human_review
+      ? ["quality", "latency", "cost", "safety"]
+      : ["quality"],
   };
 
   return {
@@ -256,7 +334,7 @@ function deriveDefaultPolicy(
           required: true,
           reason: row.downstream_policy.reason,
           no_auto_approval: true,
-          review_state_required: 'reviewed_approved',
+          review_state_required: "reviewed_approved",
         }
       : {
           required: false,
@@ -269,16 +347,16 @@ function deriveDefaultPolicy(
     },
     privacy_requirement: {
       tier: privacyTier,
-      zdr_required: row.risk_tier === 'high',
+      zdr_required: row.risk_tier === "high",
       redact_fields: redactFields,
       retention_class:
-        row.risk_tier === 'high' ? 'audit_with_payload' : 'audit_only',
+        row.risk_tier === "high" ? "audit_with_payload" : "audit_only",
     },
     budget_requirement: budget,
     evaluation_requirement: evaluation,
     execution_requirement: {
       provider_execution: row.provider_execution as ProviderExecution,
-      deterministic_fallback: row.provider_execution === 'none' || hasBinding,
+      deterministic_fallback: row.provider_execution === "none" || hasBinding,
     },
   };
 }
@@ -293,8 +371,10 @@ function buildDefinition(row: CatalogRow): {
   const policy = override ?? deriveDefaultPolicy(row, Boolean(binding));
 
   const defaultSchemaRefs = DEFAULT_SCHEMA_REFS.get(row.capability_id);
-  const inputSchemaRef = binding?.input_schema_ref ?? defaultSchemaRefs?.input ?? null;
-  const outputSchemaRef = binding?.output_schema_ref ?? defaultSchemaRefs?.output ?? null;
+  const inputSchemaRef =
+    binding?.input_schema_ref ?? defaultSchemaRefs?.input ?? null;
+  const outputSchemaRef =
+    binding?.output_schema_ref ?? defaultSchemaRefs?.output ?? null;
 
   if (!binding && !defaultSchemaRefs) {
     return {
@@ -311,12 +391,14 @@ function buildDefinition(row: CatalogRow): {
   if (binding) {
     if (binding.human_review_required !== row.human_review) {
       crossWarnings.push(
-        `human_review mismatch between catalog (${row.human_review}) and binding (${binding.human_review_required}) for ${row.capability_id}`
+        `human_review mismatch between catalog (${row.human_review}) and binding (${binding.human_review_required}) for ${row.capability_id}`,
       );
     }
-    if (binding.downstream_allowed !== row.downstream_policy.downstream_allowed) {
+    if (
+      binding.downstream_allowed !== row.downstream_policy.downstream_allowed
+    ) {
       crossWarnings.push(
-        `downstream_allowed mismatch between catalog (${String(row.downstream_policy.downstream_allowed)}) and binding (${String(binding.downstream_allowed)}) for ${row.capability_id}`
+        `downstream_allowed mismatch between catalog (${String(row.downstream_policy.downstream_allowed)}) and binding (${String(binding.downstream_allowed)}) for ${row.capability_id}`,
       );
     }
   }
@@ -340,7 +422,10 @@ function buildDefinition(row: CatalogRow): {
   };
 
   const definitionValidation = validateCapabilityDefinition(candidate);
-  const policyValidation = validatePolicy(candidate.policy, 'definition.policy');
+  const policyValidation = validatePolicy(
+    candidate.policy,
+    "definition.policy",
+  );
   if (!definitionValidation.ok || !policyValidation.ok) {
     const errors: string[] = [];
     if (!definitionValidation.ok) errors.push(...definitionValidation.errors);
@@ -352,44 +437,52 @@ function buildDefinition(row: CatalogRow): {
 }
 
 function validateCatalogShape(catalog: unknown): ValidationResult {
-  if (typeof catalog !== 'object' || catalog === null) {
-    return { ok: false, errors: ['catalog must be an object'] };
+  if (typeof catalog !== "object" || catalog === null) {
+    return { ok: false, errors: ["catalog must be an object"] };
   }
   const errors: string[] = [];
   const c = catalog as Record<string, unknown>;
-  if (!Array.isArray(c['capabilities'])) {
-    errors.push('catalog.capabilities must be an array');
+  if (!Array.isArray(c["capabilities"])) {
+    errors.push("catalog.capabilities must be an array");
   } else {
-    c['capabilities'].forEach((row: unknown, index: number) => {
+    c["capabilities"].forEach((row: unknown, index: number) => {
       if (!isCatalogRowShape(row)) {
         errors.push(`catalog.capabilities[${index}] is not a valid row shape`);
       }
     });
   }
-  if (!Array.isArray(c['allowed_status'])) errors.push('catalog.allowed_status must be an array');
-  if (!Array.isArray(c['allowed_risk_tier'])) errors.push('catalog.allowed_risk_tier must be an array');
-  if (!Array.isArray(c['allowed_provider_execution'])) {
-    errors.push('catalog.allowed_provider_execution must be an array');
+  if (!Array.isArray(c["allowed_status"]))
+    errors.push("catalog.allowed_status must be an array");
+  if (!Array.isArray(c["allowed_risk_tier"]))
+    errors.push("catalog.allowed_risk_tier must be an array");
+  if (!Array.isArray(c["allowed_provider_execution"])) {
+    errors.push("catalog.allowed_provider_execution must be an array");
   }
-  if (!Array.isArray(c['allowed_human_review'])) {
-    errors.push('catalog.allowed_human_review must be an array');
+  if (!Array.isArray(c["allowed_human_review"])) {
+    errors.push("catalog.allowed_human_review must be an array");
   }
   return errors.length === 0 ? { ok: true } : { ok: false, errors };
 }
 
 function loadInternal(repoRoot: string): RegistryState {
-  const catalogPath = resolve(repoRoot, 'config', 'ai-capabilities.json');
+  const catalogPath = resolve(repoRoot, "config", "ai-capabilities.json");
   if (!existsSync(catalogPath)) {
-    return { byId: new Map(), loadErrors: [`catalog file not found at ${catalogPath}`] };
+    return {
+      byId: new Map(),
+      loadErrors: [`catalog file not found at ${catalogPath}`],
+    };
   }
 
-  const raw = readFileSync(catalogPath, 'utf-8');
+  const raw = readFileSync(catalogPath, "utf-8");
   let catalog: unknown;
   try {
     catalog = JSON.parse(raw);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    return { byId: new Map(), loadErrors: [`failed to parse catalog JSON: ${message}`] };
+    return {
+      byId: new Map(),
+      loadErrors: [`failed to parse catalog JSON: ${message}`],
+    };
   }
 
   // Validate against the AI-70 schema.
@@ -397,8 +490,13 @@ function loadInternal(repoRoot: string): RegistryState {
   applyFormats(ajv);
   const validate = ajv.compile(catalogSchema);
   if (!validate(catalog)) {
-    const errors = (validate.errors ?? []).map(err => `${err.instancePath || 'root'}: ${err.message}`);
-    return { byId: new Map(), loadErrors: [`catalog failed schema validation: ${errors.join('; ')}`] };
+    const errors = (validate.errors ?? []).map(
+      (err) => `${err.instancePath || "root"}: ${err.message}`,
+    );
+    return {
+      byId: new Map(),
+      loadErrors: [`catalog failed schema validation: ${errors.join("; ")}`],
+    };
   }
 
   // Belt-and-suspenders shape check.
@@ -413,24 +511,32 @@ function loadInternal(repoRoot: string): RegistryState {
 
   for (const row of typedCatalog.capabilities) {
     if (!isCapabilityId(row.capability_id)) {
-      loadErrors.push(`catalog row has malformed capability_id: ${row.capability_id}`);
+      loadErrors.push(
+        `catalog row has malformed capability_id: ${row.capability_id}`,
+      );
       continue;
     }
     if (!isCapabilityStatus(row.status)) {
-      loadErrors.push(`catalog row ${row.capability_id} has unknown status ${row.status}`);
+      loadErrors.push(
+        `catalog row ${row.capability_id} has unknown status ${row.status}`,
+      );
       continue;
     }
     if (!isCapabilityRiskTier(row.risk_tier)) {
-      loadErrors.push(`catalog row ${row.capability_id} has unknown risk_tier ${row.risk_tier}`);
+      loadErrors.push(
+        `catalog row ${row.capability_id} has unknown risk_tier ${row.risk_tier}`,
+      );
       continue;
     }
     if (!isCapabilityDomain(row.domain)) {
-      loadErrors.push(`catalog row ${row.capability_id} has unknown domain ${row.domain}`);
+      loadErrors.push(
+        `catalog row ${row.capability_id} has unknown domain ${row.domain}`,
+      );
       continue;
     }
     if (!isProviderExecution(row.provider_execution)) {
       loadErrors.push(
-        `catalog row ${row.capability_id} has unknown provider_execution ${row.provider_execution}`
+        `catalog row ${row.capability_id} has unknown provider_execution ${row.provider_execution}`,
       );
       continue;
     }
@@ -464,7 +570,9 @@ function getState(): RegistryState {
  * `repoRoot` to point at a fixture. Returns a stable
  * `CapabilityRegistry` handle.
  */
-export function loadCapabilityRegistry(options: { repoRoot?: string } = {}): CapabilityRegistry {
+export function loadCapabilityRegistry(
+  options: { repoRoot?: string } = {},
+): CapabilityRegistry {
   const repoRoot = options.repoRoot ?? DEFAULT_REPO_ROOT;
   const newState = loadInternal(repoRoot);
   state = newState;
@@ -476,7 +584,8 @@ function fromState(s: RegistryState): CapabilityRegistry {
     get: (capabilityId: CapabilityId) => s.byId.get(capabilityId),
     list: () => [...s.byId.values()],
     has: (capabilityId: CapabilityId) => s.byId.has(capabilityId),
-    assertSupported: (capabilityId: string) => assertSupportedInternal(capabilityId, s),
+    assertSupported: (capabilityId: string) =>
+      assertSupportedInternal(capabilityId, s),
     loadErrors: () => s.loadErrors,
     loadedAt: () => s.loadedAt,
   };
@@ -484,9 +593,9 @@ function fromState(s: RegistryState): CapabilityRegistry {
 
 function assertSupportedInternal(
   capabilityId: string,
-  s: RegistryState
+  s: RegistryState,
 ): CapabilityDefinition {
-  if (typeof capabilityId !== 'string' || capabilityId.length === 0) {
+  if (typeof capabilityId !== "string" || capabilityId.length === 0) {
     throw new UnknownCapabilityError(capabilityId, s.byId);
   }
   const def = s.byId.get(capabilityId);
@@ -509,9 +618,9 @@ export class UnknownCapabilityError extends Error {
   constructor(capabilityId: string, known: ReadonlyMap<string, unknown>) {
     const knownIds = [...known.keys()].sort();
     super(
-      `Unknown capability_id ${JSON.stringify(capabilityId)}; known capabilities: ${knownIds.length}`
+      `Unknown capability_id ${JSON.stringify(capabilityId)}; known capabilities: ${knownIds.length}`,
     );
-    this.name = 'UnknownCapabilityError';
+    this.name = "UnknownCapabilityError";
     this.capability_id = capabilityId;
     this.known_capability_ids = knownIds;
   }
@@ -523,7 +632,7 @@ export class UnknownCapabilityError extends Error {
  * catalog on first call.
  */
 export function getCapabilityDefinition(
-  capabilityId: CapabilityId
+  capabilityId: CapabilityId,
 ): CapabilityDefinition | undefined {
   return getState().byId.get(capabilityId);
 }
@@ -550,7 +659,9 @@ export function hasCapabilityDefinition(capabilityId: CapabilityId): boolean {
  * the catalog. Returns the definition otherwise. The error is the
  * typed fail-closed behavior that ADR-003 requires.
  */
-export function assertCapabilitySupported(capabilityId: string): CapabilityDefinition {
+export function assertCapabilitySupported(
+  capabilityId: string,
+): CapabilityDefinition {
   return assertSupportedInternal(capabilityId, getState());
 }
 

@@ -20,11 +20,11 @@
  *    catalog and the policy block.
  */
 
-import { describe, it, before, after } from 'node:test';
-import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import { resolve, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { describe, it, before, after } from "node:test";
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { resolve, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 
 import {
   assertCapabilitySupported,
@@ -36,12 +36,15 @@ import {
   _resetForTests,
   UnknownCapabilityError,
   type CapabilityRegistry,
-} from '../../src/capabilities/registry.js';
-import { CAPABILITY_ID_PATTERN } from '../../src/capabilities/version.js';
-import { DOMAIN_CAPABILITY_BINDINGS, getDomainCapabilityBinding } from '../../src/capabilities/bindings.js';
+} from "../../src/capabilities/registry.js";
+import { CAPABILITY_ID_PATTERN } from "../../src/capabilities/version.js";
+import {
+  DOMAIN_CAPABILITY_BINDINGS,
+  getDomainCapabilityBinding,
+} from "../../src/capabilities/bindings.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const repoRoot = resolve(__dirname, '..', '..');
+const repoRoot = resolve(__dirname, "..", "..");
 
 interface CatalogRow {
   capability_id: string;
@@ -50,7 +53,10 @@ interface CatalogRow {
   status: string;
   risk_tier: string;
   human_review: boolean;
-  downstream_policy: { downstream_allowed: boolean | 'conditional'; reason: string };
+  downstream_policy: {
+    downstream_allowed: boolean | "conditional";
+    reason: string;
+  };
   provider_execution: string;
   roadmap_owner: string;
 }
@@ -61,7 +67,9 @@ let catalog: { capabilities: CatalogRow[] };
 before(() => {
   _resetForTests();
   registry = loadCapabilityRegistry({ repoRoot });
-  catalog = JSON.parse(readFileSync(resolve(repoRoot, 'config', 'ai-capabilities.json'), 'utf-8')) as {
+  catalog = JSON.parse(
+    readFileSync(resolve(repoRoot, "config", "ai-capabilities.json"), "utf-8"),
+  ) as {
     capabilities: CatalogRow[];
   };
 });
@@ -70,31 +78,31 @@ after(() => {
   _resetForTests();
 });
 
-describe('AI-71 registry — lazy load and exposed surface', () => {
-  it('exposes the catalog as a typed view, loading exactly once', () => {
+describe("AI-71 registry — lazy load and exposed surface", () => {
+  it("exposes the catalog as a typed view, loading exactly once", () => {
     assert.equal(isLoaded(), true);
     const again = listCapabilityDefinitions();
     assert.equal(again.length, catalog.capabilities.length);
   });
 
-  it('returns the same number of definitions as catalog rows', () => {
+  it("returns the same number of definitions as catalog rows", () => {
     const defs = listCapabilityDefinitions();
-    assert.equal(defs.length, 40);
+    assert.equal(defs.length, 41);
   });
 
-  it('reports load errors for unknown (none, in this fixture)', () => {
+  it("reports load errors for unknown (none, in this fixture)", () => {
     const errs = registry.loadErrors();
-    assert.equal(errs.length, 0, `unexpected load errors: ${errs.join('\n')}`);
+    assert.equal(errs.length, 0, `unexpected load errors: ${errs.join("\n")}`);
   });
 
-  it('exposes a loadedAt timestamp', () => {
+  it("exposes a loadedAt timestamp", () => {
     const ts = registry.loadedAt();
     assert.ok(ts);
     assert.equal(Number.isNaN(Date.parse(ts)), false);
   });
 });
 
-describe('AI-71 registry — every catalog capability resolves', () => {
+describe("AI-71 registry — every catalog capability resolves", () => {
   for (const row of catalog.capabilities) {
     it(`resolves ${row.capability_id} uniquely`, () => {
       const def = registry.get(row.capability_id as never);
@@ -105,48 +113,57 @@ describe('AI-71 registry — every catalog capability resolves', () => {
       assert.equal(def.status, row.status);
       assert.equal(def.risk_tier, row.risk_tier);
       assert.equal(def.human_review, row.human_review);
-      assert.equal(def.downstream_policy.downstream_allowed, row.downstream_policy.downstream_allowed);
+      assert.equal(
+        def.downstream_policy.downstream_allowed,
+        row.downstream_policy.downstream_allowed,
+      );
       assert.equal(def.provider_execution, row.provider_execution);
       assert.equal(def.roadmap_owner, row.roadmap_owner);
     });
   }
 
-  it('every catalog capability_id matches the capability ID pattern', () => {
+  it("every catalog capability_id matches the capability ID pattern", () => {
     for (const row of catalog.capabilities) {
       assert.equal(
         CAPABILITY_ID_PATTERN.test(row.capability_id),
         true,
-        `row ${row.capability_id} does not match the capability ID pattern`
+        `row ${row.capability_id} does not match the capability ID pattern`,
       );
     }
   });
 });
 
-describe('AI-71 registry — unknown capability IDs fail closed', () => {
-  it('getCapabilityDefinition returns undefined for an unknown ID', () => {
-    assert.equal(getCapabilityDefinition('does.not.exist' as never), undefined);
+describe("AI-71 registry — unknown capability IDs fail closed", () => {
+  it("getCapabilityDefinition returns undefined for an unknown ID", () => {
+    assert.equal(getCapabilityDefinition("does.not.exist" as never), undefined);
   });
 
-  it('hasCapabilityDefinition returns false for an unknown ID', () => {
-    assert.equal(hasCapabilityDefinition('does.not.exist' as never), false);
+  it("hasCapabilityDefinition returns false for an unknown ID", () => {
+    assert.equal(hasCapabilityDefinition("does.not.exist" as never), false);
   });
 
-  it('assertCapabilitySupported throws UnknownCapabilityError for an unknown ID', () => {
+  it("assertCapabilitySupported throws UnknownCapabilityError for an unknown ID", () => {
     assert.throws(
-      () => assertCapabilitySupported('does.not.exist'),
+      () => assertCapabilitySupported("does.not.exist"),
       (err: unknown): boolean => {
         if (!(err instanceof UnknownCapabilityError)) return false;
-        return err.capability_id === 'does.not.exist' && err.known_capability_ids.length === 40;
-      }
+        return (
+          err.capability_id === "does.not.exist" &&
+          err.known_capability_ids.length === 41
+        );
+      },
     );
   });
 
-  it('assertCapabilitySupported throws for a malformed ID', () => {
-    assert.throws(() => assertCapabilitySupported('OPENAI.gpt-5'), UnknownCapabilityError);
+  it("assertCapabilitySupported throws for a malformed ID", () => {
+    assert.throws(
+      () => assertCapabilitySupported("OPENAI.gpt-5"),
+      UnknownCapabilityError,
+    );
   });
 });
 
-describe('AI-71 registry — policy block is present and stable', () => {
+describe("AI-71 registry — policy block is present and stable", () => {
   for (const row of catalog.capabilities) {
     it(`carries a policy block for ${row.capability_id}`, () => {
       const def = registry.get(row.capability_id as never);
@@ -155,31 +172,38 @@ describe('AI-71 registry — policy block is present and stable', () => {
       assert.equal(def.policy.human_review_policy.required, row.human_review);
       assert.equal(
         def.policy.downstream_policy.downstream_allowed,
-        row.downstream_policy.downstream_allowed
+        row.downstream_policy.downstream_allowed,
       );
       assert.ok(def.policy.privacy_requirement);
       assert.ok(def.policy.budget_requirement);
       assert.ok(def.policy.evaluation_requirement);
       assert.ok(def.policy.execution_requirement);
-      assert.equal(def.policy.execution_requirement.provider_execution, row.provider_execution);
+      assert.equal(
+        def.policy.execution_requirement.provider_execution,
+        row.provider_execution,
+      );
     });
   }
 
-  it('derives privacy tier from risk_tier', () => {
+  it("derives privacy tier from risk_tier", () => {
     for (const row of catalog.capabilities) {
       const def = registry.get(row.capability_id as never);
       assert.ok(def);
       const expectedTier =
-        row.risk_tier === 'high' ? 'regulated' : row.risk_tier === 'medium' ? 'sensitive' : 'standard';
+        row.risk_tier === "high"
+          ? "regulated"
+          : row.risk_tier === "medium"
+            ? "sensitive"
+            : "standard";
       assert.equal(def.policy.privacy_requirement.tier, expectedTier);
     }
   });
 
-  it('marks high-risk capabilities as zdr_required', () => {
+  it("marks high-risk capabilities as zdr_required", () => {
     for (const row of catalog.capabilities) {
       const def = registry.get(row.capability_id as never);
       assert.ok(def);
-      if (row.risk_tier === 'high') {
+      if (row.risk_tier === "high") {
         assert.equal(def.policy.privacy_requirement.zdr_required, true);
       } else {
         assert.equal(def.policy.privacy_requirement.zdr_required, false);
@@ -187,17 +211,20 @@ describe('AI-71 registry — policy block is present and stable', () => {
     }
   });
 
-  it('requires gold_case for high-risk review-gated capabilities', () => {
+  it("requires gold_case for high-risk review-gated capabilities", () => {
     for (const row of catalog.capabilities) {
       const def = registry.get(row.capability_id as never);
       assert.ok(def);
-      const shouldRequireGold = row.human_review && row.risk_tier === 'high';
-      assert.equal(def.policy.evaluation_requirement.gold_case_required, shouldRequireGold);
+      const shouldRequireGold = row.human_review && row.risk_tier === "high";
+      assert.equal(
+        def.policy.evaluation_requirement.gold_case_required,
+        shouldRequireGold,
+      );
     }
   });
 });
 
-describe('AI-71 registry — bindings are integrated and consistent', () => {
+describe("AI-71 registry — bindings are integrated and consistent", () => {
   for (const binding of DOMAIN_CAPABILITY_BINDINGS) {
     it(`binding for ${binding.capability_id} matches the catalog`, () => {
       const def = registry.get(binding.capability_id);
@@ -205,7 +232,7 @@ describe('AI-71 registry — bindings are integrated and consistent', () => {
       assert.equal(def.human_review, binding.human_review_required);
       assert.equal(
         def.downstream_policy.downstream_allowed,
-        binding.downstream_allowed
+        binding.downstream_allowed,
       );
       assert.equal(def.risk_tier, binding.risk_tier);
       assert.equal(def.provider_execution, binding.provider_execution);
@@ -214,14 +241,14 @@ describe('AI-71 registry — bindings are integrated and consistent', () => {
     });
   }
 
-  it('getDomainCapabilityBinding returns the same record as the list', () => {
+  it("getDomainCapabilityBinding returns the same record as the list", () => {
     for (const binding of DOMAIN_CAPABILITY_BINDINGS) {
       const looked = getDomainCapabilityBinding(binding.capability_id);
       assert.equal(looked, binding);
     }
   });
 
-  it('every binding covers a real catalog capability', () => {
+  it("every binding covers a real catalog capability", () => {
     for (const binding of DOMAIN_CAPABILITY_BINDINGS) {
       const def = registry.get(binding.capability_id);
       assert.ok(def, `binding ${binding.capability_id} does not resolve`);
@@ -229,43 +256,43 @@ describe('AI-71 registry — bindings are integrated and consistent', () => {
   });
 });
 
-describe('AI-71 registry — never carries provider/credential fields', () => {
-  it('no definition carries a forbidden key (top-level + nested object keys)', () => {
+describe("AI-71 registry — never carries provider/credential fields", () => {
+  it("no definition carries a forbidden key (top-level + nested object keys)", () => {
     const forbidden = new Set<string>([
-      'provider',
-      'provider_id',
-      'provider_name',
-      'provider_response',
-      'model',
-      'model_id',
-      'model_name',
-      'model_version',
-      'api_key',
-      'apikey',
-      'api_token',
-      'token',
-      'bearer',
-      'authorization',
-      'secret',
-      'client_secret',
-      'access_key',
-      'private_key',
-      'password',
-      'endpoint_url',
-      'base_url',
-      'profile',
-      'profile_id',
-      'execution_profile',
-      'prompt_hash',
-      'reviewer',
-      'reviewer_id',
-      'reviewer_name',
+      "provider",
+      "provider_id",
+      "provider_name",
+      "provider_response",
+      "model",
+      "model_id",
+      "model_name",
+      "model_version",
+      "api_key",
+      "apikey",
+      "api_token",
+      "token",
+      "bearer",
+      "authorization",
+      "secret",
+      "client_secret",
+      "access_key",
+      "private_key",
+      "password",
+      "endpoint_url",
+      "base_url",
+      "profile",
+      "profile_id",
+      "execution_profile",
+      "prompt_hash",
+      "reviewer",
+      "reviewer_id",
+      "reviewer_name",
     ]);
     for (const def of listCapabilityDefinitions()) {
-      collectKeys(def).forEach(key => {
+      collectKeys(def).forEach((key) => {
         assert.ok(
           !forbidden.has(key),
-          `definition ${def.capability_id} carries forbidden field: ${key}`
+          `definition ${def.capability_id} carries forbidden field: ${key}`,
         );
       });
     }
@@ -277,7 +304,7 @@ function collectKeys(value: unknown): string[] {
   const seen = new Set<unknown>();
   function walk(v: unknown): void {
     if (v === null || v === undefined) return;
-    if (typeof v !== 'object') return;
+    if (typeof v !== "object") return;
     if (seen.has(v)) return;
     seen.add(v);
     if (Array.isArray(v)) {

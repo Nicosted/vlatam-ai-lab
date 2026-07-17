@@ -74,6 +74,46 @@ export interface ExecutionProfile {
     readonly expires_at: string;
     readonly kill_switch_required: true;
   };
+  readonly supervised_controls?: {
+    readonly configuration_status: "blocked_candidate";
+    readonly adapter_enabled: false;
+    readonly budget_enabled: false;
+    readonly invocation_mode: "manual_only";
+    readonly human_review_required: true;
+    readonly post_response_schema_validation_required: true;
+    readonly structured_output_capability_status: "controlled_execution_required";
+    readonly fallback_enabled: false;
+    readonly automatic_retries: 0;
+    readonly maximum_requests: 1;
+    readonly maximum_input_tokens_per_request: number;
+    readonly maximum_output_tokens_per_request: number;
+    readonly maximum_total_spend_usd: "0.05";
+    readonly operational_cost_bands_usd: {
+      readonly preferred_max: "0.05";
+      readonly acceptable_max: "0.25";
+      readonly review_required_max: "1.00";
+    };
+    readonly exact_model_only: true;
+    readonly intended_upstream_provider_id: "z-ai";
+    readonly exact_provider_endpoint_slug: string | null;
+    readonly provider_order: readonly string[];
+    readonly exact_upstream_routing_status:
+      | "blocked_missing_official_slug"
+      | "verified";
+    readonly require_parameters: true;
+    readonly data_collection: "deny";
+    readonly zdr_required: true;
+    readonly pre_execution_redaction_required: true;
+    readonly external_processing_scope: "redacted_only";
+    readonly regulated_data_permitted: false;
+    readonly restricted_data_permitted: false;
+    readonly route_id: string;
+    readonly kill_switch_required: true;
+    readonly kill_switch_active: true;
+    readonly durable_one_use_grant_required: true;
+    readonly owners: Readonly<Record<string, string>>;
+    readonly pending_approvals: readonly string[];
+  };
 }
 
 export const EXECUTION_PROFILE_CONTRACT_VERSION = "1.1.0";
@@ -117,6 +157,32 @@ export function validateExecutionProfile(
         profile.sandbox_controls.intended_upstream_provider_id
     )
       errors.push("sandbox proposal provider routing must remain exact");
+  }
+  if (profile.supervised_controls !== undefined) {
+    const controls = profile.supervised_controls;
+    if (profile.enabled || controls.adapter_enabled || controls.budget_enabled)
+      errors.push("supervised production candidate must remain disabled");
+    if (
+      controls.invocation_mode !== "manual_only" ||
+      controls.maximum_requests !== 1 ||
+      controls.automatic_retries !== 0 ||
+      controls.fallback_enabled
+    )
+      errors.push("supervised production candidate must remain one-shot");
+    if (
+      controls.exact_upstream_routing_status === "verified" &&
+      (controls.exact_provider_endpoint_slug === null ||
+        controls.provider_order.length !== 1 ||
+        controls.provider_order[0] !== controls.exact_provider_endpoint_slug)
+    )
+      errors.push("verified supervised route requires one exact provider slug");
+    if (
+      controls.exact_upstream_routing_status ===
+        "blocked_missing_official_slug" &&
+      (controls.exact_provider_endpoint_slug !== null ||
+        controls.provider_order.length !== 0)
+    )
+      errors.push("unverified supervised route must not guess provider slug");
   }
   if (profile.privacy === undefined) {
     errors.push("privacy declaration is required");

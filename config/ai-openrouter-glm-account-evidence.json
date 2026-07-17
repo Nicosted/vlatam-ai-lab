@@ -1,0 +1,55 @@
+{
+  "contract_version": "1.0.0",
+  "evidence_id": "openrouter.glm-5.2.account-configuration.operator-candidate.v1",
+  "observation_date": "2026-07-16",
+  "source_type": "operator_provided",
+  "review_status": "pending",
+  "execution_authority": false,
+  "credential_label": "vlatam-production-operator",
+  "credential_expiration": "2026-08-15",
+  "monthly_credential_limit_usd": "25.00",
+  "guardrail": {
+    "name": "vlatam-production-supervised",
+    "monthly_limit_usd": "25.00"
+  },
+  "privacy_controls_reported": {
+    "non_frontier_zdr_enabled": true,
+    "paid_or_free_training_endpoints_disabled": true,
+    "free_prompt_publication_endpoints_disabled": true,
+    "response_healing_disabled": true
+  },
+  "routing_controls_reported": {
+    "mode": "allow_only",
+    "allowed_provider_display_names": [
+      "Z.AI",
+      "MiniMax",
+      "Fireworks",
+      "Cloudflare"
+    ],
+    "allowed_models": ["z-ai/glm-5.2"],
+    "auto_router_forbidden": true
+  },
+  "content_controls_reported": {
+    "prompt_injection": { "action": "flag", "scope": "user_messages" },
+    "email": "redact",
+    "phone": "redact",
+    "credit_card": "block",
+    "international_phone_pattern": "\\+[0-9][0-9 .-]{7,18}[0-9]",
+    "international_phone_action": "redact"
+  },
+  "unknown_contractual_facts": [
+    "exact_z_ai_openrouter_endpoint_slug",
+    "route_specific_zdr_eligibility",
+    "upstream_retention",
+    "upstream_training_use",
+    "processing_region",
+    "route_specific_pricing",
+    "structured_output_support"
+  ],
+  "limitations": [
+    "This is operator-provided account evidence, not independent provider-policy proof.",
+    "It contains no screenshot, credential value, or credential fragment.",
+    "It cannot enable a model, route, profile, budget, adapter, authorization, gateway, or transport."
+  ],
+  "evidence_hash": "e51a2963f1ceeace243a676b5ecb7fc36dfc5e95474a63b31c2098558b0ee28a"
+}
