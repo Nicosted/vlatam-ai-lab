@@ -15,7 +15,7 @@ import type {
 import {
   classifyGlmFireworksPreResponseFailure,
   GlmFireworksCredentialUnavailableError,
-  isGlmFireworksCredentialUnavailableError,
+  sanitizeGlmFireworksNativeTransportError,
   type GlmFireworksPreResponseFailureEvidence,
 } from "./glm-fireworks-pre-response-failure.js";
 import { OPENROUTER_BASE_URL } from "./openrouter-config.js";
@@ -293,18 +293,23 @@ export function createApprovedAi122OpenRouterTransport(approval: {
     const credential = process.env[credentialName];
     if (typeof credential !== "string" || credential.length === 0)
       throw new GlmFireworksCredentialUnavailableError();
-    const response = await fetch(`${OPENROUTER_BASE_URL}/chat/completions`, {
-      method: request.method,
-      headers: {
-        authorization: `Bearer ${credential}`,
-        "content-type": "application/json",
-        "x-idempotency-key": request.idempotency_key,
-        "x-correlation-id": request.correlation_id,
-      },
-      body: request.body,
-      signal: request.signal,
-      redirect: "error",
-    });
+    let response: Response;
+    try {
+      response = await fetch(`${OPENROUTER_BASE_URL}/chat/completions`, {
+        method: request.method,
+        headers: {
+          authorization: `Bearer ${credential}`,
+          "content-type": "application/json",
+          "x-idempotency-key": request.idempotency_key,
+          "x-correlation-id": request.correlation_id,
+        },
+        body: request.body,
+        signal: request.signal,
+        redirect: "error",
+      });
+    } catch (error) {
+      throw sanitizeGlmFireworksNativeTransportError(error) ?? error;
+    }
     const rawBody = await response.text();
     let normalizedBody = rawBody;
     let endpointTag: string | undefined;
@@ -862,6 +867,12 @@ export interface GlmConformanceHarnessOptions {
 export class GlmFireworksControlledConformanceHarness {
   constructor(private readonly options: GlmConformanceHarnessOptions) {}
 
+  classifyPreResponseFailureOnly(
+    input: unknown,
+  ): GlmFireworksPreResponseFailureEvidence {
+    return classifyGlmFireworksPreResponseFailure(input);
+  }
+
   async execute(value: unknown): Promise<GlmConformanceEvidence> {
     const now = this.options.clock?.() ?? new Date();
     const request = isRecord(value)
@@ -977,15 +988,12 @@ export class GlmFireworksControlledConformanceHarness {
         const timedOut = timeoutSignal.aborted && !externallyCancelled;
         const failure = externallyCancelled
           ? undefined
-          : classifyGlmFireworksPreResponseFailure({
+          : this.classifyPreResponseFailureOnly({
               attempt: index + 1,
               timestamp: completed.toISOString(),
               correlation_id: controlled.correlation_id,
               execution_evidence_id: `${controlled.correlation_id}.attempt-${index + 1}.pre-response`,
               timed_out: timedOut,
-              ...(isGlmFireworksCredentialUnavailableError(error)
-                ? { credential_available: false }
-                : {}),
               thrown: error,
             });
         attempts.push({
