@@ -90,6 +90,23 @@ Execution remains blocked on
 the unresolved pricing, privacy, upstream-route, benchmark, human-evidence, and
 disabled-profile gates regardless of registry state.
 
+## AI-120 continuous runtime tournament (delivered 2026-07-17)
+
+AI-120 adds the vendor-neutral contract and read-model foundation for daily
+runtime/inference evaluation and weekly human decisions. It keeps runtime,
+gateway, model, endpoint and execution-profile identity separate; adds
+normalized metadata-only runtime events; defines fail-closed lifecycle,
+traffic, scoring, disqualification and three-budget architecture; and exposes
+disabled candidates through the read-only Operator model. ADR-004 makes AI LAB
+the neutral control plane. No scheduler, live benchmark, traffic allocation,
+provider call, authorization, budget activation or deployment is included.
+
+The next exact step is a separately approved evidence-capture iteration for
+current public Eve and Cloudflare documentation. Only after independent review
+may a candidate move from `discovered` to `sandbox_only`; only a later approved
+synthetic-run implementation may enter `benchmark_candidate`. Existing
+OpenRouter/GLM/MiniMax blockers and activation order remain unchanged.
+
 ## 2. Why AI-78 is not a "cheapest model" selector
 
 The danger of stopping at AI-72 + AI-78 is that a router might optimize

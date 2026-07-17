@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/ai-benchmark-case-selection.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "selection_id",
+    "selection_hash",
+    "suite_id",
+    "suite_version",
+    "sentinel_case_refs",
+    "rotating_case_refs",
+    "selected_at",
+    "immutable",
+    "contamination_review"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "selection_id": { "$ref": "ai-tournament-common.schema.json#/$defs/id" },
+    "selection_hash": {
+      "$ref": "ai-tournament-common.schema.json#/$defs/hash"
+    },
+    "suite_id": { "$ref": "ai-tournament-common.schema.json#/$defs/id" },
+    "suite_version": {
+      "$ref": "ai-tournament-common.schema.json#/$defs/semver"
+    },
+    "sentinel_case_refs": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string" },
+      "uniqueItems": true
+    },
+    "rotating_case_refs": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string" },
+      "uniqueItems": true
+    },
+    "selected_at": {
+      "$ref": "ai-tournament-common.schema.json#/$defs/date_time"
+    },
+    "immutable": { "const": true },
+    "contamination_review": { "enum": ["passed", "failed", "pending"] }
+  }
+}

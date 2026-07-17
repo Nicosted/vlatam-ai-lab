@@ -1,0 +1,147 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/ai-runtime-candidate.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "runtime_candidate_id",
+    "runtime_kind",
+    "version",
+    "deployment_mode",
+    "lifecycle_status",
+    "supported_capabilities",
+    "durability",
+    "session_resume",
+    "cancellation",
+    "human_review_support",
+    "subagent_support",
+    "sandbox_support",
+    "observability_support",
+    "reasoning_event_handling",
+    "privacy_constraints",
+    "geographic_constraints",
+    "cost_accounting_support",
+    "evidence_export_support",
+    "kill_switch",
+    "approval_state",
+    "enabled",
+    "evidence"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "runtime_candidate_id": {
+      "$ref": "ai-tournament-common.schema.json#/$defs/id"
+    },
+    "runtime_kind": {
+      "enum": ["native", "vendor_runtime", "workflow_runtime"]
+    },
+    "version": { "$ref": "ai-tournament-common.schema.json#/$defs/semver" },
+    "deployment_mode": { "enum": ["local_only", "external_managed", "hybrid"] },
+    "lifecycle_status": {
+      "$ref": "ai-tournament-common.schema.json#/$defs/lifecycle"
+    },
+    "supported_capabilities": {
+      "type": "array",
+      "items": { "$ref": "ai-tournament-common.schema.json#/$defs/id" },
+      "uniqueItems": true
+    },
+    "durability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["durable", "mechanism"],
+      "properties": {
+        "durable": { "type": "boolean" },
+        "mechanism": { "type": "string", "minLength": 1 }
+      }
+    },
+    "session_resume": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sessions", "resume"],
+      "properties": {
+        "sessions": { "type": "boolean" },
+        "resume": {
+          "enum": ["unsupported", "token", "event_replay", "checkpoint"]
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "sessions": { "const": false } } },
+          "then": { "properties": { "resume": { "const": "unsupported" } } }
+        }
+      ]
+    },
+    "cancellation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["supported", "semantics"],
+      "properties": {
+        "supported": { "type": "boolean" },
+        "semantics": { "type": "string", "minLength": 1 }
+      }
+    },
+    "human_review_support": { "type": "boolean" },
+    "subagent_support": { "type": "boolean" },
+    "sandbox_support": { "type": "boolean" },
+    "observability_support": {
+      "type": "array",
+      "items": { "type": "string" },
+      "uniqueItems": true
+    },
+    "reasoning_event_handling": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["capture", "approval_id"],
+      "properties": {
+        "capture": {
+          "$ref": "ai-tournament-common.schema.json#/$defs/reasoning_capture"
+        },
+        "approval_id": { "type": ["string", "null"] }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "capture": { "const": "approved_summary" } },
+            "required": ["capture"]
+          },
+          "then": {
+            "properties": {
+              "approval_id": { "type": "string", "minLength": 1 }
+            }
+          }
+        }
+      ]
+    },
+    "privacy_constraints": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "geographic_constraints": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "cost_accounting_support": { "type": "boolean" },
+    "evidence_export_support": { "type": "boolean" },
+    "kill_switch": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["active"],
+      "properties": { "active": { "const": true } }
+    },
+    "approval_state": {
+      "$ref": "ai-tournament-common.schema.json#/$defs/approval"
+    },
+    "enabled": { "const": false },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "$ref": "ai-tournament-common.schema.json#/$defs/evidence_ref"
+      }
+    }
+  }
+}

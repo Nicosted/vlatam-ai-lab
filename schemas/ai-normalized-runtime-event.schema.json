@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/ai-normalized-runtime-event.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "event_id",
+    "event_type",
+    "occurred_at",
+    "run_id",
+    "candidate_id",
+    "correlation_id",
+    "status_code",
+    "reasoning_capture",
+    "evidence_refs"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "event_id": { "$ref": "ai-tournament-common.schema.json#/$defs/id" },
+    "event_type": {
+      "enum": [
+        "session_started",
+        "turn_started",
+        "step_started",
+        "action_requested",
+        "action_completed",
+        "input_requested",
+        "authorization_required",
+        "subagent_started",
+        "subagent_completed",
+        "structured_result_completed",
+        "usage_recorded",
+        "step_completed",
+        "turn_completed",
+        "session_waiting",
+        "session_completed",
+        "cancelled",
+        "failed"
+      ]
+    },
+    "occurred_at": {
+      "$ref": "ai-tournament-common.schema.json#/$defs/date_time"
+    },
+    "run_id": { "$ref": "ai-tournament-common.schema.json#/$defs/id" },
+    "candidate_id": { "$ref": "ai-tournament-common.schema.json#/$defs/id" },
+    "correlation_id": { "$ref": "ai-tournament-common.schema.json#/$defs/id" },
+    "status_code": { "type": ["string", "null"] },
+    "reasoning_capture": { "enum": ["disabled", "redacted"] },
+    "evidence_refs": {
+      "type": "array",
+      "items": { "$ref": "ai-tournament-common.schema.json#/$defs/id" },
+      "uniqueItems": true
+    }
+  }
+}

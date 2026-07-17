@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/ai-tournament-execution-profile.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "execution_profile_id",
+    "version",
+    "capability_id",
+    "runtime_candidate_id",
+    "inference_gateway_candidate_id",
+    "model_candidate_id",
+    "provider_endpoint_candidate_id",
+    "traffic_stage",
+    "privacy_classification",
+    "reasoning_capture",
+    "reasoning_capture_approval_id",
+    "authorization_id",
+    "authorization_expires_at",
+    "timeout_ms",
+    "maximum_attempts",
+    "approval_state",
+    "enabled"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "execution_profile_id": {
+      "$ref": "ai-tournament-common.schema.json#/$defs/id"
+    },
+    "version": { "$ref": "ai-tournament-common.schema.json#/$defs/semver" },
+    "capability_id": { "$ref": "ai-tournament-common.schema.json#/$defs/id" },
+    "runtime_candidate_id": {
+      "$ref": "ai-tournament-common.schema.json#/$defs/id"
+    },
+    "inference_gateway_candidate_id": {
+      "$ref": "ai-tournament-common.schema.json#/$defs/id"
+    },
+    "model_candidate_id": {
+      "$ref": "ai-tournament-common.schema.json#/$defs/id"
+    },
+    "provider_endpoint_candidate_id": {
+      "$ref": "ai-tournament-common.schema.json#/$defs/id"
+    },
+    "traffic_stage": {
+      "enum": [
+        "synthetic_benchmark_only",
+        "shadow",
+        "canary",
+        "approved_traffic",
+        "preferred_traffic",
+        "fallback"
+      ]
+    },
+    "privacy_classification": {
+      "enum": ["public", "internal", "confidential", "regulated", "restricted"]
+    },
+    "reasoning_capture": {
+      "$ref": "ai-tournament-common.schema.json#/$defs/reasoning_capture"
+    },
+    "reasoning_capture_approval_id": { "type": ["string", "null"] },
+    "authorization_id": { "type": ["string", "null"] },
+    "authorization_expires_at": {
+      "type": ["string", "null"],
+      "format": "date-time"
+    },
+    "timeout_ms": { "type": "integer", "minimum": 1, "maximum": 300000 },
+    "maximum_attempts": { "type": "integer", "minimum": 1, "maximum": 3 },
+    "approval_state": {
+      "$ref": "ai-tournament-common.schema.json#/$defs/approval"
+    },
+    "enabled": { "const": false }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "reasoning_capture": { "const": "approved_summary" } }
+      },
+      "then": {
+        "properties": {
+          "reasoning_capture_approval_id": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  ]
+}

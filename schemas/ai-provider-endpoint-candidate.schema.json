@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/ai-provider-endpoint-candidate.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "provider_endpoint_candidate_id",
+    "provider_id",
+    "endpoint_identity",
+    "version",
+    "lifecycle_status",
+    "region",
+    "retention",
+    "zdr_status",
+    "approval_state",
+    "enabled",
+    "evidence"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "provider_endpoint_candidate_id": {
+      "$ref": "ai-tournament-common.schema.json#/$defs/id"
+    },
+    "provider_id": { "$ref": "ai-tournament-common.schema.json#/$defs/id" },
+    "endpoint_identity": { "type": "string", "minLength": 1 },
+    "version": { "$ref": "ai-tournament-common.schema.json#/$defs/semver" },
+    "lifecycle_status": {
+      "$ref": "ai-tournament-common.schema.json#/$defs/lifecycle"
+    },
+    "region": { "type": "string", "minLength": 1 },
+    "retention": { "type": "string", "minLength": 1 },
+    "zdr_status": { "enum": ["verified", "unverified", "unsupported"] },
+    "approval_state": {
+      "$ref": "ai-tournament-common.schema.json#/$defs/approval"
+    },
+    "enabled": { "const": false },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "$ref": "ai-tournament-common.schema.json#/$defs/evidence_ref"
+      }
+    }
+  }
+}

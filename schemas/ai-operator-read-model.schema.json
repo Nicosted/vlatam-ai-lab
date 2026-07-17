@@ -27,10 +27,11 @@
     "blockers",
     "required_human_actions",
     "validation_evidence_metadata",
-    "audit_references"
+    "audit_references",
+    "tournament"
   ],
   "properties": {
-    "contract_version": { "const": "1.1.0" },
+    "contract_version": { "const": "1.2.0" },
     "system_summary": {
       "type": "object",
       "required": [
@@ -60,7 +61,7 @@
         "active_blockers": { "type": "integer", "minimum": 0 },
         "execution_authorized_count": { "type": "integer", "minimum": 0 },
         "last_evaluated_at": { "type": "string", "format": "date-time" },
-        "read_model_contract_version": { "const": "1.1.0" },
+        "read_model_contract_version": { "const": "1.2.0" },
         "read_model_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
       },
       "additionalProperties": false
@@ -230,6 +231,65 @@
       "type": "array",
       "items": { "type": "string" },
       "uniqueItems": true
+    },
+    "tournament": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["registered_candidates", "write_actions_available"],
+      "properties": {
+        "write_actions_available": { "const": false },
+        "registered_candidates": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "candidate_id",
+              "lifecycle_status",
+              "benchmark_eligible",
+              "latest_daily_result",
+              "latest_weekly_review",
+              "unresolved_blockers",
+              "budget_state",
+              "kill_switch_state",
+              "promotion_recommendation",
+              "human_decision_required"
+            ],
+            "properties": {
+              "candidate_id": { "type": "string", "minLength": 1 },
+              "lifecycle_status": {
+                "enum": [
+                  "discovered",
+                  "sandbox_only",
+                  "benchmark_candidate",
+                  "shadow",
+                  "canary",
+                  "approved",
+                  "preferred",
+                  "degraded",
+                  "suspended",
+                  "blocked"
+                ]
+              },
+              "benchmark_eligible": { "type": "boolean" },
+              "latest_daily_result": { "type": ["string", "null"] },
+              "latest_weekly_review": { "type": ["string", "null"] },
+              "unresolved_blockers": {
+                "type": "array",
+                "items": { "type": "string" }
+              },
+              "budget_state": {
+                "enum": ["disabled", "available", "exhausted"]
+              },
+              "kill_switch_state": { "enum": ["active", "inactive"] },
+              "promotion_recommendation": {
+                "enum": ["none", "defer", "promote", "regress"]
+              },
+              "human_decision_required": { "const": true }
+            }
+          }
+        }
+      }
     }
   },
   "$defs": {
