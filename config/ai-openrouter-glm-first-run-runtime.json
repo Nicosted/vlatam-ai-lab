@@ -1,0 +1,60 @@
+{
+  "artifact_contract_version": "1.0.0",
+  "hash_domain": "vlatam-ai-lab:glm-first-run-runtime:v1",
+  "artifact_id": "openrouter.glm-5.2.vlatam-pilot-001.first-run-runtime.v1",
+  "status": "blocked",
+  "execution_authority": false,
+  "adapter_enabled": false,
+  "model_enabled": false,
+  "route_enabled": false,
+  "profile_enabled": false,
+  "budget_enabled": false,
+  "kill_switch_active": true,
+  "manual_only": true,
+  "exact_model": "z-ai/glm-5.2",
+  "exact_reviewed_provider_endpoint_required": true,
+  "exact_provider_endpoint_slug": null,
+  "provider": {
+    "only": [],
+    "order": [],
+    "allow_fallbacks": false,
+    "require_parameters": true,
+    "data_collection": "deny",
+    "zdr": true
+  },
+  "automatic_retries": 0,
+  "ceilings": {
+    "maximum_requests": 1,
+    "maximum_input_tokens": 4000,
+    "maximum_output_tokens": 1200,
+    "timeout_ms": 15000,
+    "maximum_spend_usd": "0.05"
+  },
+  "durable_one_use_authorization_required": true,
+  "authorization_issued": false,
+  "schema_validation_required": true,
+  "raw_response_persistence": "forbidden",
+  "environment_bypass_allowed": false,
+  "secret_resolution_order": "after_all_non_secret_preflight_checks",
+  "bindings": {
+    "proposal_hash": "7134a05cd073b881764b4719a22b8db87cbd1765dbb1884b96ea0db04d69fd78",
+    "readiness_dossier_hash": "d8010809d1ad6e78edbcd8b158fcb4e1abd85e3183ffa0943f904e930dd1352b",
+    "external_evidence_hash": "4631f0c278aab214074f4ed7d5c2a61dc6d86ddde60e75d929a235de71fc6325",
+    "pricing_policy_hash": "066a50126273d92647ece893205b1dbda33f5dcef616241d9fb83c1d63fe06b7",
+    "zdr_review_hash": "627b3690424df272c1c0f04584e83ab6fa386deaffb971444f2b8fbf47bb91d9",
+    "capability_acceptance_hash": "8ad88a86cad1f78020c8e3b24b9ba47ea001749217f30eefca0744ca31da35b4",
+    "operation_binding_hash": "ec533bda81ba23ea14641da11aa523ca6d6a0c82da01b3b9f0be2c12e7c712d3",
+    "profile_hash": "2b1df9f521ae74191d16415a0369cea5c0ae6a01b93c62aad865a79fa16c9322",
+    "route_hash": "641a012d697fb804d251bddb2d39848ee6d11200e60465cec2d4be84b84b0cfc",
+    "model_hash": "223deeab081cb707c14ddbeeb3f03a2de18a172bcc61954dfe14abbbdb739904",
+    "exact_policy_hash": null
+  },
+  "blockers": [
+    "readiness_blocked",
+    "activation_review_blocked",
+    "exact_provider_endpoint_slug_unproven",
+    "endpoint_specific_zdr_unproven",
+    "authorization_not_issued"
+  ],
+  "artifact_hash": "eeb5d48b65d37f200032454cd26150ef937587c26af250f8ea83bd3d30756c24"
+}

@@ -12,7 +12,7 @@ Se preparó un camino gobernado y desactivado para evaluar `z-ai/glm-5.2` a trav
 
 La evidencia de cuenta suministrada por el operador quedó registrada como candidata pendiente de revisión, no como prueba independiente de las políticas del proveedor. Registra los límites mensuales, guardrail, proveedores y modelo permitidos, ZDR reportado y controles de contenido, sin capturas, valores de credenciales ni fragmentos secretos.
 
-La primera operación, `VLATAM-PILOT-001 — Shantou Yufeng Sample Order`, está preparada pero no ejecutada. El PDF original debe permanecer fuera de Git. Antes de cualquier procesamiento externo, un operador debe generar y suministrar explícitamente un texto o derivado redactado, vinculado al original por SHA-256. El PDF no se envía directamente porque puede contener datos bancarios, datos personales, datos de contacto, domicilios innecesarios u otra información que no debe salir del perímetro local.
+La primera operación, `VLATAM-PILOT-001`, está preparada pero no ejecutada. El PDF original debe permanecer fuera de Git. Antes de cualquier procesamiento externo, un operador debe generar y suministrar explícitamente un texto o derivado redactado, vinculado al original por SHA-256. El PDF no se envía directamente porque puede contener datos bancarios, datos personales, datos de contacto, domicilios innecesarios u otra información que no debe salir del perímetro local.
 
 La ruta exacta sigue bloqueada. El repositorio no contiene evidencia oficial revisada del slug de endpoint Z.AI que OpenRouter requiere para `provider.only` y `provider.order`; no se lo adivinó. La capacidad de salida estructurada de esa ruta tampoco está verificada y requiere una ejecución controlada posterior, separada y aprobada.
 

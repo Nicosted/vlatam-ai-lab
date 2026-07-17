@@ -2,6 +2,16 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
+import { computeExecutionProfileHash } from "../execution/execution-profile.js";
+import {
+  GLM_MODEL_ID,
+  GLM_PROFILE_ID,
+  GLM_ROUTE_ID,
+  evaluateGlmFirstRunPreflight,
+  evaluateGlmGovernanceArtifacts,
+  glmGovernanceArtifacts,
+} from "../providers/openrouter-glm-supervised-pilot.js";
+
 import {
   evaluateOpenRouterExternalEvidencePack,
   type OpenRouterExternalEvidencePack,
@@ -317,6 +327,11 @@ export async function loadRepositoryOperatorReadModel(
   const runtimeHash = isRecord(runtime)
     ? artifactHash("vlatam-ai-lab:openrouter-sandbox-runtime:v1", runtime)
     : null;
+  const glmGovernance = evaluateGlmGovernanceArtifacts();
+  const glmPreflight = await evaluateGlmFirstRunPreflight();
+  const glmProfile = typedProfiles.find(
+    (profile) => profile.profile_id === GLM_PROFILE_ID,
+  );
   const input: OperatorReadModelInput = {
     evaluated_at: options.evaluated_at,
     source_valid:
@@ -326,7 +341,8 @@ export async function loadRepositoryOperatorReadModel(
       proposalResult.outcome !== "invalid_proposal" &&
       preflightResult.outcome !== "invalid_configuration" &&
       activationResult.outcome !== "invalid_review" &&
-      goldCaseResult.outcome !== "invalid_gold_case",
+      goldCaseResult.outcome !== "invalid_gold_case" &&
+      glmGovernance.outcome !== "invalid",
     source_errors: [...new Set(sourceErrors)].sort(),
     provider: {
       provider_id: "openrouter",
@@ -395,10 +411,7 @@ export async function loadRepositoryOperatorReadModel(
         model_id: String(profile.model_id ?? "unknown"),
         enabled: profile.enabled === true,
         lifecycle: String(profile.lifecycle_status ?? "unknown"),
-        hash:
-          typeof bindings.profile_hash === "string"
-            ? bindings.profile_hash
-            : null,
+        hash: computeExecutionProfileHash(profile),
       })),
     readiness: {
       outcome: readinessResult.outcome,
@@ -652,7 +665,45 @@ export async function loadRepositoryOperatorReadModel(
           : null,
       test_totals: options.test_totals ?? null,
     },
-    audit_references: Object.values(APPROVED_ARTIFACTS),
+    audit_references: [
+      ...Object.values(APPROVED_ARTIFACTS),
+      "config/ai-openrouter-glm-readiness-dossier.json",
+      "config/ai-openrouter-glm-external-evidence-pack.json",
+      "config/ai-openrouter-glm-supervised-enablement-proposal.json",
+      "config/ai-openrouter-glm-first-run-runtime.json",
+      "config/ai-openrouter-glm-activation-review.json",
+      "config/ai-openrouter-glm-capability-acceptance.json",
+      "config/ai-openrouter-glm-pricing-policy-candidate.json",
+      "config/ai-openrouter-glm-zdr-review-candidate.json",
+      "config/ai-commercial-document-pilot-operation.json",
+    ],
+    additional_governed_candidates: [
+      {
+        candidate_id: GLM_MODEL_ID,
+        model: { id: GLM_MODEL_ID, enabled: false },
+        route: { id: GLM_ROUTE_ID, enabled: false },
+        profile: {
+          id: GLM_PROFILE_ID,
+          enabled: false,
+          hash: glmProfile ? computeExecutionProfileHash(glmProfile) : null,
+        },
+        readiness: glmGovernance.outcome,
+        evidence: glmGovernanceArtifacts.external_evidence_pack.review_status,
+        proposal: glmGovernanceArtifacts.supervised_enablement_proposal.status,
+        runtime_preflight: glmPreflight.outcome,
+        activation_review: glmGovernanceArtifacts.activation_review.status,
+        authorization: "no_policy_issued",
+        consumption: "not_attempted",
+        adapter_gateway_transport_state: {
+          adapter: "disabled",
+          gateway: "not_invoked",
+          transport: "not_invoked",
+        },
+        blockers: glmGovernance.blockers,
+        blocker_count: glmGovernance.blockers.length,
+        next_governed_action: "review_endpoint_zdr_pricing_and_approvals",
+      },
+    ],
   };
   return buildOperatorReadModel(input);
 }

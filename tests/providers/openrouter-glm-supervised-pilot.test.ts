@@ -22,13 +22,18 @@ import {
   buildGlmRedactedProviderRequest,
   computeGlmAccountEvidenceHash,
   computeGlmOperationContractHash,
+  evaluateGlmFirstRunPreflight,
+  evaluateGlmGovernanceArtifacts,
   createGlmAdapterForAuthorizedGateway,
   glmAccountEvidence,
+  glmGovernanceArtifacts,
   glmOperationContract,
+  issueGlmExactPolicy,
   validateGlmAccountEvidence,
   validateGlmCommercialDocumentResponse,
   validateGlmRedactedOperationInput,
 } from "../../src/providers/openrouter-glm-supervised-pilot.js";
+import { computeExecutionProfileHash } from "../../src/execution/execution-profile.js";
 import {
   computeOpenRouterEntryHash,
   computeOpenRouterRouteHash,
@@ -116,16 +121,98 @@ describe("GLM 5.2 supervised production pilot candidate", () => {
 
   it("binds the prepared operation contract without adding the original PDF", () => {
     assert.equal(
-      glmOperationContract.contract_hash,
+      glmOperationContract.artifact_hash,
       computeGlmOperationContractHash(glmOperationContract),
     );
-    assert.equal(glmOperationContract.original_document.storage, "outside_git");
-    assert.equal(glmOperationContract.original_document.repository_path, null);
     assert.equal(
-      glmOperationContract.original_document.ingestion_permitted,
-      false,
+      glmOperationContract.original_document_sha256,
+      "5883515292e783e48bcd19918acb930827d3dbd054c649186407ac48b89e5f10",
     );
-    assert.equal(glmOperationContract.status, "prepared_not_executed");
+    assert.equal(
+      glmOperationContract.expected_local_artifact_type,
+      "redacted_json",
+    );
+    assert.equal(glmOperationContract.execution_authority, false);
+  });
+
+  it("hashes complete profiles independently while retaining the MiniMax runtime binding", () => {
+    const minimaxProfile = profilesJson.profiles.find(
+      (entry) =>
+        entry.profile_id ===
+        "openrouter.minimax-m2.7.normative-extraction.candidate",
+    )!;
+    const minimaxHash = computeExecutionProfileHash(minimaxProfile);
+    const glmHash = computeExecutionProfileHash(profile);
+    assert.equal(
+      minimaxHash,
+      "335bd24f9cb4aa573b65ef3f6d5c2ebcf19d150441bf7bc7d14421e7d88c8720",
+    );
+    assert.equal(
+      glmHash,
+      "2b1df9f521ae74191d16415a0369cea5c0ae6a01b93c62aad865a79fa16c9322",
+    );
+    assert.notEqual(minimaxHash, glmHash);
+    const minimaxRuntime = JSON.parse(
+      readFileSync("config/ai-openrouter-sandbox-runtime.json", "utf8"),
+    ) as { bindings: { profile_hash: string } };
+    assert.equal(
+      minimaxRuntime.bindings.profile_hash,
+      "74886e256dbd672c4825dbf485378e56db35e354605c1a4ec90e812c4e492641",
+    );
+    assert.notEqual(
+      glmGovernanceArtifacts.first_run_runtime.bindings.profile_hash,
+      minimaxRuntime.bindings.profile_hash,
+    );
+  });
+
+  it("keeps every separate GLM artifact canonical, blocked, and non-authorizing", () => {
+    const result = evaluateGlmGovernanceArtifacts();
+    assert.equal(result.outcome, "blocked");
+    assert.equal(Object.keys(result.artifact_hashes).length, 9);
+    for (const artifact of Object.values(glmGovernanceArtifacts))
+      assert.equal(artifact.execution_authority, false);
+    for (const blocker of [
+      "exact_provider_endpoint_slug_unproven",
+      "endpoint_specific_zdr_unproven",
+      "provider_specific_pricing_variable",
+      "independent_approval_pending",
+      "legal_review_pending",
+      "security_review_pending",
+      "evidence_review_pending",
+    ])
+      assert.ok(result.blockers.includes(blocker), blocker);
+  });
+
+  it("does not request the secret or issue authorization while governance is blocked", async () => {
+    let secretRequests = 0;
+    const preflight = await evaluateGlmFirstRunPreflight(async () => {
+      secretRequests += 1;
+      return "unreachable";
+    });
+    assert.equal(preflight.outcome, "blocked");
+    assert.equal(preflight.secret_requested, false);
+    assert.equal(secretRequests, 0);
+    assert.equal(
+      issueGlmExactPolicy("2026-07-17T12:15:00.000Z").status,
+      "blocked",
+    );
+  });
+
+  it("keeps variable pricing bounded but explicitly unverified", () => {
+    const pricing = glmGovernanceArtifacts.pricing_policy;
+    assert.equal(pricing.first_run_ceilings.maximum_requests, 1);
+    assert.equal(pricing.first_run_ceilings.hard_ceiling_usd, "0.05");
+    assert.equal(pricing.model_level_ceiling_estimate_usd, "0.00732");
+    assert.equal(pricing.route_specific_cost_verified, false);
+  });
+
+  it("treats account observations as non-authorizing and endpoint ZDR as unresolved", () => {
+    assert.equal(glmAccountEvidence.execution_authority, false);
+    assert.equal(glmGovernanceArtifacts.zdr_review.execution_authority, false);
+    assert.equal(
+      glmGovernanceArtifacts.zdr_review.endpoint_specific_zdr.status,
+      "blocked_unproven",
+    );
   });
 
   it("accepts an explicitly supplied redacted operation input", () => {
@@ -291,9 +378,6 @@ describe("GLM 5.2 supervised production pilot candidate", () => {
       .map((path) => readFileSync(path, "utf8"))
       .join("\n");
     assert.doesNotMatch(touched, /sk-or-|Bearer\s+[A-Za-z0-9]/);
-    assert.equal(
-      glmOperationContract.execution_controls.raw_response_persistence,
-      "forbidden",
-    );
+    assert.equal(glmOperationContract.raw_response_persistence, "forbidden");
   });
 });

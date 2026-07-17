@@ -1,0 +1,39 @@
+{
+  "artifact_contract_version": "1.0.0",
+  "hash_domain": "vlatam-ai-lab:glm-activation-review:v1",
+  "artifact_id": "openrouter.glm-5.2.vlatam-pilot-001.activation-review.v1",
+  "scope": "one_future_supervised_call",
+  "status": "blocked",
+  "execution_authority": false,
+  "evidence_review": "pending",
+  "activation_approval": "pending",
+  "independent_approval": "pending",
+  "legal_review": "pending",
+  "security_review": "pending",
+  "capability_acceptance": "pending",
+  "endpoint_slug_review": "pending",
+  "endpoint_zdr_review": "pending",
+  "pricing_review": "pending",
+  "bindings": {
+    "runtime_hash": "eeb5d48b65d37f200032454cd26150ef937587c26af250f8ea83bd3d30756c24",
+    "proposal_hash": "7134a05cd073b881764b4719a22b8db87cbd1765dbb1884b96ea0db04d69fd78",
+    "readiness_dossier_hash": "d8010809d1ad6e78edbcd8b158fcb4e1abd85e3183ffa0943f904e930dd1352b",
+    "external_evidence_hash": "4631f0c278aab214074f4ed7d5c2a61dc6d86ddde60e75d929a235de71fc6325",
+    "pricing_policy_hash": "066a50126273d92647ece893205b1dbda33f5dcef616241d9fb83c1d63fe06b7",
+    "zdr_review_hash": "627b3690424df272c1c0f04584e83ab6fa386deaffb971444f2b8fbf47bb91d9",
+    "capability_acceptance_hash": "8ad88a86cad1f78020c8e3b24b9ba47ea001749217f30eefca0744ca31da35b4",
+    "operation_binding_hash": "ec533bda81ba23ea14641da11aa523ca6d6a0c82da01b3b9f0be2c12e7c712d3"
+  },
+  "blockers": [
+    "readiness_blocked",
+    "endpoint_slug_review_pending",
+    "endpoint_zdr_review_pending",
+    "pricing_review_pending",
+    "capability_acceptance_pending",
+    "independent_approval_pending",
+    "legal_review_pending",
+    "security_review_pending",
+    "evidence_review_pending"
+  ],
+  "artifact_hash": "eecdb86a8e3afe45ff3f9a5bd89a8a901428b06f91b235ffc09ee117c5ad7672"
+}

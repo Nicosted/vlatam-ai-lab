@@ -1,0 +1,43 @@
+{
+  "artifact_contract_version": "1.0.0",
+  "hash_domain": "vlatam-ai-lab:glm-zdr-review:v1",
+  "artifact_id": "openrouter.glm-5.2.zdr-account-review-candidate.v1",
+  "model_id": "z-ai/glm-5.2",
+  "observed_at": "2026-07-17T12:00:00.000Z",
+  "account_evidence": {
+    "status": "operator_observed_pending_review",
+    "evidence_id": "openrouter.glm-5.2.account-configuration.operator-candidate.v1",
+    "evidence_hash": "7aa3237892e1815305bb1328d7bb29bb0e9fc5015242700fe188bf3bc24c234a",
+    "reported_controls": [
+      "non_frontier_zdr_enabled",
+      "training_eligible_endpoints_disabled",
+      "prompt_publication_disabled",
+      "guardrail_zdr_enabled",
+      "email_redaction",
+      "phone_redaction",
+      "custom_international_phone_redaction",
+      "credit_card_blocking",
+      "prompt_injection_flagging"
+    ]
+  },
+  "endpoint_specific_zdr": {
+    "status": "blocked_unproven",
+    "endpoint_slug": null
+  },
+  "openrouter_platform_behavior": {
+    "status": "documented_pending_review",
+    "source_url": "https://openrouter.ai/docs/guides/features/zdr"
+  },
+  "upstream_provider_behavior": "unresolved",
+  "contractual_and_geographic_facts": "unresolved",
+  "review_status": "pending",
+  "execution_authority": false,
+  "blockers": [
+    "endpoint_specific_zdr_unproven",
+    "upstream_retention_unresolved",
+    "upstream_training_use_unresolved",
+    "processing_geography_unresolved",
+    "security_review_pending"
+  ],
+  "artifact_hash": "627b3690424df272c1c0f04584e83ab6fa386deaffb971444f2b8fbf47bb91d9"
+}

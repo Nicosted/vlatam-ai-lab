@@ -1,0 +1,32 @@
+{
+  "artifact_contract_version": "1.0.0",
+  "hash_domain": "vlatam-ai-lab:glm-pricing-policy:v1",
+  "artifact_id": "openrouter.glm-5.2.first-run-pricing-policy-candidate.v1",
+  "model_id": "z-ai/glm-5.2",
+  "observed_at": "2026-07-17T12:00:00.000Z",
+  "source_url": "https://openrouter.ai/z-ai/glm-5.2/api",
+  "source_scope": "model_level_not_endpoint_specific",
+  "currency": "USD",
+  "model_page_list_price_per_million_tokens": {
+    "input": "0.93",
+    "output": "3.00"
+  },
+  "first_run_ceilings": {
+    "maximum_requests": 1,
+    "maximum_input_tokens": 4000,
+    "maximum_output_tokens": 1200,
+    "hard_ceiling_usd": "0.05"
+  },
+  "model_level_ceiling_estimate_usd": "0.00732",
+  "operation_bands_usd": {
+    "preferred": "<=0.05",
+    "acceptable": ">0.05<=0.25",
+    "review_required": ">0.25<=1.00",
+    "commercial_justification_required": ">1.00"
+  },
+  "route_specific_cost_verified": false,
+  "review_status": "pending",
+  "execution_authority": false,
+  "blockers": ["provider_specific_pricing_variable", "route_price_unreviewed"],
+  "artifact_hash": "066a50126273d92647ece893205b1dbda33f5dcef616241d9fb83c1d63fe06b7"
+}
