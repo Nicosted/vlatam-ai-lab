@@ -154,7 +154,6 @@
         "data_collection": { "const": "deny" },
         "structured_output_modes": {
           "type": "array",
-          "minItems": 1,
           "uniqueItems": true,
           "items": { "enum": ["json_object", "json_schema"] }
         },

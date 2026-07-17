@@ -82,9 +82,12 @@ describe("AI-81/AI-82 provider evidence and candidate readiness", () => {
     for (const record of catalog) {
       const url = new URL(record.source.canonical_url);
       assert.equal(url.protocol, "https:");
-      assert.ok(
-        ["openrouter.ai", "platform.minimax.io"].includes(url.hostname),
-      );
+      if (record.source.publisher === "Operator-provided")
+        assert.equal(url.hostname, "vlatam-ai-lab.local");
+      else
+        assert.ok(
+          ["openrouter.ai", "platform.minimax.io"].includes(url.hostname),
+        );
       assert.equal(computeEvidenceHash(record), record.evidence_hash);
       assert.ok(record.limitations.length > 0);
     }
@@ -210,6 +213,7 @@ describe("AI-81/AI-82 provider evidence and candidate readiness", () => {
         provider_id: string;
         enabled: boolean;
         sandbox_controls?: { configuration_status: string };
+        supervised_controls?: { configuration_status: string };
       }[];
     };
     assert.ok(
@@ -220,7 +224,10 @@ describe("AI-81/AI-82 provider evidence and candidate readiness", () => {
         .every(
           (profile) =>
             !profile.enabled &&
-            profile.sandbox_controls?.configuration_status === "proposal_only",
+            (profile.sandbox_controls?.configuration_status ===
+              "proposal_only" ||
+              profile.supervised_controls?.configuration_status ===
+                "blocked_candidate"),
         ),
     );
     const { ProviderAdapterRegistry } =

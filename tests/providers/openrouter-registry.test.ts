@@ -104,8 +104,18 @@ function invalidScenario(name: string): {
   dependencies: OpenRouterRegistryDependencies;
   now: Date;
 } {
-  const modelData = clone(models);
-  const routeData = clone(routes);
+  const modelData = clone({
+    ...models,
+    entries: models.entries.filter(
+      (entry) => entry.model_id === "minimax/minimax-m2.7",
+    ),
+  });
+  const routeData = clone({
+    ...routes,
+    routes: routes.routes.filter(
+      (route) => route.model_id === "minimax/minimax-m2.7",
+    ),
+  });
   const dependencies = clone(defaultOpenRouterRegistryDependencies());
   const entry = mutable(modelData.entries[0]);
   const route = mutable(routeData.routes[0]);
@@ -564,22 +574,25 @@ describe("governed OpenRouter model and route registry", () => {
 
   it("keeps route verification honest and every shipped record non-executable", () => {
     const registry = loadOpenRouterRegistry(NOW);
-    assert.equal(registry.entries.length, 1);
-    assert.equal(registry.routes.length, 1);
-    assert.equal(registry.entries[0]!.model_id, "minimax/minimax-m2.7");
-    assert.equal(registry.entries[0]!.provider_id, "openrouter");
-    assert.equal(registry.entries[0]!.upstream_provider_id, "minimax");
-    assert.equal(registry.entries[0]!.upstream_route_verification, "variable");
-    assert.equal(registry.routes[0]!.route_verification_status, "variable");
-    assert.deepEqual(registry.routes[0]!.allowed_model_entry_ids, [
-      registry.entries[0]!.entry_id,
+    assert.equal(registry.entries.length, 2);
+    assert.equal(registry.routes.length, 2);
+    const minimax = registry.entries.find(
+      (entry) => entry.model_id === "minimax/minimax-m2.7",
+    )!;
+    const minimaxRoute = registry.routes.find(
+      (route) => route.model_id === "minimax/minimax-m2.7",
+    )!;
+    assert.equal(minimax.provider_id, "openrouter");
+    assert.equal(minimax.upstream_provider_id, "minimax");
+    assert.equal(minimax.upstream_route_verification, "variable");
+    assert.equal(minimaxRoute.route_verification_status, "variable");
+    assert.deepEqual(minimaxRoute.allowed_model_entry_ids, [minimax.entry_id]);
+    assert.deepEqual(minimaxRoute.preferred_model_entry_order, [
+      minimax.entry_id,
     ]);
-    assert.deepEqual(registry.routes[0]!.preferred_model_entry_order, [
-      registry.entries[0]!.entry_id,
-    ]);
-    assert.deepEqual(registry.routes[0]!.fallback_model_entry_order, []);
+    assert.deepEqual(minimaxRoute.fallback_model_entry_order, []);
     assert.ok(
-      Object.values(registry.routes[0]!.eligibility_requirements).every(
+      Object.values(minimaxRoute.eligibility_requirements).every(
         (required) => required === true,
       ),
     );
@@ -595,7 +608,7 @@ describe("governed OpenRouter model and route registry", () => {
 
   it("keeps the adapter and the proposal-only execution profile disabled", () => {
     assert.equal(adapterConfig.enabled, false);
-    assert.equal(executionProfiles.profiles.length, 4);
+    assert.equal(executionProfiles.profiles.length, 5);
     assert.deepEqual(
       executionProfiles.profiles
         .filter((profile) => profile.provider_id === "openrouter")
@@ -605,13 +618,21 @@ describe("governed OpenRouter model and route registry", () => {
           configuration_status:
             "sandbox_controls" in profile
               ? profile.sandbox_controls.configuration_status
-              : null,
+              : "supervised_controls" in profile
+                ? profile.supervised_controls.configuration_status
+                : null,
         })),
       [
         {
           profile_id: "openrouter.minimax-m2.7.normative-extraction.candidate",
           enabled: false,
           configuration_status: "proposal_only",
+        },
+        {
+          profile_id:
+            "openrouter.glm-5.2.commercial-document-extraction.candidate",
+          enabled: false,
+          configuration_status: "blocked_candidate",
         },
       ],
     );

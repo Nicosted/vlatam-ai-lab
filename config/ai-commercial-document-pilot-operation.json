@@ -1,0 +1,55 @@
+{
+  "contract_version": "1.0.0",
+  "operation_id": "VLATAM-PILOT-001",
+  "title": "Shantou Yufeng Sample Order",
+  "status": "prepared_not_executed",
+  "profile_id": "openrouter.glm-5.2.commercial-document-extraction.candidate",
+  "original_document": {
+    "storage": "outside_git",
+    "repository_path": null,
+    "sha256": null,
+    "ingestion_permitted": false
+  },
+  "external_input": {
+    "artifact_type": "explicitly_supplied_redacted_text_or_derivative",
+    "redaction_attestation_required": true,
+    "original_pdf_forbidden": true,
+    "maximum_utf8_bytes": 131072,
+    "forbidden_sensitive_fields": [
+      "bank_account",
+      "personal_bank_account_holder",
+      "phone",
+      "email",
+      "unnecessary_personal_address",
+      "credential"
+    ]
+  },
+  "required_output": {
+    "supplier_identity": true,
+    "invoice_number": true,
+    "date": true,
+    "currency": true,
+    "incoterm": true,
+    "line_items": true,
+    "total": true,
+    "inconsistencies": true,
+    "missing_information": true,
+    "risk_flags": true,
+    "questions_for_supplier": true,
+    "human_review_status": "pending"
+  },
+  "execution_controls": {
+    "maximum_requests": 1,
+    "automatic_retries": 0,
+    "fallback_enabled": false,
+    "maximum_input_tokens": 4000,
+    "maximum_output_tokens": 1200,
+    "timeout_ms": 15000,
+    "maximum_spend_usd": "0.05",
+    "kill_switch_active": true,
+    "durable_one_use_authorization_required": true,
+    "post_response_schema_validation_required": true,
+    "raw_response_persistence": "forbidden"
+  },
+  "contract_hash": "85bbe42dd9cad9b2bed90c62b0e1a5be4d276b54d30aafa1035f17610e51ec3d"
+}

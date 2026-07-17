@@ -87,7 +87,9 @@
               "format": "uri",
               "pattern": "^https://"
             },
-            "publisher": { "enum": ["OpenRouter", "MiniMax"] },
+            "publisher": {
+              "enum": ["OpenRouter", "MiniMax", "Operator-provided"]
+            },
             "retrieved_at": { "type": "string", "format": "date-time" },
             "effective_at": {
               "type": ["string", "null"],

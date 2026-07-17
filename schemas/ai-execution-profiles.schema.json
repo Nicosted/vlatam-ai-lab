@@ -86,7 +86,8 @@
           }
         },
         "privacy": { "$ref": "#/$defs/privacy_declaration" },
-        "sandbox_controls": { "$ref": "#/$defs/sandbox_controls" }
+        "sandbox_controls": { "$ref": "#/$defs/sandbox_controls" },
+        "supervised_controls": { "$ref": "#/$defs/supervised_controls" }
       },
       "allOf": [
         {
@@ -122,6 +123,138 @@
           }
         }
       ]
+    },
+    "supervised_controls": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "configuration_status",
+        "adapter_enabled",
+        "budget_enabled",
+        "invocation_mode",
+        "human_review_required",
+        "post_response_schema_validation_required",
+        "structured_output_capability_status",
+        "fallback_enabled",
+        "automatic_retries",
+        "maximum_requests",
+        "maximum_input_tokens_per_request",
+        "maximum_output_tokens_per_request",
+        "maximum_total_spend_usd",
+        "operational_cost_bands_usd",
+        "exact_model_only",
+        "intended_upstream_provider_id",
+        "exact_provider_endpoint_slug",
+        "provider_order",
+        "exact_upstream_routing_status",
+        "require_parameters",
+        "data_collection",
+        "zdr_required",
+        "pre_execution_redaction_required",
+        "external_processing_scope",
+        "regulated_data_permitted",
+        "restricted_data_permitted",
+        "route_id",
+        "kill_switch_required",
+        "kill_switch_active",
+        "durable_one_use_grant_required",
+        "owners",
+        "pending_approvals"
+      ],
+      "properties": {
+        "configuration_status": { "const": "blocked_candidate" },
+        "adapter_enabled": { "const": false },
+        "budget_enabled": { "const": false },
+        "invocation_mode": { "const": "manual_only" },
+        "human_review_required": { "const": true },
+        "post_response_schema_validation_required": { "const": true },
+        "structured_output_capability_status": {
+          "const": "controlled_execution_required"
+        },
+        "fallback_enabled": { "const": false },
+        "automatic_retries": { "const": 0 },
+        "maximum_requests": { "const": 1 },
+        "maximum_input_tokens_per_request": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 8000
+        },
+        "maximum_output_tokens_per_request": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2000
+        },
+        "maximum_total_spend_usd": { "const": "0.05" },
+        "operational_cost_bands_usd": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "preferred_max",
+            "acceptable_max",
+            "review_required_max"
+          ],
+          "properties": {
+            "preferred_max": { "const": "0.05" },
+            "acceptable_max": { "const": "0.25" },
+            "review_required_max": { "const": "1.00" }
+          }
+        },
+        "exact_model_only": { "const": true },
+        "intended_upstream_provider_id": { "const": "z-ai" },
+        "exact_provider_endpoint_slug": {
+          "type": ["string", "null"],
+          "minLength": 1
+        },
+        "provider_order": {
+          "type": "array",
+          "maxItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "exact_upstream_routing_status": {
+          "enum": ["blocked_missing_official_slug", "verified"]
+        },
+        "require_parameters": { "const": true },
+        "data_collection": { "const": "deny" },
+        "zdr_required": { "const": true },
+        "pre_execution_redaction_required": { "const": true },
+        "external_processing_scope": { "const": "redacted_only" },
+        "regulated_data_permitted": { "const": false },
+        "restricted_data_permitted": { "const": false },
+        "route_id": { "const": "openrouter.glm-5.2.z-ai-candidate" },
+        "kill_switch_required": { "const": true },
+        "kill_switch_active": { "const": true },
+        "durable_one_use_grant_required": { "const": true },
+        "owners": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "provider_account_owner",
+            "runtime_operator",
+            "incident_owner",
+            "kill_switch_owner"
+          ],
+          "properties": {
+            "provider_account_owner": { "const": "Nicolás" },
+            "runtime_operator": { "const": "Nicolás" },
+            "incident_owner": { "const": "Nicolás" },
+            "kill_switch_owner": { "const": "Nicolás" }
+          }
+        },
+        "pending_approvals": {
+          "type": "array",
+          "minItems": 5,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "independent_approval",
+              "legal_approval",
+              "security_approval",
+              "evidence_approval",
+              "gold_case_acceptance"
+            ]
+          }
+        }
+      }
     },
     "sandbox_controls": {
       "type": "object",

@@ -142,6 +142,20 @@
       "roadmap_owner": "ai-72,ai-78"
     },
     {
+      "capability_id": "commercial.document.extraction",
+      "name": "Supervised commercial-document extraction",
+      "domain": "evidence",
+      "status": "partial",
+      "risk_tier": "high",
+      "human_review": true,
+      "downstream_policy": {
+        "downstream_allowed": false,
+        "reason": "Redacted commercial-document extraction remains draft and requires explicit human review; no original document or unreviewed output is downstream-safe."
+      },
+      "provider_execution": "required",
+      "roadmap_owner": "supervised-production-pilot"
+    },
+    {
       "capability_id": "evidence.extraction.qwen_dashscope",
       "name": "Qwen/DashScope extraction (spike)",
       "domain": "evidence",

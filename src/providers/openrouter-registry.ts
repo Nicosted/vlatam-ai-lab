@@ -895,7 +895,8 @@ function validateRouteShape(
     errors.add("data_collection_not_denied");
   if (
     !isStringArray(route.structured_output_modes) ||
-    route.structured_output_modes.length === 0 ||
+    (route.structured_output_modes.length === 0 &&
+      route.lifecycle !== "evidence_incomplete") ||
     duplicates(route.structured_output_modes) ||
     route.structured_output_modes.some(
       (item) => !["json_object", "json_schema"].includes(item),
@@ -1472,11 +1473,14 @@ export function defaultOpenRouterRegistryDependencies(): OpenRouterRegistryDepen
           profile_id: string;
           provider_id: string;
           sandbox_controls?: { configuration_status: string };
+          supervised_controls?: { configuration_status: string };
         }[];
       }
     ).profiles.filter(
       (profile) =>
-        profile.sandbox_controls?.configuration_status !== "proposal_only",
+        profile.sandbox_controls?.configuration_status !== "proposal_only" &&
+        profile.supervised_controls?.configuration_status !==
+          "blocked_candidate",
     ),
     adapter_config: adapterConfigJson as OpenRouterAdapterConfig,
   };

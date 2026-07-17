@@ -429,6 +429,7 @@ describe("governed OpenRouter adapter behind the gateway", () => {
         provider_id: string;
         enabled: boolean;
         sandbox_controls?: { configuration_status: string };
+        supervised_controls?: { configuration_status: string };
       }[];
     }>("config/ai-execution-profiles.json").profiles;
     assert.ok(
@@ -437,7 +438,9 @@ describe("governed OpenRouter adapter behind the gateway", () => {
         .every(
           (entry) =>
             !entry.enabled &&
-            entry.sandbox_controls?.configuration_status === "proposal_only",
+            (entry.sandbox_controls?.configuration_status === "proposal_only" ||
+              entry.supervised_controls?.configuration_status ===
+                "blocked_candidate"),
         ),
     );
     const readiness = load<{

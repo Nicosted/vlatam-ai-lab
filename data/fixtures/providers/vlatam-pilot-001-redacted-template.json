@@ -1,0 +1,7 @@
+{
+  "operation_id": "VLATAM-PILOT-001",
+  "source_kind": "redacted_text",
+  "original_document_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "redaction_attested": true,
+  "text": "Replace this synthetic placeholder with an explicitly supplied redacted text or redacted derivative. Do not include the original PDF or sensitive fields."
+}
