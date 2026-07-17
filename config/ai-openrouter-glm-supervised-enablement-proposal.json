@@ -1,0 +1,31 @@
+{
+  "artifact_contract_version": "1.0.0",
+  "hash_domain": "vlatam-ai-lab:glm-supervised-enablement-proposal:v1",
+  "artifact_id": "openrouter.glm-5.2.supervised-enablement-proposal.v1",
+  "scope": "one_future_supervised_vlatam_pilot_001_call",
+  "status": "blocked",
+  "approval_status": "pending",
+  "execution_authority": false,
+  "bindings": {
+    "readiness_dossier_hash": "d8010809d1ad6e78edbcd8b158fcb4e1abd85e3183ffa0943f904e930dd1352b",
+    "operation_binding_hash": "ec533bda81ba23ea14641da11aa523ca6d6a0c82da01b3b9f0be2c12e7c712d3"
+  },
+  "roles": {
+    "provider_account_owner": "Nicolás",
+    "runtime_operator": "Nicolás",
+    "incident_owner": "Nicolás",
+    "kill_switch_owner": "Nicolás",
+    "independent_approver": null,
+    "legal_reviewer": null,
+    "security_reviewer": null,
+    "evidence_reviewer": null
+  },
+  "blockers": [
+    "readiness_blocked",
+    "independent_approval_pending",
+    "legal_review_pending",
+    "security_review_pending",
+    "evidence_review_pending"
+  ],
+  "artifact_hash": "7134a05cd073b881764b4719a22b8db87cbd1765dbb1884b96ea0db04d69fd78"
+}

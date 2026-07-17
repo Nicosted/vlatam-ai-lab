@@ -36,6 +36,32 @@ export interface OperatorEvaluatorResult {
   readonly source_artifact_hash: string | null;
 }
 
+export interface OperatorGovernedCandidate {
+  readonly candidate_id: string;
+  readonly model: { readonly id: string; readonly enabled: boolean };
+  readonly route: { readonly id: string; readonly enabled: boolean };
+  readonly profile: {
+    readonly id: string;
+    readonly enabled: boolean;
+    readonly hash: string | null;
+  };
+  readonly readiness: string;
+  readonly evidence: string;
+  readonly proposal: string;
+  readonly runtime_preflight: string;
+  readonly activation_review: string;
+  readonly authorization: string;
+  readonly consumption: string;
+  readonly adapter_gateway_transport_state: {
+    readonly adapter: string;
+    readonly gateway: string;
+    readonly transport: string;
+  };
+  readonly blockers: readonly string[];
+  readonly blocker_count: number;
+  readonly next_governed_action: string;
+}
+
 export interface OperatorReadModelInput {
   readonly evaluated_at: string;
   readonly source_valid: boolean;
@@ -162,6 +188,7 @@ export interface OperatorReadModelInput {
     } | null;
   };
   readonly audit_references: readonly string[];
+  readonly additional_governed_candidates?: readonly OperatorGovernedCandidate[];
 }
 
 export interface OperatorBlocker {
@@ -209,6 +236,7 @@ export interface OperatorReadModel {
   readonly models: OperatorReadModelInput["models"];
   readonly routes: OperatorReadModelInput["routes"];
   readonly execution_profiles: OperatorReadModelInput["execution_profiles"];
+  readonly governed_candidates: readonly OperatorGovernedCandidate[];
   readonly readiness: OperatorReadModelInput["readiness"];
   readonly evidence: OperatorReadModelInput["evidence"];
   readonly sandbox_proposals: readonly OperatorReadModelInput["proposal"][];
@@ -377,6 +405,27 @@ function blockersFrom(input: OperatorReadModelInput): OperatorBlocker[] {
       });
     }
   }
+  for (const candidate of input.additional_governed_candidates ?? []) {
+    for (const reason of candidate.blockers) {
+      const code = `glm_governance:${reason}`;
+      if (seen.has(code)) continue;
+      seen.add(code);
+      const c = classify(reason);
+      blockers.push({
+        blocker_code: code,
+        severity: c.severity,
+        category: c.category,
+        provider_id: input.provider.provider_id,
+        candidate_id: candidate.candidate_id,
+        summary: humanize(reason),
+        source_evaluator: "glm_governance",
+        source_artifact_id: candidate.candidate_id,
+        source_artifact_hash: candidate.profile.hash,
+        resolvable_by: c.resolvable,
+        blocking_execution: true,
+      });
+    }
+  }
   return blockers.sort((a, b) => a.blocker_code.localeCompare(b.blocker_code));
 }
 
@@ -453,6 +502,41 @@ export function buildOperatorReadModel(
         ? "attention_required"
         : "healthy";
   const providerReasons = blockers.map((blocker) => blocker.blocker_code);
+  const minimaxCandidate: OperatorGovernedCandidate = {
+    candidate_id: input.models[0]?.model_id ?? "minimax-candidate-missing",
+    model: {
+      id: input.models[0]?.model_id ?? "missing",
+      enabled: input.models[0]?.enabled ?? false,
+    },
+    route: {
+      id: input.routes[0]?.route_id ?? "missing",
+      enabled: input.routes[0]?.enabled ?? false,
+    },
+    profile: {
+      id: input.execution_profiles[0]?.profile_id ?? "missing",
+      enabled: input.execution_profiles[0]?.enabled ?? false,
+      hash: input.execution_profiles[0]?.hash ?? null,
+    },
+    readiness: input.readiness.outcome,
+    evidence: input.evidence.outcome,
+    proposal: input.proposal.outcome,
+    runtime_preflight: input.preflight.outcome,
+    activation_review: input.activation_review.outcome,
+    authorization: input.authorization.status,
+    consumption: input.consumption.status,
+    adapter_gateway_transport_state: {
+      adapter: input.gateway.adapter_status,
+      gateway: input.gateway.gateway_invoked ? "invoked" : "not_invoked",
+      transport: input.gateway.transport_invoked ? "invoked" : "not_invoked",
+    },
+    blockers: blockers
+      .filter((blocker) => blocker.source_evaluator !== "glm_governance")
+      .map((blocker) => blocker.blocker_code),
+    blocker_count: blockers.filter(
+      (blocker) => blocker.source_evaluator !== "glm_governance",
+    ).length,
+    next_governed_action: "resolve_governed_blockers",
+  };
   const withoutHash: OperatorReadModel = {
     contract_version: OPERATOR_READ_MODEL_CONTRACT_VERSION,
     system_summary: {
@@ -500,6 +584,10 @@ export function buildOperatorReadModel(
     models: input.models,
     routes: input.routes,
     execution_profiles: input.execution_profiles,
+    governed_candidates: [
+      minimaxCandidate,
+      ...(input.additional_governed_candidates ?? []),
+    ],
     readiness: input.readiness,
     evidence: input.evidence,
     sandbox_proposals: [input.proposal],

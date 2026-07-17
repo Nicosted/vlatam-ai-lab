@@ -14,6 +14,7 @@
   },
   "privacy_controls_reported": {
     "non_frontier_zdr_enabled": true,
+    "guardrail_zdr_enabled": true,
     "paid_or_free_training_endpoints_disabled": true,
     "free_prompt_publication_endpoints_disabled": true,
     "response_healing_disabled": true
@@ -51,5 +52,5 @@
     "It contains no screenshot, credential value, or credential fragment.",
     "It cannot enable a model, route, profile, budget, adapter, authorization, gateway, or transport."
   ],
-  "evidence_hash": "e51a2963f1ceeace243a676b5ecb7fc36dfc5e95474a63b31c2098558b0ee28a"
+  "evidence_hash": "7aa3237892e1815305bb1328d7bb29bb0e9fc5015242700fe188bf3bc24c234a"
 }

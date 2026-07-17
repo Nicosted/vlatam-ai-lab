@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+
 import type { CapabilityId } from "../capabilities/index.js";
 import { validatePrivacyProfileDeclaration } from "../privacy/privacy-policy.js";
 import type { PrivacyProfileDeclaration } from "../privacy/privacy-policy.js";
@@ -118,6 +120,39 @@ export interface ExecutionProfile {
 
 export const EXECUTION_PROFILE_CONTRACT_VERSION = "1.1.0";
 export const SUPPORTED_EXECUTION_PROFILE_MAJOR = 1;
+export const EXECUTION_PROFILE_HASH_DOMAIN =
+  "vlatam-ai-lab:execution-profile:canonical-json:v1" as const;
+
+function canonicalProfileJson(value: unknown): string {
+  if (value === null || typeof value === "string" || typeof value === "boolean")
+    return JSON.stringify(value);
+  if (typeof value === "number") {
+    if (!Number.isFinite(value))
+      throw new Error("profile_hash_non_finite_number");
+    return JSON.stringify(value);
+  }
+  if (Array.isArray(value))
+    return `[${value.map(canonicalProfileJson).join(",")}]`;
+  if (typeof value === "object") {
+    const record = value as Record<string, unknown>;
+    return `{${Object.keys(record)
+      .sort()
+      .map(
+        (key) => `${JSON.stringify(key)}:${canonicalProfileJson(record[key])}`,
+      )
+      .join(",")}}`;
+  }
+  throw new Error("profile_hash_unsupported_json_value");
+}
+
+/** Hashes the complete execution-profile record under an explicit v1 domain. */
+export function computeExecutionProfileHash(profile: unknown): string {
+  return createHash("sha256")
+    .update(EXECUTION_PROFILE_HASH_DOMAIN)
+    .update("\n")
+    .update(canonicalProfileJson(profile))
+    .digest("hex");
+}
 
 export function validateExecutionProfile(
   profile: ExecutionProfile,

@@ -1,55 +1,26 @@
 {
-  "contract_version": "1.0.0",
+  "artifact_contract_version": "1.0.0",
+  "hash_domain": "vlatam-ai-lab:glm-operation-binding:v1",
+  "artifact_id": "openrouter.glm-5.2.vlatam-pilot-001.operation-binding.v1",
   "operation_id": "VLATAM-PILOT-001",
-  "title": "Shantou Yufeng Sample Order",
-  "status": "prepared_not_executed",
+  "original_document_sha256": "5883515292e783e48bcd19918acb930827d3dbd054c649186407ac48b89e5f10",
+  "expected_local_artifact_type": "redacted_json",
+  "expected_redaction_attestation": true,
   "profile_id": "openrouter.glm-5.2.commercial-document-extraction.candidate",
-  "original_document": {
-    "storage": "outside_git",
-    "repository_path": null,
-    "sha256": null,
-    "ingestion_permitted": false
-  },
-  "external_input": {
-    "artifact_type": "explicitly_supplied_redacted_text_or_derivative",
-    "redaction_attestation_required": true,
-    "original_pdf_forbidden": true,
-    "maximum_utf8_bytes": 131072,
-    "forbidden_sensitive_fields": [
-      "bank_account",
-      "personal_bank_account_holder",
-      "phone",
-      "email",
-      "unnecessary_personal_address",
-      "credential"
-    ]
-  },
-  "required_output": {
-    "supplier_identity": true,
-    "invoice_number": true,
-    "date": true,
-    "currency": true,
-    "incoterm": true,
-    "line_items": true,
-    "total": true,
-    "inconsistencies": true,
-    "missing_information": true,
-    "risk_flags": true,
-    "questions_for_supplier": true,
-    "human_review_status": "pending"
-  },
-  "execution_controls": {
+  "route_id": "openrouter.glm-5.2.z-ai-candidate",
+  "model_id": "z-ai/glm-5.2",
+  "schema_id": "ai-commercial-document-extraction",
+  "schema_version": "1.0.0",
+  "ceilings": {
     "maximum_requests": 1,
-    "automatic_retries": 0,
-    "fallback_enabled": false,
     "maximum_input_tokens": 4000,
     "maximum_output_tokens": 1200,
     "timeout_ms": 15000,
-    "maximum_spend_usd": "0.05",
-    "kill_switch_active": true,
-    "durable_one_use_authorization_required": true,
-    "post_response_schema_validation_required": true,
-    "raw_response_persistence": "forbidden"
+    "maximum_spend_usd": "0.05"
   },
-  "contract_hash": "85bbe42dd9cad9b2bed90c62b0e1a5be4d276b54d30aafa1035f17610e51ec3d"
+  "human_review_required": true,
+  "raw_response_persistence": "forbidden",
+  "one_use_authorization_required": true,
+  "execution_authority": false,
+  "artifact_hash": "ec533bda81ba23ea14641da11aa523ca6d6a0c82da01b3b9f0be2c12e7c712d3"
 }

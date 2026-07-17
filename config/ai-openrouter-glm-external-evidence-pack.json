@@ -1,0 +1,53 @@
+{
+  "artifact_contract_version": "1.0.0",
+  "hash_domain": "vlatam-ai-lab:glm-external-evidence:v1",
+  "artifact_id": "openrouter.glm-5.2.external-evidence.v1",
+  "model_id": "z-ai/glm-5.2",
+  "observed_at": "2026-07-17T12:00:00.000Z",
+  "review_status": "pending",
+  "execution_authority": false,
+  "official_sources": [
+    {
+      "source_id": "openrouter.glm-5.2.model-page.v1",
+      "url": "https://openrouter.ai/z-ai/glm-5.2/api",
+      "proves": ["exact_model_id", "model_level_list_price"],
+      "does_not_prove": [
+        "exact_provider_endpoint_slug",
+        "endpoint_specific_zdr",
+        "route_specific_price"
+      ]
+    },
+    {
+      "source_id": "openrouter.provider-routing.docs.v1",
+      "url": "https://openrouter.ai/docs/guides/routing/provider-selection",
+      "proves": [
+        "provider.only",
+        "provider.order",
+        "provider.allow_fallbacks_false",
+        "provider.require_parameters_true",
+        "provider.data_collection_deny",
+        "provider.zdr_true"
+      ],
+      "does_not_prove": ["glm_endpoint_slug", "glm_endpoint_zdr_eligibility"]
+    },
+    {
+      "source_id": "openrouter.zdr.docs.v1",
+      "url": "https://openrouter.ai/docs/guides/features/zdr",
+      "proves": ["openrouter_zdr_routing_behavior"],
+      "does_not_prove": ["upstream_contract", "processing_geography"]
+    }
+  ],
+  "routing_controls": {
+    "auto_router_forbidden": true,
+    "price_sort_forbidden": true,
+    "exact_endpoint_slug": null,
+    "endpoint_slug_status": "blocked_unproven"
+  },
+  "blockers": [
+    "exact_provider_endpoint_slug_unproven",
+    "endpoint_specific_zdr_unproven",
+    "provider_specific_pricing_variable",
+    "structured_output_capability_unverified"
+  ],
+  "artifact_hash": "4631f0c278aab214074f4ed7d5c2a61dc6d86ddde60e75d929a235de71fc6325"
+}

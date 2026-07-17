@@ -1,0 +1,20 @@
+{
+  "artifact_contract_version": "1.0.0",
+  "hash_domain": "vlatam-ai-lab:glm-capability-acceptance:v1",
+  "artifact_id": "openrouter.glm-5.2.commercial-document.controlled-acceptance.v1",
+  "model_id": "z-ai/glm-5.2",
+  "capability_id": "commercial.document.extraction",
+  "schema_id": "ai-commercial-document-extraction",
+  "schema_version": "1.0.0",
+  "case_data_classification": "synthetic_or_redacted_only",
+  "campaign_status": "prepared_not_executed",
+  "acceptance_status": "pending",
+  "human_review_required": true,
+  "raw_response_persistence": "forbidden",
+  "execution_authority": false,
+  "blockers": [
+    "controlled_capability_execution_not_performed",
+    "evidence_reviewer_acceptance_pending"
+  ],
+  "artifact_hash": "8ad88a86cad1f78020c8e3b24b9ba47ea001749217f30eefca0744ca31da35b4"
+}

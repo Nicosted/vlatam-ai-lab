@@ -99,6 +99,41 @@ describe("AI LAB operator read model", () => {
     assert.equal(result.consumption.attempted_count, 0);
     assert.equal(result.gateway_adapter_state.gateway_invoked, false);
     assert.equal(result.gateway_adapter_state.transport_invoked, false);
+    assert.equal(result.governed_candidates.length, 2);
+    const minimax = result.governed_candidates.find(
+      (candidate) => candidate.candidate_id === "minimax/minimax-m2.7",
+    )!;
+    const glm = result.governed_candidates.find(
+      (candidate) => candidate.candidate_id === "z-ai/glm-5.2",
+    )!;
+    assert.equal(
+      minimax.profile.hash,
+      "335bd24f9cb4aa573b65ef3f6d5c2ebcf19d150441bf7bc7d14421e7d88c8720",
+    );
+    assert.equal(
+      glm.profile.hash,
+      "2b1df9f521ae74191d16415a0369cea5c0ae6a01b93c62aad865a79fa16c9322",
+    );
+    assert.notEqual(minimax.profile.hash, glm.profile.hash);
+    assert.equal(glm.readiness, "blocked");
+    assert.equal(glm.runtime_preflight, "blocked");
+    assert.equal(glm.authorization, "no_policy_issued");
+    assert.equal(glm.consumption, "not_attempted");
+    assert.deepEqual(glm.adapter_gateway_transport_state, {
+      adapter: "disabled",
+      gateway: "not_invoked",
+      transport: "not_invoked",
+    });
+    assert.ok(glm.blocker_count > 0);
+    assert.ok(
+      result.blockers.some(
+        (blocker) =>
+          blocker.candidate_id === "z-ai/glm-5.2" &&
+          blocker.blocker_code.includes(
+            "exact_provider_endpoint_slug_unproven",
+          ),
+      ),
+    );
   });
 
   it("reuses existing evaluator outcomes", async () => {

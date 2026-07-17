@@ -100,7 +100,7 @@ describe("read-only AI LAB Operator Console (Spanish UX)", () => {
   it("renders the exact repository OpenRouter blocked state in Spanish", async () => {
     const model = await load();
     const html = renderOperatorConsole(model, "/operator/providers/openrouter");
-    assert.equal(model.blockers.length, 33);
+    assert.equal(model.blockers.length, 55);
     assert.equal(model.required_human_actions.length, 6);
     for (const expected of [
       "minimax/minimax-m2.7",
@@ -158,7 +158,7 @@ describe("read-only AI LAB Operator Console (Spanish UX)", () => {
       /No se ha consumido ninguna autorización de ejecución\./,
     );
     assert.match(html, /kill switch permanece activo/);
-    assert.match(html, /Bloqueos activos<\/span><strong>33/);
+    assert.match(html, /Bloqueos activos<\/span><strong>55/);
     assert.match(html, /Acciones requeridas<\/span><strong>6/);
     assert.match(html, /Revisiones pendientes<\/span><strong>8/);
     assert.match(html, /Próximos pasos/);
@@ -185,7 +185,7 @@ describe("read-only AI LAB Operator Console (Spanish UX)", () => {
     const html = renderOperatorConsole(model, "/operator/providers");
     assert.match(
       html,
-      /La ejecución permanece deshabilitada mientras existan 33 bloqueos gobernados sin resolver\./,
+      /La ejecución permanece deshabilitada mientras existan 55 bloqueos gobernados sin resolver\./,
     );
     for (const group of [
       "Evidencia y preparación",
@@ -302,7 +302,7 @@ describe("read-only AI LAB Operator Console (Spanish UX)", () => {
       /<span class="badge status-unknown"><code>(high|medium)/,
     );
     assert.match(html, /Severidad|Categoría|Clase de resolución/);
-    assert.match(html, /Mostrando 33 de 33 bloqueos/);
+    assert.match(html, /Mostrando 55 de 55 bloqueos/);
     assert.match(html, /aria-live="polite"/);
     let position = -1;
     for (const blocker of model.blockers) {
