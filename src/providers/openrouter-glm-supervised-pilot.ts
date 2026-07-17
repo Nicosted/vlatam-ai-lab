@@ -24,9 +24,15 @@ import {
 import { createOpenRouterEnvironmentSecretProvider } from "./openrouter-secret-provider.js";
 
 export const GLM_MODEL_ID = "z-ai/glm-5.2" as const;
+export const GLM_PROVIDER_SLUG = "fireworks" as const;
+export const GLM_ENDPOINT_TAG = "fireworks" as const;
+export const GLM_RESPONSE_PROVIDER_IDENTITY = "Fireworks" as const;
+export const GLM_ENDPOINT_DISPLAY_IDENTITY =
+  "Fireworks | z-ai/glm-5.2-20260616" as const;
 export const GLM_PROFILE_ID =
   "openrouter.glm-5.2.commercial-document-extraction.candidate" as const;
-export const GLM_ROUTE_ID = "openrouter.glm-5.2.z-ai-candidate" as const;
+export const GLM_ROUTE_ID =
+  "openrouter.glm-5.2.fireworks-standard-candidate" as const;
 export const GLM_OPERATION_ID = "VLATAM-PILOT-001" as const;
 export const GLM_ACCOUNT_EVIDENCE_HASH_DOMAIN =
   "vlatam-ai-lab:openrouter-account-evidence:v1" as const;
@@ -87,7 +93,9 @@ export interface GlmGovernanceEvaluation {
   readonly artifact_hashes: Readonly<Record<string, string>>;
 }
 
-export function evaluateGlmGovernanceArtifacts(): GlmGovernanceEvaluation {
+export function evaluateGlmGovernanceArtifacts(
+  now = new Date(),
+): GlmGovernanceEvaluation {
   const artifacts = [
     operationContractJson,
     evidencePackJson,
@@ -116,21 +124,28 @@ export function evaluateGlmGovernanceArtifacts(): GlmGovernanceEvaluation {
     if (Array.isArray(artifact["blockers"]))
       for (const blocker of artifact["blockers"]) blockers.add(String(blocker));
   }
+  const observedAt = Date.parse(evidencePackJson.observed_at);
+  const maximumEvidenceAgeMs = 30 * 24 * 60 * 60 * 1000;
+  if (
+    !Number.isFinite(observedAt) ||
+    now.getTime() - observedAt > maximumEvidenceAgeMs
+  )
+    blockers.add("metadata_evidence_expired");
   const expectedBindings: readonly [JsonRecord, string, string][] = [
     [
       readinessDossierJson,
       "model_hash",
-      "223deeab081cb707c14ddbeeb3f03a2de18a172bcc61954dfe14abbbdb739904",
+      "c003f49b14893bc2e477ec3d01d191822f07aa7f65e8a78b3ce3ebdbfc45f8f1",
     ],
     [
       readinessDossierJson,
       "route_hash",
-      "641a012d697fb804d251bddb2d39848ee6d11200e60465cec2d4be84b84b0cfc",
+      "b1fb5f5591659ca9fb222f3115234df427718e3a65c1cfcdd127cbdac9a88151",
     ],
     [
       readinessDossierJson,
       "profile_hash",
-      "2b1df9f521ae74191d16415a0369cea5c0ae6a01b93c62aad865a79fa16c9322",
+      "5dc48fa5584e1326293af73f392256c4dff07b6bd649c47436088d17c7650291",
     ],
     [
       readinessDossierJson,
@@ -181,17 +196,17 @@ export function evaluateGlmGovernanceArtifacts(): GlmGovernanceEvaluation {
     [
       runtimeJson,
       "profile_hash",
-      "2b1df9f521ae74191d16415a0369cea5c0ae6a01b93c62aad865a79fa16c9322",
+      "5dc48fa5584e1326293af73f392256c4dff07b6bd649c47436088d17c7650291",
     ],
     [
       runtimeJson,
       "route_hash",
-      "641a012d697fb804d251bddb2d39848ee6d11200e60465cec2d4be84b84b0cfc",
+      "b1fb5f5591659ca9fb222f3115234df427718e3a65c1cfcdd127cbdac9a88151",
     ],
     [
       runtimeJson,
       "model_hash",
-      "223deeab081cb707c14ddbeeb3f03a2de18a172bcc61954dfe14abbbdb739904",
+      "c003f49b14893bc2e477ec3d01d191822f07aa7f65e8a78b3ce3ebdbfc45f8f1",
     ],
     [activationReviewJson, "runtime_hash", runtimeJson.artifact_hash],
     [activationReviewJson, "proposal_hash", proposalJson.artifact_hash],
@@ -230,6 +245,18 @@ export function evaluateGlmGovernanceArtifacts(): GlmGovernanceEvaluation {
   if (runtimeJson.exact_model !== GLM_MODEL_ID)
     invalid.add("runtime_model_identity_mismatch");
   if (
+    runtimeJson.provider_catalog_slug !== GLM_PROVIDER_SLUG ||
+    runtimeJson.endpoint_tag !== GLM_ENDPOINT_TAG ||
+    runtimeJson.endpoint_display_identity !== GLM_ENDPOINT_DISPLAY_IDENTITY ||
+    runtimeJson.expected_response_provider_identity !==
+      GLM_RESPONSE_PROVIDER_IDENTITY ||
+    runtimeJson.provider.only.length !== 1 ||
+    runtimeJson.provider.only[0] !== GLM_PROVIDER_SLUG ||
+    runtimeJson.provider.order.length !== 1 ||
+    runtimeJson.provider.order[0] !== GLM_PROVIDER_SLUG
+  )
+    invalid.add("runtime_fireworks_identity_binding_invalid");
+  if (
     runtimeJson.adapter_enabled !== false ||
     runtimeJson.model_enabled !== false ||
     runtimeJson.route_enabled !== false ||
@@ -267,7 +294,10 @@ export async function evaluateGlmFirstRunPreflight(
       reasons: governance.blockers,
       secret_requested: false,
     });
-  if (runtimeJson.exact_provider_endpoint_slug === null)
+  if (
+    runtimeJson.provider_catalog_slug !== GLM_PROVIDER_SLUG ||
+    runtimeJson.endpoint_tag !== GLM_ENDPOINT_TAG
+  )
     return Object.freeze({
       outcome: "blocked",
       reasons: ["exact_provider_endpoint_slug_unproven"],
@@ -457,6 +487,7 @@ export interface GlmLiveExecutorApprovalGate {
   readonly gold_case_accepted: boolean;
   readonly structured_output_verified: boolean;
   readonly exact_provider_endpoint_slug: string | null;
+  readonly exact_endpoint_tag: string | null;
   readonly kill_switch_active: boolean;
 }
 
@@ -484,7 +515,11 @@ export function createGlmAdapterForAuthorizedGateway(
     gate.kill_switch_active ||
     config.enabled !== true ||
     routePolicy.model_id !== GLM_MODEL_ID ||
-    gate.exact_provider_endpoint_slug === null ||
+    gate.exact_provider_endpoint_slug !== GLM_PROVIDER_SLUG ||
+    gate.exact_endpoint_tag !== GLM_ENDPOINT_TAG ||
+    routePolicy.endpoint_tag !== GLM_ENDPOINT_TAG ||
+    routePolicy.expected_response_provider_identity !==
+      GLM_RESPONSE_PROVIDER_IDENTITY ||
     routePolicy.allowed_upstream_providers?.length !== 1 ||
     routePolicy.allowed_upstream_providers[0] !==
       gate.exact_provider_endpoint_slug ||

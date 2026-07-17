@@ -13,10 +13,14 @@
   "manual_only": true,
   "exact_model": "z-ai/glm-5.2",
   "exact_reviewed_provider_endpoint_required": true,
-  "exact_provider_endpoint_slug": null,
+  "provider_catalog_slug": "fireworks",
+  "endpoint_tag": "fireworks",
+  "endpoint_display_identity": "Fireworks | z-ai/glm-5.2-20260616",
+  "expected_response_provider_identity": "Fireworks",
+  "exact_provider_endpoint_slug": "fireworks",
   "provider": {
-    "only": [],
-    "order": [],
+    "only": ["fireworks"],
+    "order": ["fireworks"],
     "allow_fallbacks": false,
     "require_parameters": true,
     "data_collection": "deny",
@@ -37,24 +41,22 @@
   "environment_bypass_allowed": false,
   "secret_resolution_order": "after_all_non_secret_preflight_checks",
   "bindings": {
-    "proposal_hash": "7134a05cd073b881764b4719a22b8db87cbd1765dbb1884b96ea0db04d69fd78",
-    "readiness_dossier_hash": "d8010809d1ad6e78edbcd8b158fcb4e1abd85e3183ffa0943f904e930dd1352b",
-    "external_evidence_hash": "4631f0c278aab214074f4ed7d5c2a61dc6d86ddde60e75d929a235de71fc6325",
-    "pricing_policy_hash": "066a50126273d92647ece893205b1dbda33f5dcef616241d9fb83c1d63fe06b7",
-    "zdr_review_hash": "627b3690424df272c1c0f04584e83ab6fa386deaffb971444f2b8fbf47bb91d9",
+    "proposal_hash": "1a130b72dc8004fd7e8c9dd05a00c4321bf95446ab015b85b5d5e3683f432372",
+    "readiness_dossier_hash": "922f80bb9c2291dcb6490892d7f5b78283a6162a694c7ab2da8af431358a150c",
+    "external_evidence_hash": "dd926ad069341a5c8174f7a7180349c857151134b10e6b03a25bc7882d0b7fb1",
+    "pricing_policy_hash": "e54424d1e7526628ae551d096c3ae8cdb8b66c3734c04f60070b37d8561f6841",
+    "zdr_review_hash": "614beb3be6fc6158a83744791742efbf7fa1a79b402a8d886e74c3793c778865",
     "capability_acceptance_hash": "8ad88a86cad1f78020c8e3b24b9ba47ea001749217f30eefca0744ca31da35b4",
-    "operation_binding_hash": "ec533bda81ba23ea14641da11aa523ca6d6a0c82da01b3b9f0be2c12e7c712d3",
-    "profile_hash": "2b1df9f521ae74191d16415a0369cea5c0ae6a01b93c62aad865a79fa16c9322",
-    "route_hash": "641a012d697fb804d251bddb2d39848ee6d11200e60465cec2d4be84b84b0cfc",
-    "model_hash": "223deeab081cb707c14ddbeeb3f03a2de18a172bcc61954dfe14abbbdb739904",
+    "operation_binding_hash": "08c1b01914d39651f9d8311a40391f3a2ef3649ae039ecd27b013f81bfd329c0",
+    "profile_hash": "5dc48fa5584e1326293af73f392256c4dff07b6bd649c47436088d17c7650291",
+    "route_hash": "b1fb5f5591659ca9fb222f3115234df427718e3a65c1cfcdd127cbdac9a88151",
+    "model_hash": "c003f49b14893bc2e477ec3d01d191822f07aa7f65e8a78b3ce3ebdbfc45f8f1",
     "exact_policy_hash": null
   },
   "blockers": [
     "readiness_blocked",
     "activation_review_blocked",
-    "exact_provider_endpoint_slug_unproven",
-    "endpoint_specific_zdr_unproven",
     "authorization_not_issued"
   ],
-  "artifact_hash": "eeb5d48b65d37f200032454cd26150ef937587c26af250f8ea83bd3d30756c24"
+  "artifact_hash": "b40ac7b001331424725f87797b9f7df14daee2ae27e89e1b566d0920b6f9243d"
 }

@@ -144,6 +144,10 @@
         "operational_cost_bands_usd",
         "exact_model_only",
         "intended_upstream_provider_id",
+        "provider_catalog_slug",
+        "endpoint_tag",
+        "endpoint_display_identity",
+        "expected_response_provider_identity",
         "exact_provider_endpoint_slug",
         "provider_order",
         "exact_upstream_routing_status",
@@ -169,7 +173,10 @@
         "human_review_required": { "const": true },
         "post_response_schema_validation_required": { "const": true },
         "structured_output_capability_status": {
-          "const": "controlled_execution_required"
+          "enum": [
+            "controlled_execution_required",
+            "metadata_verified_runtime_conformance_pending"
+          ]
         },
         "fallback_enabled": { "const": false },
         "automatic_retries": { "const": 0 },
@@ -200,7 +207,13 @@
           }
         },
         "exact_model_only": { "const": true },
-        "intended_upstream_provider_id": { "const": "z-ai" },
+        "intended_upstream_provider_id": { "enum": ["z-ai", "fireworks"] },
+        "provider_catalog_slug": { "const": "fireworks" },
+        "endpoint_tag": { "const": "fireworks" },
+        "endpoint_display_identity": {
+          "const": "Fireworks | z-ai/glm-5.2-20260616"
+        },
+        "expected_response_provider_identity": { "const": "Fireworks" },
         "exact_provider_endpoint_slug": {
           "type": ["string", "null"],
           "minLength": 1
@@ -211,7 +224,11 @@
           "items": { "type": "string", "minLength": 1 }
         },
         "exact_upstream_routing_status": {
-          "enum": ["blocked_missing_official_slug", "verified"]
+          "enum": [
+            "blocked_missing_official_slug",
+            "metadata_bound_response_verification_required",
+            "verified"
+          ]
         },
         "require_parameters": { "const": true },
         "data_collection": { "const": "deny" },
@@ -220,7 +237,9 @@
         "external_processing_scope": { "const": "redacted_only" },
         "regulated_data_permitted": { "const": false },
         "restricted_data_permitted": { "const": false },
-        "route_id": { "const": "openrouter.glm-5.2.z-ai-candidate" },
+        "route_id": {
+          "const": "openrouter.glm-5.2.fireworks-standard-candidate"
+        },
         "kill_switch_required": { "const": true },
         "kill_switch_active": { "const": true },
         "durable_one_use_grant_required": { "const": true },

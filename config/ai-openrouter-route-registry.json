@@ -53,17 +53,23 @@
     },
     {
       "route_registry_contract_version": "1.0.0",
-      "route_record_id": "openrouter.glm-5.2.z-ai-candidate-route.v1",
-      "route_id": "openrouter.glm-5.2.z-ai-candidate",
+      "route_record_id": "openrouter.glm-5.2.fireworks-standard-candidate-route.v1",
+      "route_id": "openrouter.glm-5.2.fireworks-standard-candidate",
       "route_version": "1.0.0",
-      "route_policy_id": "openrouter.glm-5.2.z-ai-candidate-policy",
+      "route_policy_id": "openrouter.glm-5.2.fireworks-standard-candidate-policy",
       "route_policy_version": "1.0.0",
       "model_id": "z-ai/glm-5.2",
       "provider_id": "openrouter",
-      "upstream_provider_id": "z-ai",
-      "allowed_model_entry_ids": ["openrouter.glm-5.2.z-ai-candidate.v1"],
-      "preferred_model_entry_order": ["openrouter.glm-5.2.z-ai-candidate.v1"],
+      "upstream_provider_id": "fireworks",
+      "allowed_model_entry_ids": [
+        "openrouter.glm-5.2.fireworks-standard-candidate.v1"
+      ],
+      "preferred_model_entry_order": [
+        "openrouter.glm-5.2.fireworks-standard-candidate.v1"
+      ],
       "fallback_model_entry_order": [],
+      "upstream_provider_allowlist": ["fireworks"],
+      "upstream_provider_order": ["fireworks"],
       "profile_compatibility": {
         "contract_version": "1.0.0",
         "execution_profile_contract_version": "1.1.0",
@@ -81,16 +87,16 @@
       },
       "allow_fallbacks": false,
       "data_collection": "deny",
-      "structured_output_modes": [],
+      "structured_output_modes": ["json_object", "json_schema"],
       "pricing_contract_id": null,
       "pricing_contract_version": null,
-      "pricing_evidence_id": "openrouter.glm-5.2.pricing.operator-gap.v1",
-      "pricing_evidence_hash": "c2d4784df6aa4e97bbef6bfebac75358fe62c5b6e520aa4e80ccae2994e33fdd",
-      "privacy_evidence_id": "openrouter.glm-5.2.zdr.operator-account.v1",
-      "privacy_evidence_hash": "853d687e5cd9f595cbb9b8822466f6efab2a4049380fa88d5ae4c01d45f09966",
-      "operational_evidence_id": "openrouter.glm-5.2.routing.operator-gap.v1",
-      "operational_evidence_hash": "2f4022f9ba1e3e5a1d7aaa57969cb7a2d3f8aefd481620bd908b53920ce1fcaf",
-      "route_verification_status": "unverified",
+      "pricing_evidence_id": "openrouter.glm-5.2.fireworks-standard.pricing-metadata.v1",
+      "pricing_evidence_hash": "30cff6f6209949a763d226ad8322e303cd14649e6a1128ee28b91aedf51cf10b",
+      "privacy_evidence_id": "openrouter.glm-5.2.fireworks-standard.zdr-metadata-review-candidate.v1",
+      "privacy_evidence_hash": "77e2293a30284cc752a28f1136417b7b99df670b86001e0ee63af386c6114be5",
+      "operational_evidence_id": "openrouter.glm-5.2.fireworks-standard.routing-metadata.v1",
+      "operational_evidence_hash": "673574ab2a2bd13d1ba30cbecfb001584b257809d02cffa984ddd61052cc2730",
+      "route_verification_status": "response_verified_only",
       "lifecycle": "evidence_incomplete",
       "enabled": false,
       "review_status": "pending",
@@ -98,7 +104,7 @@
       "expires_at": "2026-08-15T00:00:00.000Z",
       "supersedes_route_record_id": null,
       "created_at": "2026-07-16T00:00:00.000Z",
-      "route_hash": "641a012d697fb804d251bddb2d39848ee6d11200e60465cec2d4be84b84b0cfc"
+      "route_hash": "b1fb5f5591659ca9fb222f3115234df427718e3a65c1cfcdd127cbdac9a88151"
     }
   ]
 }

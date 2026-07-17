@@ -16,11 +16,16 @@ import type {
 } from "../../src/providers/openrouter-config.js";
 import {
   GLM_MODEL_ID,
+  GLM_ENDPOINT_DISPLAY_IDENTITY,
+  GLM_ENDPOINT_TAG,
   GLM_OPERATION_ID,
+  GLM_PROVIDER_SLUG,
   GLM_PROFILE_ID,
+  GLM_RESPONSE_PROVIDER_IDENTITY,
   GLM_ROUTE_ID,
   buildGlmRedactedProviderRequest,
   computeGlmAccountEvidenceHash,
+  computeGlmGovernanceArtifactHash,
   computeGlmOperationContractHash,
   evaluateGlmFirstRunPreflight,
   evaluateGlmGovernanceArtifacts,
@@ -67,7 +72,10 @@ describe("GLM 5.2 supervised production pilot candidate", () => {
   it("binds canonical model and route hashes while remaining non-executable", () => {
     assert.equal(model.entry_hash, computeOpenRouterEntryHash(model));
     assert.equal(route.route_hash, computeOpenRouterRouteHash(route));
-    assert.equal(model.entry_id, "openrouter.glm-5.2.z-ai-candidate.v1");
+    assert.equal(
+      model.entry_id,
+      "openrouter.glm-5.2.fireworks-standard-candidate.v1",
+    );
     assert.equal(route.route_id, GLM_ROUTE_ID);
     assert.equal(model.enabled, false);
     assert.equal(route.enabled, false);
@@ -75,18 +83,34 @@ describe("GLM 5.2 supervised production pilot candidate", () => {
     assert.equal(route.allow_fallbacks, false);
   });
 
-  it("preserves unknown provider endpoint identity and structured-output capability", () => {
-    assert.equal(model.upstream_provider_id, "z-ai");
-    assert.equal(model.upstream_route_verification, "unverified");
-    assert.equal(route.route_verification_status, "unverified");
-    assert.equal(route.upstream_provider_allowlist, undefined);
-    assert.equal(route.upstream_provider_order, undefined);
-    assert.deepEqual(route.structured_output_modes, []);
+  it("binds the distinct Fireworks provider slug, endpoint tag, and display identity", () => {
+    assert.equal(model.upstream_provider_id, GLM_PROVIDER_SLUG);
+    assert.equal(model.upstream_route_verification, "response_verified_only");
+    assert.equal(route.route_verification_status, "response_verified_only");
+    assert.deepEqual(route.upstream_provider_allowlist, [GLM_PROVIDER_SLUG]);
+    assert.deepEqual(route.upstream_provider_order, [GLM_PROVIDER_SLUG]);
+    assert.deepEqual(route.structured_output_modes, [
+      "json_object",
+      "json_schema",
+    ]);
     assert.ok(supervisedControls);
-    assert.equal(supervisedControls.exact_provider_endpoint_slug, null);
+    assert.equal(supervisedControls.provider_catalog_slug, GLM_PROVIDER_SLUG);
+    assert.equal(supervisedControls.endpoint_tag, GLM_ENDPOINT_TAG);
+    assert.equal(
+      supervisedControls.endpoint_display_identity,
+      GLM_ENDPOINT_DISPLAY_IDENTITY,
+    );
+    assert.equal(
+      supervisedControls.expected_response_provider_identity,
+      GLM_RESPONSE_PROVIDER_IDENTITY,
+    );
+    assert.equal(
+      supervisedControls.exact_provider_endpoint_slug,
+      GLM_PROVIDER_SLUG,
+    );
     assert.equal(
       supervisedControls.structured_output_capability_status,
-      "controlled_execution_required",
+      "metadata_verified_runtime_conformance_pending",
     );
   });
 
@@ -110,9 +134,8 @@ describe("GLM 5.2 supervised production pilot candidate", () => {
       "adapter_disabled",
       "benchmark_evidence_missing",
       "pricing_contract_missing",
-      "route_not_verified_exact",
       "review_not_approved",
-      "unknown_evidence",
+      "route_not_verified_exact",
       "unreviewed_evidence",
     ])
       assert.ok(readiness.blockers.includes(blocker), blocker);
@@ -149,7 +172,7 @@ describe("GLM 5.2 supervised production pilot candidate", () => {
     );
     assert.equal(
       glmHash,
-      "2b1df9f521ae74191d16415a0369cea5c0ae6a01b93c62aad865a79fa16c9322",
+      "5dc48fa5584e1326293af73f392256c4dff07b6bd649c47436088d17c7650291",
     );
     assert.notEqual(minimaxHash, glmHash);
     const minimaxRuntime = JSON.parse(
@@ -171,10 +194,15 @@ describe("GLM 5.2 supervised production pilot candidate", () => {
     assert.equal(Object.keys(result.artifact_hashes).length, 9);
     for (const artifact of Object.values(glmGovernanceArtifacts))
       assert.equal(artifact.execution_authority, false);
-    for (const blocker of [
+    for (const resolved of [
       "exact_provider_endpoint_slug_unproven",
       "endpoint_specific_zdr_unproven",
       "provider_specific_pricing_variable",
+      "structured_output_capability_unverified",
+    ])
+      assert.equal(result.blockers.includes(resolved), false, resolved);
+    for (const blocker of [
+      "controlled_capability_execution_not_performed",
       "independent_approval_pending",
       "legal_review_pending",
       "security_review_pending",
@@ -198,20 +226,24 @@ describe("GLM 5.2 supervised production pilot candidate", () => {
     );
   });
 
-  it("keeps variable pricing bounded but explicitly unverified", () => {
+  it("binds exact standard Fireworks pricing while preserving the hard ceiling", () => {
     const pricing = glmGovernanceArtifacts.pricing_policy;
     assert.equal(pricing.first_run_ceilings.maximum_requests, 1);
     assert.equal(pricing.first_run_ceilings.hard_ceiling_usd, "0.05");
-    assert.equal(pricing.model_level_ceiling_estimate_usd, "0.00732");
-    assert.equal(pricing.route_specific_cost_verified, false);
+    assert.equal(
+      pricing.maximum_uncached_theoretical_request_cost_usd,
+      "0.01088",
+    );
+    assert.equal(pricing.route_specific_cost_verified, true);
+    assert.ok(Number("0.01088") < Number("0.05"));
   });
 
-  it("treats account observations as non-authorizing and endpoint ZDR as unresolved", () => {
+  it("treats metadata as non-authorizing and ZDR as timestamp-scoped", () => {
     assert.equal(glmAccountEvidence.execution_authority, false);
     assert.equal(glmGovernanceArtifacts.zdr_review.execution_authority, false);
     assert.equal(
       glmGovernanceArtifacts.zdr_review.endpoint_specific_zdr.status,
-      "blocked_unproven",
+      "eligible_at_observation",
     );
   });
 
@@ -292,6 +324,7 @@ describe("GLM 5.2 supervised production pilot candidate", () => {
             gold_case_accepted: false,
             structured_output_verified: false,
             exact_provider_endpoint_slug: null,
+            exact_endpoint_tag: null,
             kill_switch_active: true,
           },
         ),
@@ -304,8 +337,10 @@ describe("GLM 5.2 supervised production pilot candidate", () => {
       route_policy_version: "1.0.0",
       profile_id: GLM_PROFILE_ID,
       profile_contract_version: "1.1.0",
-      allowed_upstream_providers: ["reviewed-z-ai-endpoint"],
-      provider_order: ["reviewed-z-ai-endpoint"],
+      allowed_upstream_providers: [GLM_PROVIDER_SLUG],
+      provider_order: [GLM_PROVIDER_SLUG],
+      endpoint_tag: GLM_ENDPOINT_TAG,
+      expected_response_provider_identity: GLM_RESPONSE_PROVIDER_IDENTITY,
       allow_fallbacks: false,
       data_collection: "deny",
       require_parameters: true,
@@ -323,7 +358,8 @@ describe("GLM 5.2 supervised production pilot candidate", () => {
       evidence_approval: true,
       gold_case_accepted: true,
       structured_output_verified: true,
-      exact_provider_endpoint_slug: "reviewed-z-ai-endpoint",
+      exact_provider_endpoint_slug: GLM_PROVIDER_SLUG,
+      exact_endpoint_tag: GLM_ENDPOINT_TAG,
       kill_switch_active: false,
     };
     for (const substituted of ["someone/else", "openrouter/auto"])
@@ -379,5 +415,55 @@ describe("GLM 5.2 supervised production pilot candidate", () => {
       .join("\n");
     assert.doesNotMatch(touched, /sk-or-|Bearer\s+[A-Za-z0-9]/);
     assert.equal(glmOperationContract.raw_response_persistence, "forbidden");
+    const evidence = glmGovernanceArtifacts.external_evidence_pack;
+    assert.equal(evidence.provenance_controls.raw_metadata_persisted, false);
+    assert.equal(evidence.provenance_controls.api_key_persisted, false);
+    assert.equal(evidence.provenance_controls.inference_performed, false);
+    assert.equal(
+      evidence.provenance_controls.agent_executed_authenticated_lookup,
+      false,
+    );
+  });
+
+  it("selects standard Fireworks and rejects fast, Z.AI, and Cloudflare", () => {
+    const evidence = glmGovernanceArtifacts.external_evidence_pack;
+    const selected = evidence.observed_candidates.filter(
+      (candidate) => candidate.selection_status === "selected_exact_candidate",
+    );
+    assert.equal(selected.length, 1);
+    assert.equal(selected[0]!.provider_catalog_slug, GLM_PROVIDER_SLUG);
+    assert.equal(selected[0]!.endpoint_tag, GLM_ENDPOINT_TAG);
+    assert.equal(
+      evidence.observed_candidates.find(
+        (candidate) => candidate.endpoint_tag === "fireworks/fast",
+      )!.selection_status,
+      "not_selected_higher_price",
+    );
+    assert.equal(
+      evidence.observed_candidates.find(
+        (candidate) => candidate.provider_catalog_slug === "z-ai",
+      )!.selection_status,
+      "not_selected_missing_structured_outputs_declaration",
+    );
+    assert.equal(
+      evidence.observed_candidates.find(
+        (candidate) => candidate.provider_catalog_slug === "cloudflare",
+      )!.selection_status,
+      "ineligible_missing_zdr_list_membership",
+    );
+  });
+
+  it("invalidates altered price metadata and blocks expired evidence", () => {
+    const pricing = structuredClone(glmGovernanceArtifacts.pricing_policy);
+    pricing.price_usd_per_token.prompt = "0.0000015";
+    assert.notEqual(
+      computeGlmGovernanceArtifactHash(pricing),
+      pricing.artifact_hash,
+    );
+    const expired = evaluateGlmGovernanceArtifacts(
+      new Date("2026-08-17T12:00:00.001Z"),
+    );
+    assert.equal(expired.outcome, "blocked");
+    assert.ok(expired.blockers.includes("metadata_evidence_expired"));
   });
 });

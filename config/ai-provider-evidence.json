@@ -1411,140 +1411,152 @@
       "evidence_hash": "6179e923551572a7db4ac320190f3726e56c01d8cc42fefadc8d3652191e336b"
     },
     {
-      "evidence_id": "openrouter.glm-5.2.identity.operator-allowlist.v1",
+      "evidence_id": "openrouter.glm-5.2.fireworks-endpoint-metadata-evidence.v1",
       "provider_id": "openrouter",
       "model_id": "z-ai/glm-5.2",
-      "upstream_provider_id": "z-ai",
+      "upstream_provider_id": "fireworks",
       "category": "model_identity",
-      "status": "unknown",
+      "status": "accepted",
+      "value": "z-ai/glm-5.2",
       "source": {
-        "title": "Operator-provided OpenRouter account configuration candidate",
-        "canonical_url": "https://vlatam-ai-lab.local/reports/ai-lab-glm-5.2-supervised-production-pilot-2026-07-16.md",
-        "publisher": "Operator-provided",
-        "retrieved_at": "2026-07-16T00:00:00.000Z",
+        "title": "OpenRouter GLM 5.2 endpoint metadata",
+        "canonical_url": "https://openrouter.ai/api/v1/models/z-ai/glm-5.2/endpoints",
+        "publisher": "OpenRouter",
+        "retrieved_at": "2026-07-17T12:00:00.000Z",
         "effective_at": null
       },
       "applicability": {
-        "scope": "model",
-        "exact_scope": "Account allowlist observation for z-ai/glm-5.2; not independent model identity proof",
-        "route_mode": "not_applicable",
-        "route_provider_id": "z-ai"
+        "scope": "endpoint",
+        "exact_scope": "Fireworks standard endpoint for z-ai/glm-5.2",
+        "route_mode": "fixed",
+        "route_provider_id": "fireworks"
       },
       "review": {
         "status": "pending",
         "reviewed_at": null,
         "review_record_ref": null
       },
-      "expires_at": "2026-08-15T00:00:00.000Z",
-      "finding": "The operator reports that the account allowlist contains only z-ai/glm-5.2; official model metadata was not independently collected in this task.",
+      "expires_at": "2026-08-16T12:00:00.000Z",
+      "finding": "Official OpenRouter metadata identified model z-ai/glm-5.2 and the Fireworks standard endpoint display identity.",
       "limitations": [
-        "Account allowlisting does not prove model capability, availability, endpoint identity, or contractual behavior."
+        "Metadata identity does not prove a future response identity; runtime verification remains mandatory."
       ],
       "conflict_status": "none",
       "conflicts_with": [],
-      "evidence_hash": "275582ab35f332bf77e1490e794218d7681bd47efb2e5a499ed495f5435f7bb2"
+      "evidence_hash": "b29a18a405cc1763777f1d5c52d04ba9344f28456b9ff0476042edc5443d5839"
     },
     {
-      "evidence_id": "openrouter.glm-5.2.pricing.operator-gap.v1",
+      "evidence_id": "openrouter.glm-5.2.fireworks-standard.pricing-metadata.v1",
       "provider_id": "openrouter",
       "model_id": "z-ai/glm-5.2",
-      "upstream_provider_id": "z-ai",
+      "upstream_provider_id": "fireworks",
       "category": "pricing",
-      "status": "unknown",
+      "status": "accepted",
+      "value": {
+        "prompt_usd_per_token": "0.0000014",
+        "completion_usd_per_token": "0.0000044",
+        "cache_read_usd_per_token": "0.00000014"
+      },
       "source": {
-        "title": "Operator-provided OpenRouter account configuration candidate",
-        "canonical_url": "https://vlatam-ai-lab.local/reports/ai-lab-glm-5.2-supervised-production-pilot-2026-07-16.md",
-        "publisher": "Operator-provided",
-        "retrieved_at": "2026-07-16T00:00:00.000Z",
+        "title": "OpenRouter GLM 5.2 endpoint metadata",
+        "canonical_url": "https://openrouter.ai/api/v1/models/z-ai/glm-5.2/endpoints",
+        "publisher": "OpenRouter",
+        "retrieved_at": "2026-07-17T12:00:00.000Z",
         "effective_at": null
       },
       "applicability": {
         "scope": "route",
-        "exact_scope": "No official route-specific GLM 5.2 pricing evidence captured",
-        "route_mode": "variable",
-        "route_provider_id": "z-ai"
+        "exact_scope": "Fireworks standard endpoint pricing for z-ai/glm-5.2",
+        "route_mode": "fixed",
+        "route_provider_id": "fireworks"
       },
       "review": {
         "status": "pending",
         "reviewed_at": null,
         "review_record_ref": null
       },
-      "expires_at": "2026-08-15T00:00:00.000Z",
-      "finding": "The USD 25 account limits are budget controls and do not establish route-specific model pricing.",
+      "expires_at": "2026-08-16T12:00:00.000Z",
+      "finding": "Standard Fireworks endpoint metadata reports prompt 0.0000014, completion 0.0000044, and cache-read 0.00000014 USD per token.",
       "limitations": [
-        "Exact input, output, cache, reasoning, and endpoint pricing remain unknown."
+        "Metadata pricing is timestamp-scoped, pending human review, and not a permanent guarantee."
       ],
       "conflict_status": "none",
       "conflicts_with": [],
-      "evidence_hash": "c2d4784df6aa4e97bbef6bfebac75358fe62c5b6e520aa4e80ccae2994e33fdd"
+      "evidence_hash": "30cff6f6209949a763d226ad8322e303cd14649e6a1128ee28b91aedf51cf10b"
     },
     {
-      "evidence_id": "openrouter.glm-5.2.zdr.operator-account.v1",
+      "evidence_id": "openrouter.glm-5.2.fireworks-standard.zdr-metadata-review-candidate.v1",
       "provider_id": "openrouter",
       "model_id": "z-ai/glm-5.2",
-      "upstream_provider_id": "z-ai",
+      "upstream_provider_id": "fireworks",
       "category": "zdr_status",
-      "status": "unknown",
+      "status": "accepted",
+      "value": true,
       "source": {
-        "title": "Operator-provided OpenRouter account configuration candidate",
-        "canonical_url": "https://vlatam-ai-lab.local/reports/ai-lab-glm-5.2-supervised-production-pilot-2026-07-16.md",
-        "publisher": "Operator-provided",
-        "retrieved_at": "2026-07-16T00:00:00.000Z",
+        "title": "OpenRouter ZDR endpoint metadata",
+        "canonical_url": "https://openrouter.ai/api/v1/endpoints/zdr",
+        "publisher": "OpenRouter",
+        "retrieved_at": "2026-07-17T12:00:00.000Z",
         "effective_at": null
       },
       "applicability": {
         "scope": "route",
-        "exact_scope": "Reported account-level Non-frontier ZDR setting; route eligibility unverified",
-        "route_mode": "variable",
-        "route_provider_id": "z-ai"
+        "exact_scope": "Fireworks standard endpoint tag for z-ai/glm-5.2 present in observed ZDR endpoint list",
+        "route_mode": "fixed",
+        "route_provider_id": "fireworks"
       },
       "review": {
         "status": "pending",
         "reviewed_at": null,
         "review_record_ref": null
       },
-      "expires_at": "2026-08-15T00:00:00.000Z",
-      "finding": "The operator reports Non-frontier ZDR enabled, but no independent route-specific or contractual ZDR proof was collected.",
+      "expires_at": "2026-08-16T12:00:00.000Z",
+      "finding": "The Fireworks standard endpoint tag was present in the official OpenRouter ZDR endpoint list at observation time.",
       "limitations": [
-        "The account setting alone cannot prove retention, training, endpoint eligibility, or upstream compliance."
+        "ZDR-list presence does not prove upstream contractual retention, geography, legal adequacy, or permanent eligibility."
       ],
       "conflict_status": "none",
       "conflicts_with": [],
-      "evidence_hash": "853d687e5cd9f595cbb9b8822466f6efab2a4049380fa88d5ae4c01d45f09966"
+      "evidence_hash": "77e2293a30284cc752a28f1136417b7b99df670b86001e0ee63af386c6114be5"
     },
     {
-      "evidence_id": "openrouter.glm-5.2.routing.operator-gap.v1",
+      "evidence_id": "openrouter.glm-5.2.fireworks-standard.routing-metadata.v1",
       "provider_id": "openrouter",
       "model_id": "z-ai/glm-5.2",
-      "upstream_provider_id": "z-ai",
+      "upstream_provider_id": "fireworks",
       "category": "provider_routing",
-      "status": "unknown",
+      "status": "accepted",
+      "value": {
+        "provider_catalog_slug": "fireworks",
+        "endpoint_tag": "fireworks",
+        "endpoint_display_identity": "Fireworks | z-ai/glm-5.2-20260616"
+      },
       "source": {
-        "title": "Operator-provided OpenRouter account configuration candidate",
-        "canonical_url": "https://vlatam-ai-lab.local/reports/ai-lab-glm-5.2-supervised-production-pilot-2026-07-16.md",
-        "publisher": "Operator-provided",
-        "retrieved_at": "2026-07-16T00:00:00.000Z",
+        "title": "OpenRouter GLM 5.2 endpoint metadata",
+        "canonical_url": "https://openrouter.ai/api/v1/models/z-ai/glm-5.2/endpoints",
+        "publisher": "OpenRouter",
+        "retrieved_at": "2026-07-17T12:00:00.000Z",
         "effective_at": null
       },
       "applicability": {
         "scope": "route",
-        "exact_scope": "Z.AI intended upstream with exact OpenRouter endpoint slug unresolved",
-        "route_mode": "variable",
-        "route_provider_id": "z-ai"
+        "exact_scope": "Fireworks standard endpoint selected with exact request controls and mandatory response verification",
+        "route_mode": "fixed",
+        "route_provider_id": "fireworks"
       },
       "review": {
         "status": "pending",
         "reviewed_at": null,
         "review_record_ref": null
       },
-      "expires_at": "2026-08-15T00:00:00.000Z",
-      "finding": "The account allows Z.AI, but the exact repository-supported OpenRouter provider endpoint slug was not established from local official metadata.",
+      "expires_at": "2026-08-16T12:00:00.000Z",
+      "finding": "The standard Fireworks provider slug and endpoint tag are both fireworks; fallback, price sorting, and Auto Router remain forbidden.",
       "limitations": [
-        "No provider.only or provider.order value may be emitted until the exact endpoint slug is independently reviewed."
+        "Metadata supports candidate binding but not a guarantee that a future response will carry the expected identity."
       ],
       "conflict_status": "none",
       "conflicts_with": [],
-      "evidence_hash": "2f4022f9ba1e3e5a1d7aaa57969cb7a2d3f8aefd481620bd908b53920ce1fcaf"
+      "evidence_hash": "673574ab2a2bd13d1ba30cbecfb001584b257809d02cffa984ddd61052cc2730"
     }
   ]
 }

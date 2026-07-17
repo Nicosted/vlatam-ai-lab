@@ -503,6 +503,47 @@ describe("governed OpenRouter transport adapter", () => {
     );
   });
 
+  it("requires exact Fireworks and GLM response identities", async () => {
+    const fireworksPolicy: OpenRouterRoutePolicy = {
+      ...routePolicy,
+      model_id: "z-ai/glm-5.2",
+      allowed_upstream_providers: ["fireworks"],
+      provider_order: ["fireworks"],
+      endpoint_tag: "fireworks",
+      expected_response_provider_identity: "Fireworks",
+    };
+    const fireworksProfile: ExecutionProfile = {
+      ...profile,
+      model_id: "z-ai/glm-5.2" as never,
+    };
+    const response = (providerValue: unknown, modelValue: unknown) =>
+      mockTransport({
+        status: 200,
+        body: JSON.stringify({
+          ...successBody,
+          provider: providerValue,
+          model: modelValue,
+        }),
+      });
+    for (const [providerValue, modelValue, expected] of [
+      ["Fireworks", "z-ai/glm-5.2", undefined],
+      ["Z.AI", "z-ai/glm-5.2", "PROVIDER_SUBSTITUTION_DETECTED"],
+      ["Cloudflare", "z-ai/glm-5.2", "PROVIDER_SUBSTITUTION_DETECTED"],
+      ["fireworks/fast", "z-ai/glm-5.2", "PROVIDER_SUBSTITUTION_DETECTED"],
+      [undefined, "z-ai/glm-5.2", "PROVIDER_SUBSTITUTION_DETECTED"],
+      ["Fireworks", undefined, "ROUTE_VERIFICATION_UNAVAILABLE"],
+      ["Fireworks", "z-ai/glm-5.1", "MODEL_SUBSTITUTION_DETECTED"],
+    ] as const) {
+      const transport = response(providerValue, modelValue);
+      const result = await adapter({
+        policies: [fireworksPolicy],
+        transport,
+      }).subject.execute(request, fireworksProfile, context());
+      assert.equal(adapterCode(result.error), expected);
+      assert.equal(transport.calls(), 1);
+    }
+  });
+
   it("distinguishes abort before transport (zero calls) from abort during transport", async () => {
     const aborted = new AbortController();
     aborted.abort();

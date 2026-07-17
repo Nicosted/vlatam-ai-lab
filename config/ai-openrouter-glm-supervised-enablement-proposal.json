@@ -7,8 +7,8 @@
   "approval_status": "pending",
   "execution_authority": false,
   "bindings": {
-    "readiness_dossier_hash": "d8010809d1ad6e78edbcd8b158fcb4e1abd85e3183ffa0943f904e930dd1352b",
-    "operation_binding_hash": "ec533bda81ba23ea14641da11aa523ca6d6a0c82da01b3b9f0be2c12e7c712d3"
+    "readiness_dossier_hash": "922f80bb9c2291dcb6490892d7f5b78283a6162a694c7ab2da8af431358a150c",
+    "operation_binding_hash": "08c1b01914d39651f9d8311a40391f3a2ef3649ae039ecd27b013f81bfd329c0"
   },
   "roles": {
     "provider_account_owner": "Nicolás",
@@ -27,5 +27,5 @@
     "security_review_pending",
     "evidence_review_pending"
   ],
-  "artifact_hash": "7134a05cd073b881764b4719a22b8db87cbd1765dbb1884b96ea0db04d69fd78"
+  "artifact_hash": "1a130b72dc8004fd7e8c9dd05a00c4321bf95446ab015b85b5d5e3683f432372"
 }

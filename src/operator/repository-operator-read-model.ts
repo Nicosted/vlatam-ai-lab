@@ -378,6 +378,7 @@ export async function loadRepositoryOperatorReadModel(
         "reports/ai-lab-openrouter-sandbox-enablement-proposal-2026-07-14.md",
         "docs/evidence/openrouter-sandbox-adapter-harness-2026-07-14.md",
         "reports/ai-lab-openrouter-sandbox-human-review-2026-07-15.md",
+        "reports/ai-lab-glm-fireworks-endpoint-evidence-2026-07-17.md",
       ],
     },
     models: Array.isArray(typedModels?.entries)
@@ -676,6 +677,7 @@ export async function loadRepositoryOperatorReadModel(
       "config/ai-openrouter-glm-pricing-policy-candidate.json",
       "config/ai-openrouter-glm-zdr-review-candidate.json",
       "config/ai-commercial-document-pilot-operation.json",
+      "reports/ai-lab-glm-fireworks-endpoint-evidence-2026-07-17.md",
     ],
     additional_governed_candidates: [
       {
