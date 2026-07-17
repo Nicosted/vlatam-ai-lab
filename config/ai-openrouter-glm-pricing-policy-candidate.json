@@ -1,15 +1,19 @@
 {
-  "artifact_contract_version": "1.0.0",
+  "artifact_contract_version": "1.1.0",
   "hash_domain": "vlatam-ai-lab:glm-pricing-policy:v1",
-  "artifact_id": "openrouter.glm-5.2.first-run-pricing-policy-candidate.v1",
+  "artifact_id": "openrouter.glm-5.2.fireworks-standard.first-run-pricing-policy-candidate.v1",
   "model_id": "z-ai/glm-5.2",
+  "provider_catalog_slug": "fireworks",
+  "endpoint_tag": "fireworks",
+  "endpoint_display_identity": "Fireworks | z-ai/glm-5.2-20260616",
   "observed_at": "2026-07-17T12:00:00.000Z",
-  "source_url": "https://openrouter.ai/z-ai/glm-5.2/api",
-  "source_scope": "model_level_not_endpoint_specific",
+  "source_url": "https://openrouter.ai/api/v1/models/z-ai/glm-5.2/endpoints",
+  "source_scope": "selected_endpoint_metadata_at_observation",
   "currency": "USD",
-  "model_page_list_price_per_million_tokens": {
-    "input": "0.93",
-    "output": "3.00"
+  "price_usd_per_token": {
+    "prompt": "0.0000014",
+    "completion": "0.0000044",
+    "cache_read": "0.00000014"
   },
   "first_run_ceilings": {
     "maximum_requests": 1,
@@ -17,16 +21,19 @@
     "maximum_output_tokens": 1200,
     "hard_ceiling_usd": "0.05"
   },
-  "model_level_ceiling_estimate_usd": "0.00732",
+  "maximum_uncached_theoretical_request_cost_usd": "0.01088",
+  "cost_formula": "4000*0.0000014+1200*0.0000044",
   "operation_bands_usd": {
     "preferred": "<=0.05",
     "acceptable": ">0.05<=0.25",
     "review_required": ">0.25<=1.00",
     "commercial_justification_required": ">1.00"
   },
-  "route_specific_cost_verified": false,
+  "route_specific_cost_verified": true,
+  "verification_scope": "metadata_verified_at_observation_not_permanently_guaranteed",
+  "fail_closed_if_estimate_exceeds_hard_ceiling": true,
   "review_status": "pending",
   "execution_authority": false,
-  "blockers": ["provider_specific_pricing_variable", "route_price_unreviewed"],
-  "artifact_hash": "066a50126273d92647ece893205b1dbda33f5dcef616241d9fb83c1d63fe06b7"
+  "blockers": ["evidence_review_pending"],
+  "artifact_hash": "e54424d1e7526628ae551d096c3ae8cdb8b66c3734c04f60070b37d8561f6841"
 }

@@ -1,53 +1,157 @@
 {
-  "artifact_contract_version": "1.0.0",
+  "artifact_contract_version": "1.1.0",
   "hash_domain": "vlatam-ai-lab:glm-external-evidence:v1",
-  "artifact_id": "openrouter.glm-5.2.external-evidence.v1",
+  "artifact_id": "openrouter.glm-5.2.fireworks-endpoint-metadata-evidence.v1",
   "model_id": "z-ai/glm-5.2",
+  "observation_date": "2026-07-17",
   "observed_at": "2026-07-17T12:00:00.000Z",
+  "source_type": "operator_performed_authenticated_read_only_metadata_lookup",
   "review_status": "pending",
   "execution_authority": false,
-  "official_sources": [
+  "official_queries": [
     {
-      "source_id": "openrouter.glm-5.2.model-page.v1",
-      "url": "https://openrouter.ai/z-ai/glm-5.2/api",
-      "proves": ["exact_model_id", "model_level_list_price"],
-      "does_not_prove": [
-        "exact_provider_endpoint_slug",
-        "endpoint_specific_zdr",
-        "route_specific_price"
-      ]
+      "method": "GET",
+      "path": "/api/v1/models/z-ai/glm-5.2/endpoints",
+      "url": "https://openrouter.ai/api/v1/models/z-ai/glm-5.2/endpoints"
     },
     {
-      "source_id": "openrouter.provider-routing.docs.v1",
-      "url": "https://openrouter.ai/docs/guides/routing/provider-selection",
-      "proves": [
-        "provider.only",
-        "provider.order",
-        "provider.allow_fallbacks_false",
-        "provider.require_parameters_true",
-        "provider.data_collection_deny",
-        "provider.zdr_true"
-      ],
-      "does_not_prove": ["glm_endpoint_slug", "glm_endpoint_zdr_eligibility"]
+      "method": "GET",
+      "path": "/api/v1/providers",
+      "url": "https://openrouter.ai/api/v1/providers"
     },
     {
-      "source_id": "openrouter.zdr.docs.v1",
-      "url": "https://openrouter.ai/docs/guides/features/zdr",
-      "proves": ["openrouter_zdr_routing_behavior"],
-      "does_not_prove": ["upstream_contract", "processing_geography"]
+      "method": "GET",
+      "path": "/api/v1/endpoints/zdr",
+      "url": "https://openrouter.ai/api/v1/endpoints/zdr"
     }
   ],
+  "identity_contract": {
+    "model_id": "z-ai/glm-5.2",
+    "provider_catalog_slug": "fireworks",
+    "endpoint_tag": "fireworks",
+    "endpoint_display_identity": "Fireworks | z-ai/glm-5.2-20260616",
+    "provider_name": "Fireworks"
+  },
+  "provider_catalog": [
+    {
+      "provider_name": "Z.AI",
+      "provider_catalog_slug": "z-ai",
+      "headquarters": "Singapore"
+    },
+    {
+      "provider_name": "Fireworks",
+      "provider_catalog_slug": "fireworks",
+      "headquarters": "United States"
+    },
+    {
+      "provider_name": "Cloudflare",
+      "provider_catalog_slug": "cloudflare",
+      "headquarters": "United States"
+    }
+  ],
+  "observed_candidates": [
+    {
+      "provider_name": "Z.AI",
+      "provider_catalog_slug": "z-ai",
+      "endpoint_tag": "z-ai/fp8",
+      "endpoint_display_identity": "Z.AI | z-ai/glm-5.2-20260616",
+      "model_id": "z-ai/glm-5.2",
+      "context_length": 1048576,
+      "maximum_completion_tokens": 131072,
+      "quantization": "fp8",
+      "price_usd_per_token": {
+        "prompt": "0.0000014",
+        "completion": "0.0000044",
+        "cache_read": "0.00000026"
+      },
+      "supported_parameters": ["response_format"],
+      "zdr_list_membership": "observed_present",
+      "zdr_status": 0,
+      "selection_status": "not_selected_missing_structured_outputs_declaration"
+    },
+    {
+      "provider_name": "Fireworks",
+      "provider_catalog_slug": "fireworks",
+      "endpoint_tag": "fireworks",
+      "endpoint_display_identity": "Fireworks | z-ai/glm-5.2-20260616",
+      "model_id": "z-ai/glm-5.2",
+      "context_length": 1048576,
+      "maximum_completion_tokens": null,
+      "quantization": "unknown",
+      "price_usd_per_token": {
+        "prompt": "0.0000014",
+        "completion": "0.0000044",
+        "cache_read": "0.00000014"
+      },
+      "supported_parameters": ["response_format", "structured_outputs"],
+      "zdr_list_membership": "observed_present",
+      "zdr_status": 0,
+      "selection_status": "selected_exact_candidate"
+    },
+    {
+      "provider_name": "Fireworks",
+      "provider_catalog_slug": "fireworks",
+      "endpoint_tag": "fireworks/fast",
+      "endpoint_display_identity": "Fireworks | z-ai/glm-5.2-20260616",
+      "model_id": "z-ai/glm-5.2",
+      "context_length": 1048576,
+      "maximum_completion_tokens": null,
+      "quantization": "unknown",
+      "price_usd_per_token": {
+        "prompt": "0.0000021",
+        "completion": "0.0000066",
+        "cache_read": "0.00000021"
+      },
+      "supported_parameters": ["response_format", "structured_outputs"],
+      "zdr_list_membership": "observed_present",
+      "zdr_status": 0,
+      "selection_status": "not_selected_higher_price"
+    },
+    {
+      "provider_name": "Cloudflare",
+      "provider_catalog_slug": "cloudflare",
+      "endpoint_tag": null,
+      "endpoint_display_identity": null,
+      "model_id": "z-ai/glm-5.2",
+      "supported_parameters": ["structured_outputs"],
+      "zdr_list_membership": "observed_absent",
+      "selection_status": "ineligible_missing_zdr_list_membership"
+    }
+  ],
+  "selected_endpoint": {
+    "provider_catalog_slug": "fireworks",
+    "endpoint_tag": "fireworks",
+    "endpoint_display_identity": "Fireworks | z-ai/glm-5.2-20260616",
+    "model_id": "z-ai/glm-5.2",
+    "zdr_eligible_at_observation": true,
+    "structured_output_metadata_verified": true,
+    "response_format_metadata_verified": true,
+    "route_specific_pricing_metadata_verified": true
+  },
   "routing_controls": {
+    "provider_only": ["fireworks"],
+    "provider_order": ["fireworks"],
+    "allow_fallbacks": false,
+    "require_parameters": true,
+    "data_collection": "deny",
+    "zdr": true,
     "auto_router_forbidden": true,
     "price_sort_forbidden": true,
-    "exact_endpoint_slug": null,
-    "endpoint_slug_status": "blocked_unproven"
+    "fallback_routing_forbidden": true
   },
-  "blockers": [
-    "exact_provider_endpoint_slug_unproven",
-    "endpoint_specific_zdr_unproven",
-    "provider_specific_pricing_variable",
-    "structured_output_capability_unverified"
+  "provenance_controls": {
+    "raw_metadata_persisted": false,
+    "api_key_persisted": false,
+    "inference_performed": false,
+    "account_settings_modified": false,
+    "agent_executed_authenticated_lookup": false
+  },
+  "limitations": [
+    "ZDR-list presence proves only OpenRouter route eligibility at the observation timestamp.",
+    "The metadata does not prove an upstream contractual retention commitment, processing geography, legal adequacy, or permanent future eligibility.",
+    "Structured-output metadata does not prove controlled schema-conformance acceptance.",
+    "Pricing is metadata-verified at the observation timestamp and is not permanently guaranteed."
   ],
-  "artifact_hash": "4631f0c278aab214074f4ed7d5c2a61dc6d86ddde60e75d929a235de71fc6325"
+  "blockers": [],
+  "artifact_hash": "dd926ad069341a5c8174f7a7180349c857151134b10e6b03a25bc7882d0b7fb1"
 }

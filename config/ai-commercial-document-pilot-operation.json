@@ -7,7 +7,7 @@
   "expected_local_artifact_type": "redacted_json",
   "expected_redaction_attestation": true,
   "profile_id": "openrouter.glm-5.2.commercial-document-extraction.candidate",
-  "route_id": "openrouter.glm-5.2.z-ai-candidate",
+  "route_id": "openrouter.glm-5.2.fireworks-standard-candidate",
   "model_id": "z-ai/glm-5.2",
   "schema_id": "ai-commercial-document-extraction",
   "schema_version": "1.0.0",
@@ -22,5 +22,5 @@
   "raw_response_persistence": "forbidden",
   "one_use_authorization_required": true,
   "execution_authority": false,
-  "artifact_hash": "ec533bda81ba23ea14641da11aa523ca6d6a0c82da01b3b9f0be2c12e7c712d3"
+  "artifact_hash": "08c1b01914d39651f9d8311a40391f3a2ef3649ae039ecd27b013f81bfd329c0"
 }

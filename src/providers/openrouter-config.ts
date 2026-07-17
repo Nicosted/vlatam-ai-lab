@@ -105,6 +105,10 @@ export interface OpenRouterRoutePolicy {
   readonly allowed_upstream_providers?: readonly string[];
   /** Optional ordered preference; must be a subset of the allowlist. */
   readonly provider_order?: readonly string[];
+  /** Exact OpenRouter endpoint tag selected by reviewed metadata. */
+  readonly endpoint_tag?: string;
+  /** Exact provider display identity required in the response metadata. */
+  readonly expected_response_provider_identity?: string;
   /** Must be false: provider and model fallback are disabled. */
   readonly allow_fallbacks: false;
   /** Sent as `provider.data_collection`; always "deny". */
@@ -123,6 +127,7 @@ const ENV_VAR_NAME = /^[A-Z][A-Z0-9_]{2,63}$/;
 /** `author/slug` OpenRouter model id; lowercase, no whitespace. */
 const MODEL_ID = /^[a-z0-9][a-z0-9.-]*\/[a-z0-9][a-z0-9.:-]*$/;
 const PROVIDER_SLUG = /^[a-z0-9][a-z0-9-]*$/;
+const ENDPOINT_TAG = /^[a-z0-9][a-z0-9/-]*$/;
 /** Keys that would smuggle a secret value into configuration. */
 const CREDENTIAL_KEY =
   /api[_-]?key$|^key$|secret|password|bearer|authorization|token$|private[_-]?key|access[_-]?key/i;
@@ -319,6 +324,8 @@ export function validateOpenRouterRoutePolicy(
     "model_id",
     "allowed_upstream_providers",
     "provider_order",
+    "endpoint_tag",
+    "expected_response_provider_identity",
     "allow_fallbacks",
     "data_collection",
     "require_parameters",
@@ -382,6 +389,20 @@ export function validateOpenRouterRoutePolicy(
     else if (allowlist === undefined)
       errors.add("provider_order_without_allowlist");
   }
+  if (
+    value["endpoint_tag"] !== undefined &&
+    (typeof value["endpoint_tag"] !== "string" ||
+      !ENDPOINT_TAG.test(value["endpoint_tag"]))
+  )
+    errors.add("invalid_endpoint_tag");
+  if (
+    value["expected_response_provider_identity"] !== undefined &&
+    (typeof value["expected_response_provider_identity"] !== "string" ||
+      !/^[A-Za-z0-9][A-Za-z0-9 ._-]*$/.test(
+        value["expected_response_provider_identity"],
+      ))
+  )
+    errors.add("invalid_expected_response_provider_identity");
   if (value["allow_fallbacks"] !== false) errors.add("permissive_fallback");
   if (value["data_collection"] !== "deny")
     errors.add("invalid_data_collection");

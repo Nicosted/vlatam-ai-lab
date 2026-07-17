@@ -112,7 +112,7 @@ describe("AI LAB operator read model", () => {
     );
     assert.equal(
       glm.profile.hash,
-      "2b1df9f521ae74191d16415a0369cea5c0ae6a01b93c62aad865a79fa16c9322",
+      "5dc48fa5584e1326293af73f392256c4dff07b6bd649c47436088d17c7650291",
     );
     assert.notEqual(minimax.profile.hash, glm.profile.hash);
     assert.equal(glm.readiness, "blocked");
@@ -129,9 +129,7 @@ describe("AI LAB operator read model", () => {
       result.blockers.some(
         (blocker) =>
           blocker.candidate_id === "z-ai/glm-5.2" &&
-          blocker.blocker_code.includes(
-            "exact_provider_endpoint_slug_unproven",
-          ),
+          blocker.blocker_code.includes("evidence_review_pending"),
       ),
     );
   });

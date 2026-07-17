@@ -83,7 +83,9 @@ export interface ExecutionProfile {
     readonly invocation_mode: "manual_only";
     readonly human_review_required: true;
     readonly post_response_schema_validation_required: true;
-    readonly structured_output_capability_status: "controlled_execution_required";
+    readonly structured_output_capability_status:
+      | "controlled_execution_required"
+      | "metadata_verified_runtime_conformance_pending";
     readonly fallback_enabled: false;
     readonly automatic_retries: 0;
     readonly maximum_requests: 1;
@@ -96,11 +98,16 @@ export interface ExecutionProfile {
       readonly review_required_max: "1.00";
     };
     readonly exact_model_only: true;
-    readonly intended_upstream_provider_id: "z-ai";
+    readonly intended_upstream_provider_id: "z-ai" | "fireworks";
+    readonly provider_catalog_slug?: string;
+    readonly endpoint_tag?: string;
+    readonly endpoint_display_identity?: string;
+    readonly expected_response_provider_identity?: string;
     readonly exact_provider_endpoint_slug: string | null;
     readonly provider_order: readonly string[];
     readonly exact_upstream_routing_status:
       | "blocked_missing_official_slug"
+      | "metadata_bound_response_verification_required"
       | "verified";
     readonly require_parameters: true;
     readonly data_collection: "deny";

@@ -502,6 +502,11 @@ export class OpenRouterAdapter implements ProviderAdapter {
     )
       throw new OpenRouterAdapterError("MODEL_SUBSTITUTION_DETECTED");
     const servedBy = parsed["provider"];
+    if (
+      policy.expected_response_provider_identity !== undefined &&
+      servedBy !== policy.expected_response_provider_identity
+    )
+      throw new OpenRouterAdapterError("PROVIDER_SUBSTITUTION_DETECTED");
     if (policy.allowed_upstream_providers !== undefined) {
       if (typeof servedBy !== "string" || servedBy.length === 0) {
         // An exact upstream was demanded but the response does not
