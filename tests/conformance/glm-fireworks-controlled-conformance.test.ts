@@ -564,6 +564,14 @@ describe("AI-122 GLM Fireworks controlled conformance", () => {
     const timedOut = await harness(never).execute(timeoutRequest);
     assert.equal(timedOut.status, "failed");
     assert.equal(timedOut.attempts[0]?.status, "timeout");
+    assert.equal(
+      timedOut.attempts[0]?.pre_response_failure?.classification,
+      "timeout",
+    );
+    assert.equal(
+      timedOut.attempts[0]?.pre_response_failure?.reason_code,
+      "pre_response_timeout",
+    );
     assert.equal(timedOut.correlation_id, timeoutRequest.correlation_id);
     assert.equal(timedOut.authorization_consume_count, 1);
 

@@ -12,6 +12,12 @@ import type {
   AuthorizationConsumeResult,
   AuthorizationStateStore,
 } from "../handoff/authorization-store.js";
+import {
+  classifyGlmFireworksPreResponseFailure,
+  GlmFireworksCredentialUnavailableError,
+  isGlmFireworksCredentialUnavailableError,
+  type GlmFireworksPreResponseFailureEvidence,
+} from "./glm-fireworks-pre-response-failure.js";
 import { OPENROUTER_BASE_URL } from "./openrouter-config.js";
 
 export const GLM_CONFORMANCE_CONTRACT_VERSION = "1.0.0" as const;
@@ -286,7 +292,7 @@ export function createApprovedAi122OpenRouterTransport(approval: {
     const credentialName = openRouterAdapterConfigJson.api_key_env_var;
     const credential = process.env[credentialName];
     if (typeof credential !== "string" || credential.length === 0)
-      throw new Error("approved_credential_unavailable");
+      throw new GlmFireworksCredentialUnavailableError();
     const response = await fetch(`${OPENROUTER_BASE_URL}/chat/completions`, {
       method: request.method,
       headers: {
@@ -390,6 +396,7 @@ export interface GlmConformanceAttemptEvidence {
   readonly locally_calculated_cost_usd: string | null;
   readonly retention_metadata: string | null;
   readonly training_use_metadata: string | null;
+  readonly pre_response_failure?: GlmFireworksPreResponseFailureEvidence;
 }
 
 export interface GlmConformanceScore {
@@ -549,6 +556,10 @@ function requestBody(
 function parseProviderResponse(
   response: GlmConformanceTransportResponse,
   request: GlmConformanceRequest,
+  context: {
+    readonly attempt: number;
+    readonly timestamp: string;
+  },
 ): {
   output?: unknown;
   evidence: Omit<
@@ -561,9 +572,20 @@ function parseProviderResponse(
   if (response.status !== 200)
     return {
       retryable: response.status === 429 || response.status >= 500,
-      evidence: failedAttempt("transport_failure", rawHash, [
-        `provider_http_status_${response.status}`,
-      ]),
+      evidence: failedAttempt(
+        "transport_failure",
+        rawHash,
+        [`provider_http_status_${response.status}`],
+        classifyGlmFireworksPreResponseFailure({
+          attempt: context.attempt,
+          timestamp: context.timestamp,
+          correlation_id: request.correlation_id,
+          execution_evidence_id: `${request.correlation_id}.attempt-${context.attempt}.pre-response`,
+          response_present: true,
+          response_status: response.status,
+          usable_provider_payload: false,
+        }),
+      ),
     };
   let parsed: unknown;
   try {
@@ -571,17 +593,39 @@ function parseProviderResponse(
   } catch {
     return {
       retryable: true,
-      evidence: failedAttempt("invalid_output", rawHash, [
-        "provider_response_invalid_json",
-      ]),
+      evidence: failedAttempt(
+        "invalid_output",
+        rawHash,
+        ["provider_response_invalid_json"],
+        classifyGlmFireworksPreResponseFailure({
+          attempt: context.attempt,
+          timestamp: context.timestamp,
+          correlation_id: request.correlation_id,
+          execution_evidence_id: `${request.correlation_id}.attempt-${context.attempt}.pre-response`,
+          response_present: true,
+          response_status: response.status,
+          usable_provider_payload: false,
+        }),
+      ),
     };
   }
   if (!isRecord(parsed))
     return {
       retryable: true,
-      evidence: failedAttempt("invalid_output", rawHash, [
-        "provider_response_not_object",
-      ]),
+      evidence: failedAttempt(
+        "invalid_output",
+        rawHash,
+        ["provider_response_not_object"],
+        classifyGlmFireworksPreResponseFailure({
+          attempt: context.attempt,
+          timestamp: context.timestamp,
+          correlation_id: request.correlation_id,
+          execution_evidence_id: `${request.correlation_id}.attempt-${context.attempt}.pre-response`,
+          response_present: true,
+          response_status: response.status,
+          usable_provider_payload: false,
+        }),
+      ),
     };
   const requestId = typeof parsed["id"] === "string" ? parsed["id"] : null;
   const generationId =
@@ -714,6 +758,7 @@ function failedAttempt(
   status: "invalid_output" | "transport_failure" | "timeout" | "cancelled",
   rawResponseHash: string | null,
   errors: readonly string[],
+  preResponseFailure?: GlmFireworksPreResponseFailureEvidence,
 ) {
   return {
     status,
@@ -733,6 +778,7 @@ function failedAttempt(
     locally_calculated_cost_usd: null,
     retention_metadata: null,
     training_use_metadata: null,
+    ...(preResponseFailure ? { pre_response_failure: preResponseFailure } : {}),
   } as const;
 }
 
@@ -908,7 +954,10 @@ export class GlmFireworksControlledConformanceHarness {
               ),
         ]);
         const completed = this.options.clock?.() ?? new Date();
-        const parsed = parseProviderResponse(response, controlled);
+        const parsed = parseProviderResponse(response, controlled, {
+          attempt: index + 1,
+          timestamp: completed.toISOString(),
+        });
         const attempt = {
           attempt: index + 1,
           started_at: started.toISOString(),
@@ -926,6 +975,19 @@ export class GlmFireworksControlledConformanceHarness {
         const completed = this.options.clock?.() ?? new Date();
         const externallyCancelled = this.options.signal?.aborted === true;
         const timedOut = timeoutSignal.aborted && !externallyCancelled;
+        const failure = externallyCancelled
+          ? undefined
+          : classifyGlmFireworksPreResponseFailure({
+              attempt: index + 1,
+              timestamp: completed.toISOString(),
+              correlation_id: controlled.correlation_id,
+              execution_evidence_id: `${controlled.correlation_id}.attempt-${index + 1}.pre-response`,
+              timed_out: timedOut,
+              ...(isGlmFireworksCredentialUnavailableError(error)
+                ? { credential_available: false }
+                : {}),
+              thrown: error,
+            });
         attempts.push({
           attempt: index + 1,
           started_at: started.toISOString(),
@@ -943,12 +1005,13 @@ export class GlmFireworksControlledConformanceHarness {
                 ? "execution_cancelled"
                 : timedOut
                   ? "transport_timeout"
-                  : "transport_failure",
+                  : (failure?.reason_code ?? "transport_failure"),
             ],
+            failure,
           ),
         });
         if (externallyCancelled) break;
-        void error;
+        if (failure?.terminal === true) break;
       } finally {
         clearTimeout(timeoutId);
       }
