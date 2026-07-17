@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import { canonicalizeOpenRouterRegistryJson } from "../providers/openrouter-registry.js";
 import type { TournamentOperatorReadModel } from "../tournament/index.js";
 
-export const OPERATOR_READ_MODEL_CONTRACT_VERSION = "1.3.0" as const;
+export const OPERATOR_READ_MODEL_CONTRACT_VERSION = "1.4.0" as const;
 export const OPERATOR_READ_MODEL_HASH_DOMAIN =
   "vlatam-ai-lab:operator-read-model:v1" as const;
 
@@ -61,6 +61,32 @@ export interface OperatorGovernedCandidate {
   readonly blockers: readonly string[];
   readonly blocker_count: number;
   readonly next_governed_action: string;
+  readonly conformance?: {
+    readonly status: "prepared_not_executed" | "passed" | "failed" | "blocked";
+    readonly cases_attempted: number;
+    readonly cases_passed: number;
+    readonly schema_pass_rate: string | null;
+    readonly provider_routing_match:
+      | "not_attempted"
+      | "matched"
+      | "mismatched"
+      | "unavailable";
+    readonly zdr_evidence_status:
+      | "metadata_only_runtime_pending"
+      | "runtime_complete"
+      | "runtime_incomplete";
+    readonly budget_reconciliation:
+      | "not_attempted"
+      | "reconciled"
+      | "discrepant"
+      | "incomplete";
+    readonly retries: number;
+    readonly duplicate_consumption_result: "not_attempted" | "safe" | "unsafe";
+    readonly blockers: readonly string[];
+    readonly independent_review_required: true;
+    readonly activation_prohibited: true;
+    readonly kill_switch_state: "active";
+  };
 }
 
 export interface OperatorReadModelInput {

@@ -1,11 +1,11 @@
 # AI LAB Operator Read Model
 
-Status: backend read model implemented (contract `1.3.0`); local read-only
+Status: backend read model implemented (contract `1.4.0`); local read-only
 console implemented; future internal API not implemented.
 
 ## Purpose
 
-The Operator Read Model contract `1.3.0` consolidates already-evaluated,
+The Operator Read Model contract `1.4.0` consolidates already-evaluated,
 repository-governed state into one concise, deterministic, audit-safe JSON
 representation. It feeds the local read-only Operator Console and a future
 internal read-only API. It cannot approve, authorize, configure, mutate,
@@ -14,6 +14,18 @@ consume, or execute anything.
 The dependency direction is:
 
 `registries + evidence + readiness + proposal + preflight + activation review + gold case + authorization + consumption + gateway metadata → pure builder → read-only console → future internal API`
+
+## Contract 1.4.0 additions (2026-07-17)
+
+Version `1.4.0` adds an optional, read-only `conformance` projection to the GLM
+5.2 governed candidate. It exposes cases attempted and passed, schema pass rate,
+exact-route and ZDR evidence status, budget reconciliation, retries, duplicate
+consumption behavior, blockers, independent-review requirement, activation
+prohibition, and kill-switch state. After the authorized AI-122 attempt, the
+projection is `failed` with unavailable route evidence, incomplete ZDR and
+budget reconciliation, two retries, and safe duplicate-consumption blocking.
+It contains no credential, request payload, raw model output, authorization
+capability, or write action.
 
 ## Contract 1.3.0 additions (2026-07-17)
 

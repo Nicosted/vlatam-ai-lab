@@ -1,0 +1,213 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/import-operation-pre-assessment-candidate-v1.schema.json",
+  "title": "ImportOperationPreAssessmentCandidateV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "source_document_refs",
+    "extracted_parties",
+    "trade_terms",
+    "currency",
+    "line_items",
+    "totals",
+    "logistics",
+    "missing_information",
+    "inconsistencies",
+    "clarification_questions",
+    "classification_readiness",
+    "risk_flags",
+    "confidence",
+    "model_execution_evidence",
+    "human_review_required",
+    "approval_status"
+  ],
+  "properties": {
+    "source_document_refs": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{1,127}$" }
+    },
+    "extracted_parties": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["supplier", "buyer"],
+      "properties": {
+        "supplier": { "$ref": "#/$defs/nullableNonEmptyString" },
+        "buyer": { "$ref": "#/$defs/nullableNonEmptyString" }
+      }
+    },
+    "trade_terms": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["incoterm", "named_place"],
+      "properties": {
+        "incoterm": { "$ref": "#/$defs/nullableNonEmptyString" },
+        "named_place": { "$ref": "#/$defs/nullableNonEmptyString" }
+      }
+    },
+    "currency": { "type": ["string", "null"], "pattern": "^[A-Z]{3}$" },
+    "line_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "line_number",
+          "description",
+          "quantity",
+          "unit",
+          "unit_price",
+          "line_total"
+        ],
+        "properties": {
+          "line_number": { "type": "integer", "minimum": 1 },
+          "description": { "type": "string", "minLength": 1 },
+          "quantity": { "$ref": "#/$defs/nullableDecimal" },
+          "unit": { "$ref": "#/$defs/nullableNonEmptyString" },
+          "unit_price": { "$ref": "#/$defs/nullableDecimal" },
+          "line_total": { "$ref": "#/$defs/nullableDecimal" }
+        }
+      }
+    },
+    "totals": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "subtotal",
+        "freight",
+        "insurance",
+        "grand_total",
+        "arithmetic_consistent"
+      ],
+      "properties": {
+        "subtotal": { "$ref": "#/$defs/nullableDecimal" },
+        "freight": { "$ref": "#/$defs/nullableDecimal" },
+        "insurance": { "$ref": "#/$defs/nullableDecimal" },
+        "grand_total": { "$ref": "#/$defs/nullableDecimal" },
+        "arithmetic_consistent": { "type": ["boolean", "null"] }
+      }
+    },
+    "logistics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "gross_weight_kg",
+        "net_weight_kg",
+        "packages",
+        "dimensions_cm",
+        "country_of_origin"
+      ],
+      "properties": {
+        "gross_weight_kg": { "$ref": "#/$defs/nullableDecimal" },
+        "net_weight_kg": { "$ref": "#/$defs/nullableDecimal" },
+        "packages": { "type": ["integer", "null"], "minimum": 0 },
+        "dimensions_cm": {
+          "type": ["array", "null"],
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["length", "width", "height"],
+            "properties": {
+              "length": { "$ref": "#/$defs/decimal" },
+              "width": { "$ref": "#/$defs/decimal" },
+              "height": { "$ref": "#/$defs/decimal" }
+            }
+          }
+        },
+        "country_of_origin": { "$ref": "#/$defs/nullableNonEmptyString" }
+      }
+    },
+    "missing_information": { "$ref": "#/$defs/stringList" },
+    "inconsistencies": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["field", "source_values", "description", "resolution"],
+        "properties": {
+          "field": { "type": "string", "minLength": 1 },
+          "source_values": {
+            "type": "array",
+            "minItems": 2,
+            "items": { "type": "string" }
+          },
+          "description": { "type": "string", "minLength": 1 },
+          "resolution": { "const": null }
+        }
+      }
+    },
+    "clarification_questions": { "$ref": "#/$defs/stringList" },
+    "classification_readiness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "definitive_hs_or_ncm_assigned", "reason"],
+      "properties": {
+        "status": {
+          "enum": [
+            "not_ready",
+            "needs_clarification",
+            "ready_for_human_classification"
+          ]
+        },
+        "definitive_hs_or_ncm_assigned": { "const": false },
+        "reason": { "type": "string", "minLength": 1 }
+      }
+    },
+    "risk_flags": { "$ref": "#/$defs/stringList" },
+    "confidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "overall",
+        "parties",
+        "trade_terms",
+        "line_items",
+        "totals",
+        "logistics"
+      ],
+      "properties": {
+        "overall": { "$ref": "#/$defs/confidence" },
+        "parties": { "$ref": "#/$defs/confidence" },
+        "trade_terms": { "$ref": "#/$defs/confidence" },
+        "line_items": { "$ref": "#/$defs/confidence" },
+        "totals": { "$ref": "#/$defs/confidence" },
+        "logistics": { "$ref": "#/$defs/confidence" }
+      }
+    },
+    "model_execution_evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requested_model",
+        "expected_provider",
+        "expected_endpoint_tag",
+        "correlation_id",
+        "schema_version"
+      ],
+      "properties": {
+        "requested_model": { "const": "z-ai/glm-5.2" },
+        "expected_provider": { "const": "fireworks" },
+        "expected_endpoint_tag": { "const": "fireworks" },
+        "correlation_id": { "type": "string", "minLength": 3 },
+        "schema_version": { "const": "1.0.0" }
+      }
+    },
+    "human_review_required": { "const": true },
+    "approval_status": { "enum": ["candidate", "pending_review"] }
+  },
+  "$defs": {
+    "decimal": { "type": "string", "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$" },
+    "nullableDecimal": {
+      "anyOf": [{ "$ref": "#/$defs/decimal" }, { "type": "null" }]
+    },
+    "nullableNonEmptyString": { "type": ["string", "null"], "minLength": 1 },
+    "stringList": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1 }
+  }
+}

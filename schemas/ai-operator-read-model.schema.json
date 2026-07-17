@@ -31,7 +31,7 @@
     "tournament"
   ],
   "properties": {
-    "contract_version": { "const": "1.3.0" },
+    "contract_version": { "const": "1.4.0" },
     "system_summary": {
       "type": "object",
       "required": [
@@ -61,7 +61,7 @@
         "active_blockers": { "type": "integer", "minimum": 0 },
         "execution_authorized_count": { "type": "integer", "minimum": 0 },
         "last_evaluated_at": { "type": "string", "format": "date-time" },
-        "read_model_contract_version": { "const": "1.3.0" },
+        "read_model_contract_version": { "const": "1.4.0" },
         "read_model_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
       },
       "additionalProperties": false
@@ -107,7 +107,69 @@
           "adapter_gateway_transport_state": { "type": "object" },
           "blockers": { "type": "array", "items": { "type": "string" } },
           "blocker_count": { "type": "integer", "minimum": 0 },
-          "next_governed_action": { "type": "string" }
+          "next_governed_action": { "type": "string" },
+          "conformance": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "status",
+              "cases_attempted",
+              "cases_passed",
+              "schema_pass_rate",
+              "provider_routing_match",
+              "zdr_evidence_status",
+              "budget_reconciliation",
+              "retries",
+              "duplicate_consumption_result",
+              "blockers",
+              "independent_review_required",
+              "activation_prohibited",
+              "kill_switch_state"
+            ],
+            "properties": {
+              "status": {
+                "enum": ["prepared_not_executed", "passed", "failed", "blocked"]
+              },
+              "cases_attempted": { "type": "integer", "minimum": 0 },
+              "cases_passed": { "type": "integer", "minimum": 0 },
+              "schema_pass_rate": { "type": ["string", "null"] },
+              "provider_routing_match": {
+                "enum": [
+                  "not_attempted",
+                  "matched",
+                  "mismatched",
+                  "unavailable"
+                ]
+              },
+              "zdr_evidence_status": {
+                "enum": [
+                  "metadata_only_runtime_pending",
+                  "runtime_complete",
+                  "runtime_incomplete"
+                ]
+              },
+              "budget_reconciliation": {
+                "enum": [
+                  "not_attempted",
+                  "reconciled",
+                  "discrepant",
+                  "incomplete"
+                ]
+              },
+              "retries": { "type": "integer", "minimum": 0 },
+              "duplicate_consumption_result": {
+                "enum": ["not_attempted", "safe", "unsafe"]
+              },
+              "blockers": {
+                "type": "array",
+                "items": { "type": "string" },
+                "uniqueItems": true
+              },
+              "independent_review_required": { "const": true },
+              "activation_prohibited": { "const": true },
+              "kill_switch_state": { "const": "active" }
+            }
+          }
         },
         "additionalProperties": false
       }

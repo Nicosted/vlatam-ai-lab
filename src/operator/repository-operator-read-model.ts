@@ -78,6 +78,7 @@ const APPROVED_ARTIFACTS = {
   tournament_cloudflare: "config/ai-tournament-runtime-cloudflare.json",
   runtime_evidence_eve: "config/ai-runtime-evidence-eve.json",
   runtime_evidence_cloudflare: "config/ai-runtime-evidence-cloudflare.json",
+  glm_conformance: "config/ai-122-glm-fireworks-conformance-result.json",
 } as const;
 
 type ArtifactKey = keyof typeof APPROVED_ARTIFACTS;
@@ -137,6 +138,7 @@ export async function loadRepositoryOperatorReadModel(
   );
 
   const models = loaded.models.value;
+  const glmConformance = loaded.glm_conformance.value;
   const routes = loaded.routes.value;
   const adapter = loaded.adapter.value;
   const profiles = loaded.profiles.value;
@@ -750,6 +752,64 @@ export async function loadRepositoryOperatorReadModel(
         blockers: glmGovernance.blockers,
         blocker_count: glmGovernance.blockers.length,
         next_governed_action: "review_endpoint_zdr_pricing_and_approvals",
+        conformance: {
+          status:
+            isRecord(glmConformance) && glmConformance.status === "failed"
+              ? "failed"
+              : "blocked",
+          cases_attempted:
+            isRecord(glmConformance) &&
+            Number.isSafeInteger(glmConformance.cases_attempted)
+              ? (glmConformance.cases_attempted as number)
+              : 0,
+          cases_passed:
+            isRecord(glmConformance) &&
+            Number.isSafeInteger(glmConformance.cases_passed)
+              ? (glmConformance.cases_passed as number)
+              : 0,
+          schema_pass_rate:
+            isRecord(glmConformance) &&
+            typeof glmConformance.schema_pass_rate === "string"
+              ? glmConformance.schema_pass_rate
+              : null,
+          provider_routing_match:
+            isRecord(glmConformance) &&
+            glmConformance.served_provider === "Fireworks" &&
+            glmConformance.served_model === GLM_MODEL_ID &&
+            glmConformance.served_endpoint_tag === "fireworks"
+              ? "matched"
+              : isRecord(glmConformance) &&
+                  (glmConformance.served_provider !== null ||
+                    glmConformance.served_model !== null ||
+                    glmConformance.served_endpoint_tag !== null)
+                ? "mismatched"
+                : "unavailable",
+          zdr_evidence_status: "runtime_incomplete",
+          budget_reconciliation:
+            isRecord(glmConformance) &&
+            glmConformance.budget_reconciliation === "incomplete"
+              ? "incomplete"
+              : "not_attempted",
+          retries:
+            isRecord(glmConformance) &&
+            Number.isSafeInteger(glmConformance.retries)
+              ? (glmConformance.retries as number)
+              : 0,
+          duplicate_consumption_result:
+            isRecord(glmConformance) &&
+            glmConformance.replay_result === "already_consumed"
+              ? "safe"
+              : "unsafe",
+          blockers:
+            isRecord(glmConformance) && Array.isArray(glmConformance.blockers)
+              ? glmConformance.blockers.filter(
+                  (blocker): blocker is string => typeof blocker === "string",
+                )
+              : ["conformance_evidence_missing"],
+          independent_review_required: true,
+          activation_prohibited: true,
+          kill_switch_state: "active",
+        },
       },
     ],
   };
