@@ -31,7 +31,7 @@
     "tournament"
   ],
   "properties": {
-    "contract_version": { "const": "1.2.0" },
+    "contract_version": { "const": "1.3.0" },
     "system_summary": {
       "type": "object",
       "required": [
@@ -61,7 +61,7 @@
         "active_blockers": { "type": "integer", "minimum": 0 },
         "execution_authorized_count": { "type": "integer", "minimum": 0 },
         "last_evaluated_at": { "type": "string", "format": "date-time" },
-        "read_model_contract_version": { "const": "1.2.0" },
+        "read_model_contract_version": { "const": "1.3.0" },
         "read_model_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
       },
       "additionalProperties": false
@@ -235,9 +235,54 @@
     "tournament": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["registered_candidates", "write_actions_available"],
+      "required": [
+        "registered_candidates",
+        "runtime_evidence",
+        "write_actions_available"
+      ],
       "properties": {
         "write_actions_available": { "const": false },
+        "runtime_evidence": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "candidate_id",
+              "evidence_freshness",
+              "source_count",
+              "immutable_source_count",
+              "mutable_source_count",
+              "unresolved_gaps",
+              "privacy_blockers",
+              "durability_confidence",
+              "cost_accounting_confidence",
+              "independent_review_required",
+              "lifecycle_recommendation",
+              "activation_prohibited",
+              "kill_switch_state"
+            ],
+            "properties": {
+              "candidate_id": { "type": "string", "minLength": 1 },
+              "evidence_freshness": {
+                "enum": ["current", "expiring", "expired"]
+              },
+              "source_count": { "type": "integer", "minimum": 1 },
+              "immutable_source_count": { "type": "integer", "minimum": 0 },
+              "mutable_source_count": { "type": "integer", "minimum": 0 },
+              "unresolved_gaps": { "type": "integer", "minimum": 0 },
+              "privacy_blockers": { "type": "integer", "minimum": 0 },
+              "durability_confidence": { "enum": ["low", "medium", "high"] },
+              "cost_accounting_confidence": {
+                "enum": ["low", "medium", "high"]
+              },
+              "independent_review_required": { "const": true },
+              "lifecycle_recommendation": { "const": "remain_discovered" },
+              "activation_prohibited": { "const": true },
+              "kill_switch_state": { "const": "active" }
+            }
+          }
+        },
         "registered_candidates": {
           "type": "array",
           "items": {

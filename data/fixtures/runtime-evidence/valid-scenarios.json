@@ -1,0 +1,22 @@
+{
+  "timestamped_eve_evidence_pack": {
+    "fixture": "config/ai-runtime-evidence-eve.json",
+    "expected_outcome": "evidence_only"
+  },
+  "timestamped_cloudflare_evidence_pack": {
+    "fixture": "config/ai-runtime-evidence-cloudflare.json",
+    "expected_outcome": "evidence_only"
+  },
+  "mixed_evidence_with_unresolved_gaps": {
+    "fixture": "config/ai-runtime-evidence-cloudflare.json",
+    "requires": ["immutable_source", "mutable_source", "unresolved_questions"]
+  },
+  "mutable_document_with_review_expiry": {
+    "fixture": "config/ai-runtime-evidence-cloudflare.json",
+    "source_id": "cf.workflows.docs.pricing"
+  },
+  "commit_pinned_source": {
+    "fixture": "config/ai-runtime-evidence-eve.json",
+    "source_id": "eve.sessions.f7c69b1"
+  }
+}

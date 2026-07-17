@@ -1,0 +1,416 @@
+{
+  "schema_version": "1.0.0",
+  "pack_id": "runtime-evidence.vercel-eve.2026-07-17",
+  "runtime_candidate": {
+    "candidate_id": "vercel-eve",
+    "provider": "vercel",
+    "observed_version": "0.24.6",
+    "lifecycle_status": "discovered",
+    "activation_prohibited": true,
+    "enabled": false,
+    "kill_switch_active": true
+  },
+  "captured_at": "2026-07-17T12:01:09Z",
+  "review_expires_at": "2026-08-16T12:01:09Z",
+  "sources": [
+    {
+      "source_id": "eve.repo.readme.f7c69b1",
+      "source_url": "https://github.com/vercel/eve/blob/f7c69b1a2ad044a6ba89db7bb6241c469d3ef101/README.md",
+      "provider": "vercel",
+      "component": "eve",
+      "document_title": "eve README",
+      "retrieved_at": "2026-07-17T12:01:09Z",
+      "source_type": "official_repository",
+      "document_version": "0.24.6",
+      "commit_sha": "f7c69b1a2ad044a6ba89db7bb6241c469d3ef101",
+      "published_or_updated_at": "2026-07-16T00:00:00Z",
+      "immutable": true,
+      "capture_method": "public_unauthenticated_http",
+      "normalized_findings": [
+        "Official repository identifies eve as a filesystem-first framework for durable AI agents.",
+        "The documented layout includes instructions, tools, skills, channels, schedules, and optional agent configuration.",
+        "README states eve is beta and APIs, documentation, and behavior may change before general availability."
+      ],
+      "evidence_limitations": [
+        "Repository claims are implementation documentation, not independent production-readiness proof."
+      ],
+      "review_expires_at": "2026-10-15T12:01:09Z",
+      "independent_review_status": "pending",
+      "approval_status": "pending",
+      "content_hash": "37c0757f5bd2b7e0a355478af749f898344bc89c62c2587c1c1e3b5d7fbdb224"
+    },
+    {
+      "source_id": "eve.package.0.24.6",
+      "source_url": "https://github.com/vercel/eve/blob/f7c69b1a2ad044a6ba89db7bb6241c469d3ef101/packages/eve/package.json",
+      "provider": "vercel",
+      "component": "eve",
+      "document_title": "eve package metadata",
+      "retrieved_at": "2026-07-17T12:01:09Z",
+      "source_type": "official_package_metadata",
+      "document_version": "0.24.6",
+      "commit_sha": "f7c69b1a2ad044a6ba89db7bb6241c469d3ef101",
+      "published_or_updated_at": "2026-07-16T19:52:00Z",
+      "immutable": true,
+      "capture_method": "public_unauthenticated_http",
+      "normalized_findings": [
+        "The public eve package version is 0.24.6.",
+        "The package requires Node.js 24 or newer.",
+        "Published exports include sandbox adapters, evals, instrumentation, schedules, channels, skills, instructions, and tools.",
+        "Dependencies include beta Vercel Workflow packages and Vercel-specific SDKs alongside local-world packages."
+      ],
+      "evidence_limitations": [
+        "Exports and dependencies show implementation surface, not operational guarantees or portability conformance."
+      ],
+      "review_expires_at": "2026-10-15T12:01:09Z",
+      "independent_review_status": "pending",
+      "approval_status": "pending",
+      "content_hash": "4ed6b214bc0506505aebdaa64aafb69154ba416fae0fd56246d054b9b5105b54"
+    },
+    {
+      "source_id": "eve.license.f7c69b1",
+      "source_url": "https://github.com/vercel/eve/blob/f7c69b1a2ad044a6ba89db7bb6241c469d3ef101/LICENSE",
+      "provider": "vercel",
+      "component": "eve",
+      "document_title": "eve license",
+      "retrieved_at": "2026-07-17T12:01:09Z",
+      "source_type": "official_license",
+      "document_version": "Apache-2.0",
+      "commit_sha": "f7c69b1a2ad044a6ba89db7bb6241c469d3ef101",
+      "published_or_updated_at": null,
+      "immutable": true,
+      "capture_method": "public_unauthenticated_http",
+      "normalized_findings": [
+        "The repository is licensed under Apache License 2.0."
+      ],
+      "evidence_limitations": [
+        "License evidence does not establish acceptability for AI LAB; legal review remains required."
+      ],
+      "review_expires_at": "2027-07-17T12:01:09Z",
+      "independent_review_status": "pending",
+      "approval_status": "pending",
+      "content_hash": "321b8fb7bb906aa383e6e800c1e02bc56fbd2961e98765d41d6fe160c7189c4f"
+    },
+    {
+      "source_id": "eve.sessions.f7c69b1",
+      "source_url": "https://github.com/vercel/eve/blob/f7c69b1a2ad044a6ba89db7bb6241c469d3ef101/docs/concepts/sessions-runs-and-streaming.md",
+      "provider": "vercel",
+      "component": "eve",
+      "document_title": "Sessions, Runs and Streaming",
+      "retrieved_at": "2026-07-17T12:01:09Z",
+      "source_type": "official_repository",
+      "document_version": "0.24.6",
+      "commit_sha": "f7c69b1a2ad044a6ba89db7bb6241c469d3ef101",
+      "published_or_updated_at": "2026-07-16T00:00:00Z",
+      "immutable": true,
+      "capture_method": "public_unauthenticated_http",
+      "normalized_findings": [
+        "The HTTP contract distinguishes continuationToken from sessionId and runId.",
+        "The NDJSON stream documents session, turn, step, action, input, subagent, structured-result, authorization, usage, waiting, completion, cancellation, failure, and reasoning events.",
+        "The stream is described as durable and replayable with startIndex reconnect and rewind semantics.",
+        "Cancellation is accepted through an HTTP endpoint and recursively requested for adopted child agents.",
+        "Reasoning deltas and completed reasoning are public events; the documentation warns about privacy, confidentiality, display, storage, and transmission implications."
+      ],
+      "evidence_limitations": [
+        "This is a documented and implemented contract surface but has not been independently conformance-tested by AI LAB."
+      ],
+      "review_expires_at": "2026-08-16T12:01:09Z",
+      "independent_review_status": "pending",
+      "approval_status": "pending",
+      "content_hash": "0077c8b003974247e5a517fd97eab17a7b3cade6beb3552f25f7ae603098bf14"
+    },
+    {
+      "source_id": "eve.release.0.24.6",
+      "source_url": "https://github.com/vercel/eve/releases/tag/eve%400.24.6",
+      "provider": "vercel",
+      "component": "eve",
+      "document_title": "eve 0.24.6 release",
+      "retrieved_at": "2026-07-17T12:01:09Z",
+      "source_type": "official_release",
+      "document_version": "0.24.6",
+      "commit_sha": null,
+      "published_or_updated_at": "2026-07-16T19:52:00Z",
+      "immutable": true,
+      "capture_method": "public_unauthenticated_http",
+      "normalized_findings": [
+        "GitHub release metadata identifies eve 0.24.6 as the latest release on 2026-07-16."
+      ],
+      "evidence_limitations": [
+        "Release metadata does not establish API stability; the README explicitly retains beta status."
+      ],
+      "review_expires_at": "2026-08-16T12:01:09Z",
+      "independent_review_status": "pending",
+      "approval_status": "pending",
+      "content_hash": "5207cb2c12df03b5c55ed4d216c827b2413ce4b2cb114b550bbaa583dea85ce7"
+    },
+    {
+      "source_id": "eve.blog.introducing",
+      "source_url": "https://vercel.com/blog/introducing-eve",
+      "provider": "vercel",
+      "component": "eve",
+      "document_title": "Introducing eve",
+      "retrieved_at": "2026-07-17T12:01:09Z",
+      "source_type": "official_documentation",
+      "document_version": null,
+      "commit_sha": null,
+      "published_or_updated_at": "2026-06-17T00:00:00Z",
+      "immutable": false,
+      "capture_method": "public_unauthenticated_http",
+      "normalized_findings": [
+        "Vercel describes durable checkpointed sessions, sandbox adapters, Docker, microsandbox and just-bash local backends, human approvals, subagents, evals, preview deployments, and Vercel production use.",
+        "The page states deployed sandbox execution uses Vercel Sandbox and local execution can use Docker, microsandbox, or just-bash."
+      ],
+      "evidence_limitations": [
+        "Mutable official launch material mixes technical descriptions with marketing claims and is not proof of production readiness, portability, privacy, or guarantees."
+      ],
+      "review_expires_at": "2026-08-16T12:01:09Z",
+      "independent_review_status": "pending",
+      "approval_status": "pending",
+      "content_hash": "3752a28ba650a310f4068fb34c73a425f74f11d80a20a56521f2389f8f8a3a46"
+    }
+  ],
+  "findings": [
+    {
+      "finding_id": "eve.identity",
+      "component": "eve",
+      "topic": "runtime_identity",
+      "claim": "Official repository and package identify eve 0.24.6 as a filesystem-first TypeScript agent runtime framework.",
+      "claim_status": "verified",
+      "evidence_strength": "strong",
+      "source_ids": ["eve.repo.readme.f7c69b1", "eve.package.0.24.6"],
+      "limitations": [
+        "Identity does not imply admission or production readiness."
+      ]
+    },
+    {
+      "finding_id": "eve.durability",
+      "component": "eve",
+      "topic": "durability",
+      "claim": "Sessions and event streams are documented as durable, checkpointed, replayable, and reconnectable.",
+      "claim_status": "documented",
+      "evidence_strength": "strong",
+      "source_ids": ["eve.sessions.f7c69b1"],
+      "limitations": [
+        "AI LAB conformance and failure-injection tests are pending."
+      ]
+    },
+    {
+      "finding_id": "eve.review",
+      "component": "eve",
+      "topic": "human_review",
+      "claim": "Input requests and approval responses are documented in the session protocol.",
+      "claim_status": "documented",
+      "evidence_strength": "moderate",
+      "source_ids": ["eve.sessions.f7c69b1", "eve.blog.introducing"],
+      "limitations": ["Authorization policy compatibility is untested."]
+    },
+    {
+      "finding_id": "eve.sandbox",
+      "component": "eve",
+      "topic": "sandbox",
+      "claim": "Package exports and documentation identify Vercel, Docker, microsandbox, and just-bash sandbox backends.",
+      "claim_status": "documented",
+      "evidence_strength": "moderate",
+      "source_ids": ["eve.package.0.24.6", "eve.blog.introducing"],
+      "limitations": [
+        "Isolation guarantees and adapter equivalence are not independently verified."
+      ]
+    },
+    {
+      "finding_id": "eve.observability",
+      "component": "eve",
+      "topic": "observability",
+      "claim": "Instrumentation and eval exports plus detailed runtime events provide observability surfaces.",
+      "claim_status": "documented",
+      "evidence_strength": "moderate",
+      "source_ids": ["eve.package.0.24.6", "eve.sessions.f7c69b1"],
+      "limitations": ["Cost attribution completeness is undocumented."]
+    },
+    {
+      "finding_id": "eve.cost",
+      "component": "eve",
+      "topic": "cost_accounting",
+      "claim": "Step usage is exposed, but an exact cross-provider cost reconciliation contract is not documented.",
+      "claim_status": "undocumented",
+      "evidence_strength": "weak",
+      "source_ids": ["eve.sessions.f7c69b1"],
+      "limitations": ["Cost-accounting readiness remains low."]
+    },
+    {
+      "finding_id": "eve.stability",
+      "component": "eve",
+      "topic": "release_stability",
+      "claim": "Eve is explicitly beta and may change before general availability.",
+      "claim_status": "verified",
+      "evidence_strength": "strong",
+      "source_ids": ["eve.repo.readme.f7c69b1", "eve.release.0.24.6"],
+      "limitations": ["Fast release cadence raises change risk."]
+    }
+  ],
+  "event_mapping": [
+    {
+      "normalized_event": "session_started",
+      "platform_event": "session.started",
+      "mapping_status": "documented",
+      "source_ids": ["eve.sessions.f7c69b1"],
+      "limitation": "Requires AI LAB validation."
+    },
+    {
+      "normalized_event": "turn_started",
+      "platform_event": "turn.started",
+      "mapping_status": "documented",
+      "source_ids": ["eve.sessions.f7c69b1"],
+      "limitation": "Requires AI LAB validation."
+    },
+    {
+      "normalized_event": "step_started",
+      "platform_event": "step.started",
+      "mapping_status": "documented",
+      "source_ids": ["eve.sessions.f7c69b1"],
+      "limitation": "Requires AI LAB validation."
+    },
+    {
+      "normalized_event": "action_requested",
+      "platform_event": "actions.requested",
+      "mapping_status": "documented",
+      "source_ids": ["eve.sessions.f7c69b1"],
+      "limitation": "One event may contain multiple actions."
+    },
+    {
+      "normalized_event": "action_completed",
+      "platform_event": "action.result",
+      "mapping_status": "documented",
+      "source_ids": ["eve.sessions.f7c69b1"],
+      "limitation": "Result normalization is adapter-specific."
+    },
+    {
+      "normalized_event": "input_requested",
+      "platform_event": "input.requested",
+      "mapping_status": "documented",
+      "source_ids": ["eve.sessions.f7c69b1"],
+      "limitation": "Input and approval share an event."
+    },
+    {
+      "normalized_event": "authorization_required",
+      "platform_event": "authorization.required",
+      "mapping_status": "documented",
+      "source_ids": ["eve.sessions.f7c69b1"],
+      "limitation": "Vendor authorization challenge is not AI LAB authorization."
+    },
+    {
+      "normalized_event": "subagent_started",
+      "platform_event": "subagent.called",
+      "mapping_status": "inferred",
+      "source_ids": ["eve.sessions.f7c69b1"],
+      "limitation": "Called is not guaranteed equivalent to execution started."
+    },
+    {
+      "normalized_event": "subagent_completed",
+      "platform_event": "subagent.completed",
+      "mapping_status": "documented",
+      "source_ids": ["eve.sessions.f7c69b1"],
+      "limitation": "Cancelled children do not emit completion."
+    },
+    {
+      "normalized_event": "structured_result_completed",
+      "platform_event": "result.completed",
+      "mapping_status": "documented",
+      "source_ids": ["eve.sessions.f7c69b1"],
+      "limitation": "Only emitted for requested output schema."
+    },
+    {
+      "normalized_event": "usage_recorded",
+      "platform_event": "step.completed.data.usage",
+      "mapping_status": "implementation_specific",
+      "source_ids": ["eve.sessions.f7c69b1"],
+      "limitation": "Usage is embedded rather than a standalone event."
+    },
+    {
+      "normalized_event": "step_completed",
+      "platform_event": "step.completed",
+      "mapping_status": "documented",
+      "source_ids": ["eve.sessions.f7c69b1"],
+      "limitation": "Requires AI LAB validation."
+    },
+    {
+      "normalized_event": "turn_completed",
+      "platform_event": "turn.completed",
+      "mapping_status": "documented",
+      "source_ids": ["eve.sessions.f7c69b1"],
+      "limitation": "Requires AI LAB validation."
+    },
+    {
+      "normalized_event": "session_waiting",
+      "platform_event": "session.waiting",
+      "mapping_status": "documented",
+      "source_ids": ["eve.sessions.f7c69b1"],
+      "limitation": "Carries a continuation token that adapters must redact."
+    },
+    {
+      "normalized_event": "session_completed",
+      "platform_event": "session.completed",
+      "mapping_status": "documented",
+      "source_ids": ["eve.sessions.f7c69b1"],
+      "limitation": "Requires AI LAB validation."
+    },
+    {
+      "normalized_event": "cancelled",
+      "platform_event": "turn.cancelled",
+      "mapping_status": "documented",
+      "source_ids": ["eve.sessions.f7c69b1"],
+      "limitation": "Cancellation acceptance is confirmed asynchronously on stream."
+    },
+    {
+      "normalized_event": "failed",
+      "platform_event": "step.failed|turn.failed|session.failed",
+      "mapping_status": "implementation_specific",
+      "source_ids": ["eve.sessions.f7c69b1"],
+      "limitation": "Three failure levels require normalization."
+    }
+  ],
+  "portability_findings": [
+    "Package metadata says the framework runs anywhere, and local workflow/sandbox adapters exist; this is not independent portability proof.",
+    "Vercel OIDC, Vercel Sandbox, Vercel Workflow and Vercel SDK dependencies demonstrate meaningful Vercel coupling."
+  ],
+  "privacy_findings": [
+    "Critical blocker: public reasoning.appended and reasoning.completed events can expose private model reasoning.",
+    "AI LAB adapters must disable or redact reasoning events and must never persist private reasoning or chain-of-thought.",
+    "Continuation tokens, authorization challenges and session metadata require redaction and access-control review."
+  ],
+  "durability_findings": [
+    "Durable sessions, checkpointing, replay, reconnect and cancellation are documented.",
+    "Independent crash, deploy, replay ordering and recursive cancellation conformance tests remain pending."
+  ],
+  "human_review_findings": [
+    "Human input and approval flows are documented but are not equivalent to AI LAB authorization governance."
+  ],
+  "sandbox_findings": [
+    "Multiple adapters are exported and documented.",
+    "Isolation, egress, filesystem persistence, resource limits and backend equivalence require security review."
+  ],
+  "observability_findings": [
+    "The event stream, eval exports and instrumentation export provide assessment surfaces.",
+    "No independently verified evidence export or exact cost-reconciliation guarantee was found."
+  ],
+  "cost_accounting_findings": [
+    "Token usage is documented at step completion.",
+    "Provider charge, sandbox compute, workflow storage and channel costs are not normalized into an exact accounting contract."
+  ],
+  "unresolved_questions": [
+    "What stable API and migration guarantees apply after beta?",
+    "What exact data retention and geographic controls apply to every deployment mode?",
+    "Can reasoning events be disabled at source rather than merely dropped by an adapter?",
+    "What isolation and egress guarantees hold for each sandbox backend?",
+    "How are workflow, sandbox, gateway, model and channel costs reconciled?"
+  ],
+  "legal_review_required": true,
+  "security_review_required": true,
+  "independent_review_required": true,
+  "lifecycle_recommendation": "remain_discovered",
+  "automatic_promotion_prohibited": true,
+  "reasoning_capture_policy": {
+    "persist_private_reasoning": false,
+    "adapter_mode": "disabled_or_redacted"
+  },
+  "historical_evidence_classification": [],
+  "pack_hash": "e8ce4bfc1bfac8f9908d5eae7444ddc6886dd79bc9bb1d6523864e37818103d1"
+}

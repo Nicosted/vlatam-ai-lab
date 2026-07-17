@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import { canonicalizeOpenRouterRegistryJson } from "../providers/openrouter-registry.js";
 import type { TournamentOperatorReadModel } from "../tournament/index.js";
 
-export const OPERATOR_READ_MODEL_CONTRACT_VERSION = "1.2.0" as const;
+export const OPERATOR_READ_MODEL_CONTRACT_VERSION = "1.3.0" as const;
 export const OPERATOR_READ_MODEL_HASH_DOMAIN =
   "vlatam-ai-lab:operator-read-model:v1" as const;
 
@@ -635,6 +635,7 @@ export function buildOperatorReadModel(
     audit_references: [...input.audit_references].sort(),
     tournament: input.tournament ?? {
       registered_candidates: [],
+      runtime_evidence: [],
       write_actions_available: false,
     },
   };

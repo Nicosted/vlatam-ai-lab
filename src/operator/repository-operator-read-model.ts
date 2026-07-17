@@ -48,8 +48,10 @@ import {
 } from "./operator-read-model.js";
 import {
   buildTournamentOperatorReadModel,
+  evaluateRuntimeEvidencePack,
   validateRuntimeCandidate,
   type RuntimeCandidate,
+  type RuntimeEvidencePack,
 } from "../tournament/index.js";
 
 export const REPOSITORY_OPERATOR_EVALUATED_AT =
@@ -74,6 +76,8 @@ const APPROVED_ARTIFACTS = {
   tournament_native: "config/ai-tournament-runtime-native.json",
   tournament_eve: "config/ai-tournament-runtime-eve.json",
   tournament_cloudflare: "config/ai-tournament-runtime-cloudflare.json",
+  runtime_evidence_eve: "config/ai-runtime-evidence-eve.json",
+  runtime_evidence_cloudflare: "config/ai-runtime-evidence-cloudflare.json",
 } as const;
 
 type ArtifactKey = keyof typeof APPROVED_ARTIFACTS;
@@ -157,6 +161,19 @@ export async function loadRepositoryOperatorReadModel(
     (candidate): candidate is RuntimeCandidate =>
       validateRuntimeCandidate(candidate).length === 0,
   );
+  const runtimeEvidencePacks = [
+    loaded.runtime_evidence_eve.value,
+    loaded.runtime_evidence_cloudflare.value,
+  ].filter(isRecord) as unknown as RuntimeEvidencePack[];
+  for (const pack of runtimeEvidencePacks) {
+    const result = evaluateRuntimeEvidencePack(pack, evaluatedAt);
+    if (result.outcome === "invalid")
+      sourceErrors.push(
+        ...result.reason_codes.map(
+          (reason) => `runtime_evidence:${pack.pack_id}:${reason}`,
+        ),
+      );
+  }
 
   const registryErrors = validateOpenRouterRegistry(
     models,
@@ -368,7 +385,11 @@ export async function loadRepositoryOperatorReadModel(
       goldCaseResult.outcome !== "invalid_gold_case" &&
       glmGovernance.outcome !== "invalid",
     source_errors: [...new Set(sourceErrors)].sort(),
-    tournament: buildTournamentOperatorReadModel(tournamentCandidates),
+    tournament: buildTournamentOperatorReadModel(
+      tournamentCandidates,
+      runtimeEvidencePacks,
+      evaluatedAt,
+    ),
     provider: {
       provider_id: "openrouter",
       display_name: null,
