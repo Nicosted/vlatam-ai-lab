@@ -119,6 +119,32 @@ describe("AI LAB operator read model", () => {
     assert.equal(glm.runtime_preflight, "blocked");
     assert.equal(glm.authorization, "no_policy_issued");
     assert.equal(glm.consumption, "not_attempted");
+    assert.deepEqual(glm.conformance, {
+      status: "failed",
+      cases_attempted: 1,
+      cases_passed: 0,
+      schema_pass_rate: "0/3",
+      provider_routing_match: "unavailable",
+      zdr_evidence_status: "runtime_incomplete",
+      budget_reconciliation: "incomplete",
+      retries: 2,
+      duplicate_consumption_result: "safe",
+      blockers: [
+        "live_transport_failed_after_bounded_attempts",
+        "served_provider_unavailable",
+        "served_model_unavailable",
+        "served_endpoint_unavailable",
+        "runtime_zdr_evidence_incomplete",
+        "schema_conformance_not_observed",
+        "provider_usage_and_cost_unavailable",
+        "budget_reconciliation_incomplete",
+        "gold_case_score_unavailable",
+        "independent_review_pending",
+      ],
+      independent_review_required: true,
+      activation_prohibited: true,
+      kill_switch_state: "active",
+    });
     assert.deepEqual(glm.adapter_gateway_transport_state, {
       adapter: "disabled",
       gateway: "not_invoked",

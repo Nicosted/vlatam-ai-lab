@@ -1,0 +1,21 @@
+{
+  "budget_contract_version": "1.0.0",
+  "budget_id": "ai-122.glm-fireworks.controlled-conformance.sandbox",
+  "environment_id": "local",
+  "project_id": "vlatam-ai-lab",
+  "scope_id": "ai-122-controlled-conformance",
+  "currency": "USD",
+  "status": "prepared_not_activated",
+  "production_budget": false,
+  "execution_authority": false,
+  "maximum_total_task_cost_usd": "0.05",
+  "maximum_cost_per_live_request_usd": "0.015",
+  "maximum_live_attempts": 3,
+  "maximum_input_tokens_per_request": 4000,
+  "maximum_output_tokens_per_request": 1200,
+  "hard_block_on_estimate_exceeded": true,
+  "hard_block_on_actual_exceeded": true,
+  "reconciliation_required": true,
+  "independent_review_required": true,
+  "activation_prohibited": true
+}

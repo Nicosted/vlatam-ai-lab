@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/ai-glm-fireworks-conformance-request.schema.json",
+  "title": "GLM Fireworks Controlled Conformance Request",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract_version",
+    "authorization",
+    "execution_profile",
+    "gold_case_id",
+    "schema_version",
+    "fixture_sha256",
+    "idempotency_key",
+    "correlation_id",
+    "expected_provider_slug",
+    "expected_endpoint_tag",
+    "expected_model_id",
+    "zdr_required",
+    "privacy_class",
+    "maximum_input_tokens",
+    "maximum_output_tokens",
+    "timeout_ms",
+    "retry_limit",
+    "maximum_request_cost_usd",
+    "maximum_run_cost_usd",
+    "global_kill_switch_active",
+    "narrow_test_gate",
+    "automatic_promotion_allowed"
+  ],
+  "properties": {
+    "contract_version": { "const": "1.0.0" },
+    "authorization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "authorization_id",
+        "issued_at",
+        "expires_at",
+        "purpose",
+        "binding_hash",
+        "single_use"
+      ],
+      "properties": {
+        "authorization_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]{1,127}$"
+        },
+        "issued_at": { "type": "string", "format": "date-time" },
+        "expires_at": { "type": "string", "format": "date-time" },
+        "purpose": { "const": "ai-122-glm-fireworks-controlled-conformance" },
+        "binding_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "single_use": { "const": true }
+      }
+    },
+    "execution_profile": {
+      "const": "openrouter.glm-5.2.commercial-document-extraction.candidate"
+    },
+    "gold_case_id": { "type": "string", "pattern": "^ai-122\\.[a-z0-9._-]+$" },
+    "schema_version": { "const": "1.0.0" },
+    "fixture_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "idempotency_key": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{1,127}$"
+    },
+    "correlation_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{1,127}$"
+    },
+    "expected_provider_slug": { "const": "fireworks" },
+    "expected_endpoint_tag": { "const": "fireworks" },
+    "expected_model_id": { "const": "z-ai/glm-5.2" },
+    "zdr_required": { "const": true },
+    "privacy_class": { "const": "synthetic_public_non_sensitive" },
+    "maximum_input_tokens": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 4000
+    },
+    "maximum_output_tokens": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1200
+    },
+    "timeout_ms": { "type": "integer", "minimum": 1, "maximum": 15000 },
+    "retry_limit": { "type": "integer", "minimum": 0, "maximum": 2 },
+    "maximum_request_cost_usd": {
+      "type": "string",
+      "pattern": "^0\\.(00[0-9]|01[0-5])$"
+    },
+    "maximum_run_cost_usd": { "const": "0.05" },
+    "global_kill_switch_active": { "const": true },
+    "narrow_test_gate": { "const": "one_authorization_one_gold_case" },
+    "automatic_promotion_allowed": { "const": false }
+  }
+}
