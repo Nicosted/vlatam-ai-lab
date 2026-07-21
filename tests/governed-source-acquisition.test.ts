@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { access, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
@@ -172,6 +172,36 @@ test("reports invalid capturedAt with a specific controlled error", async () => 
       error instanceof SourceAcquisitionError &&
       error.code === "INVALID_CAPTURE_TIMESTAMP",
   );
+});
+
+test("rejects invalid live capturedAt before fetch or artifact creation", async () => {
+  await withTemporaryDirectory(async (directory) => {
+    const outputDirectory = join(directory, "output");
+    let fetchCalls = 0;
+    const restore = mockFetch(async () => {
+      fetchCalls += 1;
+      throw new Error("fetch must not be called");
+    });
+
+    try {
+      await assert.rejects(
+        acquireSource({
+          sourceId: "arca",
+          sourceUrl: "https://www.arca.gob.ar/file.bin",
+          outputDirectory,
+          mode: "live",
+          capturedAt: new Date("invalid"),
+        }),
+        (error: unknown) =>
+          error instanceof SourceAcquisitionError &&
+          error.code === "INVALID_CAPTURE_TIMESTAMP",
+      );
+      assert.equal(fetchCalls, 0);
+      await assert.rejects(access(outputDirectory), { code: "ENOENT" });
+    } finally {
+      restore();
+    }
+  });
 });
 
 test("fails closed when replay mode has no fixture", async () => {
@@ -401,6 +431,49 @@ test("cancels streamed bodies immediately when the maximum is exceeded", async (
   } finally {
     restore();
   }
+});
+
+test("preserves streamed overflow error when reader cancellation fails", async () => {
+  await withTemporaryDirectory(async (directory) => {
+    const outputDirectory = join(directory, "output");
+    let cancelled = false;
+    const stream = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(new Uint8Array(4));
+        controller.enqueue(new Uint8Array(4));
+      },
+      cancel() {
+        cancelled = true;
+        throw new Error("reader cancellation failed");
+      },
+    });
+    const restore = mockFetch(
+      async () =>
+        new Response(stream, {
+          status: 200,
+          headers: { "content-type": "application/octet-stream" },
+        }),
+    );
+
+    try {
+      await assert.rejects(
+        acquireSource({
+          sourceId: "arca",
+          sourceUrl: "https://www.arca.gob.ar/file.bin",
+          outputDirectory,
+          mode: "live",
+          maxBytes: 6,
+        }),
+        (error: unknown) =>
+          error instanceof SourceAcquisitionError &&
+          error.code === "CONTENT_TOO_LARGE",
+      );
+      assert.equal(cancelled, true);
+      await assert.rejects(access(outputDirectory), { code: "ENOENT" });
+    } finally {
+      restore();
+    }
+  });
 });
 
 test("cancels bodies when Content-Type is missing", async () => {
