@@ -47,6 +47,7 @@ export class SourceAcquisitionError extends Error {
       | 'INVALID_URL'
       | 'HOST_NOT_ALLOWED'
       | 'REDIRECT_HOST_NOT_ALLOWED'
+      | 'TOO_MANY_REDIRECTS'
       | 'HTTP_ERROR'
       | 'TIMEOUT'
       | 'CONTENT_TYPE_NOT_ALLOWED'
@@ -62,6 +63,7 @@ export class SourceAcquisitionError extends Error {
 
 const DEFAULT_TIMEOUT_MS = 30_000;
 const DEFAULT_MAX_BYTES = 50 * 1024 * 1024;
+const MAX_REDIRECTS = 5;
 const DEFAULT_CONTENT_TYPES = [
   'application/octet-stream',
   'application/zip',
@@ -89,6 +91,32 @@ function parseAllowedUrl(rawUrl: string, allowedHosts: ReadonlySet<string>): URL
   return url;
 }
 
+function parseRedirectUrl(
+  location: string,
+  currentUrl: URL,
+  allowedHosts: ReadonlySet<string>,
+): URL {
+  let redirectUrl: URL;
+  try {
+    redirectUrl = new URL(location, currentUrl);
+  } catch {
+    throw new SourceAcquisitionError('INVALID_URL', `Invalid redirect URL: ${location}`);
+  }
+  if (redirectUrl.protocol !== 'https:') {
+    throw new SourceAcquisitionError(
+      'REDIRECT_HOST_NOT_ALLOWED',
+      `Redirect must remain on HTTPS: ${redirectUrl.href}`,
+    );
+  }
+  if (!allowedHosts.has(redirectUrl.hostname.toLowerCase())) {
+    throw new SourceAcquisitionError(
+      'REDIRECT_HOST_NOT_ALLOWED',
+      `Redirected host is not allowlisted: ${redirectUrl.hostname}`,
+    );
+  }
+  return redirectUrl;
+}
+
 function normalizeContentType(value: string | null): string {
   return value?.split(';', 1)[0]?.trim().toLowerCase() || 'application/octet-stream';
 }
@@ -104,61 +132,81 @@ function extensionFor(contentType: string, effectiveUrl: URL): string {
 }
 
 async function readLive(
-  url: URL,
+  initialUrl: URL,
   timeoutMs: number,
   maxBytes: number,
   allowedHosts: ReadonlySet<string>,
 ): Promise<{ body: Uint8Array; contentType: string; effectiveUrl: URL }> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
+  let currentUrl = initialUrl;
+
   try {
-    const response = await fetch(url, {
-      method: 'GET',
-      redirect: 'follow',
-      signal: controller.signal,
-      headers: {
-        accept: 'application/octet-stream, application/zip, text/plain, text/html;q=0.8',
-        'user-agent': 'vlatam-ai-lab-source-acquisition/1.0',
-      },
-    });
+    for (let redirectCount = 0; redirectCount <= MAX_REDIRECTS; redirectCount += 1) {
+      const response = await fetch(currentUrl, {
+        method: 'GET',
+        redirect: 'manual',
+        signal: controller.signal,
+        headers: {
+          accept: 'application/octet-stream, application/zip, text/plain, text/html;q=0.8',
+          'user-agent': 'vlatam-ai-lab-source-acquisition/1.0',
+        },
+      });
 
-    const effectiveUrl = new URL(response.url || url.href);
-    if (!allowedHosts.has(effectiveUrl.hostname.toLowerCase())) {
-      throw new SourceAcquisitionError(
-        'REDIRECT_HOST_NOT_ALLOWED',
-        `Redirected host is not allowlisted: ${effectiveUrl.hostname}`,
-      );
-    }
-    if (!response.ok) {
-      throw new SourceAcquisitionError(
-        'HTTP_ERROR',
-        `Source returned HTTP ${response.status} ${response.statusText}`,
-      );
+      if (response.status >= 300 && response.status < 400) {
+        const location = response.headers.get('location');
+        if (!location) {
+          throw new SourceAcquisitionError(
+            'HTTP_ERROR',
+            `Source returned redirect HTTP ${response.status} without Location.`,
+          );
+        }
+        if (redirectCount === MAX_REDIRECTS) {
+          throw new SourceAcquisitionError(
+            'TOO_MANY_REDIRECTS',
+            `Source exceeded ${MAX_REDIRECTS} redirects.`,
+          );
+        }
+        currentUrl = parseRedirectUrl(location, currentUrl, allowedHosts);
+        continue;
+      }
+
+      if (!response.ok) {
+        throw new SourceAcquisitionError(
+          'HTTP_ERROR',
+          `Source returned HTTP ${response.status} ${response.statusText}`,
+        );
+      }
+
+      const declaredLength = Number(response.headers.get('content-length') ?? '0');
+      if (Number.isFinite(declaredLength) && declaredLength > maxBytes) {
+        throw new SourceAcquisitionError(
+          'CONTENT_TOO_LARGE',
+          `Declared content length ${declaredLength} exceeds ${maxBytes} bytes.`,
+        );
+      }
+
+      const body = new Uint8Array(await response.arrayBuffer());
+      if (body.byteLength === 0) {
+        throw new SourceAcquisitionError('EMPTY_CONTENT', 'Source returned an empty body.');
+      }
+      if (body.byteLength > maxBytes) {
+        throw new SourceAcquisitionError(
+          'CONTENT_TOO_LARGE',
+          `Downloaded content ${body.byteLength} exceeds ${maxBytes} bytes.`,
+        );
+      }
+      return {
+        body,
+        contentType: normalizeContentType(response.headers.get('content-type')),
+        effectiveUrl: currentUrl,
+      };
     }
 
-    const declaredLength = Number(response.headers.get('content-length') ?? '0');
-    if (Number.isFinite(declaredLength) && declaredLength > maxBytes) {
-      throw new SourceAcquisitionError(
-        'CONTENT_TOO_LARGE',
-        `Declared content length ${declaredLength} exceeds ${maxBytes} bytes.`,
-      );
-    }
-
-    const body = new Uint8Array(await response.arrayBuffer());
-    if (body.byteLength === 0) {
-      throw new SourceAcquisitionError('EMPTY_CONTENT', 'Source returned an empty body.');
-    }
-    if (body.byteLength > maxBytes) {
-      throw new SourceAcquisitionError(
-        'CONTENT_TOO_LARGE',
-        `Downloaded content ${body.byteLength} exceeds ${maxBytes} bytes.`,
-      );
-    }
-    return {
-      body,
-      contentType: normalizeContentType(response.headers.get('content-type')),
-      effectiveUrl,
-    };
+    throw new SourceAcquisitionError(
+      'TOO_MANY_REDIRECTS',
+      `Source exceeded ${MAX_REDIRECTS} redirects.`,
+    );
   } catch (error: unknown) {
     if (error instanceof SourceAcquisitionError) throw error;
     if (error instanceof Error && error.name === 'AbortError') {
