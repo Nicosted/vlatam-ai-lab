@@ -19,17 +19,24 @@ Official HTTPS source
 ## Safety invariants
 
 - HTTPS is mandatory.
-- The requested and effective redirect hosts must be explicitly allowlisted.
-- Requests have a bounded timeout and maximum response size.
-- Only approved content types are accepted.
+- The requested URL and every redirect host must be present in the compiled allowlist.
+- Runtime input cannot replace or expand the host allowlist.
+- Redirects are followed manually, remain HTTPS, and are bounded to five hops.
+- Requests have one bounded timeout covering headers and body consumption.
+- Response bodies are streamed, counted, and cancelled immediately when the maximum is exceeded.
+- A declared `Content-Length` above the maximum fails before body consumption.
+- A missing, malformed, or unapproved content type fails closed.
 - Empty responses fail closed.
+- Source identifiers use a strict lowercase hyphenated format and cannot affect path containment.
 - Raw bytes are hashed with SHA-256.
-- Raw bytes and provenance metadata use exclusive-create writes and are never overwritten.
-- Replay mode uses local fixtures and performs no network request.
+- Raw bytes and metadata are staged together and published by one directory rename; a failed staging write leaves no visible partial acquisition.
+- Published acquisition directories are immutable and never overwritten.
+- Replay mode uses local fixtures, performs no network request, and requires an explicit source capture timestamp.
+- Repeating an identical replay produces the same identity and fails as an immutable collision rather than changing metadata.
 - Acquisition success does not imply that the source format, extracted facts, or regulatory meaning are valid.
 - No production credential, database connection, scheduler, automatic review, or downstream action is introduced.
 
-## Default host allowlist
+## Compiled host allowlist
 
 - `arca.gob.ar`
 - `www.arca.gob.ar`
@@ -37,24 +44,25 @@ Official HTTPS source
 - `www.afip.gob.ar`
 - `serviciosweb.afip.gob.ar`
 
-Adding a host requires a reviewed code change. Runtime input cannot expand the allowlist.
+Adding a host requires a reviewed code change. There is no request-level allowlist override.
 
 ## Usage
 
-Live manual capture of the official ARCA Arancel Integrado landing source:
+Live manual capture of an official ARCA Arancel Integrado source:
 
 ```bash
 pnpm crawler:arca:acquire \
   --url https://www.arca.gob.ar/aduana/arancelintegrado/
 ```
 
-Replay using a local fixture:
+Replay using a local fixture and its exact capture timestamp:
 
 ```bash
 pnpm crawler:arca:acquire \
   --url https://www.arca.gob.ar/aduana/arancelintegrado/ \
   --mode replay \
-  --replay-path tests/fixtures/arca/nomenclador.txt
+  --replay-path tests/fixtures/arca/nomenclador.txt \
+  --captured-at 2026-07-21T12:00:00.000Z
 ```
 
 Optional limits:
@@ -69,10 +77,10 @@ pnpm crawler:arca:acquire \
 
 ## Output contract
 
-Each acquisition creates:
+Each acquisition is published as one immutable directory containing:
 
-1. The immutable raw response body.
-2. A sibling `.metadata.json` record containing:
+1. `raw.<extension>` — the exact response or replay bytes.
+2. `metadata.json` — the versioned provenance record containing:
    - schema version;
    - stable acquisition ID;
    - source ID;
@@ -84,7 +92,7 @@ Each acquisition creates:
    - SHA-256 hash;
    - raw and metadata paths.
 
-The acquisition ID is derived from the source ID, UTC capture date, and a hash prefix. A repeated write to the same immutable path fails rather than replacing evidence.
+The acquisition ID is derived from the source ID, UTC capture date, and a hash prefix. Publication occurs only after both staged files are complete. A repeated write to the same final directory fails rather than replacing evidence.
 
 ## Operator boundary
 
