@@ -85,21 +85,16 @@ test('fails closed when replay mode has no fixture', async () => {
   );
 });
 
-test('rejects an allowlisted request that redirects to a non-allowlisted host', async () => {
+test('rejects a redirect to a non-allowlisted host before following it', async () => {
   await withTemporaryDirectory(async (directory) => {
     const originalFetch = globalThis.fetch;
-    globalThis.fetch = async () =>
-      new Response('unexpected', {
-        status: 200,
-        headers: { 'content-type': 'text/plain' },
+    let calls = 0;
+    globalThis.fetch = async () => {
+      calls += 1;
+      return new Response(null, {
+        status: 302,
+        headers: { location: 'https://evil.example/file.txt' },
       });
-    Object.defineProperty(globalThis.fetch, 'name', { value: 'mockFetch' });
-
-    const responseFetch = globalThis.fetch;
-    globalThis.fetch = async (...args: Parameters<typeof fetch>) => {
-      const response = await responseFetch(...args);
-      Object.defineProperty(response, 'url', { value: 'https://evil.example/file.txt' });
-      return response;
     };
 
     try {
@@ -114,6 +109,7 @@ test('rejects an allowlisted request that redirects to a non-allowlisted host', 
           error instanceof SourceAcquisitionError &&
           error.code === 'REDIRECT_HOST_NOT_ALLOWED',
       );
+      assert.equal(calls, 1);
     } finally {
       globalThis.fetch = originalFetch;
     }
@@ -123,16 +119,11 @@ test('rejects an allowlisted request that redirects to a non-allowlisted host', 
 test('rejects unsupported live content types before writing files', async () => {
   await withTemporaryDirectory(async (directory) => {
     const originalFetch = globalThis.fetch;
-    globalThis.fetch = async () => {
-      const response = new Response('{"unexpected":true}', {
+    globalThis.fetch = async () =>
+      new Response('{"unexpected":true}', {
         status: 200,
         headers: { 'content-type': 'application/json' },
       });
-      Object.defineProperty(response, 'url', {
-        value: 'https://www.arca.gob.ar/aduana/arancelintegrado/data.json',
-      });
-      return response;
-    };
 
     try {
       await assert.rejects(
