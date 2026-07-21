@@ -2,12 +2,20 @@ import { createHash, randomUUID } from "node:crypto";
 import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import { basename, dirname, join, relative, resolve, sep } from "node:path";
 
-export const DEFAULT_ALLOWED_ARCA_HOSTS = new Set([
+const COMPILED_ALLOWED_ARCA_HOSTS = [
   "arca.gob.ar",
   "www.arca.gob.ar",
   "afip.gob.ar",
   "www.afip.gob.ar",
   "serviciosweb.afip.gob.ar",
+] as const;
+
+const ENFORCED_ALLOWED_ARCA_HOSTS = new Set<string>(
+  COMPILED_ALLOWED_ARCA_HOSTS,
+);
+
+export const DEFAULT_ALLOWED_ARCA_HOSTS: readonly string[] = Object.freeze([
+  ...COMPILED_ALLOWED_ARCA_HOSTS,
 ]);
 
 export type AcquisitionMode = "live" | "replay";
@@ -44,6 +52,7 @@ export class SourceAcquisitionError extends Error {
     readonly code:
       | "INVALID_SOURCE_ID"
       | "INVALID_URL"
+      | "INVALID_LIMIT"
       | "HOST_NOT_ALLOWED"
       | "REDIRECT_HOST_NOT_ALLOWED"
       | "TOO_MANY_REDIRECTS"
@@ -83,6 +92,15 @@ function validateSourceId(sourceId: string): void {
   }
 }
 
+function validateLimit(name: "timeoutMs" | "maxBytes", value: number): void {
+  if (!Number.isSafeInteger(value) || value <= 0) {
+    throw new SourceAcquisitionError(
+      "INVALID_LIMIT",
+      `${name} must be a positive safe integer.`,
+    );
+  }
+}
+
 function parseAllowedUrl(rawUrl: string): URL {
   let url: URL;
   try {
@@ -100,7 +118,7 @@ function parseAllowedUrl(rawUrl: string): URL {
       "Source acquisition requires HTTPS.",
     );
   }
-  if (!DEFAULT_ALLOWED_ARCA_HOSTS.has(url.hostname.toLowerCase())) {
+  if (!ENFORCED_ALLOWED_ARCA_HOSTS.has(url.hostname.toLowerCase())) {
     throw new SourceAcquisitionError(
       "HOST_NOT_ALLOWED",
       `Source host is not allowlisted: ${url.hostname}`,
@@ -125,7 +143,7 @@ function parseRedirectUrl(location: string, currentUrl: URL): URL {
       `Redirect must remain on HTTPS: ${redirectUrl.href}`,
     );
   }
-  if (!DEFAULT_ALLOWED_ARCA_HOSTS.has(redirectUrl.hostname.toLowerCase())) {
+  if (!ENFORCED_ALLOWED_ARCA_HOSTS.has(redirectUrl.hostname.toLowerCase())) {
     throw new SourceAcquisitionError(
       "REDIRECT_HOST_NOT_ALLOWED",
       `Redirected host is not allowlisted: ${redirectUrl.hostname}`,
@@ -231,6 +249,7 @@ async function readLive(
       });
 
       if (response.status >= 300 && response.status < 400) {
+        await response.body?.cancel("redirect response discarded");
         const location = response.headers.get("location");
         if (!location) {
           throw new SourceAcquisitionError(
@@ -354,6 +373,11 @@ async function publishAcquisition(
 export async function acquireSource(
   request: SourceAcquisitionRequest,
 ): Promise<SourceAcquisitionRecord> {
+  const timeoutMs = request.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+  const maxBytes = request.maxBytes ?? DEFAULT_MAX_BYTES;
+  validateLimit("timeoutMs", timeoutMs);
+  validateLimit("maxBytes", maxBytes);
+
   validateSourceId(request.sourceId);
   const requestedUrl = parseAllowedUrl(request.sourceUrl);
   if (request.mode === "replay" && request.capturedAt === undefined) {
@@ -370,9 +394,6 @@ export async function acquireSource(
       "capturedAt must be a valid timestamp.",
     );
   }
-  const timeoutMs = request.timeoutMs ?? DEFAULT_TIMEOUT_MS;
-  const maxBytes = request.maxBytes ?? DEFAULT_MAX_BYTES;
-
   let body: Uint8Array;
   let contentType: string;
   let effectiveUrl = requestedUrl;

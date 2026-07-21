@@ -299,3 +299,152 @@ test("fails closed when Content-Type is missing or unsupported", async () => {
     }
   }
 });
+
+test("does not expose a mutable enforcement allowlist", async () => {
+  const module =
+    await import("../src/acquisition/governed-source-acquisition.js");
+  const exportedHosts = module.DEFAULT_ALLOWED_ARCA_HOSTS;
+
+  assert.equal(Array.isArray(exportedHosts), true);
+  assert.equal(Object.isFrozen(exportedHosts), true);
+  assert.equal("add" in exportedHosts, false);
+  assert.throws(
+    () => (exportedHosts as string[]).push("evil.example"),
+    TypeError,
+  );
+
+  let fetchCalls = 0;
+  const restore = mockFetch(async () => {
+    fetchCalls += 1;
+    throw new Error("fetch must not be called");
+  });
+
+  try {
+    await assert.rejects(
+      acquireSource({
+        sourceId: "arca",
+        sourceUrl: "https://evil.example/file.txt",
+        outputDirectory: "/tmp/unused",
+        mode: "live",
+      }),
+      (error: unknown) =>
+        error instanceof SourceAcquisitionError &&
+        error.code === "HOST_NOT_ALLOWED",
+    );
+    assert.equal(fetchCalls, 0);
+  } finally {
+    restore();
+  }
+});
+
+test("rejects non-finite and unsafe API-level limits before network access", async () => {
+  let fetchCalls = 0;
+  const restore = mockFetch(async () => {
+    fetchCalls += 1;
+    return new Response(new Uint8Array([1]), {
+      status: 200,
+      headers: { "content-type": "application/octet-stream" },
+    });
+  });
+
+  try {
+    for (const maxBytes of [
+      Number.NaN,
+      Number.POSITIVE_INFINITY,
+      0,
+      -1,
+      1.5,
+      Number.MAX_SAFE_INTEGER + 1,
+    ]) {
+      await assert.rejects(
+        acquireSource({
+          sourceId: "arca",
+          sourceUrl: "https://www.arca.gob.ar/file.bin",
+          outputDirectory: "/tmp/unused",
+          mode: "live",
+          maxBytes,
+        }),
+        (error: unknown) =>
+          error instanceof SourceAcquisitionError &&
+          error.code === "INVALID_LIMIT",
+      );
+    }
+
+    for (const timeoutMs of [
+      Number.NaN,
+      Number.POSITIVE_INFINITY,
+      0,
+      -1,
+      1.5,
+      Number.MAX_SAFE_INTEGER + 1,
+    ]) {
+      await assert.rejects(
+        acquireSource({
+          sourceId: "arca",
+          sourceUrl: "https://www.arca.gob.ar/file.bin",
+          outputDirectory: "/tmp/unused",
+          mode: "live",
+          timeoutMs,
+        }),
+        (error: unknown) =>
+          error instanceof SourceAcquisitionError &&
+          error.code === "INVALID_LIMIT",
+      );
+    }
+
+    assert.equal(fetchCalls, 0);
+  } finally {
+    restore();
+  }
+});
+
+test("cancels discarded redirect response bodies", async () => {
+  await withTemporaryDirectory(async (directory) => {
+    let redirectCancelled = false;
+    let calls = 0;
+
+    const redirectBody = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(new Uint8Array([1, 2, 3]));
+      },
+      cancel() {
+        redirectCancelled = true;
+      },
+    });
+
+    const restore = mockFetch(async () => {
+      calls += 1;
+
+      if (calls === 1) {
+        return new Response(redirectBody, {
+          status: 302,
+          headers: {
+            location: "https://www.afip.gob.ar/final.txt",
+          },
+        });
+      }
+
+      return new Response("official-data", {
+        status: 200,
+        headers: {
+          "content-type": "text/plain",
+        },
+      });
+    });
+
+    try {
+      await acquireSource({
+        sourceId: "arca",
+        sourceUrl: "https://www.arca.gob.ar/start",
+        outputDirectory: directory,
+        mode: "live",
+        capturedAt: new Date("2026-07-21T12:00:00.000Z"),
+      });
+
+      assert.equal(calls, 2);
+      assert.equal(redirectCancelled, true);
+    } finally {
+      restore();
+    }
+  });
+});
