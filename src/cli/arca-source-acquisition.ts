@@ -39,6 +39,7 @@ Options:
   --output        Raw snapshot root (default: data/acquisitions).
   --mode          live or replay (default: live).
   --replay-path   Local fixture required in replay mode.
+  --captured-at   Exact ISO-8601 source capture timestamp; required in replay mode.
   --timeout-ms    Request timeout in milliseconds (default: 30000).
   --max-bytes     Maximum accepted body size (default: 52428800).
   --help          Show this message.
@@ -46,7 +47,9 @@ Options:
 Examples:
   pnpm crawler:arca:acquire --url https://www.arca.gob.ar/aduana/arancelintegrado/
   pnpm crawler:arca:acquire --url https://www.arca.gob.ar/aduana/arancelintegrado/ \
-    --mode replay --replay-path tests/fixtures/arca/nomenclador.txt
+    --mode replay \
+    --replay-path tests/fixtures/arca/nomenclador.txt \
+    --captured-at 2026-07-21T12:00:00.000Z
 `.trim());
 }
 
@@ -69,6 +72,17 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
+  if (modeValue === 'replay' && !args['captured-at']) {
+    console.error('[arca-acquisition] Replay mode requires --captured-at.');
+    process.exit(1);
+  }
+
+  const capturedAt = args['captured-at'] ? new Date(args['captured-at']) : undefined;
+  if (capturedAt !== undefined && Number.isNaN(capturedAt.getTime())) {
+    console.error('[arca-acquisition] --captured-at must be a valid ISO-8601 timestamp.');
+    process.exit(1);
+  }
+
   const timeoutMs = args['timeout-ms'] ? Number(args['timeout-ms']) : undefined;
   const maxBytes = args['max-bytes'] ? Number(args['max-bytes']) : undefined;
   if (timeoutMs !== undefined && (!Number.isInteger(timeoutMs) || timeoutMs <= 0)) {
@@ -87,6 +101,7 @@ async function main(): Promise<void> {
       outputDirectory: resolve(args['output'] ?? 'data/acquisitions'),
       mode: modeValue as AcquisitionMode,
       ...(args['replay-path'] ? { replayPath: resolve(args['replay-path']) } : {}),
+      ...(capturedAt !== undefined ? { capturedAt } : {}),
       ...(timeoutMs !== undefined ? { timeoutMs } : {}),
       ...(maxBytes !== undefined ? { maxBytes } : {}),
     });
