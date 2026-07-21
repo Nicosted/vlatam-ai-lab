@@ -12,6 +12,7 @@
     "ai:validate-extraction": "tsx scripts/validate-extraction.ts",
     "crawler:arca": "tsx src/crawlers/arca-crawler.ts",
     "crawler:arca:real": "tsx src/crawlers/arca-real-crawler.ts",
+    "crawler:arca:acquire": "tsx src/cli/arca-source-acquisition.ts",
     "crawler:packet": "tsx src/crawlers/generate-packet-from-arca.ts",
     "crawler:infoleg": "tsx src/crawlers/infoleg-crawler.ts",
     "crawler:vuce-extract": "tsx src/crawlers/vuce-extractor.ts",
