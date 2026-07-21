@@ -27,6 +27,27 @@ function mockFetch(run: typeof fetch): () => void {
   };
 }
 
+function trackedResponse(
+  status: number,
+  headers: HeadersInit = {},
+  cancellationError?: Error,
+): { response: Response; wasCancelled: () => boolean } {
+  let cancelled = false;
+  const body = new ReadableStream<Uint8Array>({
+    start(controller) {
+      controller.enqueue(new Uint8Array([1, 2, 3]));
+    },
+    cancel() {
+      cancelled = true;
+      if (cancellationError) throw cancellationError;
+    },
+  });
+  return {
+    response: new Response(body, { status, headers }),
+    wasCancelled: () => cancelled,
+  };
+}
+
 test("rejects non-HTTPS and non-allowlisted source URLs before any network request", async () => {
   await assert.rejects(
     acquireSource({
@@ -137,6 +158,22 @@ test("requires explicit deterministic replay provenance", async () => {
   );
 });
 
+test("reports invalid capturedAt with a specific controlled error", async () => {
+  await assert.rejects(
+    acquireSource({
+      sourceId: "arca",
+      sourceUrl: "https://www.arca.gob.ar/aduana/arancelintegrado/",
+      outputDirectory: "/tmp/unused",
+      mode: "replay",
+      replayPath: "/tmp/fixture",
+      capturedAt: new Date("invalid"),
+    }),
+    (error: unknown) =>
+      error instanceof SourceAcquisitionError &&
+      error.code === "INVALID_CAPTURE_TIMESTAMP",
+  );
+});
+
 test("fails closed when replay mode has no fixture", async () => {
   await assert.rejects(
     acquireSource({
@@ -154,12 +191,12 @@ test("fails closed when replay mode has no fixture", async () => {
 
 test("rejects a redirect to a non-allowlisted host before following it", async () => {
   let calls = 0;
+  const redirect = trackedResponse(302, {
+    location: "https://evil.example/file.txt",
+  });
   const restore = mockFetch(async () => {
     calls += 1;
-    return new Response(null, {
-      status: 302,
-      headers: { location: "https://evil.example/file.txt" },
-    });
+    return redirect.response;
   });
   try {
     await assert.rejects(
@@ -174,6 +211,99 @@ test("rejects a redirect to a non-allowlisted host before following it", async (
         error.code === "REDIRECT_HOST_NOT_ALLOWED",
     );
     assert.equal(calls, 1);
+    assert.equal(redirect.wasCancelled(), true);
+  } finally {
+    restore();
+  }
+});
+
+test("cancels non-success HTTP response bodies", async () => {
+  const rejected = trackedResponse(503);
+  const restore = mockFetch(async () => rejected.response);
+  try {
+    await assert.rejects(
+      acquireSource({
+        sourceId: "arca",
+        sourceUrl: "https://www.arca.gob.ar/file.bin",
+        outputDirectory: "/tmp/unused",
+        mode: "live",
+      }),
+      (error: unknown) =>
+        error instanceof SourceAcquisitionError && error.code === "HTTP_ERROR",
+    );
+    assert.equal(rejected.wasCancelled(), true);
+  } finally {
+    restore();
+  }
+});
+
+test("cancels bodies with invalid Content-Length", async () => {
+  const rejected = trackedResponse(200, {
+    "content-length": "invalid",
+    "content-type": "application/octet-stream",
+  });
+  const restore = mockFetch(async () => rejected.response);
+  try {
+    await assert.rejects(
+      acquireSource({
+        sourceId: "arca",
+        sourceUrl: "https://www.arca.gob.ar/file.bin",
+        outputDirectory: "/tmp/unused",
+        mode: "live",
+      }),
+      (error: unknown) =>
+        error instanceof SourceAcquisitionError && error.code === "HTTP_ERROR",
+    );
+    assert.equal(rejected.wasCancelled(), true);
+  } finally {
+    restore();
+  }
+});
+
+test("cancels bodies whose declared Content-Length exceeds the maximum", async () => {
+  const rejected = trackedResponse(200, {
+    "content-length": "7",
+    "content-type": "application/octet-stream",
+  });
+  const restore = mockFetch(async () => rejected.response);
+  try {
+    await assert.rejects(
+      acquireSource({
+        sourceId: "arca",
+        sourceUrl: "https://www.arca.gob.ar/file.bin",
+        outputDirectory: "/tmp/unused",
+        mode: "live",
+        maxBytes: 6,
+      }),
+      (error: unknown) =>
+        error instanceof SourceAcquisitionError &&
+        error.code === "CONTENT_TOO_LARGE",
+    );
+    assert.equal(rejected.wasCancelled(), true);
+  } finally {
+    restore();
+  }
+});
+
+test("cancellation failure does not mask the original controlled error", async () => {
+  const rejected = trackedResponse(
+    503,
+    {},
+    new Error("response cancellation failed"),
+  );
+  const restore = mockFetch(async () => rejected.response);
+  try {
+    await assert.rejects(
+      acquireSource({
+        sourceId: "arca",
+        sourceUrl: "https://www.arca.gob.ar/file.bin",
+        outputDirectory: "/tmp/unused",
+        mode: "live",
+      }),
+      (error: unknown) =>
+        error instanceof SourceAcquisitionError && error.code === "HTTP_ERROR",
+    );
+    assert.equal(rejected.wasCancelled(), true);
   } finally {
     restore();
   }
@@ -273,30 +403,47 @@ test("cancels streamed bodies immediately when the maximum is exceeded", async (
   }
 });
 
-test("fails closed when Content-Type is missing or unsupported", async () => {
-  for (const headers of [{}, { "content-type": "application/json" }]) {
-    const restore = mockFetch(
-      async () =>
-        new Response(new Uint8Array([1, 2, 3]), {
-          status: 200,
-          headers,
-        }),
+test("cancels bodies when Content-Type is missing", async () => {
+  const rejected = trackedResponse(200);
+  const restore = mockFetch(async () => rejected.response);
+  try {
+    await assert.rejects(
+      acquireSource({
+        sourceId: "arca",
+        sourceUrl: "https://www.arca.gob.ar/file",
+        outputDirectory: "/tmp/unused",
+        mode: "live",
+      }),
+      (error: unknown) =>
+        error instanceof SourceAcquisitionError &&
+        error.code === "CONTENT_TYPE_NOT_ALLOWED",
     );
-    try {
-      await assert.rejects(
-        acquireSource({
-          sourceId: "arca",
-          sourceUrl: "https://www.arca.gob.ar/file",
-          outputDirectory: "/tmp/unused",
-          mode: "live",
-        }),
-        (error: unknown) =>
-          error instanceof SourceAcquisitionError &&
-          error.code === "CONTENT_TYPE_NOT_ALLOWED",
-      );
-    } finally {
-      restore();
-    }
+    assert.equal(rejected.wasCancelled(), true);
+  } finally {
+    restore();
+  }
+});
+
+test("cancels bodies when Content-Type is unsupported", async () => {
+  const rejected = trackedResponse(200, {
+    "content-type": "application/json",
+  });
+  const restore = mockFetch(async () => rejected.response);
+  try {
+    await assert.rejects(
+      acquireSource({
+        sourceId: "arca",
+        sourceUrl: "https://www.arca.gob.ar/file",
+        outputDirectory: "/tmp/unused",
+        mode: "live",
+      }),
+      (error: unknown) =>
+        error instanceof SourceAcquisitionError &&
+        error.code === "CONTENT_TYPE_NOT_ALLOWED",
+    );
+    assert.equal(rejected.wasCancelled(), true);
+  } finally {
+    restore();
   }
 });
 

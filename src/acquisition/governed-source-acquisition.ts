@@ -52,6 +52,7 @@ export class SourceAcquisitionError extends Error {
     readonly code:
       | "INVALID_SOURCE_ID"
       | "INVALID_URL"
+      | "INVALID_CAPTURE_TIMESTAMP"
       | "INVALID_LIMIT"
       | "HOST_NOT_ALLOWED"
       | "REDIRECT_HOST_NOT_ALLOWED"
@@ -163,6 +164,28 @@ function requireContentType(value: string | null): string {
   return normalized;
 }
 
+async function disposeResponseBody(
+  response: Response,
+  reason: string,
+): Promise<void> {
+  try {
+    await response.body?.cancel(reason);
+  } catch {
+    // Disposal is best-effort and must not replace the acquisition error.
+  }
+}
+
+async function cancelReader(
+  reader: ReadableStreamDefaultReader<Uint8Array>,
+  reason: string,
+): Promise<void> {
+  try {
+    await reader.cancel(reason);
+  } catch {
+    // Disposal is best-effort and must not replace the acquisition error.
+  }
+}
+
 function extensionFor(contentType: string, effectiveUrl: URL): string {
   const urlName = basename(effectiveUrl.pathname);
   const dot = urlName.lastIndexOf(".");
@@ -194,7 +217,7 @@ async function readBoundedBody(
       if (result.done) break;
       total += result.value.byteLength;
       if (total > maxBytes) {
-        await reader.cancel("maximum response size exceeded");
+        await cancelReader(reader, "maximum response size exceeded");
         throw new SourceAcquisitionError(
           "CONTENT_TOO_LARGE",
           `Downloaded content exceeds ${maxBytes} bytes.`,
@@ -249,7 +272,7 @@ async function readLive(
       });
 
       if (response.status >= 300 && response.status < 400) {
-        await response.body?.cancel("redirect response discarded");
+        await disposeResponseBody(response, "redirect response discarded");
         const location = response.headers.get("location");
         if (!location) {
           throw new SourceAcquisitionError(
@@ -268,31 +291,44 @@ async function readLive(
       }
 
       if (!response.ok) {
+        await disposeResponseBody(response, "error response discarded");
         throw new SourceAcquisitionError(
           "HTTP_ERROR",
           `Source returned HTTP ${response.status} ${response.statusText}`,
         );
       }
 
-      const contentType = requireContentType(
-        response.headers.get("content-type"),
-      );
       const declaredHeader = response.headers.get("content-length");
       if (declaredHeader !== null) {
         const declaredLength = Number(declaredHeader);
         if (!Number.isSafeInteger(declaredLength) || declaredLength < 0) {
+          await disposeResponseBody(
+            response,
+            "invalid content length response discarded",
+          );
           throw new SourceAcquisitionError(
             "HTTP_ERROR",
             "Invalid Content-Length header.",
           );
         }
         if (declaredLength > maxBytes) {
-          await response.body?.cancel("declared response size exceeded");
+          await disposeResponseBody(
+            response,
+            "declared response size exceeded",
+          );
           throw new SourceAcquisitionError(
             "CONTENT_TOO_LARGE",
             `Declared content length ${declaredLength} exceeds ${maxBytes} bytes.`,
           );
         }
+      }
+
+      let contentType: string;
+      try {
+        contentType = requireContentType(response.headers.get("content-type"));
+      } catch (error: unknown) {
+        await disposeResponseBody(response, "unsupported response discarded");
+        throw error;
       }
 
       const body = await readBoundedBody(response, maxBytes);
@@ -390,7 +426,7 @@ export async function acquireSource(
   const capturedAt = request.capturedAt ?? new Date();
   if (Number.isNaN(capturedAt.getTime())) {
     throw new SourceAcquisitionError(
-      "INVALID_URL",
+      "INVALID_CAPTURE_TIMESTAMP",
       "capturedAt must be a valid timestamp.",
     );
   }

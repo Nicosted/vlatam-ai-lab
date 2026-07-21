@@ -23,8 +23,9 @@ Official HTTPS source
 - Runtime input cannot replace or expand the host allowlist.
 - Redirects are followed manually, remain HTTPS, and are bounded to five hops.
 - Requests have one bounded timeout covering headers and body consumption.
+- Every discarded fetched response body is cancelled without being consumed or persisted; cancellation failure does not replace the controlled acquisition error.
 - Response bodies are streamed, counted, and cancelled immediately when the maximum is exceeded.
-- A declared `Content-Length` above the maximum fails before body consumption.
+- An invalid declared `Content-Length`, or one above the maximum, fails before body consumption and cancels the response body.
 - A missing, malformed, or unapproved content type fails closed.
 - Empty responses fail closed.
 - Source identifiers use a strict lowercase hyphenated format and cannot affect path containment.
@@ -32,6 +33,7 @@ Official HTTPS source
 - Raw bytes and metadata are staged together and published by one directory rename; a failed staging write leaves no visible partial acquisition.
 - Published acquisition directories are immutable and never overwritten.
 - Replay mode uses local fixtures, performs no network request, and requires an explicit source capture timestamp.
+- Invalid capture timestamps fail closed with `INVALID_CAPTURE_TIMESTAMP`.
 - Repeating an identical replay produces the same identity and fails as an immutable collision rather than changing metadata.
 - Acquisition success does not imply that the source format, extracted facts, or regulatory meaning are valid.
 - No production credential, database connection, scheduler, automatic review, or downstream action is introduced.
