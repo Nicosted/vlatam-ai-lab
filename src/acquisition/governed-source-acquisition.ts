@@ -1,6 +1,6 @@
-import { createHash } from 'node:crypto';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
-import { basename, dirname, join } from 'node:path';
+import { createHash, randomUUID } from 'node:crypto';
+import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
+import { basename, dirname, join, relative, resolve, sep } from 'node:path';
 
 export const DEFAULT_ALLOWED_ARCA_HOSTS = new Set([
   'arca.gob.ar',
@@ -21,8 +21,6 @@ export interface SourceAcquisitionRequest {
   capturedAt?: Date;
   timeoutMs?: number;
   maxBytes?: number;
-  allowedHosts?: ReadonlySet<string>;
-  allowedContentTypes?: readonly string[];
 }
 
 export interface SourceAcquisitionRecord {
@@ -44,6 +42,7 @@ export interface SourceAcquisitionRecord {
 export class SourceAcquisitionError extends Error {
   constructor(
     readonly code:
+      | 'INVALID_SOURCE_ID'
       | 'INVALID_URL'
       | 'HOST_NOT_ALLOWED'
       | 'REDIRECT_HOST_NOT_ALLOWED'
@@ -53,7 +52,10 @@ export class SourceAcquisitionError extends Error {
       | 'CONTENT_TYPE_NOT_ALLOWED'
       | 'CONTENT_TOO_LARGE'
       | 'REPLAY_PATH_REQUIRED'
-      | 'EMPTY_CONTENT',
+      | 'REPLAY_CAPTURE_TIME_REQUIRED'
+      | 'EMPTY_CONTENT'
+      | 'ACQUISITION_EXISTS'
+      | 'PUBLISH_FAILED',
     message: string,
   ) {
     super(message);
@@ -64,14 +66,24 @@ export class SourceAcquisitionError extends Error {
 const DEFAULT_TIMEOUT_MS = 30_000;
 const DEFAULT_MAX_BYTES = 50 * 1024 * 1024;
 const MAX_REDIRECTS = 5;
-const DEFAULT_CONTENT_TYPES = [
+const SOURCE_ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const DEFAULT_CONTENT_TYPES = new Set([
   'application/octet-stream',
   'application/zip',
   'text/plain',
   'text/html',
-];
+]);
 
-function parseAllowedUrl(rawUrl: string, allowedHosts: ReadonlySet<string>): URL {
+function validateSourceId(sourceId: string): void {
+  if (!SOURCE_ID_PATTERN.test(sourceId)) {
+    throw new SourceAcquisitionError(
+      'INVALID_SOURCE_ID',
+      'sourceId must use lowercase alphanumeric segments separated by single hyphens.',
+    );
+  }
+}
+
+function parseAllowedUrl(rawUrl: string): URL {
   let url: URL;
   try {
     url = new URL(rawUrl);
@@ -82,7 +94,7 @@ function parseAllowedUrl(rawUrl: string, allowedHosts: ReadonlySet<string>): URL
   if (url.protocol !== 'https:') {
     throw new SourceAcquisitionError('INVALID_URL', 'Source acquisition requires HTTPS.');
   }
-  if (!allowedHosts.has(url.hostname.toLowerCase())) {
+  if (!DEFAULT_ALLOWED_ARCA_HOSTS.has(url.hostname.toLowerCase())) {
     throw new SourceAcquisitionError(
       'HOST_NOT_ALLOWED',
       `Source host is not allowlisted: ${url.hostname}`,
@@ -91,11 +103,7 @@ function parseAllowedUrl(rawUrl: string, allowedHosts: ReadonlySet<string>): URL
   return url;
 }
 
-function parseRedirectUrl(
-  location: string,
-  currentUrl: URL,
-  allowedHosts: ReadonlySet<string>,
-): URL {
+function parseRedirectUrl(location: string, currentUrl: URL): URL {
   let redirectUrl: URL;
   try {
     redirectUrl = new URL(location, currentUrl);
@@ -108,7 +116,7 @@ function parseRedirectUrl(
       `Redirect must remain on HTTPS: ${redirectUrl.href}`,
     );
   }
-  if (!allowedHosts.has(redirectUrl.hostname.toLowerCase())) {
+  if (!DEFAULT_ALLOWED_ARCA_HOSTS.has(redirectUrl.hostname.toLowerCase())) {
     throw new SourceAcquisitionError(
       'REDIRECT_HOST_NOT_ALLOWED',
       `Redirected host is not allowlisted: ${redirectUrl.hostname}`,
@@ -117,8 +125,15 @@ function parseRedirectUrl(
   return redirectUrl;
 }
 
-function normalizeContentType(value: string | null): string {
-  return value?.split(';', 1)[0]?.trim().toLowerCase() || 'application/octet-stream';
+function requireContentType(value: string | null): string {
+  const normalized = value?.split(';', 1)[0]?.trim().toLowerCase();
+  if (!normalized || !DEFAULT_CONTENT_TYPES.has(normalized)) {
+    throw new SourceAcquisitionError(
+      'CONTENT_TYPE_NOT_ALLOWED',
+      `Content type is missing or not allowed: ${normalized || '<missing>'}`,
+    );
+  }
+  return normalized;
 }
 
 function extensionFor(contentType: string, effectiveUrl: URL): string {
@@ -131,11 +146,49 @@ function extensionFor(contentType: string, effectiveUrl: URL): string {
   return '.bin';
 }
 
+async function readBoundedBody(response: Response, maxBytes: number): Promise<Uint8Array> {
+  if (!response.body) {
+    throw new SourceAcquisitionError('EMPTY_CONTENT', 'Source returned no response body.');
+  }
+
+  const reader = response.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  try {
+    while (true) {
+      const result = await reader.read();
+      if (result.done) break;
+      total += result.value.byteLength;
+      if (total > maxBytes) {
+        await reader.cancel('maximum response size exceeded');
+        throw new SourceAcquisitionError(
+          'CONTENT_TOO_LARGE',
+          `Downloaded content exceeds ${maxBytes} bytes.`,
+        );
+      }
+      chunks.push(result.value);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+
+  if (total === 0) {
+    throw new SourceAcquisitionError('EMPTY_CONTENT', 'Source returned an empty body.');
+  }
+
+  const body = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    body.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return body;
+}
+
 async function readLive(
   initialUrl: URL,
   timeoutMs: number,
   maxBytes: number,
-  allowedHosts: ReadonlySet<string>,
 ): Promise<{ body: Uint8Array; contentType: string; effectiveUrl: URL }> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -167,7 +220,7 @@ async function readLive(
             `Source exceeded ${MAX_REDIRECTS} redirects.`,
           );
         }
-        currentUrl = parseRedirectUrl(location, currentUrl, allowedHosts);
+        currentUrl = parseRedirectUrl(location, currentUrl);
         continue;
       }
 
@@ -178,29 +231,24 @@ async function readLive(
         );
       }
 
-      const declaredLength = Number(response.headers.get('content-length') ?? '0');
-      if (Number.isFinite(declaredLength) && declaredLength > maxBytes) {
-        throw new SourceAcquisitionError(
-          'CONTENT_TOO_LARGE',
-          `Declared content length ${declaredLength} exceeds ${maxBytes} bytes.`,
-        );
+      const contentType = requireContentType(response.headers.get('content-type'));
+      const declaredHeader = response.headers.get('content-length');
+      if (declaredHeader !== null) {
+        const declaredLength = Number(declaredHeader);
+        if (!Number.isSafeInteger(declaredLength) || declaredLength < 0) {
+          throw new SourceAcquisitionError('HTTP_ERROR', 'Invalid Content-Length header.');
+        }
+        if (declaredLength > maxBytes) {
+          await response.body?.cancel('declared response size exceeded');
+          throw new SourceAcquisitionError(
+            'CONTENT_TOO_LARGE',
+            `Declared content length ${declaredLength} exceeds ${maxBytes} bytes.`,
+          );
+        }
       }
 
-      const body = new Uint8Array(await response.arrayBuffer());
-      if (body.byteLength === 0) {
-        throw new SourceAcquisitionError('EMPTY_CONTENT', 'Source returned an empty body.');
-      }
-      if (body.byteLength > maxBytes) {
-        throw new SourceAcquisitionError(
-          'CONTENT_TOO_LARGE',
-          `Downloaded content ${body.byteLength} exceeds ${maxBytes} bytes.`,
-        );
-      }
-      return {
-        body,
-        contentType: normalizeContentType(response.headers.get('content-type')),
-        effectiveUrl: currentUrl,
-      };
+      const body = await readBoundedBody(response, maxBytes);
+      return { body, contentType, effectiveUrl: currentUrl };
     }
 
     throw new SourceAcquisitionError(
@@ -218,15 +266,66 @@ async function readLive(
   }
 }
 
+function assertContainedPath(root: string, candidate: string): void {
+  const relativePath = relative(root, candidate);
+  if (relativePath === '' || relativePath === '..' || relativePath.startsWith(`..${sep}`)) {
+    throw new SourceAcquisitionError('INVALID_SOURCE_ID', 'Resolved output path escapes its root.');
+  }
+}
+
+async function publishAcquisition(
+  finalDirectory: string,
+  rawFilename: string,
+  metadataFilename: string,
+  body: Uint8Array,
+  record: SourceAcquisitionRecord,
+): Promise<void> {
+  const parentDirectory = dirname(finalDirectory);
+  await mkdir(parentDirectory, { recursive: true });
+  const stagingDirectory = `${finalDirectory}.staging-${randomUUID()}`;
+  try {
+    await mkdir(stagingDirectory, { recursive: false });
+    await writeFile(join(stagingDirectory, rawFilename), body, { flag: 'wx' });
+    await writeFile(
+      join(stagingDirectory, metadataFilename),
+      `${JSON.stringify(record, null, 2)}\n`,
+      { flag: 'wx' },
+    );
+    await rename(stagingDirectory, finalDirectory);
+  } catch (error: unknown) {
+    await rm(stagingDirectory, { recursive: true, force: true });
+    if (error instanceof Error && 'code' in error && error.code === 'EEXIST') {
+      throw new SourceAcquisitionError(
+        'ACQUISITION_EXISTS',
+        `Immutable acquisition already exists: ${finalDirectory}`,
+      );
+    }
+    if (error instanceof SourceAcquisitionError) throw error;
+    throw new SourceAcquisitionError(
+      'PUBLISH_FAILED',
+      `Failed to publish acquisition atomically: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
+}
+
 export async function acquireSource(
   request: SourceAcquisitionRequest,
 ): Promise<SourceAcquisitionRecord> {
-  const allowedHosts = request.allowedHosts ?? DEFAULT_ALLOWED_ARCA_HOSTS;
-  const requestedUrl = parseAllowedUrl(request.sourceUrl, allowedHosts);
+  validateSourceId(request.sourceId);
+  const requestedUrl = parseAllowedUrl(request.sourceUrl);
+  if (request.mode === 'replay' && request.capturedAt === undefined) {
+    throw new SourceAcquisitionError(
+      'REPLAY_CAPTURE_TIME_REQUIRED',
+      'Replay mode requires an explicit capturedAt timestamp.',
+    );
+  }
+
   const capturedAt = request.capturedAt ?? new Date();
+  if (Number.isNaN(capturedAt.getTime())) {
+    throw new SourceAcquisitionError('INVALID_URL', 'capturedAt must be a valid timestamp.');
+  }
   const timeoutMs = request.timeoutMs ?? DEFAULT_TIMEOUT_MS;
   const maxBytes = request.maxBytes ?? DEFAULT_MAX_BYTES;
-  const allowedContentTypes = request.allowedContentTypes ?? DEFAULT_CONTENT_TYPES;
 
   let body: Uint8Array;
   let contentType: string;
@@ -251,29 +350,23 @@ export async function acquireSource(
     }
     contentType = 'application/octet-stream';
   } else {
-    const live = await readLive(requestedUrl, timeoutMs, maxBytes, allowedHosts);
+    const live = await readLive(requestedUrl, timeoutMs, maxBytes);
     body = live.body;
     contentType = live.contentType;
     effectiveUrl = live.effectiveUrl;
   }
 
-  if (!allowedContentTypes.includes(contentType)) {
-    throw new SourceAcquisitionError(
-      'CONTENT_TYPE_NOT_ALLOWED',
-      `Content type is not allowed: ${contentType}`,
-    );
-  }
-
   const sha256 = createHash('sha256').update(body).digest('hex');
   const datePart = capturedAt.toISOString().slice(0, 10);
   const acquisitionId = `${request.sourceId}--${datePart}--${sha256.slice(0, 16)}`;
-  const rawPath = join(
-    request.outputDirectory,
-    request.sourceId,
-    datePart,
-    `${acquisitionId}${extensionFor(contentType, effectiveUrl)}`,
-  );
-  const metadataPath = `${rawPath}.metadata.json`;
+  const outputRoot = resolve(request.outputDirectory);
+  const finalDirectory = resolve(outputRoot, request.sourceId, datePart, acquisitionId);
+  assertContainedPath(outputRoot, finalDirectory);
+
+  const rawFilename = `raw${extensionFor(contentType, effectiveUrl)}`;
+  const metadataFilename = 'metadata.json';
+  const rawPath = join(finalDirectory, rawFilename);
+  const metadataPath = join(finalDirectory, metadataFilename);
 
   const record: SourceAcquisitionRecord = {
     schema_version: '1.0.0',
@@ -291,8 +384,12 @@ export async function acquireSource(
     metadata_path: metadataPath,
   };
 
-  await mkdir(dirname(rawPath), { recursive: true });
-  await writeFile(rawPath, body, { flag: 'wx' });
-  await writeFile(metadataPath, `${JSON.stringify(record, null, 2)}\n`, { flag: 'wx' });
+  await publishAcquisition(
+    finalDirectory,
+    rawFilename,
+    metadataFilename,
+    body,
+    record,
+  );
   return record;
 }
