@@ -45,6 +45,8 @@
         "duplicate_unchanged",
         "projection_rebuilt",
         "store_verified",
+        "recovery_completed",
+        "recovery_required",
         "invalid_command",
         "invalid_record",
         "binding_mismatch",

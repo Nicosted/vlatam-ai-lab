@@ -243,11 +243,19 @@ records are never inferred or synthesized.
 The versioned layout stores immutable identity-named candidate, review,
 evaluation, and Approved Artifact JSON; an exactly sequenced prior-hash-bound
 event chain; and a replaceable per-candidate projection under
-`projections/arca-workflows/`. Record and event publication uses exclusive
+`projections/arca-workflows/`. A closed, hash-bound recovery plan is held under
+`journals/` while a mutation is incomplete. Record and event publication uses exclusive
 creation from a fully written and `fsync`ed staging file. Duplicate bytes are
 idempotent, while an existing identity with different bytes fails closed.
 The derived projection is atomically replaced, fully rebuildable, and
 explicitly non-authoritative over the immutable records and events.
+
+On every invocation, valid journal recovery runs under the exclusive lock
+before ordinary replay. Record operations finish record, event, then
+projection publication; projection rebuilds finish the exact projection before
+their audit event. Mismatched visible bytes, malformed plans, or unexpected
+journal files fail closed and require human inspection. Recovery never invents
+new bytes, a new timestamp, or a replacement event sequence.
 
 Configured roots reject symbolic-link ancestors/final components and
 non-directory components. A filesystem-exclusive operation lock serializes

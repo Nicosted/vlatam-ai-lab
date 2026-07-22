@@ -105,7 +105,7 @@
     },
     "previous_event_sha256": { "$ref": "#/$defs/nullableSha" },
     "store_configuration_sha256": {
-      "const": "8981af30a972974dc2930b886202dff3cdca6a17853859524cbead5d31b204c4"
+      "const": "1e3361cef3869214eee6488a9a6a341aa89a5a9052e735c5b95669a3d3a6c086"
     },
     "outcome": { "enum": ["recorded", "projection_rebuilt"] },
     "export_authorized": { "const": false },

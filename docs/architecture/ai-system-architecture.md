@@ -215,8 +215,9 @@ seed advisory cases.
   deployment, production, or `vlatam-global` capability.
 - **AI-130 durable-store seam (2026-07-22):** one local filesystem store
   validates and records only exact AI-126/127/128 artifacts in upstream order,
-  then appends a domain-hashed, prior-bound event and atomically refreshes a
-  non-authoritative per-candidate projection. Identity-derived record/event
+  using a closed, hash-bound operation journal to recover interrupted
+  publication before replay. It appends a domain-hashed, prior-bound event and
+  atomically refreshes a non-authoritative per-candidate projection. Identity-derived record/event
   paths are no-overwrite; matching bytes are idempotent and different bytes
   at the same identity fail closed. Configured-root symlinks/non-directories
   are rejected, competing processes serialize through exclusive filesystem
@@ -446,14 +447,21 @@ pending, and without an Approved Artifact or downstream authority.
 
 The AI-130 persistence seam is:
 
-`validated AI-126/127/128 immutable record → identity-derived no-overwrite file → prior-bound audit event → atomically replaced derived projection`
+`closed durable journal → validated AI-126/127/128 immutable record → identity-derived no-overwrite file → prior-bound audit event → atomically replaced derived projection`
 
-Command, event, projection, and operation-result contracts are closed at
+Command, event, journal, projection, and operation-result contracts are closed at
 `1.0.0`. The layout and contract versions are bound into a domain-separated
 store configuration hash. Events use an exact monotonically increasing
 sequence, bind the prior event identity/hash except at genesis, and bind all
 present workflow identities plus the store configuration. Replay rejects
 missing, reordered, duplicated, modified, or orphaned records/events.
+
+Valid journal recovery precedes ordinary chain replay under the exclusive
+lock. Record operations recover in record/event/projection order. Rebuilds
+publish the exact planned projection before their event, preventing a durable
+event from claiming a projection state that is not yet visible. Journal or
+visible-byte mismatches fail closed; recovery reuses the planned sequence and
+bytes and cannot append a duplicate replacement event.
 
 The store requires every upstream record to be present and valid before a
 downstream record can be persisted. It reuses the authoritative candidate,

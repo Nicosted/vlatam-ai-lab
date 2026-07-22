@@ -33,6 +33,7 @@ import {
   DURABLE_ARCA_STORE_COMMAND_SCHEMA,
   DURABLE_ARCA_STORE_CONFIGURATION_SHA256,
   DURABLE_ARCA_STORE_EVENT_SCHEMA,
+  DURABLE_ARCA_STORE_JOURNAL_SCHEMA,
   DURABLE_ARCA_STORE_PROJECTION_SCHEMA,
   DURABLE_ARCA_STORE_RESULT_SCHEMA,
   assertNoDurableStoreStagingFiles,
@@ -132,6 +133,19 @@ async function freshRoot(): Promise<string> {
   return mkdtemp(join(await realpath(tmpdir()), "ai-130-store-"));
 }
 
+async function activeJournal(root: string): Promise<{
+  path: string;
+  value: Record<string, unknown>;
+}> {
+  const [name] = await readdir(join(root, "journals"));
+  assert.ok(name);
+  const path = join(root, "journals", name);
+  return {
+    path,
+    value: JSON.parse(await readFile(path, "utf8")) as Record<string, unknown>,
+  };
+}
+
 async function record(
   root: string,
   operation: DurableArcaStoreOperation,
@@ -151,6 +165,7 @@ test("AI-130 schemas compile and configuration is domain-bound", () => {
   for (const schema of [
     DURABLE_ARCA_STORE_COMMAND_SCHEMA,
     DURABLE_ARCA_STORE_EVENT_SCHEMA,
+    DURABLE_ARCA_STORE_JOURNAL_SCHEMA,
     DURABLE_ARCA_STORE_PROJECTION_SCHEMA,
     DURABLE_ARCA_STORE_RESULT_SCHEMA,
   ])
@@ -163,6 +178,7 @@ test("checked-in AI-130 schemas compile as closed Draft 2020-12 contracts", asyn
   for (const path of [
     "schemas/durable-arca-store-command.schema.json",
     "schemas/durable-arca-store-audit-event.schema.json",
+    "schemas/durable-arca-store-operation-journal.schema.json",
     "schemas/durable-arca-workflow-projection.schema.json",
     "schemas/durable-arca-store-operation-result.schema.json",
   ]) {
@@ -173,6 +189,187 @@ test("checked-in AI-130 schemas compile as closed Draft 2020-12 contracts", asyn
       false,
     );
   }
+  assert.deepEqual(
+    JSON.parse(
+      await readFile(
+        "schemas/durable-arca-store-operation-journal.schema.json",
+        "utf8",
+      ),
+    ),
+    DURABLE_ARCA_STORE_JOURNAL_SCHEMA,
+  );
+});
+
+test("recovers every interrupted record publication stage exactly once", async () => {
+  const { candidate } = await fixture();
+  for (const stage of [
+    "prepared",
+    "record_visible",
+    "event_visible",
+    "projection_visible",
+    "completed",
+  ] as const) {
+    const root = await freshRoot();
+    const interrupted = await executeDurableArcaStoreCommand(
+      root,
+      command("record_candidate", candidate),
+      { interrupt_after_stage: stage },
+    );
+    assert.equal(interrupted.outcome, "recovery_required", stage);
+    assert.equal((await readdir(join(root, "journals"))).length, 1, stage);
+
+    const recovered = await executeDurableArcaStoreCommand(
+      root,
+      command("record_candidate", candidate),
+    );
+    assert.equal(recovered.outcome, "recovery_completed", stage);
+    assert.equal(recovered.record_created, stage === "prepared", stage);
+    assert.equal(
+      recovered.event_created,
+      stage === "prepared" || stage === "record_visible",
+      stage,
+    );
+    assert.equal(
+      recovered.projection_rebuilt,
+      stage === "prepared" ||
+        stage === "record_visible" ||
+        stage === "event_visible",
+      stage,
+    );
+    assert.equal((await readdir(join(root, "journals"))).length, 0, stage);
+    assert.equal((await readdir(join(root, "candidates"))).length, 1, stage);
+    assert.equal((await readdir(join(root, "events"))).length, 1, stage);
+    assert.equal(
+      (await readdir(join(root, "projections", "arca-workflows"))).length,
+      1,
+      stage,
+    );
+    assert.equal(
+      (await verifyDurableArcaStore(root)).outcome,
+      "store_verified",
+    );
+
+    const duplicate = await executeDurableArcaStoreCommand(
+      root,
+      command("record_candidate", candidate),
+    );
+    assert.equal(duplicate.outcome, "duplicate_unchanged", stage);
+    assert.equal((await readdir(join(root, "events"))).length, 1, stage);
+    assert.equal(await assertNoDurableStoreStagingFiles(root), true, stage);
+  }
+});
+
+test("rebuild publishes its planned projection before its audit event and recovers honestly", async () => {
+  const root = await freshRoot();
+  const { candidate } = await fixture();
+  await record(root, "record_candidate", candidate);
+  const candidateEvent = JSON.parse(
+    await readFile(
+      join(root, "events", (await readdir(join(root, "events")))[0]!),
+      "utf8",
+    ),
+  ) as { candidate_id: string };
+  const rebuild = command(
+    "rebuild_projection",
+    null,
+    candidateEvent.candidate_id,
+    "2026-07-22T16:00:00.000Z",
+  );
+  const interrupted = await executeDurableArcaStoreCommand(root, rebuild, {
+    interrupt_after_stage: "projection_visible",
+  });
+  assert.equal(interrupted.outcome, "recovery_required");
+  assert.equal((await readdir(join(root, "events"))).length, 1);
+  const journal = (await activeJournal(root)).value;
+  const projection = JSON.parse(
+    await readFile(
+      join(root, journal["planned_projection_relative_path"] as string),
+      "utf8",
+    ),
+  ) as { latest_event_id: string };
+  assert.equal(projection.latest_event_id, journal["planned_event_id"]);
+
+  const recovered = await executeDurableArcaStoreCommand(root, rebuild);
+  assert.equal(recovered.outcome, "recovery_completed");
+  assert.equal((await readdir(join(root, "events"))).length, 2);
+  assert.equal((await readdir(join(root, "journals"))).length, 0);
+  assert.equal((await verifyDurableArcaStore(root)).outcome, "store_verified");
+});
+
+test("fails closed when visible record, event, or projection bytes disagree with the journal", async () => {
+  const { candidate } = await fixture();
+  for (const scenario of [
+    { stage: "record_visible", pathField: "record_relative_path" },
+    { stage: "event_visible", pathField: "planned_event_relative_path" },
+    {
+      stage: "projection_visible",
+      pathField: "planned_projection_relative_path",
+    },
+  ] as const) {
+    const root = await freshRoot();
+    const interrupted = await executeDurableArcaStoreCommand(
+      root,
+      command("record_candidate", candidate),
+      { interrupt_after_stage: scenario.stage },
+    );
+    assert.equal(interrupted.outcome, "recovery_required");
+    const journal = (await activeJournal(root)).value;
+    await writeFile(join(root, journal[scenario.pathField] as string), "{}\n");
+    const rejected = await executeDurableArcaStoreCommand(
+      root,
+      command("record_candidate", candidate),
+    );
+    assert.equal(rejected.outcome, "integrity_invalid", scenario.stage);
+    assert.equal((await readdir(join(root, "journals"))).length, 1);
+  }
+});
+
+test("detects tampered, malformed, and unexpected active journals before verification", async () => {
+  const root = await freshRoot();
+  const { candidate } = await fixture();
+  assert.equal(
+    (
+      await executeDurableArcaStoreCommand(
+        root,
+        command("record_candidate", candidate),
+        { interrupt_after_stage: "prepared" },
+      )
+    ).outcome,
+    "recovery_required",
+  );
+  const journal = await activeJournal(root);
+  journal.value["publication_stage"] = "event_visible";
+  await writeFile(journal.path, `${JSON.stringify(journal.value)}\n`);
+  assert.equal(
+    (await verifyDurableArcaStore(root)).outcome,
+    "integrity_invalid",
+  );
+
+  const unexpectedRoot = await freshRoot();
+  assert.equal(
+    (await verifyDurableArcaStore(unexpectedRoot)).outcome,
+    "store_verified",
+  );
+  await writeFile(join(unexpectedRoot, "journals", "unexpected.json"), "{}\n");
+  assert.equal(
+    (await verifyDurableArcaStore(unexpectedRoot)).outcome,
+    "integrity_invalid",
+  );
+
+  const malformedRoot = await freshRoot();
+  await verifyDurableArcaStore(malformedRoot);
+  await writeFile(
+    join(
+      malformedRoot,
+      "journals",
+      `arca-store-journal--${"f".repeat(64)}.json`,
+    ),
+    "{}\n",
+  );
+  assert.equal(
+    (await verifyDurableArcaStore(malformedRoot)).outcome,
+    "integrity_invalid",
+  );
 });
 
 test("records a valid candidate, publishes an event/projection, and duplicate bytes are idempotent", async () => {

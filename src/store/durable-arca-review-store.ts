@@ -46,6 +46,7 @@ export const DURABLE_ARCA_STORE_COMMAND_VERSION = "1.0.0" as const;
 export const DURABLE_ARCA_STORE_EVENT_VERSION = "1.0.0" as const;
 export const DURABLE_ARCA_STORE_PROJECTION_VERSION = "1.0.0" as const;
 export const DURABLE_ARCA_STORE_RESULT_VERSION = "1.0.0" as const;
+export const DURABLE_ARCA_STORE_JOURNAL_VERSION = "1.0.0" as const;
 export const DURABLE_ARCA_STORE_IMPLEMENTATION_VERSION = "1.0.0" as const;
 export const DURABLE_ARCA_STORE_SERVICE_IDENTITY =
   "service:durable-arca-store@1.0.0" as const;
@@ -59,6 +60,7 @@ export const DURABLE_ARCA_STORE_LAYOUT = {
     evaluations: "evaluations",
     approved_artifacts: "approved-artifacts",
     events: "events",
+    journals: "journals",
     workflow_projections: "projections/arca-workflows",
   },
   filename_encoding: "validated-identity-plus-json",
@@ -75,6 +77,10 @@ const EVENT_HASH_DOMAIN = "vlatam-ai-lab/durable-arca-store-event/v1";
 const CONFIG_HASH_DOMAIN = "vlatam-ai-lab/durable-arca-store-configuration/v1";
 const PROJECTION_HASH_DOMAIN =
   "vlatam-ai-lab/durable-arca-workflow-projection/v1";
+const JOURNAL_PLAN_HASH_DOMAIN =
+  "vlatam-ai-lab/durable-arca-store-journal-plan/v1";
+const JOURNAL_STATE_HASH_DOMAIN =
+  "vlatam-ai-lab/durable-arca-store-journal-state/v1";
 
 function domainHash(domain: string, value: unknown): string {
   return createHash("sha256")
@@ -94,6 +100,7 @@ export const DURABLE_ARCA_STORE_CONFIGURATION_SHA256 = domainHash(
       event: DURABLE_ARCA_STORE_EVENT_VERSION,
       projection: DURABLE_ARCA_STORE_PROJECTION_VERSION,
       result: DURABLE_ARCA_STORE_RESULT_VERSION,
+      journal: DURABLE_ARCA_STORE_JOURNAL_VERSION,
     },
   },
 );
@@ -201,6 +208,8 @@ export type DurableArcaStoreOutcome =
   | "duplicate_unchanged"
   | "projection_rebuilt"
   | "store_verified"
+  | "recovery_completed"
+  | "recovery_required"
   | "invalid_command"
   | "invalid_record"
   | "binding_mismatch"
@@ -224,6 +233,59 @@ export interface DurableArcaStoreOperationResult {
   readonly event_id: string | null;
   readonly event_sha256: string | null;
   readonly details: readonly string[];
+  readonly export_authorized: false;
+  readonly publication_authorized: false;
+  readonly production_authorized: false;
+  readonly network_authorized: false;
+  readonly database_authorized: false;
+  readonly scheduler_authorized: false;
+  readonly deployment_authorized: false;
+  readonly vlatam_global_access_authorized: false;
+}
+
+export type DurableArcaStoreJournalStage =
+  | "prepared"
+  | "record_visible"
+  | "projection_visible"
+  | "event_visible"
+  | "completed";
+
+export interface DurableArcaStoreOperationJournal {
+  readonly schema_version: "1.0.0";
+  readonly journal_type: "durable_arca_store_operation_journal";
+  readonly journal_id: string;
+  readonly journal_sha256: string;
+  readonly publication_stage: DurableArcaStoreJournalStage;
+  readonly operation: Exclude<DurableArcaStoreOperation, "verify_store">;
+  readonly actor_identity: string;
+  readonly event_timestamp: string;
+  readonly candidate_id: string;
+  readonly candidate_sha256: string;
+  readonly record_kind:
+    | "candidate"
+    | "review"
+    | "evaluation"
+    | "approved_artifact"
+    | null;
+  readonly record_id: string | null;
+  readonly record_relative_path: string | null;
+  readonly record_bytes_sha256: string | null;
+  readonly record_json: string | null;
+  readonly planned_event_id: string;
+  readonly planned_event_sha256: string;
+  readonly planned_event_sequence: number;
+  readonly planned_event_relative_path: string;
+  readonly planned_event_bytes_sha256: string;
+  readonly planned_event_json: string;
+  readonly previous_event_id: string | null;
+  readonly previous_event_sha256: string | null;
+  readonly planned_projection_id: string;
+  readonly planned_projection_sha256: string;
+  readonly planned_projection_relative_path: string;
+  readonly planned_projection_bytes_sha256: string;
+  readonly planned_projection_json: string;
+  readonly previous_projection_bytes_sha256: string | null;
+  readonly store_configuration_sha256: string;
   readonly export_authorized: false;
   readonly publication_authorized: false;
   readonly production_authorized: false;
@@ -533,6 +595,8 @@ export const DURABLE_ARCA_STORE_RESULT_SCHEMA = {
         "duplicate_unchanged",
         "projection_rebuilt",
         "store_verified",
+        "recovery_completed",
+        "recovery_required",
         "invalid_command",
         "invalid_record",
         "binding_mismatch",
@@ -563,12 +627,138 @@ export const DURABLE_ARCA_STORE_RESULT_SCHEMA = {
   },
 } as const;
 
+export const DURABLE_ARCA_STORE_JOURNAL_SCHEMA = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  $id: "https://schemas.vlatam.local/durable-arca-store-operation-journal.schema.json",
+  title: "Durable ARCA store operation recovery journal",
+  type: "object",
+  additionalProperties: false,
+  required: [
+    "schema_version",
+    "journal_type",
+    "journal_id",
+    "journal_sha256",
+    "publication_stage",
+    "operation",
+    "actor_identity",
+    "event_timestamp",
+    "candidate_id",
+    "candidate_sha256",
+    "record_kind",
+    "record_id",
+    "record_relative_path",
+    "record_bytes_sha256",
+    "record_json",
+    "planned_event_id",
+    "planned_event_sha256",
+    "planned_event_sequence",
+    "planned_event_relative_path",
+    "planned_event_bytes_sha256",
+    "planned_event_json",
+    "previous_event_id",
+    "previous_event_sha256",
+    "planned_projection_id",
+    "planned_projection_sha256",
+    "planned_projection_relative_path",
+    "planned_projection_bytes_sha256",
+    "planned_projection_json",
+    "previous_projection_bytes_sha256",
+    "store_configuration_sha256",
+    ...AUTHORITY_KEYS,
+  ],
+  properties: {
+    schema_version: { const: DURABLE_ARCA_STORE_JOURNAL_VERSION },
+    journal_type: { const: "durable_arca_store_operation_journal" },
+    journal_id: {
+      type: "string",
+      pattern: "^arca-store-journal--[a-f0-9]{64}$",
+    },
+    journal_sha256: { type: "string", pattern: SHA256 },
+    publication_stage: {
+      enum: [
+        "prepared",
+        "record_visible",
+        "projection_visible",
+        "event_visible",
+        "completed",
+      ],
+    },
+    operation: { enum: OPERATIONS.filter((value) => value !== "verify_store") },
+    actor_identity: { type: "string", pattern: ACTOR },
+    event_timestamp: { type: "string", pattern: TIMESTAMP },
+    candidate_id: {
+      type: "string",
+      pattern: "^arca-candidate--[a-f0-9]{64}$",
+    },
+    candidate_sha256: { type: "string", pattern: SHA256 },
+    record_kind: {
+      enum: [null, "candidate", "review", "evaluation", "approved_artifact"],
+    },
+    record_id: {
+      anyOf: [{ type: "null" }, { type: "string", minLength: 1 }],
+    },
+    record_relative_path: {
+      anyOf: [{ type: "null" }, { type: "string", pattern: ".*\\S.*" }],
+    },
+    record_bytes_sha256: {
+      anyOf: [{ type: "null" }, { type: "string", pattern: SHA256 }],
+    },
+    record_json: {
+      anyOf: [{ type: "null" }, { type: "string", minLength: 3 }],
+    },
+    planned_event_id: {
+      type: "string",
+      pattern: "^arca-store-event--[a-f0-9]{64}$",
+    },
+    planned_event_sha256: { type: "string", pattern: SHA256 },
+    planned_event_sequence: { type: "integer", minimum: 1 },
+    planned_event_relative_path: {
+      type: "string",
+      pattern: "^events/[0-9]{12}--arca-store-event--[a-f0-9]{64}\\.json$",
+    },
+    planned_event_bytes_sha256: { type: "string", pattern: SHA256 },
+    planned_event_json: { type: "string", minLength: 3 },
+    previous_event_id: {
+      anyOf: [
+        { type: "null" },
+        {
+          type: "string",
+          pattern: "^arca-store-event--[a-f0-9]{64}$",
+        },
+      ],
+    },
+    previous_event_sha256: {
+      anyOf: [{ type: "null" }, { type: "string", pattern: SHA256 }],
+    },
+    planned_projection_id: {
+      type: "string",
+      pattern: "^arca-candidate--[a-f0-9]{64}$",
+    },
+    planned_projection_sha256: { type: "string", pattern: SHA256 },
+    planned_projection_relative_path: {
+      type: "string",
+      pattern:
+        "^projections/arca-workflows/arca-candidate--[a-f0-9]{64}\\.json$",
+    },
+    planned_projection_bytes_sha256: { type: "string", pattern: SHA256 },
+    planned_projection_json: { type: "string", minLength: 3 },
+    previous_projection_bytes_sha256: {
+      anyOf: [{ type: "null" }, { type: "string", pattern: SHA256 }],
+    },
+    store_configuration_sha256: {
+      const: DURABLE_ARCA_STORE_CONFIGURATION_SHA256,
+    },
+    ...FALSE_AUTHORITIES,
+  },
+} as const;
+
 const ajv = new Ajv({ allErrors: true, strict: true });
 const validateCommandSchema = ajv.compile(DURABLE_ARCA_STORE_COMMAND_SCHEMA);
 const validateEventSchema = ajv.compile(DURABLE_ARCA_STORE_EVENT_SCHEMA);
 const validateProjectionSchema = ajv.compile(
   DURABLE_ARCA_STORE_PROJECTION_SCHEMA,
 );
+const validateJournalSchema = ajv.compile(DURABLE_ARCA_STORE_JOURNAL_SCHEMA);
 
 function isCanonicalTimestamp(value: string): boolean {
   const parsed = new Date(value);
@@ -580,7 +770,12 @@ function result(
   outcome: DurableArcaStoreOutcome,
   details: readonly string[] = [],
   event: DurableArcaStoreAuditEvent | null = null,
-  flags: { idempotent?: boolean; record?: boolean; projection?: boolean } = {},
+  flags: {
+    idempotent?: boolean;
+    record?: boolean;
+    event?: boolean;
+    projection?: boolean;
+  } = {},
 ): DurableArcaStoreOperationResult {
   return {
     schema_version: DURABLE_ARCA_STORE_RESULT_VERSION,
@@ -592,10 +787,11 @@ function result(
       "duplicate_unchanged",
       "projection_rebuilt",
       "store_verified",
+      "recovery_completed",
     ].includes(outcome),
     idempotent: flags.idempotent ?? false,
     record_created: flags.record ?? false,
-    event_created: event !== null,
+    event_created: flags.event ?? event !== null,
     projection_rebuilt: flags.projection ?? false,
     event_id: event?.event_id ?? null,
     event_sha256: event?.event_sha256 ?? null,
@@ -646,6 +842,74 @@ export function computeDurableArcaProjectionSha256(
     | DurableArcaWorkflowProjection,
 ): string {
   return domainHash(PROJECTION_HASH_DOMAIN, projectionHashPayload(projection));
+}
+
+type JournalWithoutIdentity = Omit<
+  DurableArcaStoreOperationJournal,
+  "journal_id" | "journal_sha256"
+>;
+
+function journalPlanPayload(
+  journal: JournalWithoutIdentity | DurableArcaStoreOperationJournal,
+): unknown {
+  const payload = structuredClone(journal) as Record<string, unknown>;
+  delete payload["journal_id"];
+  delete payload["journal_sha256"];
+  delete payload["publication_stage"];
+  return payload;
+}
+
+function journalStatePayload(
+  journal:
+    | Omit<DurableArcaStoreOperationJournal, "journal_sha256">
+    | DurableArcaStoreOperationJournal,
+): unknown {
+  const payload = structuredClone(journal) as Record<string, unknown>;
+  delete payload["journal_sha256"];
+  return payload;
+}
+
+export function computeDurableArcaJournalPlanSha256(
+  journal: JournalWithoutIdentity | DurableArcaStoreOperationJournal,
+): string {
+  return domainHash(JOURNAL_PLAN_HASH_DOMAIN, journalPlanPayload(journal));
+}
+
+export function computeDurableArcaJournalStateSha256(
+  journal:
+    | Omit<DurableArcaStoreOperationJournal, "journal_sha256">
+    | DurableArcaStoreOperationJournal,
+): string {
+  return domainHash(JOURNAL_STATE_HASH_DOMAIN, journalStatePayload(journal));
+}
+
+function sealJournal(
+  value: JournalWithoutIdentity,
+): DurableArcaStoreOperationJournal {
+  const planSha256 = computeDurableArcaJournalPlanSha256(value);
+  const unsealed = {
+    ...value,
+    journal_id: `arca-store-journal--${planSha256}`,
+  };
+  return {
+    ...unsealed,
+    journal_sha256: computeDurableArcaJournalStateSha256(unsealed),
+  };
+}
+
+function updateJournalStage(
+  journal: DurableArcaStoreOperationJournal,
+  publicationStage: DurableArcaStoreJournalStage,
+): DurableArcaStoreOperationJournal {
+  const unsealed = { ...journal, publication_stage: publicationStage };
+  return {
+    ...unsealed,
+    journal_sha256: computeDurableArcaJournalStateSha256(unsealed),
+  };
+}
+
+function bytesSha256(bytes: string): string {
+  return createHash("sha256").update(bytes).digest("hex");
 }
 
 function recordBytes(value: unknown): string {
@@ -938,6 +1202,25 @@ function projectionPath(root: string, id: string): string {
   );
 }
 
+function eventPath(root: string, event: DurableArcaStoreAuditEvent): string {
+  return join(
+    root,
+    DURABLE_ARCA_STORE_LAYOUT.directories.events,
+    `${String(event.sequence).padStart(12, "0")}--${event.event_id}.json`,
+  );
+}
+
+function journalPath(
+  root: string,
+  journal: Pick<DurableArcaStoreOperationJournal, "journal_id">,
+): string {
+  return join(
+    root,
+    DURABLE_ARCA_STORE_LAYOUT.directories.journals,
+    `${journal.journal_id}.json`,
+  );
+}
+
 async function requireJson(path: string): Promise<unknown> {
   try {
     return await readJson(path);
@@ -1053,24 +1336,6 @@ function makeProjection(
   };
 }
 
-async function rebuildOneProjection(
-  root: string,
-  candidateId: string,
-): Promise<DurableArcaWorkflowProjection> {
-  const chain = await verifyEventChain(root);
-  const records = await loadWorkflow(root, candidateId);
-  const projection = makeProjection(
-    records,
-    chain.events.filter((event) => event.candidate_id === candidateId),
-  );
-  await publishProjection(
-    root,
-    projectionPath(root, candidateId),
-    recordBytes(projection),
-  );
-  return projection;
-}
-
 function makeEvent(
   command: DurableArcaStoreCommand,
   sequence: number,
@@ -1133,12 +1398,7 @@ async function publishEvent(
   root: string,
   event: DurableArcaStoreAuditEvent,
 ): Promise<"created" | "same" | "collision"> {
-  const name = `${String(event.sequence).padStart(12, "0")}--${event.event_id}.json`;
-  return publishImmutable(
-    root,
-    join(root, DURABLE_ARCA_STORE_LAYOUT.directories.events, name),
-    recordBytes(event),
-  );
+  return publishImmutable(root, eventPath(root, event), recordBytes(event));
 }
 
 function bindingsFrom(
@@ -1200,6 +1460,503 @@ async function assertReview(
   return review;
 }
 
+export interface DurableArcaStoreExecutionOptions {
+  /** Deterministic local crash-state injection for tests; never exposed by the CLI. */
+  readonly interrupt_after_stage?: DurableArcaStoreJournalStage;
+}
+
+interface PreparedJournalOperation {
+  readonly journal: DurableArcaStoreOperationJournal;
+  readonly event: DurableArcaStoreAuditEvent;
+  readonly projection: DurableArcaWorkflowProjection;
+  readonly recordCreated: boolean;
+  readonly eventCreated: boolean;
+  readonly projectionRebuilt: boolean;
+}
+
+async function readVisibleBytes(path: string): Promise<string | null> {
+  try {
+    const stat = await lstat(path);
+    if (stat.isSymbolicLink() || !stat.isFile())
+      throw new Error("unsafe_store_root");
+    return await readFile(path, "utf8");
+  } catch (error: unknown) {
+    if (isFsError(error, "ENOENT")) return null;
+    throw error;
+  }
+}
+
+function parseExactJson(bytes: string, label: string): unknown {
+  try {
+    const parsed = JSON.parse(bytes) as unknown;
+    if (recordBytes(parsed) !== bytes)
+      throw new Error(`${label}_bytes_invalid`);
+    return parsed;
+  } catch (error: unknown) {
+    if (error instanceof Error && error.message === `${label}_bytes_invalid`)
+      throw error;
+    throw new Error(`${label}_json_invalid`);
+  }
+}
+
+function expectedRecordPath(
+  root: string,
+  kind: DurableArcaStoreOperationJournal["record_kind"],
+  id: string,
+): string {
+  if (kind === "candidate") return candidatePath(root, id);
+  if (kind === "review") return reviewPath(root, id);
+  if (kind === "evaluation") return evaluationPath(root, id);
+  if (kind === "approved_artifact") return artifactPath(root, id);
+  throw new Error("journal_record_kind_invalid");
+}
+
+async function validateJournalGovernedRecord(
+  root: string,
+  journal: DurableArcaStoreOperationJournal,
+  value: unknown,
+): Promise<void> {
+  if (!journal.record_kind || !journal.record_id)
+    throw new Error("journal_record_identity_invalid");
+  if (journal.record_kind === "candidate") {
+    if (
+      !validateGovernedArcaCandidate(value).valid ||
+      computeGovernedArcaCandidateArtifactId(value) !== journal.record_id ||
+      computeGovernedArcaCandidateArtifactId(value) !== journal.candidate_id
+    )
+      throw new Error("journal_candidate_invalid");
+    return;
+  }
+  const candidate = (await requireJson(
+    candidatePath(root, journal.candidate_id),
+  )) as GovernedArcaCandidateArtifact;
+  if (
+    !validateGovernedArcaCandidate(candidate).valid ||
+    computeGovernedArcaCandidateSha256(candidate) !== journal.candidate_sha256
+  )
+    throw new Error("journal_candidate_binding_invalid");
+  if (journal.record_kind === "review") {
+    const review = await assertReview(
+      candidate,
+      value,
+      journal.event_timestamp,
+    );
+    if (review.review_id !== journal.record_id)
+      throw new Error("journal_review_identity_invalid");
+    return;
+  }
+  if (journal.record_kind === "evaluation") {
+    if (!validateGovernedArcaCandidateReviewEvaluation(value).valid)
+      throw new Error("journal_evaluation_invalid");
+    const evaluation = value as GovernedArcaCandidateReviewEvaluation;
+    const review = (await requireJson(
+      reviewPath(root, evaluation.review_id ?? ""),
+    )) as GovernedArcaCandidateReview;
+    await assertReview(candidate, review, evaluation.evaluated_at);
+    if (
+      evaluation.evaluation_id !== journal.record_id ||
+      evaluation.candidate_artifact_id !== journal.candidate_id ||
+      evaluation.candidate_sha256 !== journal.candidate_sha256 ||
+      evaluation.review_sha256 !== review.review_sha256
+    )
+      throw new Error("journal_evaluation_binding_invalid");
+    return;
+  }
+  if (!validateApprovedArcaArtifact(value).valid)
+    throw new Error("journal_approved_artifact_invalid");
+  const artifact = value as ApprovedArcaArtifact;
+  const review = (await requireJson(
+    reviewPath(root, artifact.review_binding.review_id),
+  )) as GovernedArcaCandidateReview;
+  const evaluation = (await requireJson(
+    evaluationPath(root, artifact.evaluation_binding.evaluation_id),
+  )) as GovernedArcaCandidateReviewEvaluation;
+  if (
+    artifact.approved_artifact_id !== journal.record_id ||
+    artifact.candidate_binding.candidate_artifact_id !== journal.candidate_id ||
+    artifact.candidate_binding.candidate_sha256 !== journal.candidate_sha256 ||
+    artifact.review_binding.review_sha256 !== review.review_sha256 ||
+    artifact.evaluation_binding.evaluation_sha256 !==
+      evaluation.evaluation_sha256
+  )
+    throw new Error("journal_approved_artifact_binding_invalid");
+}
+
+async function prepareOperationJournal(
+  root: string,
+  command: DurableArcaStoreCommand,
+  chain: VerifiedChain,
+  records: WorkflowRecords,
+  recordKind: DurableArcaStoreOperationJournal["record_kind"],
+  recordTarget: string | null,
+): Promise<PreparedJournalOperation> {
+  const prior = chain.events.at(-1) ?? null;
+  const event = makeEvent(
+    command,
+    chain.events.length + 1,
+    prior,
+    bindingsFrom(records),
+    command.operation === "rebuild_projection"
+      ? "projection_rebuilt"
+      : "recorded",
+  );
+  const plannedEvents = [...chain.events, event].filter(
+    (value) => value.candidate_id === event.candidate_id,
+  );
+  const projection = makeProjection(records, plannedEvents);
+  const projectionTarget = projectionPath(root, event.candidate_id);
+  const previousProjectionBytes = await readVisibleBytes(projectionTarget);
+  const recordJson =
+    recordTarget && command.governed_record !== null
+      ? recordBytes(command.governed_record)
+      : null;
+  const eventJson = recordBytes(event);
+  const projectionJson = recordBytes(projection);
+  const recordId = recordTarget ? basename(recordTarget, ".json") : null;
+  const unsealed: JournalWithoutIdentity = {
+    schema_version: DURABLE_ARCA_STORE_JOURNAL_VERSION,
+    journal_type: "durable_arca_store_operation_journal",
+    publication_stage: "prepared",
+    operation: command.operation as Exclude<
+      DurableArcaStoreOperation,
+      "verify_store"
+    >,
+    actor_identity: command.actor_identity,
+    event_timestamp: command.event_timestamp,
+    candidate_id: event.candidate_id,
+    candidate_sha256: event.candidate_sha256,
+    record_kind: recordKind,
+    record_id: recordId,
+    record_relative_path: recordTarget ? relative(root, recordTarget) : null,
+    record_bytes_sha256: recordJson ? bytesSha256(recordJson) : null,
+    record_json: recordJson,
+    planned_event_id: event.event_id,
+    planned_event_sha256: event.event_sha256,
+    planned_event_sequence: event.sequence,
+    planned_event_relative_path: relative(root, eventPath(root, event)),
+    planned_event_bytes_sha256: bytesSha256(eventJson),
+    planned_event_json: eventJson,
+    previous_event_id: prior?.event_id ?? null,
+    previous_event_sha256: prior?.event_sha256 ?? null,
+    planned_projection_id: event.candidate_id,
+    planned_projection_sha256: projection.projection_sha256,
+    planned_projection_relative_path: relative(root, projectionTarget),
+    planned_projection_bytes_sha256: bytesSha256(projectionJson),
+    planned_projection_json: projectionJson,
+    previous_projection_bytes_sha256: previousProjectionBytes
+      ? bytesSha256(previousProjectionBytes)
+      : null,
+    store_configuration_sha256: DURABLE_ARCA_STORE_CONFIGURATION_SHA256,
+    ...NO_AUTHORITIES,
+  };
+  const journal = sealJournal(unsealed);
+  if (!validateJournalSchema(journal))
+    throw new Error(
+      `journal_schema_invalid:${ajv.errorsText(validateJournalSchema.errors)}`,
+    );
+  return {
+    journal,
+    event,
+    projection,
+    recordCreated: false,
+    eventCreated: false,
+    projectionRebuilt: false,
+  };
+}
+
+async function writeInitialJournal(
+  root: string,
+  journal: DurableArcaStoreOperationJournal,
+): Promise<void> {
+  const state = await publishImmutable(
+    root,
+    journalPath(root, journal),
+    recordBytes(journal),
+  );
+  if (state !== "created") throw new Error("active_journal_collision");
+}
+
+async function writeJournalStage(
+  root: string,
+  journal: DurableArcaStoreOperationJournal,
+  stage: DurableArcaStoreJournalStage,
+): Promise<DurableArcaStoreOperationJournal> {
+  const updated = updateJournalStage(journal, stage);
+  await publishProjection(
+    root,
+    journalPath(root, journal),
+    recordBytes(updated),
+  );
+  return updated;
+}
+
+async function loadActiveJournal(
+  root: string,
+): Promise<DurableArcaStoreOperationJournal | null> {
+  const directory = join(root, DURABLE_ARCA_STORE_LAYOUT.directories.journals);
+  const entries = await readdir(directory);
+  if (
+    entries.some(
+      (name) => !/^arca-store-journal--[a-f0-9]{64}\.json$/.test(name),
+    )
+  )
+    throw new Error("unexpected_journal_entry");
+  if (entries.length > 1) throw new Error("multiple_active_journals");
+  if (entries.length === 0) return null;
+  const bytes = await readVisibleBytes(join(directory, entries[0]!));
+  if (bytes === null) throw new Error("active_journal_missing");
+  const value = parseExactJson(bytes, "journal");
+  if (!validateJournalSchema(value))
+    throw new Error(
+      `journal_schema_invalid:${ajv.errorsText(validateJournalSchema.errors)}`,
+    );
+  const journal = value as unknown as DurableArcaStoreOperationJournal;
+  if (
+    journal.journal_id !==
+      `arca-store-journal--${computeDurableArcaJournalPlanSha256(journal)}` ||
+    journal.journal_sha256 !== computeDurableArcaJournalStateSha256(journal) ||
+    entries[0] !== `${journal.journal_id}.json`
+  )
+    throw new Error("journal_identity_invalid");
+  return journal;
+}
+
+function interruptAfterStage(
+  stage: DurableArcaStoreJournalStage,
+  options?: DurableArcaStoreExecutionOptions,
+): void {
+  if (options?.interrupt_after_stage === stage)
+    throw new Error(`synthetic_interruption_after_${stage}`);
+}
+
+async function recoverActiveJournal(
+  root: string,
+  options?: DurableArcaStoreExecutionOptions,
+): Promise<PreparedJournalOperation | null> {
+  let journal = await loadActiveJournal(root);
+  if (!journal) return null;
+  if (!isCanonicalTimestamp(journal.event_timestamp))
+    throw new Error("journal_timestamp_invalid");
+  const event = parseExactJson(
+    journal.planned_event_json,
+    "journal_event",
+  ) as DurableArcaStoreAuditEvent;
+  const projection = parseExactJson(
+    journal.planned_projection_json,
+    "journal_projection",
+  ) as DurableArcaWorkflowProjection;
+  if (
+    !validateEventSchema(event) ||
+    event.operation !== journal.operation ||
+    event.actor_identity !== journal.actor_identity ||
+    event.event_timestamp !== journal.event_timestamp ||
+    event.candidate_id !== journal.candidate_id ||
+    event.candidate_sha256 !== journal.candidate_sha256 ||
+    event.store_configuration_sha256 !== journal.store_configuration_sha256 ||
+    event.event_id !== journal.planned_event_id ||
+    event.event_sha256 !== journal.planned_event_sha256 ||
+    event.sequence !== journal.planned_event_sequence ||
+    event.previous_event_id !== journal.previous_event_id ||
+    event.previous_event_sha256 !== journal.previous_event_sha256 ||
+    bytesSha256(journal.planned_event_json) !==
+      journal.planned_event_bytes_sha256
+  )
+    throw new Error("journal_event_plan_invalid");
+  if (
+    !validateProjectionSchema(projection) ||
+    projection.projection_sha256 !== journal.planned_projection_sha256 ||
+    projection.projection_sha256 !==
+      computeDurableArcaProjectionSha256(projection) ||
+    projection.candidate_id !== journal.planned_projection_id ||
+    projection.candidate_id !== event.candidate_id ||
+    projection.candidate_sha256 !== event.candidate_sha256 ||
+    projection.review.review_id !== event.review_id ||
+    projection.review.review_sha256 !== event.review_sha256 ||
+    projection.review.persisted !== (event.review_id !== null) ||
+    projection.evaluation.evaluation_id !== event.evaluation_id ||
+    projection.evaluation.evaluation_sha256 !== event.evaluation_sha256 ||
+    projection.evaluation.persisted !== (event.evaluation_id !== null) ||
+    projection.approved_artifact.approved_artifact_id !==
+      event.approved_artifact_id ||
+    projection.approved_artifact.approved_artifact_sha256 !==
+      event.approved_artifact_sha256 ||
+    projection.approved_artifact.persisted !==
+      (event.approved_artifact_id !== null) ||
+    projection.latest_event_id !== event.event_id ||
+    projection.latest_event_sha256 !== event.event_sha256 ||
+    bytesSha256(journal.planned_projection_json) !==
+      journal.planned_projection_bytes_sha256
+  )
+    throw new Error("journal_projection_plan_invalid");
+  const expectedEventTarget = eventPath(root, event);
+  const expectedProjectionTarget = projectionPath(
+    root,
+    journal.planned_projection_id,
+  );
+  if (
+    journal.planned_event_relative_path !==
+      relative(root, expectedEventTarget) ||
+    journal.planned_projection_relative_path !==
+      relative(root, expectedProjectionTarget)
+  )
+    throw new Error("journal_path_binding_invalid");
+
+  let recordTarget: string | null = null;
+  const expectedRecordKind =
+    journal.operation === "record_candidate"
+      ? "candidate"
+      : journal.operation === "record_review"
+        ? "review"
+        : journal.operation === "record_evaluation"
+          ? "evaluation"
+          : journal.operation === "record_approved_artifact"
+            ? "approved_artifact"
+            : null;
+  if (journal.record_kind !== expectedRecordKind)
+    throw new Error("journal_operation_record_kind_mismatch");
+  if (journal.record_kind === null) {
+    if (
+      journal.record_id !== null ||
+      journal.record_relative_path !== null ||
+      journal.record_bytes_sha256 !== null ||
+      journal.record_json !== null ||
+      journal.operation !== "rebuild_projection"
+    )
+      throw new Error("journal_record_nullability_invalid");
+  } else {
+    if (
+      !journal.record_id ||
+      !journal.record_relative_path ||
+      !journal.record_bytes_sha256 ||
+      !journal.record_json
+    )
+      throw new Error("journal_record_nullability_invalid");
+    recordTarget = expectedRecordPath(
+      root,
+      journal.record_kind,
+      journal.record_id,
+    );
+    if (journal.record_relative_path !== relative(root, recordTarget))
+      throw new Error("journal_record_path_invalid");
+    if (bytesSha256(journal.record_json) !== journal.record_bytes_sha256)
+      throw new Error("journal_record_bytes_hash_invalid");
+    const eventRecordId =
+      journal.record_kind === "candidate"
+        ? event.candidate_id
+        : journal.record_kind === "review"
+          ? event.review_id
+          : journal.record_kind === "evaluation"
+            ? event.evaluation_id
+            : event.approved_artifact_id;
+    if (eventRecordId !== journal.record_id)
+      throw new Error("journal_event_record_binding_invalid");
+    await validateJournalGovernedRecord(
+      root,
+      journal,
+      parseExactJson(journal.record_json, "journal_record"),
+    );
+  }
+
+  const recordVisible = recordTarget
+    ? await readVisibleBytes(recordTarget)
+    : null;
+  if (recordVisible !== null && recordVisible !== journal.record_json)
+    throw new Error("journal_visible_record_mismatch");
+  const eventVisible = await readVisibleBytes(expectedEventTarget);
+  if (eventVisible !== null && eventVisible !== journal.planned_event_json)
+    throw new Error("journal_visible_event_mismatch");
+  const projectionVisible = await readVisibleBytes(expectedProjectionTarget);
+  if (
+    projectionVisible !== null &&
+    projectionVisible !== journal.planned_projection_json &&
+    bytesSha256(projectionVisible) !== journal.previous_projection_bytes_sha256
+  )
+    throw new Error("journal_visible_projection_mismatch");
+
+  const chain = await verifyEventChain(root);
+  if (eventVisible === null) {
+    if (
+      chain.events.length !== event.sequence - 1 ||
+      (chain.events.at(-1)?.event_id ?? null) !== journal.previous_event_id ||
+      (chain.events.at(-1)?.event_sha256 ?? null) !==
+        journal.previous_event_sha256
+    )
+      throw new Error("journal_prior_chain_mismatch");
+  } else if (
+    chain.events.length !== event.sequence ||
+    chain.events.at(-1)?.event_id !== event.event_id
+  ) {
+    throw new Error("journal_visible_event_chain_mismatch");
+  }
+
+  interruptAfterStage(journal.publication_stage, options);
+  const advance = async (
+    stage: DurableArcaStoreJournalStage,
+  ): Promise<void> => {
+    journal = await writeJournalStage(root, journal!, stage);
+    interruptAfterStage(stage, options);
+  };
+  const ensureRecord = async (): Promise<void> => {
+    if (!recordTarget || !journal!.record_json) return;
+    const state = await publishImmutable(
+      root,
+      recordTarget,
+      journal!.record_json,
+    );
+    if (state === "collision")
+      throw new Error("journal_visible_record_mismatch");
+    await advance("record_visible");
+  };
+  const ensureProjection = async (): Promise<void> => {
+    const visible = await readVisibleBytes(expectedProjectionTarget);
+    if (visible !== journal!.planned_projection_json)
+      await publishProjection(
+        root,
+        expectedProjectionTarget,
+        journal!.planned_projection_json,
+      );
+    if (
+      (await readVisibleBytes(expectedProjectionTarget)) !==
+      journal!.planned_projection_json
+    )
+      throw new Error("journal_projection_publication_invalid");
+    await advance("projection_visible");
+  };
+  const ensureEvent = async (): Promise<void> => {
+    const state = await publishEvent(root, event);
+    if (state === "collision")
+      throw new Error("journal_visible_event_mismatch");
+    if (
+      (await readVisibleBytes(expectedEventTarget)) !==
+      journal!.planned_event_json
+    )
+      throw new Error("journal_event_publication_invalid");
+    await advance("event_visible");
+  };
+
+  if (journal.operation === "rebuild_projection") {
+    await ensureProjection();
+    await ensureEvent();
+  } else {
+    await ensureRecord();
+    await ensureEvent();
+    await ensureProjection();
+  }
+  await advance("completed");
+  await rm(journalPath(root, journal), { force: true });
+  await syncDirectory(
+    join(root, DURABLE_ARCA_STORE_LAYOUT.directories.journals),
+  );
+  return {
+    journal,
+    event,
+    projection,
+    recordCreated: recordTarget !== null && recordVisible === null,
+    eventCreated: eventVisible === null,
+    projectionRebuilt: projectionVisible !== journal.planned_projection_json,
+  };
+}
+
 async function acquireLock(root: string): Promise<string> {
   const lock = join(root, ".operation-lock");
   try {
@@ -1241,65 +1998,102 @@ async function validateProjection(
     throw new Error("projection_invalid");
 }
 
+async function verifyStoreLocked(
+  root: string,
+): Promise<{ eventCount: number; workflowCount: number }> {
+  const chain = await verifyEventChain(root);
+  await assertNoOrphanRecords(root, chain.events);
+  const candidateIds = [
+    ...new Set(chain.events.map((event) => event.candidate_id)),
+  ];
+  await assertProjectionSet(root, candidateIds);
+  for (const candidateId of candidateIds) {
+    const records = await loadWorkflow(root, candidateId);
+    if (
+      !validateGovernedArcaCandidate(records.candidate).valid ||
+      computeGovernedArcaCandidateArtifactId(records.candidate) !== candidateId
+    )
+      throw new Error("candidate_invalid");
+    if (records.review)
+      await assertReview(
+        records.candidate,
+        records.review,
+        chain.events.find(
+          (event) => event.review_id === records.review?.review_id,
+        )?.event_timestamp ?? "",
+      );
+    if (records.evaluation) {
+      if (
+        !validateGovernedArcaCandidateReviewEvaluation(records.evaluation)
+          .valid ||
+        records.evaluation.candidate_artifact_id !== candidateId ||
+        records.evaluation.review_id !== records.review?.review_id
+      )
+        throw new Error("evaluation_invalid");
+    }
+    if (records.artifact) {
+      if (
+        !validateApprovedArcaArtifact(records.artifact).valid ||
+        records.artifact.candidate_binding.candidate_artifact_id !==
+          candidateId ||
+        records.artifact.review_binding.review_id !==
+          records.review?.review_id ||
+        records.artifact.evaluation_binding.evaluation_id !==
+          records.evaluation?.evaluation_id
+      )
+        throw new Error("artifact_invalid");
+    }
+    const expected = makeProjection(
+      records,
+      chain.events.filter((event) => event.candidate_id === candidateId),
+    );
+    await validateProjection(root, candidateId, expected);
+  }
+  return {
+    eventCount: chain.events.length,
+    workflowCount: candidateIds.length,
+  };
+}
+
+function eventTracksRecord(
+  events: readonly DurableArcaStoreAuditEvent[],
+  kind: Exclude<DurableArcaStoreOperationJournal["record_kind"], null>,
+  id: string,
+): boolean {
+  return events.some((event) => {
+    if (kind === "candidate") return event.candidate_id === id;
+    if (kind === "review") return event.review_id === id;
+    if (kind === "evaluation") return event.evaluation_id === id;
+    return event.approved_artifact_id === id;
+  });
+}
+
 export async function verifyDurableArcaStore(
   storeRoot: string,
+  options?: DurableArcaStoreExecutionOptions,
 ): Promise<DurableArcaStoreOperationResult> {
   try {
     const root = await initializeRoot(storeRoot);
     return await withLock(root, async () => {
-      const chain = await verifyEventChain(root);
-      await assertNoOrphanRecords(root, chain.events);
-      const candidateIds = [
-        ...new Set(chain.events.map((event) => event.candidate_id)),
-      ];
-      await assertProjectionSet(root, candidateIds);
-      for (const candidateId of candidateIds) {
-        const records = await loadWorkflow(root, candidateId);
-        if (
-          !validateGovernedArcaCandidate(records.candidate).valid ||
-          computeGovernedArcaCandidateArtifactId(records.candidate) !==
-            candidateId
-        )
-          throw new Error("candidate_invalid");
-        if (records.review)
-          await assertReview(
-            records.candidate,
-            records.review,
-            chain.events.find(
-              (event) => event.review_id === records.review?.review_id,
-            )?.event_timestamp ?? "",
-          );
-        if (records.evaluation) {
-          if (
-            !validateGovernedArcaCandidateReviewEvaluation(records.evaluation)
-              .valid ||
-            records.evaluation.candidate_artifact_id !== candidateId ||
-            records.evaluation.review_id !== records.review?.review_id
-          )
-            throw new Error("evaluation_invalid");
-        }
-        if (records.artifact) {
-          if (
-            !validateApprovedArcaArtifact(records.artifact).valid ||
-            records.artifact.candidate_binding.candidate_artifact_id !==
-              candidateId ||
-            records.artifact.review_binding.review_id !==
-              records.review?.review_id ||
-            records.artifact.evaluation_binding.evaluation_id !==
-              records.evaluation?.evaluation_id
-          )
-            throw new Error("artifact_invalid");
-        }
-        const expected = makeProjection(
-          records,
-          chain.events.filter((event) => event.candidate_id === candidateId),
-        );
-        await validateProjection(root, candidateId, expected);
-      }
-      return result("verify_store", "store_verified", [
-        `events:${chain.events.length}`,
-        `workflows:${candidateIds.length}`,
-      ]);
+      const recovered = await recoverActiveJournal(root, options);
+      const verified = await verifyStoreLocked(root);
+      return result(
+        "verify_store",
+        recovered ? "recovery_completed" : "store_verified",
+        [
+          ...(recovered ? [`journal:${recovered.journal.journal_id}`] : []),
+          `events:${verified.eventCount}`,
+          `workflows:${verified.workflowCount}`,
+        ],
+        recovered?.event ?? null,
+        recovered
+          ? {
+              record: recovered.recordCreated,
+              event: recovered.eventCreated,
+              projection: recovered.projectionRebuilt,
+            }
+          : {},
+      );
     });
   } catch (error: unknown) {
     const detail =
@@ -1319,6 +2113,7 @@ export async function verifyDurableArcaStore(
 export async function executeDurableArcaStoreCommand(
   storeRoot: string,
   commandValue: unknown,
+  options?: DurableArcaStoreExecutionOptions,
 ): Promise<DurableArcaStoreOperationResult> {
   const operation =
     typeof commandValue === "object" &&
@@ -1338,34 +2133,54 @@ export async function executeDurableArcaStoreCommand(
       "event_timestamp_not_canonical_utc",
     ]);
   if (command.operation === "verify_store")
-    return verifyDurableArcaStore(storeRoot);
+    return verifyDurableArcaStore(storeRoot, options);
   try {
     const root = await initializeRoot(storeRoot);
     return await withLock(root, async () => {
+      const recovered = await recoverActiveJournal(root, options);
+      if (recovered) {
+        await verifyStoreLocked(root);
+        return result(
+          command.operation,
+          "recovery_completed",
+          [`journal:${recovered.journal.journal_id}`],
+          recovered.event,
+          {
+            record: recovered.recordCreated,
+            event: recovered.eventCreated,
+            projection: recovered.projectionRebuilt,
+          },
+        );
+      }
       const chain = await verifyEventChain(root);
-      const prior = chain.events.at(-1) ?? null;
       if (command.operation === "rebuild_projection") {
         if (!command.candidate_id || command.governed_record !== null)
           return result(command.operation, "invalid_command", [
             "rebuild_requires_candidate_id_only",
           ]);
         const records = await loadWorkflow(root, command.candidate_id);
-        const event = makeEvent(
+        const prepared = await prepareOperationJournal(
+          root,
           command,
-          chain.events.length + 1,
-          prior,
-          bindingsFrom(records),
-          "projection_rebuilt",
+          chain,
+          records,
+          null,
+          null,
         );
-        const eventState = await publishEvent(root, event);
-        if (eventState !== "created")
-          return result(command.operation, "identity_collision", [
-            "event_collision",
-          ]);
-        await rebuildOneProjection(root, command.candidate_id);
-        return result(command.operation, "projection_rebuilt", [], event, {
-          projection: true,
-        });
+        await writeInitialJournal(root, prepared.journal);
+        interruptAfterStage("prepared", options);
+        const completed = await recoverActiveJournal(root, options);
+        if (!completed) throw new Error("journal_recovery_missing");
+        return result(
+          command.operation,
+          "projection_rebuilt",
+          [],
+          completed.event,
+          {
+            event: completed.eventCreated,
+            projection: completed.projectionRebuilt,
+          },
+        );
       }
       if (command.candidate_id !== null || command.governed_record === null)
         return result(command.operation, "invalid_command", [
@@ -1374,6 +2189,10 @@ export async function executeDurableArcaStoreCommand(
 
       let records: WorkflowRecords;
       let target: string;
+      let recordKind: Exclude<
+        DurableArcaStoreOperationJournal["record_kind"],
+        null
+      >;
       const governed = command.governed_record;
       if (command.operation === "record_candidate") {
         const validation = validateGovernedArcaCandidate(governed);
@@ -1382,6 +2201,7 @@ export async function executeDurableArcaStoreCommand(
         const candidate = governed as GovernedArcaCandidateArtifact;
         const id = computeGovernedArcaCandidateArtifactId(candidate);
         target = candidatePath(root, id);
+        recordKind = "candidate";
         records = { candidate, review: null, evaluation: null, artifact: null };
       } else {
         const raw = governed as Record<string, unknown>;
@@ -1411,6 +2231,7 @@ export async function executeDurableArcaStoreCommand(
             command.event_timestamp,
           );
           target = reviewPath(root, review.review_id);
+          recordKind = "review";
           records = { candidate, review, evaluation: null, artifact: null };
         } else if (command.operation === "record_evaluation") {
           if (!validateGovernedArcaCandidateReviewEvaluation(governed).valid)
@@ -1434,6 +2255,7 @@ export async function executeDurableArcaStoreCommand(
               "evaluation_upstream_binding_mismatch",
             ]);
           target = evaluationPath(root, evaluation.evaluation_id);
+          recordKind = "evaluation";
           records = { candidate, review, evaluation, artifact: null };
         } else {
           if (!validateApprovedArcaArtifact(governed).valid)
@@ -1460,42 +2282,51 @@ export async function executeDurableArcaStoreCommand(
               "approved_artifact_upstream_binding_mismatch",
             ]);
           target = artifactPath(root, artifact.approved_artifact_id);
+          recordKind = "approved_artifact";
           records = { candidate, review, evaluation, artifact };
         }
       }
 
-      const state = await publishImmutable(root, target, recordBytes(governed));
-      if (state === "collision")
+      const visibleRecord = await readVisibleBytes(target);
+      const plannedRecord = recordBytes(governed);
+      if (visibleRecord !== null && visibleRecord !== plannedRecord)
         return result(command.operation, "identity_collision", [
           `collision:${basename(target)}`,
         ]);
-      if (state === "same")
+      const recordId = basename(target, ".json");
+      if (
+        visibleRecord === plannedRecord &&
+        eventTracksRecord(chain.events, recordKind, recordId)
+      )
         return result(command.operation, "duplicate_unchanged", [], null, {
           idempotent: true,
         });
-      const event = makeEvent(
+      const prepared = await prepareOperationJournal(
+        root,
         command,
-        chain.events.length + 1,
-        prior,
-        bindingsFrom(records),
-        "recorded",
+        chain,
+        records,
+        recordKind,
+        target,
       );
-      const eventState = await publishEvent(root, event);
-      if (eventState !== "created")
-        return result(command.operation, "identity_collision", [
-          "event_collision",
-        ]);
-      await rebuildOneProjection(root, event.candidate_id);
-      return result(command.operation, "recorded", [], event, {
-        record: true,
-        projection: true,
+      await writeInitialJournal(root, prepared.journal);
+      interruptAfterStage("prepared", options);
+      const completed = await recoverActiveJournal(root, options);
+      if (!completed) throw new Error("journal_recovery_missing");
+      return result(command.operation, "recorded", [], completed.event, {
+        record: completed.recordCreated,
+        event: completed.eventCreated,
+        projection: completed.projectionRebuilt,
       });
     });
   } catch (error: unknown) {
     const detail =
       error instanceof Error ? error.message : "unknown_store_error";
-    const outcome: DurableArcaStoreOutcome =
-      detail === "unsafe_store_root"
+    const outcome: DurableArcaStoreOutcome = detail.startsWith(
+      "synthetic_interruption_after_",
+    )
+      ? "recovery_required"
+      : detail === "unsafe_store_root"
         ? "unsafe_store_root"
         : detail === "store_busy"
           ? "store_busy"
@@ -1503,7 +2334,9 @@ export async function executeDurableArcaStoreCommand(
             ? "orphan_record"
             : detail === "binding_mismatch"
               ? "binding_mismatch"
-              : detail.includes("event_") || detail.includes("projection_")
+              : detail.includes("event_") ||
+                  detail.includes("projection_") ||
+                  detail.includes("journal_")
                 ? "integrity_invalid"
                 : "publication_failed";
     return result(command.operation, outcome, [detail]);

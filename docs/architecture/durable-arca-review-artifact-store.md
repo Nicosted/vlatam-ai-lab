@@ -24,6 +24,7 @@ Layout `1.0.0` is bound, with all four contract versions, into
 - `evaluations/<evaluation-id>.json`
 - `approved-artifacts/<approved-artifact-id>.json`
 - `events/<12-digit-sequence>--<event-id>.json`
+- `journals/arca-store-journal--<plan-sha256>.json`
 - `projections/arca-workflows/<candidate-id>.json`
 
 Paths are derived only from schema-validated identities. The configured root
@@ -46,8 +47,23 @@ no authority beyond local serialization.
 Projection publication uses a fully written and `fsync`ed staging file plus
 atomic rename. A projection is replaceable because it is derived and
 non-authoritative; its own domain hash, exact reconstructed bytes, and latest
-event bindings are verified. An interrupted or tampered projection is stale or
-invalid and can be rebuilt from immutable records/events.
+event bindings are verified.
+
+Every mutating operation first publishes one closed `1.0.0` recovery journal.
+The journal domain-binds the command identity, exact record/event/projection
+bytes and byte hashes, prior event and projection state, derived paths, store
+configuration, and current publication stage. Stage replacement is itself
+write-`fsync`-rename-directory-`fsync`; the journal is removed only after all
+planned bytes are visible and the completed stage is durable.
+
+Under the operation lock, recovery runs before ordinary chain verification.
+It rejects malformed journals, unknown journal entries, path or hash
+divergence, and any visible record/event/projection bytes that match neither
+the journal plan nor the bound previous projection. Record operations complete
+in `record → event → projection` order. Projection rebuilds complete in
+`projection → event` order, so a durable `projection_rebuilt` event is never
+visible before the exact planned rebuilt projection. Retrying recovery cannot
+allocate a replacement sequence or append a duplicate event.
 
 ## Replay and event semantics
 
@@ -65,13 +81,17 @@ reviewer, builder, publisher, export-approver, or production-approver roles.
 ## Operation/result precedence
 
 Command/schema/timestamp validation occurs before root access. Root safety and
-exclusive-lock acquisition precede chain replay. Existing chain integrity is
-checked before record validation/publication. Upstream absence returns
+exclusive-lock acquisition precede journal recovery, which precedes ordinary
+chain replay. Existing chain integrity is checked before new record
+validation/publication. Upstream absence returns
 `orphan_record`; exact binding/schema failures return `invalid_record` or
 `binding_mismatch`; equal bytes return `duplicate_unchanged`; different bytes
 return `identity_collision`; publication/replay failures remain fail closed.
 
-`verify_store` performs no audit append. `rebuild_projection` appends an audit
-event because it changes durable derived state. Neither operation authorizes
+`verify_store` performs no new audit append, but it completes a valid active
+journal before verifying the whole store; malformed or unexpected journal
+state is `integrity_invalid`. `rebuild_projection` appends an audit event only
+after its exact projection is durable because it changes derived state.
+Neither operation authorizes
 export, publication, production, network, database, scheduler, deployment, or
 `vlatam-global` access.
