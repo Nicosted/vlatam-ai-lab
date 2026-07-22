@@ -126,6 +126,7 @@ describe("AI LAB operator read model", () => {
       export_status: "not_exported",
       publication_status: "not_published",
       production_reliance: "not_authorized",
+      vlatam_global_consumption: "not_authorized",
       export_authorized: false,
       publication_authorized: false,
       production_reliance_authorized: false,

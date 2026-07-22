@@ -31,6 +31,21 @@ describe("operator read-model architecture boundary", () => {
       assert.match(loader, new RegExp(evaluator));
   });
 
+  it("keeps the ARCA console projection presentation-only", () => {
+    const source = [
+      read("src/operator/arca-review-console-view-model.ts"),
+      read("src/operator/operator-console.ts"),
+    ].join("\n");
+    assert.doesNotMatch(
+      source,
+      /from\s+["'][^"']*(?:provider|transport|secret|scheduler|database|deployment|publisher|export|vlatam-global|approved-arca-artifact-builder)[^"']*["']/i,
+    );
+    assert.doesNotMatch(
+      source,
+      /\bfetch\s*\(|process\.env|buildApprovedArca|evaluateGovernedArcaCandidateReview/,
+    );
+  });
+
   it("introduces no reverse dependency or circular import", () => {
     for (const path of [
       "src/providers/openrouter-adapter.ts",

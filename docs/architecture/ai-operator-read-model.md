@@ -1,11 +1,11 @@
 # AI LAB Operator Read Model
 
-Status: backend read model implemented (contract `1.6.0`); local read-only
+Status: backend read model implemented (contract `1.7.0`); local read-only
 console implemented; future internal API not implemented.
 
 ## Purpose
 
-The Operator Read Model contract `1.6.0` consolidates already-evaluated,
+The Operator Read Model contract `1.7.0` consolidates already-evaluated,
 repository-governed state into one concise, deterministic, audit-safe JSON
 representation. It feeds the local read-only Operator Console and a future
 internal read-only API. It cannot approve, authorize, configure, mutate,
@@ -14,6 +14,22 @@ consume, or execute anything.
 The dependency direction is:
 
 `registries + evidence + readiness + proposal + preflight + activation review + gold case + authorization + consumption + gateway metadata → pure builder → read-only console → future internal API`
+
+## Contract 1.7.0 additions (2026-07-22)
+
+Version `1.7.0` expands the audit-safe ARCA projection for the AI-129 console.
+It carries candidate provenance/parser metadata and fixed states; the supplied
+human-review lifecycle, optional reviewer/statement/rejection and controlled
+findings; the exact authoritative AI-127 evaluator result, reason codes and
+candidate/review bindings; and explicit source labels. Human text is bounded
+only in the pure presentation view model, while canonical read-model values
+remain available for audit.
+
+The projection adds no repository discovery. It still reads only the closed
+AI-127 fixture path and invokes the existing AI-127 evaluator. Repository-
+current state remains a synthetic pending review with no real reviewer,
+decision, eligibility, Approved Artifact, export, publication, production
+authority, or `vlatam-global` consumption.
 
 ## Contract 1.6.0 additions (2026-07-22)
 

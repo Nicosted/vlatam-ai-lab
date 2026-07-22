@@ -217,6 +217,21 @@ Only tests construct synthetic positive inputs. Every artifact and result
 keeps export, publication, production reliance, database, network, scheduler,
 deployment, and `vlatam-global` authority disabled.
 
+## AI-129 ARCA Operator Review Console boundary
+
+AI-129 exposes the repository-governed candidate → review → evaluation →
+Approved Artifact flow at `/operator/arca-review`. A pure presentation view
+model consumes Operator Read Model `1.7.0`; it does not call the AI-127
+evaluator or the AI-128 builder. Canonical outcomes, reason codes, bindings,
+IDs, and full hashes remain available while Spanish labels and shortened
+hashes form the primary operator view.
+
+The route is read-only and repository-current state remains synthetic and
+pending: no reviewer, decision, eligibility, Approved Artifact, export,
+publication, production reliance, or `vlatam-global` consumption exists. The
+console contains no form or apparent action control and cannot persist a
+decision, build an artifact, or activate downstream behavior.
+
 ## Deferred work
 
 The following belong to later, separately reviewed PRs:
@@ -226,4 +241,4 @@ The following belong to later, separately reviewed PRs:
 - concurrency locks and durable run records;
 - alerts and GitHub artifacts;
 - reviewed regulatory change feed.
-- AI-128 Approved ARCA Artifact Builder.
+- AI-130 Durable Review and Artifact Store.

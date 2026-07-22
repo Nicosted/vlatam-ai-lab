@@ -95,6 +95,9 @@ export interface RepositoryOperatorReadModelOptions {
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   value !== null && typeof value === "object" && !Array.isArray(value);
 
+const nullableString = (value: unknown): string | null =>
+  typeof value === "string" ? value : null;
+
 function safeRead(
   root: string,
   key: ArtifactKey,
@@ -752,23 +755,157 @@ export async function loadRepositoryOperatorReadModel(
       "reports/ai-lab-glm-fireworks-endpoint-evidence-2026-07-17.md",
     ],
     arca_candidate_review: {
+      source_context: {
+        projection_source: "repository-current",
+        fixture_kind: isRecord(arcaReviewFixture)
+          ? nullableString(arcaReviewFixture.fixture_kind)
+          : null,
+        synthetic_candidate:
+          isRecord(arcaReviewFixture) &&
+          arcaReviewFixture.synthetic_candidate === true,
+        real_human_decision:
+          isRecord(arcaReviewFixture) &&
+          arcaReviewFixture.real_human_review_performed === true
+            ? "present"
+            : "absent",
+      },
       candidate_artifact_id: arcaReviewEvaluation.candidate_artifact_id,
       candidate_sha256: arcaReviewEvaluation.candidate_sha256,
+      acquisition_id:
+        isRecord(arcaCandidate) && isRecord(arcaCandidate.acquisition_artifact)
+          ? nullableString(arcaCandidate.acquisition_artifact.acquisition_id)
+          : null,
+      source:
+        isRecord(arcaCandidate) &&
+        isRecord(arcaCandidate.parsed_output) &&
+        Array.isArray(arcaCandidate.parsed_output.tariff_lines) &&
+        isRecord(arcaCandidate.parsed_output.tariff_lines[0])
+          ? nullableString(arcaCandidate.parsed_output.tariff_lines[0].source)
+          : null,
+      captured_at:
+        isRecord(arcaCandidate) && isRecord(arcaCandidate.acquisition_artifact)
+          ? nullableString(arcaCandidate.acquisition_artifact.captured_at)
+          : null,
+      parser_id:
+        isRecord(arcaCandidate) && isRecord(arcaCandidate.parser)
+          ? nullableString(arcaCandidate.parser.parser_id)
+          : null,
+      parser_version:
+        isRecord(arcaCandidate) && isRecord(arcaCandidate.parser)
+          ? nullableString(arcaCandidate.parser.parser_version)
+          : null,
+      parsed_output_sha256: isRecord(arcaCandidate)
+        ? nullableString(arcaCandidate.parsed_output_sha256)
+        : null,
+      tariff_line_count:
+        isRecord(arcaCandidate) &&
+        isRecord(arcaCandidate.parsed_output) &&
+        Number.isSafeInteger(arcaCandidate.parsed_output.tariff_lines_count)
+          ? (arcaCandidate.parsed_output.tariff_lines_count as number)
+          : null,
+      candidate_states: {
+        validation_status: isRecord(arcaCandidate)
+          ? nullableString(arcaCandidate.validation_status)
+          : null,
+        review_state: isRecord(arcaCandidate)
+          ? nullableString(arcaCandidate.review_state)
+          : null,
+        approval_status: isRecord(arcaCandidate)
+          ? nullableString(arcaCandidate.approval_status)
+          : null,
+        publication_status: isRecord(arcaCandidate)
+          ? nullableString(arcaCandidate.publication_status)
+          : null,
+      },
       review_lifecycle:
         isRecord(arcaReview) && typeof arcaReview.lifecycle === "string"
           ? arcaReview.lifecycle
           : "invalid",
+      review_id: isRecord(arcaReview)
+        ? nullableString(arcaReview.review_id)
+        : null,
+      review_sha256: isRecord(arcaReview)
+        ? nullableString(arcaReview.review_sha256)
+        : null,
       evaluation_outcome: arcaReviewEvaluation.outcome,
       reviewer_present: isRecord(arcaReview) && arcaReview.reviewer !== null,
+      reviewer_identity:
+        isRecord(arcaReview) && isRecord(arcaReview.reviewer)
+          ? nullableString(arcaReview.reviewer.identity)
+          : null,
+      decision_timestamp: isRecord(arcaReview)
+        ? nullableString(arcaReview.decision_timestamp)
+        : null,
       expires_at:
         isRecord(arcaReview) && typeof arcaReview.expires_at === "string"
           ? arcaReview.expires_at
           : null,
+      review_statement: isRecord(arcaReview)
+        ? nullableString(arcaReview.review_statement)
+        : null,
+      rejection_reason: isRecord(arcaReview)
+        ? nullableString(arcaReview.rejection_reason)
+        : null,
       unresolved_findings_count: arcaReviewEvaluation.unresolved_findings_count,
+      findings:
+        isRecord(arcaReview) && Array.isArray(arcaReview.findings)
+          ? arcaReview.findings.filter(isRecord).map((finding) => ({
+              severity: nullableString(finding.severity) ?? "unknown",
+              category: nullableString(finding.category) ?? "unknown",
+              finding_code: nullableString(finding.finding_code) ?? "unknown",
+              description: nullableString(finding.description) ?? "",
+              resolution_status:
+                nullableString(finding.resolution_status) ?? "unknown",
+            }))
+          : [],
+      separation_of_duties:
+        isRecord(arcaReview) && isRecord(arcaReview.separation_of_duties)
+          ? {
+              acquisition_operator_identity: nullableString(
+                arcaReview.separation_of_duties.acquisition_operator_identity,
+              ),
+              parser_runtime_identity: nullableString(
+                arcaReview.separation_of_duties.parser_runtime_identity,
+              ),
+              candidate_producer_identity: nullableString(
+                arcaReview.separation_of_duties.candidate_producer_identity,
+              ),
+              evidence_reviewer_identity: nullableString(
+                arcaReview.separation_of_duties.evidence_reviewer_identity,
+              ),
+              reviewer_independence_asserted:
+                arcaReview.separation_of_duties
+                  .reviewer_independence_asserted === true,
+            }
+          : {
+              acquisition_operator_identity: null,
+              parser_runtime_identity: null,
+              candidate_producer_identity: null,
+              evidence_reviewer_identity: null,
+              reviewer_independence_asserted: false,
+            },
+      evaluation_id: arcaReviewEvaluation.evaluation_id,
+      evaluation_sha256: arcaReviewEvaluation.evaluation_sha256,
+      evaluated_at: arcaReviewEvaluation.evaluated_at,
+      evaluation_reason_codes: [...arcaReviewEvaluation.reason_codes],
+      evaluation_bindings: {
+        candidate_artifact_id: arcaReviewEvaluation.candidate_artifact_id,
+        candidate_sha256: arcaReviewEvaluation.candidate_sha256,
+        review_id: arcaReviewEvaluation.review_id,
+        review_sha256: arcaReviewEvaluation.review_sha256,
+      },
       eligible_for_approved_artifact_building:
         arcaReviewEvaluation.eligible_for_approved_artifact_building,
+      approved_artifact_created: false,
       export_authorized: false,
       publication_authorized: false,
+      production_reliance_authorized: false,
+      database_write_authorized: false,
+      network_call_authorized: false,
+      scheduler_authorized: false,
+      deployment_authorized: false,
+      vlatam_global_access_authorized: false,
+      execution_performed: false,
     },
     arca_approved_artifact: {
       present: false,
@@ -785,6 +922,7 @@ export async function loadRepositoryOperatorReadModel(
       export_status: "not_exported",
       publication_status: "not_published",
       production_reliance: "not_authorized",
+      vlatam_global_consumption: "not_authorized",
       export_authorized: false,
       publication_authorized: false,
       production_reliance_authorized: false,

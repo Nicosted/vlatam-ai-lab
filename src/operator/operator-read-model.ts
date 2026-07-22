@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import { canonicalizeOpenRouterRegistryJson } from "../providers/openrouter-registry.js";
 import type { TournamentOperatorReadModel } from "../tournament/index.js";
 
-export const OPERATOR_READ_MODEL_CONTRACT_VERSION = "1.6.0" as const;
+export const OPERATOR_READ_MODEL_CONTRACT_VERSION = "1.7.0" as const;
 export const OPERATOR_READ_MODEL_HASH_DOMAIN =
   "vlatam-ai-lab:operator-read-model:v1" as const;
 
@@ -222,16 +222,73 @@ export interface OperatorReadModelInput {
 }
 
 export interface OperatorArcaCandidateReview {
+  readonly source_context: {
+    readonly projection_source: "repository-current" | "synthetic_fixture";
+    readonly fixture_kind: string | null;
+    readonly synthetic_candidate: boolean;
+    readonly real_human_decision: "absent" | "present";
+  };
   readonly candidate_artifact_id: string | null;
   readonly candidate_sha256: string | null;
+  readonly acquisition_id: string | null;
+  readonly source: string | null;
+  readonly captured_at: string | null;
+  readonly parser_id: string | null;
+  readonly parser_version: string | null;
+  readonly parsed_output_sha256: string | null;
+  readonly tariff_line_count: number | null;
+  readonly candidate_states: {
+    readonly validation_status: string | null;
+    readonly review_state: string | null;
+    readonly approval_status: string | null;
+    readonly publication_status: string | null;
+  };
   readonly review_lifecycle: string;
+  readonly review_id: string | null;
+  readonly review_sha256: string | null;
   readonly evaluation_outcome: string;
   readonly reviewer_present: boolean;
+  readonly reviewer_identity: string | null;
+  readonly decision_timestamp: string | null;
   readonly expires_at: string | null;
+  readonly review_statement: string | null;
+  readonly rejection_reason: string | null;
   readonly unresolved_findings_count: number;
+  readonly findings: readonly {
+    readonly severity: string;
+    readonly category: string;
+    readonly finding_code: string;
+    readonly description: string;
+    readonly resolution_status: string;
+  }[];
+  readonly separation_of_duties: {
+    readonly acquisition_operator_identity: string | null;
+    readonly parser_runtime_identity: string | null;
+    readonly candidate_producer_identity: string | null;
+    readonly evidence_reviewer_identity: string | null;
+    readonly reviewer_independence_asserted: boolean;
+  };
+  readonly evaluation_id: string;
+  readonly evaluation_sha256: string;
+  readonly evaluated_at: string;
+  readonly evaluation_reason_codes: readonly string[];
+  readonly evaluation_bindings: {
+    readonly candidate_artifact_id: string | null;
+    readonly candidate_sha256: string | null;
+    readonly review_id: string | null;
+    readonly review_sha256: string | null;
+  };
   readonly eligible_for_approved_artifact_building: boolean;
+  readonly approved_artifact_created: false;
   readonly export_authorized: false;
   readonly publication_authorized: false;
+  readonly production_reliance_authorized: false;
+  readonly database_write_authorized: false;
+  readonly network_call_authorized: false;
+  readonly scheduler_authorized: false;
+  readonly deployment_authorized: false;
+  readonly vlatam_global_access_authorized: false;
+  readonly execution_performed: false;
 }
 
 export interface OperatorApprovedArcaArtifact {
@@ -249,6 +306,7 @@ export interface OperatorApprovedArcaArtifact {
   readonly export_status: "not_exported";
   readonly publication_status: "not_published";
   readonly production_reliance: "not_authorized";
+  readonly vlatam_global_consumption: "not_authorized";
   readonly export_authorized: false;
   readonly publication_authorized: false;
   readonly production_reliance_authorized: false;
@@ -700,16 +758,67 @@ export function buildOperatorReadModel(
     },
     audit_references: [...input.audit_references].sort(),
     arca_candidate_review: input.arca_candidate_review ?? {
+      source_context: {
+        projection_source: "repository-current",
+        fixture_kind: null,
+        synthetic_candidate: false,
+        real_human_decision: "absent",
+      },
       candidate_artifact_id: null,
       candidate_sha256: null,
+      acquisition_id: null,
+      source: null,
+      captured_at: null,
+      parser_id: null,
+      parser_version: null,
+      parsed_output_sha256: null,
+      tariff_line_count: null,
+      candidate_states: {
+        validation_status: null,
+        review_state: null,
+        approval_status: null,
+        publication_status: null,
+      },
       review_lifecycle: "unavailable",
+      review_id: null,
+      review_sha256: null,
       evaluation_outcome: "invalid_candidate",
       reviewer_present: false,
+      reviewer_identity: null,
+      decision_timestamp: null,
       expires_at: null,
+      review_statement: null,
+      rejection_reason: null,
       unresolved_findings_count: 0,
+      findings: [],
+      separation_of_duties: {
+        acquisition_operator_identity: null,
+        parser_runtime_identity: null,
+        candidate_producer_identity: null,
+        evidence_reviewer_identity: null,
+        reviewer_independence_asserted: false,
+      },
+      evaluation_id: "unavailable",
+      evaluation_sha256: "0".repeat(64),
+      evaluated_at: input.evaluated_at,
+      evaluation_reason_codes: ["candidate_schema_invalid"],
+      evaluation_bindings: {
+        candidate_artifact_id: null,
+        candidate_sha256: null,
+        review_id: null,
+        review_sha256: null,
+      },
       eligible_for_approved_artifact_building: false,
+      approved_artifact_created: false,
       export_authorized: false,
       publication_authorized: false,
+      production_reliance_authorized: false,
+      database_write_authorized: false,
+      network_call_authorized: false,
+      scheduler_authorized: false,
+      deployment_authorized: false,
+      vlatam_global_access_authorized: false,
+      execution_performed: false,
     },
     arca_approved_artifact: input.arca_approved_artifact ?? {
       present: false,
@@ -726,6 +835,7 @@ export function buildOperatorReadModel(
       export_status: "not_exported",
       publication_status: "not_published",
       production_reliance: "not_authorized",
+      vlatam_global_consumption: "not_authorized",
       export_authorized: false,
       publication_authorized: false,
       production_reliance_authorized: false,
