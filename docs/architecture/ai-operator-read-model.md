@@ -31,6 +31,13 @@ current state remains a synthetic pending review with no real reviewer,
 decision, eligibility, Approved Artifact, export, publication, production
 authority, or `vlatam-global` consumption.
 
+AI-130 does not change contract `1.7.0`. No durable store root is configured
+in repository-current state, and the console/read model must not acquire path
+authority from a request or environment value. Durable metadata therefore
+remains intentionally absent until a later reviewed read-only configuration
+contract exists. The store CLI and verifier are local boundaries and are not
+invoked by the Operator Read Model.
+
 ## Contract 1.6.0 additions (2026-07-22)
 
 Version `1.6.0` adds an audit-safe `arca_approved_artifact` projection. The

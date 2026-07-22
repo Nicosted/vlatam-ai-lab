@@ -1,0 +1,151 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.vlatam.local/durable-arca-workflow-projection.schema.json",
+  "title": "Durable ARCA workflow read projection",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "projection_type",
+    "projection_sha256",
+    "candidate_id",
+    "candidate_sha256",
+    "candidate_persisted",
+    "review",
+    "evaluation",
+    "approved_artifact",
+    "latest_event_id",
+    "latest_event_sha256",
+    "event_count",
+    "integrity_status",
+    "authoritative_over_records",
+    "export_status",
+    "publication_status",
+    "production_status",
+    "export_authorized",
+    "publication_authorized",
+    "production_authorized",
+    "network_authorized",
+    "database_authorized",
+    "scheduler_authorized",
+    "deployment_authorized",
+    "vlatam_global_access_authorized"
+  ],
+  "$defs": {
+    "sha": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "nullableSha": { "anyOf": [{ "type": "null" }, { "$ref": "#/$defs/sha" }] }
+  },
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "projection_type": { "const": "durable_arca_workflow_projection" },
+    "projection_sha256": { "$ref": "#/$defs/sha" },
+    "candidate_id": {
+      "type": "string",
+      "pattern": "^arca-candidate--[a-f0-9]{64}$"
+    },
+    "candidate_sha256": { "$ref": "#/$defs/sha" },
+    "candidate_persisted": { "const": true },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["persisted", "lifecycle", "review_id", "review_sha256"],
+      "properties": {
+        "persisted": { "type": "boolean" },
+        "lifecycle": {
+          "enum": [
+            null,
+            "pending",
+            "approved",
+            "rejected",
+            "expired",
+            "superseded"
+          ]
+        },
+        "review_id": {
+          "anyOf": [
+            { "type": "null" },
+            { "type": "string", "pattern": "^arca-review--[a-f0-9]{64}$" }
+          ]
+        },
+        "review_sha256": { "$ref": "#/$defs/nullableSha" }
+      }
+    },
+    "evaluation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "persisted",
+        "outcome",
+        "evaluation_id",
+        "evaluation_sha256"
+      ],
+      "properties": {
+        "persisted": { "type": "boolean" },
+        "outcome": {
+          "enum": [
+            null,
+            "invalid_review",
+            "invalid_candidate",
+            "candidate_binding_mismatch",
+            "pending_human_review",
+            "rejected",
+            "expired",
+            "superseded",
+            "eligible_for_approved_artifact_building"
+          ]
+        },
+        "evaluation_id": {
+          "anyOf": [
+            { "type": "null" },
+            {
+              "type": "string",
+              "pattern": "^arca-review-evaluation--[a-f0-9]{64}$"
+            }
+          ]
+        },
+        "evaluation_sha256": { "$ref": "#/$defs/nullableSha" }
+      }
+    },
+    "approved_artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "persisted",
+        "approved_artifact_id",
+        "approved_artifact_sha256"
+      ],
+      "properties": {
+        "persisted": { "type": "boolean" },
+        "approved_artifact_id": {
+          "anyOf": [
+            { "type": "null" },
+            {
+              "type": "string",
+              "pattern": "^approved-arca-artifact--[a-f0-9]{64}$"
+            }
+          ]
+        },
+        "approved_artifact_sha256": { "$ref": "#/$defs/nullableSha" }
+      }
+    },
+    "latest_event_id": {
+      "type": "string",
+      "pattern": "^arca-store-event--[a-f0-9]{64}$"
+    },
+    "latest_event_sha256": { "$ref": "#/$defs/sha" },
+    "event_count": { "type": "integer", "minimum": 1 },
+    "integrity_status": { "const": "verified" },
+    "authoritative_over_records": { "const": false },
+    "export_status": { "const": "not_exported" },
+    "publication_status": { "const": "not_published" },
+    "production_status": { "const": "not_authorized" },
+    "export_authorized": { "const": false },
+    "publication_authorized": { "const": false },
+    "production_authorized": { "const": false },
+    "network_authorized": { "const": false },
+    "database_authorized": { "const": false },
+    "scheduler_authorized": { "const": false },
+    "deployment_authorized": { "const": false },
+    "vlatam_global_access_authorized": { "const": false }
+  }
+}

@@ -15,6 +15,7 @@
     "crawler:arca:acquire": "tsx src/cli/arca-source-acquisition.ts",
     "crawler:arca:ingest-acquired": "tsx src/cli/arca-acquired-source-ingestion.ts",
     "arca:build-approved": "tsx src/cli/approved-arca-artifact-builder.ts",
+    "arca:durable-store": "tsx src/cli/durable-arca-review-store.ts",
     "crawler:packet": "tsx src/crawlers/generate-packet-from-arca.ts",
     "crawler:infoleg": "tsx src/crawlers/infoleg-crawler.ts",
     "crawler:vuce-extract": "tsx src/crawlers/vuce-extractor.ts",

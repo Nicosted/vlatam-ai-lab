@@ -1,6 +1,58 @@
 {
   "contracts": [
     {
+      "contract_name": "durable_arca_store_command",
+      "schema_file": "schemas/durable-arca-store-command.schema.json",
+      "valid_fixture": null,
+      "invalid_fixtures": [],
+      "test_file": "tests/store/durable-arca-review-store.test.ts",
+      "status": "implemented",
+      "purpose": "Closed local command boundary for recording already-created governed ARCA workflow records, rebuilding derived projections, or verifying store integrity.",
+      "downstream_role": "Filesystem persistence only; grants no review, approval, builder, export, publication, production, network, database, scheduler, deployment, or vlatam-global authority.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": true
+    },
+    {
+      "contract_name": "durable_arca_store_audit_event",
+      "schema_file": "schemas/durable-arca-store-audit-event.schema.json",
+      "valid_fixture": null,
+      "invalid_fixtures": [],
+      "test_file": "tests/store/durable-arca-review-store.test.ts",
+      "status": "implemented",
+      "purpose": "Domain-hashed, immutable, prior-bound and exactly sequenced audit event for durable ARCA store publication.",
+      "downstream_role": "Tamper-evident local audit evidence only; all external-authority fields are fixed false.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": true
+    },
+    {
+      "contract_name": "durable_arca_workflow_projection",
+      "schema_file": "schemas/durable-arca-workflow-projection.schema.json",
+      "valid_fixture": null,
+      "invalid_fixtures": [],
+      "test_file": "tests/store/durable-arca-review-store.test.ts",
+      "status": "implemented",
+      "purpose": "Deterministically rebuildable per-candidate read projection over immutable ARCA workflow records and audit events.",
+      "downstream_role": "Non-authoritative local read metadata only; immutable source records and events remain authoritative.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": true
+    },
+    {
+      "contract_name": "durable_arca_store_operation_result",
+      "schema_file": "schemas/durable-arca-store-operation-result.schema.json",
+      "valid_fixture": null,
+      "invalid_fixtures": [],
+      "test_file": "tests/store/durable-arca-review-store.test.ts",
+      "status": "implemented",
+      "purpose": "Closed success and fail-closed outcome taxonomy for durable store operations, idempotency, collisions, integrity, concurrency, and root safety.",
+      "downstream_role": "Local operation evidence only; all external-authority fields are fixed false.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": true
+    },
+    {
       "contract_name": "approved_arca_artifact",
       "schema_file": "schemas/approved-arca-artifact.schema.json",
       "valid_fixture": null,
