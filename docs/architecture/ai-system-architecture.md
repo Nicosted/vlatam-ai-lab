@@ -186,11 +186,18 @@ seed advisory cases.
 - **Already exists:** `source-monitor`, `snapshot-writer`, `delta-analyzer`,
   evidence packets under `snapshots/pcram/`, and the regulatory research
   fixtures under `data/fixtures/advisory/`.
+- **AI-126 acquired-source seam (2026-07-22):** governed replay acquisition
+  bytes and their integrity-bound provenance pass through deterministic
+  content classification into the existing ARCA parser. The output is only a
+  hash-bound candidate with mandatory human review; it is neither an Approved
+  Artifact nor publishable to `vlatam-global`. The seam has no scheduler,
+  discovery, network, LLM, approval, database, or export authority.
 - **Must not contain:** model SDK calls, vendor response objects, or any
   post-review content.
 - **Owner today:** `src/agents/source-monitor.ts`,
   `src/agents/snapshot-writer.ts`, `src/agents/delta-analyzer.ts`,
-  `src/advisory/regulatory-research-workspace.ts`.
+  `src/advisory/regulatory-research-workspace.ts`, and the bounded acquisition
+  and ingestion modules under `src/acquisition/` and `src/ingestion/`.
 
 ### Layer 2 — Domain Intelligence Layer
 
