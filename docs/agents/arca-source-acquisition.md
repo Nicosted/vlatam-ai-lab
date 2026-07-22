@@ -113,8 +113,11 @@ the adapter:
 
 1. derives the acquisition directory from the source ID, capture date, and
    acquisition ID;
-2. rejects traversal and symlinks and opens regular files with no-follow
-   semantics;
+2. validates every existing component of each absolute acquisition and
+   candidate root with `lstat`; symbolic-link components and non-directory
+   roots fail closed. Candidate ancestors are validated before recursive
+   creation, then the created root and identity-derived descendants are
+   validated again. Raw and metadata files are opened with no-follow semantics;
 3. verifies the exact acquisition-record SHA-256;
 4. verifies requested/effective URL, source host and ID, capture timestamp,
    media type, replay mode, acquisition identity, raw path, byte length, and

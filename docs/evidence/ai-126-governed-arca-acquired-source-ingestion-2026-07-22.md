@@ -14,6 +14,9 @@ Date: 2026-07-22
   commits were ancestors of the baseline.
 - Governed acquisition implementation and its final response-disposal,
   cancellation-failure, overflow, and failure-side-effect tests were present.
+- PR #121 follow-up baseline: branch and remote were identical at
+  `6085c8ee4752e8e64d4696b9482d45279ea9a2ee`; the worktree and index were
+  clean, and PR #121 remained open and draft.
 
 ## Transparent delta
 
@@ -32,6 +35,10 @@ Date: 2026-07-22
 - Added deterministic parser, positive, negative, provenance-mutation,
   raw-byte-replacement, symlink, missing-file, collision, no-partial-output,
   schema, and architecture-boundary tests.
+- Hardened configured-root validation after review: one shared helper walks
+  every existing absolute path component with `lstat`, rejects symbolic links
+  and non-directory roots, requires the acquisition root to exist, and checks
+  candidate ancestors both before and after creating the candidate root.
 
 ## Security and governance findings
 
@@ -39,6 +46,10 @@ Date: 2026-07-22
   verified against the closed parser input.
 - Raw bytes are opened only from the identity-derived acquisition directory,
   through no-symlink/no-follow checks, and are hashed before parser invocation.
+- Acquisition and candidate configured roots cannot resolve through a symbolic
+  link in any existing component. Candidate publication validates its existing
+  ancestor chain before creation and validates the created root and descendants
+  again before staging output.
 - Only acquisition records with `mode: replay` are accepted in this phase.
 - Candidate publication uses a complete staging file plus an atomic hard-link
   no-overwrite step; failures remove staging and never replace an existing
@@ -67,11 +78,11 @@ Date: 2026-07-22
 
 ## Validation record
 
-- Focused AI-126 ingestion, existing parser, governed acquisition regression,
-  schema, and architecture tests: **39 passed, 0 failed**.
+- Focused AI-126 ingestion, existing parser, and governed acquisition
+  regression tests: **41 passed, 0 failed**.
 - Complete architecture-boundary suite: **54 passed, 0 failed**.
 - Dedicated published-schema validation: **1 passed, 0 failed**.
-- Full repository suite: **1,127 passed, 0 failed** across **185 top-level
+- Full repository suite: **1,131 passed, 0 failed** across **189 top-level
   tests** and **152 suites**.
 - TypeScript typecheck: passed.
 - TypeScript build: passed.

@@ -1,7 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
 import { constants } from "node:fs";
 import { link, lstat, mkdir, open, rm } from "node:fs/promises";
-import { basename, join, relative, resolve, sep } from "node:path";
+import { basename, join, parse, relative, resolve, sep } from "node:path";
 import { Ajv2020 as Ajv } from "ajv/dist/2020.js";
 import type { SourceAcquisitionRecord } from "../acquisition/governed-source-acquisition.js";
 import {
@@ -295,23 +295,57 @@ function assertContained(root: string, target: string): void {
   }
 }
 
-async function requireRealRoot(root: string): Promise<string> {
+interface ConfiguredRootValidation {
+  label: "acquisition" | "candidate";
+  requireExisting: boolean;
+  missingCode: "MISSING_ACQUISITION" | "CANDIDATE_PUBLISH_FAILED";
+}
+
+async function validateConfiguredRoot(
+  root: string,
+  validation: ConfiguredRootValidation,
+): Promise<string> {
   const resolvedRoot = resolve(root);
-  try {
-    const rootStat = await lstat(resolvedRoot);
-    if (rootStat.isSymbolicLink()) {
+  const filesystemRoot = parse(resolvedRoot).root;
+  const relativeComponents = relative(filesystemRoot, resolvedRoot)
+    .split(sep)
+    .filter(Boolean);
+  let current = filesystemRoot;
+
+  for (let index = -1; index < relativeComponents.length; index += 1) {
+    if (index >= 0) current = join(current, relativeComponents[index]!);
+    let stat;
+    try {
+      stat = await lstat(current);
+    } catch (error: unknown) {
+      if (
+        error instanceof Error &&
+        "code" in error &&
+        error.code === "ENOENT" &&
+        !validation.requireExisting
+      ) {
+        return resolvedRoot;
+      }
       throw new GovernedArcaIngestionError(
-        "SYMLINK_REJECTED",
-        "Governed acquisition root must not be a symlink.",
+        validation.missingCode,
+        `Configured ${validation.label} root does not exist or cannot be inspected.`,
       );
     }
-  } catch (error: unknown) {
-    if (error instanceof GovernedArcaIngestionError) throw error;
-    throw new GovernedArcaIngestionError(
-      "MISSING_ACQUISITION",
-      "Governed acquisition root does not exist.",
-    );
+
+    if (stat.isSymbolicLink()) {
+      throw new GovernedArcaIngestionError(
+        "SYMLINK_REJECTED",
+        `Configured ${validation.label} root must not contain symbolic-link components.`,
+      );
+    }
+    if (!stat.isDirectory()) {
+      throw new GovernedArcaIngestionError(
+        "PATH_NOT_GOVERNED",
+        `Configured ${validation.label} root components must be directories.`,
+      );
+    }
   }
+
   return resolvedRoot;
 }
 
@@ -570,14 +604,17 @@ async function publishCandidate(
   candidateRoot: string,
   candidate: GovernedArcaCandidateArtifact,
 ): Promise<string> {
-  const resolvedRoot = resolve(candidateRoot);
+  const resolvedRoot = await validateConfiguredRoot(candidateRoot, {
+    label: "candidate",
+    requireExisting: false,
+    missingCode: "CANDIDATE_PUBLISH_FAILED",
+  });
   await mkdir(resolvedRoot, { recursive: true });
-  if ((await lstat(resolvedRoot)).isSymbolicLink()) {
-    throw new GovernedArcaIngestionError(
-      "SYMLINK_REJECTED",
-      "Candidate root must not resolve through a symlink.",
-    );
-  }
+  await validateConfiguredRoot(resolvedRoot, {
+    label: "candidate",
+    requireExisting: true,
+    missingCode: "CANDIDATE_PUBLISH_FAILED",
+  });
   const candidateDirectory = join(
     resolvedRoot,
     candidate.acquisition_artifact.source_id,
@@ -626,7 +663,14 @@ export async function ingestGovernedArcaAcquiredSource(
   assertInput(value);
   assertParser(value);
 
-  const acquisitionRoot = await requireRealRoot(options.acquisitionRoot);
+  const acquisitionRoot = await validateConfiguredRoot(
+    options.acquisitionRoot,
+    {
+      label: "acquisition",
+      requireExisting: true,
+      missingCode: "MISSING_ACQUISITION",
+    },
+  );
   const acquisitionDirectory = join(
     acquisitionRoot,
     value.acquisition.source_id,

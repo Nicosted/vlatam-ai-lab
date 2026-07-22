@@ -2,8 +2,10 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import {
   access,
+  mkdir,
   mkdtemp,
   readFile,
+  realpath,
   readdir,
   rm,
   symlink,
@@ -11,7 +13,7 @@ import {
   writeFile,
 } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { dirname, join } from "node:path";
+import { dirname, join, sep } from "node:path";
 import test from "node:test";
 import { Ajv2020 as Ajv } from "ajv/dist/2020.js";
 import { acquireSource } from "../../src/acquisition/governed-source-acquisition.js";
@@ -51,7 +53,7 @@ function hash(value: Uint8Array | string): string {
 async function prepareFixture(
   content = VALID_CONTENT,
 ): Promise<PreparedFixture> {
-  const root = await mkdtemp(join(tmpdir(), "vlatam-ai-126-"));
+  const root = await mkdtemp(join(await realpath(tmpdir()), "vlatam-ai-126-"));
   const replayPath = join(root, "fixture.txt");
   const acquisitionRoot = join(root, "acquisitions");
   const candidateRoot = join(root, "candidates");
@@ -100,9 +102,17 @@ async function cleanup(fixture: PreparedFixture): Promise<void> {
 async function candidateFiles(root: string): Promise<string[]> {
   try {
     const entries = await readdir(root, { recursive: true });
-    return entries.filter((entry) => entry.endsWith(".json"));
+    return entries.filter(
+      (entry) =>
+        entry.endsWith(".json") ||
+        entry.split(sep).some((part) => part.startsWith(".staging-")),
+    );
   } catch (error: unknown) {
-    if (error instanceof Error && "code" in error && error.code === "ENOENT") {
+    if (
+      error instanceof Error &&
+      "code" in error &&
+      (error.code === "ENOENT" || error.code === "ENOTDIR")
+    ) {
       return [];
     }
     throw error;
@@ -113,16 +123,21 @@ async function expectFailure(
   fixture: PreparedFixture,
   code: GovernedArcaIngestionError["code"],
   input: unknown = fixture.input,
+  options: Partial<{
+    acquisitionRoot: string;
+    candidateRoot: string;
+  }> = {},
 ): Promise<void> {
+  const candidateRoot = options.candidateRoot ?? fixture.candidateRoot;
   await assert.rejects(
     ingestGovernedArcaAcquiredSource(input, {
-      acquisitionRoot: fixture.acquisitionRoot,
-      candidateRoot: fixture.candidateRoot,
+      acquisitionRoot: options.acquisitionRoot ?? fixture.acquisitionRoot,
+      candidateRoot,
     }),
     (error: unknown) =>
       error instanceof GovernedArcaIngestionError && error.code === code,
   );
-  assert.deepEqual(await candidateFiles(fixture.candidateRoot), []);
+  assert.deepEqual(await candidateFiles(candidateRoot), []);
 }
 
 test("ingests only the integrity-bound replay acquisition into a deterministic review candidate", async () => {
@@ -238,6 +253,83 @@ test("rejects missing raw bytes and raw symlink substitution", async () => {
     await expectFailure(linked, "SYMLINK_REJECTED");
   } finally {
     await cleanup(linked);
+  }
+});
+
+test("rejects acquisition roots with ancestor or final symlink components", async () => {
+  const fixture = await prepareFixture();
+  try {
+    const linkedParent = join(fixture.root, "linked-acquisition-parent");
+    await symlink(fixture.root, linkedParent, "dir");
+    await expectFailure(fixture, "SYMLINK_REJECTED", fixture.input, {
+      acquisitionRoot: join(linkedParent, "acquisitions"),
+    });
+
+    const linkedRoot = join(fixture.root, "linked-acquisition-root");
+    await symlink(fixture.acquisitionRoot, linkedRoot, "dir");
+    await expectFailure(fixture, "SYMLINK_REJECTED", fixture.input, {
+      acquisitionRoot: linkedRoot,
+    });
+  } finally {
+    await cleanup(fixture);
+  }
+});
+
+test("rejects a missing configured acquisition root", async () => {
+  const fixture = await prepareFixture();
+  try {
+    await expectFailure(fixture, "MISSING_ACQUISITION", fixture.input, {
+      acquisitionRoot: join(fixture.root, "missing-acquisition-root"),
+    });
+  } finally {
+    await cleanup(fixture);
+  }
+});
+
+test("rejects candidate roots with ancestor or final symlink components", async () => {
+  const fixture = await prepareFixture();
+  try {
+    const realParent = join(fixture.root, "real-candidate-parent");
+    await mkdir(realParent);
+    const linkedParent = join(fixture.root, "linked-candidate-parent");
+    await symlink(realParent, linkedParent, "dir");
+    const candidateThroughAncestor = join(linkedParent, "candidates");
+    await expectFailure(fixture, "SYMLINK_REJECTED", fixture.input, {
+      candidateRoot: candidateThroughAncestor,
+    });
+    await assert.rejects(access(join(realParent, "candidates")), {
+      code: "ENOENT",
+    });
+
+    const realRoot = join(fixture.root, "real-candidate-root");
+    await mkdir(realRoot);
+    const linkedRoot = join(fixture.root, "linked-candidate-root");
+    await symlink(realRoot, linkedRoot, "dir");
+    await expectFailure(fixture, "SYMLINK_REJECTED", fixture.input, {
+      candidateRoot: linkedRoot,
+    });
+  } finally {
+    await cleanup(fixture);
+  }
+});
+
+test("rejects configured acquisition and candidate roots that are regular files", async () => {
+  const fixture = await prepareFixture();
+  try {
+    const acquisitionFile = join(fixture.root, "acquisition-root-file");
+    await writeFile(acquisitionFile, "not a directory");
+    await expectFailure(fixture, "PATH_NOT_GOVERNED", fixture.input, {
+      acquisitionRoot: acquisitionFile,
+    });
+
+    const candidateFile = join(fixture.root, "candidate-root-file");
+    await writeFile(candidateFile, "preserve me");
+    await expectFailure(fixture, "PATH_NOT_GOVERNED", fixture.input, {
+      candidateRoot: candidateFile,
+    });
+    assert.equal(await readFile(candidateFile, "utf8"), "preserve me");
+  } finally {
+    await cleanup(fixture);
   }
 });
 
