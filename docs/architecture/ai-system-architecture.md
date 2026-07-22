@@ -213,6 +213,18 @@ seed advisory cases.
   human-review state, exact AI-127 evaluation and local Approved Artifact
   status without adding any mutation, builder, export, publication, scheduler,
   deployment, production, or `vlatam-global` capability.
+- **AI-130 durable-store seam (2026-07-22):** one local filesystem store
+  validates and records only exact AI-126/127/128 artifacts in upstream order,
+  using a closed, hash-bound operation journal to recover interrupted
+  publication before replay. It appends a domain-hashed, prior-bound event and
+  atomically refreshes a non-authoritative per-candidate projection. Identity-derived record/event
+  paths are no-overwrite; matching bytes are idempotent and different bytes
+  at the same identity fail closed. Configured-root symlinks/non-directories
+  are rejected, competing processes serialize through exclusive filesystem
+  creation, and replay uses only immutable records, events, and explicit
+  caller timestamps. No network, acquisition, model, database, scheduler,
+  export, publisher, deployment, production, or `vlatam-global` boundary is
+  imported.
 - **Must not contain:** model SDK calls, vendor response objects, or any
   post-review content.
 - **Owner today:** `src/agents/source-monitor.ts`,
@@ -430,6 +442,32 @@ only presentation labels, and bounds/escapes human-authored statements and
 findings. It does not duplicate AI-127 evaluation or invoke AI-128 validation
 or builder execution. The repository-current projection remains synthetic,
 pending, and without an Approved Artifact or downstream authority.
+
+### Layer 8.5 — Durable ARCA Review and Artifact Store (AI-130)
+
+The AI-130 persistence seam is:
+
+`closed durable journal → validated AI-126/127/128 immutable record → identity-derived no-overwrite file → prior-bound audit event → atomically replaced derived projection`
+
+Command, event, journal, projection, and operation-result contracts are closed at
+`1.0.0`. The layout and contract versions are bound into a domain-separated
+store configuration hash. Events use an exact monotonically increasing
+sequence, bind the prior event identity/hash except at genesis, and bind all
+present workflow identities plus the store configuration. Replay rejects
+missing, reordered, duplicated, modified, or orphaned records/events.
+
+Valid journal recovery precedes ordinary chain replay under the exclusive
+lock. Record operations recover in record/event/projection order. Rebuilds
+publish the exact planned projection before their event, preventing a durable
+event from claiming a projection state that is not yet visible. Journal or
+visible-byte mismatches fail closed; recovery reuses the planned sequence and
+bytes and cannot append a duplicate replacement event.
+
+The store requires every upstream record to be present and valid before a
+downstream record can be persisted. It reuses the authoritative candidate,
+evaluation, and Approved Artifact validators and the AI-127 evaluator/binding
+logic. The projection is rebuildable and explicitly non-authoritative. The
+store records governance decisions; it never creates one.
 
 ## 4. Architectural terminology (defined here, used everywhere)
 

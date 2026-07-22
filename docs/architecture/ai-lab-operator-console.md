@@ -104,6 +104,13 @@ never claim a review is complete unless the read model says so.
 
 Every console route is GET-only, uses `Cache-Control: no-store`, accepts no governance-changing query parameters or request paths, and performs no writes. Invalid repository state fails closed with a safe HTTP 500 diagnostic; governed `blocked` state renders with HTTP 200.
 
+AI-130 adds no route, form, button, POST handler, or request-derived store
+path. Because repository-current state has no reviewed durable-store root
+configuration, `/operator/arca-review` remains unchanged and honestly shows
+only repository-backed AI-129 state. A later Operator integration must be a
+separately reviewed read-only projection over an explicitly configured root;
+it must never invoke a store write command from HTTP.
+
 ## Status and audit-safe rendering
 
 Status labels are explicit and never conveyed by color alone. IDs, versions, hashes, counts, timestamps, and repository-relative evidence paths may render. Prompts, raw documents, model responses, tokens, keys, environment values, sensitive payloads, provider error bodies, and stack traces may not render. Full source documents and raw configuration JSON are intentionally absent.

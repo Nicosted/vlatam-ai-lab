@@ -232,6 +232,56 @@ publication, production reliance, or `vlatam-global` consumption exists. The
 console contains no form or apparent action control and cannot persist a
 decision, build an artifact, or activate downstream behavior.
 
+## AI-130 Durable ARCA Review and Artifact Store boundary
+
+AI-130 adds one repository-owned local filesystem boundary for records that
+have already been created by AI-126, AI-127, or AI-128. The accepted order is
+strict: a candidate must exist before its review, a review before its
+evaluation, and an evaluation before its Approved Artifact. Missing upstream
+records are never inferred or synthesized.
+
+The versioned layout stores immutable identity-named candidate, review,
+evaluation, and Approved Artifact JSON; an exactly sequenced prior-hash-bound
+event chain; and a replaceable per-candidate projection under
+`projections/arca-workflows/`. A closed, hash-bound recovery plan is held under
+`journals/` while a mutation is incomplete. Record and event publication uses exclusive
+creation from a fully written and `fsync`ed staging file. Duplicate bytes are
+idempotent, while an existing identity with different bytes fails closed.
+The derived projection is atomically replaced, fully rebuildable, and
+explicitly non-authoritative over the immutable records and events.
+
+On every invocation, valid journal recovery runs under the exclusive lock
+before ordinary replay. Record operations finish record, event, then
+projection publication; projection rebuilds finish the exact projection before
+their audit event. Mismatched visible bytes, malformed plans, or unexpected
+journal files fail closed and require human inspection. Recovery never invents
+new bytes, a new timestamp, or a replacement event sequence.
+
+Configured roots reject symbolic-link ancestors/final components and
+non-directory components. A filesystem-exclusive operation lock serializes
+competing local processes; no database or distributed lock is introduced.
+Every timestamp is caller-supplied canonical UTC, and the implementation has
+no wall-clock dependency.
+
+```bash
+pnpm arca:durable-store -- record-candidate \
+  --store-root path/to/local-store \
+  --record path/to/candidate.json \
+  --actor human:stable-id \
+  --timestamp 2026-07-22T15:00:00.000Z
+
+pnpm arca:durable-store -- verify-store \
+  --store-root path/to/local-store \
+  --actor service:durable-arca-store@1.0.0 \
+  --timestamp 2026-07-22T15:00:00.000Z
+```
+
+The CLI accepts governed JSON paths only for record operations. It accepts no
+URL, prompt, source acquisition, approval decision, export/publication flag,
+production flag, credential, or network option. Persistence does not make its
+actor a reviewer, builder, publisher, export approver, or production approver.
+All external-authority fields remain false.
+
 ## Deferred work
 
 The following belong to later, separately reviewed PRs:
@@ -241,4 +291,4 @@ The following belong to later, separately reviewed PRs:
 - concurrency locks and durable run records;
 - alerts and GitHub artifacts;
 - reviewed regulatory change feed.
-- AI-130 Durable Review and Artifact Store.
+- AI-131 Controlled Live ARCA Run.
