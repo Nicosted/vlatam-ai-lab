@@ -37,6 +37,7 @@ const NAV_LABELS = [
   "Bloqueos",
   "Acciones requeridas",
   "Revisión humana",
+  "Revisión ARCA",
   "Ejecución",
   "Auditoría",
 ] as const;

@@ -21,12 +21,17 @@ canonical IDs, hashes, contract names, provider names, model names, reason
 codes, and artifact identities render exactly as the Operator Read Model
 provides them, and serialized contracts are never translated.
 
-Translation lives in one place: `src/operator/operator-presentation.ts`, a
+General translation lives in `src/operator/operator-presentation.ts`, a
 centralized dictionary and formatter layer covering statuses, blocker
 categories, severities, resolution classes, owner roles, execution stages,
 read-model field labels, and known reason-code summaries. Rendering functions
 never hard-code scattered translations. The formatter depends only on
 read-model values and recalculates no governance decision.
+
+The dedicated ARCA vocabulary and bounded human-text projection live beside
+it in the pure `arca-review-console-view-model.ts` builder. That builder
+consumes only Operator Read Model `1.7.0`; it preserves canonical outcomes and
+hashes and performs no AI-127 evaluation or AI-128 validation/building.
 
 Unknown machine values fail honest: they remain visible in canonical form,
 are explicitly marked "valor técnico sin traducción", and are never
@@ -70,6 +75,13 @@ clipboard JavaScript is used.
   readiness and acceptance state, bound artifact versions with abbreviated
   hashes, expiry, and the deterministic next governed action. Informational
   only: no approval buttons, forms, uploads, or mutation endpoints
+- `/operator/arca-review` — Revisión ARCA: candidate provenance and fixed
+  states, human-review lifecycle and controlled findings, exact AI-127
+  evaluation/bindings/non-authorities, Approved Artifact presence, and Spanish
+  governance explanations. Repository-current state is explicitly labelled
+  `repository-current`, `synthetic fixture`, `real human decision absent`, and
+  `Approved Artifact absent`. This route is GET-only and has no review,
+  builder, export, publication, or activation controls
 - `/operator/execution` — Ejecución: the governed chain
   `Registro → Resolución → Autorización → Política exacta → Consumo atómico → Gateway → Adaptador`
   with honest absent/blocked/disabled/not-attempted distinctions

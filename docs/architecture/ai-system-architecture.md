@@ -207,6 +207,12 @@ seed advisory cases.
   payload is the unchanged candidate parsed output. Export, publication,
   production reliance, database, network, scheduler, deployment, and
   `vlatam-global` authority remain false.
+- **AI-129 operator-understanding seam (2026-07-22):** Operator Read Model
+  `1.7.0` feeds one pure ARCA console view model and the GET-only
+  `/operator/arca-review` route. The Spanish UI exposes candidate provenance,
+  human-review state, exact AI-127 evaluation and local Approved Artifact
+  status without adding any mutation, builder, export, publication, scheduler,
+  deployment, production, or `vlatam-global` capability.
 - **Must not contain:** model SDK calls, vendor response objects, or any
   post-review content.
 - **Owner today:** `src/agents/source-monitor.ts`,
@@ -412,6 +418,18 @@ local approved-artifact root using symlink rejection, staging, atomic hard-link
 publication and collision refusal. The fixed artifact states are `approved`,
 `not_exported`, `not_published`, and `not_authorized` for production reliance
 and `vlatam-global` consumption.
+
+### Layer 8.4 — ARCA Operator Review Console (AI-129)
+
+The AI-129 presentation seam is:
+
+`repository-governed Operator Read Model 1.7.0 → pure ARCA console view model → read-only Spanish route → human operator understanding`
+
+The route preserves canonical enums, IDs, bindings and full hashes, translates
+only presentation labels, and bounds/escapes human-authored statements and
+findings. It does not duplicate AI-127 evaluation or invoke AI-128 validation
+or builder execution. The repository-current projection remains synthetic,
+pending, and without an Approved Artifact or downstream authority.
 
 ## 4. Architectural terminology (defined here, used everywhere)
 

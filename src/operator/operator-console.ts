@@ -23,6 +23,7 @@ import type {
   OperatorReadModel,
   OperatorRequiredAction,
 } from "./operator-read-model.js";
+import { buildArcaReviewConsoleViewModel } from "./arca-review-console-view-model.js";
 
 const ROUTES = [
   ["Resumen", "/operator"],
@@ -31,6 +32,7 @@ const ROUTES = [
   ["Bloqueos", "/operator/blockers"],
   ["Acciones requeridas", "/operator/actions"],
   ["Revisión humana", "/operator/review"],
+  ["Revisión ARCA", "/operator/arca-review"],
   ["Ejecución", "/operator/execution"],
   ["Auditoría", "/operator/audit"],
 ] as const;
@@ -104,8 +106,12 @@ function shell(
   content: string,
 ): string {
   const summary = model.system_summary;
-  return `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AI LAB — Consola del operador</title><style>
-  :root{color-scheme:light;--ink:#18201f;--muted:#5d6a67;--line:#d8dfdc;--panel:#fff;--bg:#f4f6f5;--blocked:#9a2f2f;--pending:#765b00;--ok:#176b45;--focus:#005fcc}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 system-ui,-apple-system,sans-serif}a{color:inherit}.skip{position:absolute;left:-999px}.skip:focus{left:1rem;top:1rem;background:#fff;padding:.7rem;z-index:2}header{background:#172321;color:#fff;padding:1rem 1.5rem}.top{display:flex;gap:1rem;align-items:center;justify-content:space-between;flex-wrap:wrap}.top h1{font-size:1.15rem;margin:0}.meta{display:flex;gap:.75rem;flex-wrap:wrap;color:#d7e0dd;font-size:.84rem;align-items:center}.meta code{color:#d7e0dd}nav{background:#fff;border-bottom:1px solid var(--line);padding:.55rem 1.5rem;display:flex;gap:.25rem;overflow:auto}nav a{padding:.45rem .65rem;text-decoration:none;border-radius:.25rem;white-space:nowrap}nav a[aria-current=page]{background:#e5ece9;font-weight:700}a:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid var(--focus);outline-offset:2px}main{max-width:1080px;margin:auto;padding:1.25rem}h2{font-size:1.4rem;margin:.2rem 0 .4rem}.lead{margin:0 0 1rem;color:var(--muted)}h3{font-size:1.05rem;margin:0 0 .7rem}h4{font-size:.9rem;margin:0 0 .45rem;color:var(--muted)}.notice{border-left:5px solid var(--blocked);background:#fff;padding:1rem;margin-bottom:1rem}.grid-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.8rem;margin-bottom:1rem}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:.9rem}.card{background:var(--panel);border:1px solid var(--line);border-radius:.35rem;padding:1rem;margin-bottom:1rem;min-width:0}.grid2>.card{margin-bottom:0}.metric{background:var(--panel);border:1px solid var(--line);border-radius:.35rem;padding:.8rem;min-width:0}.metric span{display:block;color:var(--muted);font-size:.8rem}.metric strong{font-size:1.15rem;overflow-wrap:break-word}.badge{display:inline-block;border:1px solid currentColor;border-radius:999px;padding:.12rem .55rem;font-size:.78rem;font-weight:700}.status-blocked,.status-invalid_state,.status-disabled,.status-rejected,.status-absent,.status-missing,.status-unavailable{color:var(--blocked);background:#fff0f0}.status-pending,.status-not_configured,.status-not_attempted,.status-no_policy_issued,.status-not_invoked,.status-authorization_pending,.status-not_started,.status-unknown,.status-evidence_incomplete,.status-none{color:var(--pending);background:#fff9dc}.status-healthy,.status-enabled,.status-valid,.status-approved,.status-available,.status-complete,.status-active,.status-true{color:var(--ok);background:#edf9f2}.status-false{color:var(--blocked);background:#fff0f0}.severity-critical,.severity-high{color:var(--blocked);background:#fff0f0}.severity-medium{color:var(--pending);background:#fff9dc}.severity-low{color:var(--muted);background:#f0f3f2}.untranslated{color:var(--muted);font-size:.78rem}dl{display:grid;grid-template-columns:minmax(150px,1fr) 2fr;gap:.4rem 1rem;margin:0}dt{color:var(--muted)}dd{margin:0;min-width:0;overflow-wrap:break-word}code{font:12px/1.5 ui-monospace,SFMono-Regular,monospace;overflow-wrap:break-word}.code-block{display:block;margin:.4rem 0 0;padding:.55rem .75rem;background:#f0f3f2;border:1px solid var(--line);border-radius:.25rem;overflow-x:auto;white-space:pre;user-select:text}.code-block code{overflow-wrap:normal;white-space:pre}details.tech{margin-top:.5rem}details.tech summary{cursor:pointer;color:var(--muted);font-size:.84rem}.filters{display:flex;gap:.7rem;flex-wrap:wrap;margin-bottom:.6rem}.filters label{font-size:.8rem;color:var(--muted)}select{display:block;padding:.35rem;background:#fff;border:1px solid #87928f}ol.records{list-style:none;margin:0;padding:0;counter-reset:record}ol.records>li{counter-increment:record}ol.records h3::before{content:counter(record) ". ";color:var(--muted)}.chain{display:grid;grid-template-columns:repeat(7,1fr);gap:.5rem;margin-bottom:1rem}.stage{background:#fff;border:1px solid var(--line);padding:.75rem;text-align:center;min-width:0}.stage p{font-size:.8rem;color:var(--muted);margin:.4rem 0 0}.stage:not(:last-child)::after{content:"→";float:right;margin-right:-1.15rem}.quiet{color:var(--muted)}ul{padding-left:1.2rem}@media(max-width:920px){.grid2{grid-template-columns:1fr}.chain{grid-template-columns:1fr}.stage:not(:last-child)::after{content:"↓";float:none;display:block;margin:.6rem 0 -1rem}}@media(max-width:800px){main{padding:.8rem}header,nav{padding-left:.8rem;padding-right:.8rem}}@media(max-width:480px){dl{grid-template-columns:1fr}dd{margin-bottom:.4rem}.meta{display:block}}
+  const pageTitle =
+    pathname === "/operator/arca-review"
+      ? "Revisión ARCA — Consola del operador"
+      : "AI LAB — Consola del operador";
+  return `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${pageTitle}</title><style>
+  :root{color-scheme:light;--ink:#18201f;--muted:#5d6a67;--line:#d8dfdc;--panel:#fff;--bg:#f4f6f5;--blocked:#9a2f2f;--pending:#765b00;--ok:#176b45;--focus:#005fcc}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 system-ui,-apple-system,sans-serif}a{color:inherit}.skip{position:absolute;left:-999px}.skip:focus{left:1rem;top:1rem;background:#fff;padding:.7rem;z-index:2}header{background:#172321;color:#fff;padding:1rem 1.5rem}.top{display:flex;gap:1rem;align-items:center;justify-content:space-between;flex-wrap:wrap}.top h1{font-size:1.15rem;margin:0}.meta{display:flex;gap:.75rem;flex-wrap:wrap;color:#d7e0dd;font-size:.84rem;align-items:center}.meta code{color:#d7e0dd}nav{background:#fff;border-bottom:1px solid var(--line);padding:.55rem 1.5rem;display:flex;gap:.25rem;overflow:auto}nav a{padding:.45rem .65rem;text-decoration:none;border-radius:.25rem;white-space:nowrap}nav a[aria-current=page]{background:#e5ece9;font-weight:700}a:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid var(--focus);outline-offset:2px}main{max-width:1080px;margin:auto;padding:1.25rem}h2{font-size:1.4rem;margin:.2rem 0 .4rem}.lead{margin:0 0 1rem;color:var(--muted)}h3{font-size:1.05rem;margin:0 0 .7rem}h4{font-size:.9rem;margin:0 0 .45rem;color:var(--muted)}.notice{border-left:5px solid var(--blocked);background:#fff;padding:1rem;margin-bottom:1rem}.grid-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.8rem;margin-bottom:1rem}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:.9rem}.card{background:var(--panel);border:1px solid var(--line);border-radius:.35rem;padding:1rem;margin-bottom:1rem;min-width:0}.grid2>.card{margin-bottom:0}.metric{background:var(--panel);border:1px solid var(--line);border-radius:.35rem;padding:.8rem;min-width:0}.metric span{display:block;color:var(--muted);font-size:.8rem}.metric strong{font-size:1.15rem;overflow-wrap:break-word}.badge{display:inline-block;border:1px solid currentColor;border-radius:999px;padding:.12rem .55rem;font-size:.78rem;font-weight:700}.status-blocked,.status-invalid_state,.status-disabled,.status-rejected,.status-absent,.status-missing,.status-unavailable{color:var(--blocked);background:#fff0f0}.status-pending,.status-not_configured,.status-not_attempted,.status-no_policy_issued,.status-not_invoked,.status-authorization_pending,.status-not_started,.status-unknown,.status-evidence_incomplete,.status-none{color:var(--pending);background:#fff9dc}.status-healthy,.status-enabled,.status-valid,.status-approved,.status-available,.status-complete,.status-active,.status-true{color:var(--ok);background:#edf9f2}.status-false{color:var(--blocked);background:#fff0f0}.severity-critical,.severity-high{color:var(--blocked);background:#fff0f0}.severity-medium{color:var(--pending);background:#fff9dc}.severity-low{color:var(--muted);background:#f0f3f2}.untranslated{color:var(--muted);font-size:.78rem}dl{display:grid;grid-template-columns:minmax(150px,1fr) 2fr;gap:.4rem 1rem;margin:0}dt{color:var(--muted)}dd{margin:0;min-width:0;overflow-wrap:break-word}code{font:12px/1.5 ui-monospace,SFMono-Regular,monospace;overflow-wrap:break-word}.code-block{display:block;margin:.4rem 0 0;padding:.55rem .75rem;background:#f0f3f2;border:1px solid var(--line);border-radius:.25rem;overflow-x:auto;white-space:pre;user-select:text}.code-block code{overflow-wrap:normal;white-space:pre}details.tech{margin-top:.5rem}details.tech summary{cursor:pointer;color:var(--muted);font-size:.84rem}.filters{display:flex;gap:.7rem;flex-wrap:wrap;margin-bottom:.6rem}.filters label{font-size:.8rem;color:var(--muted)}select{display:block;padding:.35rem;background:#fff;border:1px solid #87928f}ol.records{list-style:none;margin:0;padding:0;counter-reset:record}ol.records>li{counter-increment:record}ol.records h3::before{content:counter(record) ". ";color:var(--muted)}.chain{display:grid;grid-template-columns:repeat(7,1fr);gap:.5rem;margin-bottom:1rem}.stage{background:#fff;border:1px solid var(--line);padding:.75rem;text-align:center;min-width:0}.stage p{font-size:.8rem;color:var(--muted);margin:.4rem 0 0}.stage:not(:last-child)::after{content:"→";float:right;margin-right:-1.15rem}.quiet{color:var(--muted)}.table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse}th,td{text-align:left;vertical-align:top;border-bottom:1px solid var(--line);padding:.55rem}th{color:var(--muted)}ul{padding-left:1.2rem}@media(max-width:920px){.grid2{grid-template-columns:1fr}.chain{grid-template-columns:1fr}.stage:not(:last-child)::after{content:"↓";float:none;display:block;margin:.6rem 0 -1rem}}@media(max-width:800px){main{padding:.8rem}header,nav{padding-left:.8rem;padding-right:.8rem}}@media(max-width:480px){dl{grid-template-columns:1fr}dd{margin-bottom:.4rem}.meta{display:block}}
   </style></head><body><a class="skip" href="#main">Saltar al contenido principal</a><header><div class="top"><h1>AI LAB — Consola del operador</h1><div class="meta"><span>Estado global ${badge(summary.overall_status)}</span><span>Evaluado ${escapeHtml(summary.last_evaluated_at)}</span><span>Contrato ${escapeHtml(summary.read_model_contract_version)}</span><span>Hash ${code(shortHash(summary.read_model_hash))}</span></div></div></header><nav aria-label="Consola del operador">${ROUTES.map(([name, href]) => `<a href="${href}"${pathname === href || (href === "/operator/providers" && pathname.startsWith("/operator/providers/")) ? ' aria-current="page"' : ""}>${name}</a>`).join("")}</nav><main id="main">${content}</main></body></html>`;
 }
 
@@ -539,6 +545,139 @@ function review(model: OperatorReadModel): string {
     .join(
       "",
     )}</ul></section><section class="card"><h3>Próxima acción gobernada</h3><p>${nextAction ? escapeHtml(nextAction) : `${code(r.next_governed_action)}${untranslated()}`}</p><p class="quiet">Incluso una revisión elegible nunca autoriza ejecución, acceso a secretos ni habilitación de runtime: solo permite proponer un PR separado y revisado de configuración.</p></section>`;
+}
+
+function arcaReview(model: OperatorReadModel): string {
+  const view = buildArcaReviewConsoleViewModel(model);
+  const c = view.candidate;
+  const r = view.review;
+  const e = view.evaluation;
+  const a = view.approved_artifact;
+  const hashField = (
+    label: string,
+    value: { readonly short: string; readonly full: string | null },
+  ): readonly [string, string] => [
+    label,
+    `${code(value.short)}${value.full ? disclosure(`Hash completo: ${label}`, value.full) : ""}`,
+  ];
+  const bindingRows = [
+    [
+      "Candidato",
+      e.bindings.candidate_artifact_id,
+      e.bindings.candidate_sha256,
+    ],
+    ["Revisión", e.bindings.review_id, e.bindings.review_sha256],
+  ] as const;
+  const findings = r.findings.length
+    ? `<div class="table-wrap"><table><thead><tr><th scope="col">Código</th><th scope="col">Severidad</th><th scope="col">Categoría</th><th scope="col">Descripción</th><th scope="col">Resolución</th></tr></thead><tbody>${r.findings
+        .map(
+          (finding) =>
+            `<tr><td>${code(finding.finding_code)}</td><td>${escapeHtml(finding.severity)}</td><td>${escapeHtml(finding.category)}</td><td>${escapeHtml(finding.description)}</td><td>${escapeHtml(finding.resolution_status)}</td></tr>`,
+        )
+        .join("")}</tbody></table></div>`
+    : `<p class="quiet">No hay hallazgos controlados registrados.</p>`;
+
+  return `<h2>Revisión ARCA</h2><p class="lead">Consola interna de solo lectura para comprender el flujo candidato → revisión → evaluación → Approved Artifact. No ejecuta ni modifica ninguna etapa.</p><section class="notice" aria-label="Origen y autoridad"><strong>Estado de origen</strong><ul>${view.source_labels.map((value) => `<li>${escapeHtml(value)}</li>`).join("")}</ul></section><section class="card"><h3>Resumen del candidato</h3>${dl(
+    [
+      ["ID del artefacto candidato", code(c.artifact_id ?? "ausente")],
+      hashField("Hash del candidato", c.hash),
+      ["ID de adquisición", code(c.acquisition_id ?? "ausente")],
+      ["Fuente", text(c.source ?? "ausente")],
+      ["Capturado", text(c.captured_at ?? "ausente")],
+      ["Parser", code(c.parser_identity ?? "ausente")],
+      hashField("Hash de salida parseada", c.parsed_output_hash),
+      ["Líneas arancelarias", text(c.tariff_line_count ?? "ausente")],
+      ["Validación fija", code(c.states.validation_status ?? "ausente")],
+      ["Revisión fija", code(c.states.review_state ?? "ausente")],
+      ["Aprobación fija", code(c.states.approval_status ?? "ausente")],
+      ["Publicación fija", code(c.states.publication_status ?? "ausente")],
+    ],
+  )}</section><section class="card"><h3>Revisión humana</h3>${dl([
+    [
+      "Ciclo de vida",
+      `<span class="badge status-${escapeHtml(r.lifecycle)}">${escapeHtml(r.lifecycle_label)}</span> ${code(r.lifecycle)}`,
+    ],
+    [
+      "Revisor",
+      r.reviewer_present
+        ? code(r.reviewer_identity ?? "identidad ausente")
+        : "Ausente — no existe una decisión humana real",
+    ],
+    ["Fecha de decisión", text(r.decision_timestamp ?? "ausente")],
+    ["Vencimiento", text(r.expires_at ?? "ausente")],
+    ["Declaración de revisión", text(r.review_statement ?? "ausente")],
+    ["Motivo de rechazo", text(r.rejection_reason ?? "ausente")],
+    ["Hallazgos sin resolver", text(r.unresolved_findings_count)],
+    ["ID de revisión", code(r.review_id ?? "ausente")],
+    hashField("Hash de revisión", r.review_hash),
+    [
+      "Independencia declarada",
+      yesNo(r.separation_of_duties.reviewer_independence_asserted),
+    ],
+  ])}<h4>Separación de funciones</h4>${dl([
+    [
+      "Operador de adquisición",
+      code(r.separation_of_duties.acquisition_operator_identity ?? "ausente"),
+    ],
+    [
+      "Runtime del parser",
+      code(r.separation_of_duties.parser_runtime_identity ?? "ausente"),
+    ],
+    [
+      "Productor del candidato",
+      code(r.separation_of_duties.candidate_producer_identity ?? "ausente"),
+    ],
+    [
+      "Revisor de evidencia",
+      code(r.separation_of_duties.evidence_reviewer_identity ?? "ausente"),
+    ],
+  ])}<h4>Hallazgos controlados</h4>${findings}</section><section class="card"><h3>Evaluación</h3>${dl(
+    [
+      [
+        "Resultado exacto",
+        `<span class="badge status-${escapeHtml(e.outcome)}">${escapeHtml(e.outcome_label)}</span> ${code(e.outcome)}`,
+      ],
+      ["Evaluado", text(e.evaluated_at)],
+      ["ID de evaluación", code(e.evaluation_id)],
+      hashField("Hash de evaluación", e.evaluation_hash),
+      [
+        "Elegibilidad del builder",
+        e.eligible_for_approved_artifact_building
+          ? "Elegible únicamente para construir el artefacto aprobado"
+          : "No elegible para construir el artefacto aprobado",
+      ],
+    ],
+  )}${codeList("Códigos de razón canónicos", e.reason_codes)}<h4>Vinculaciones exactas</h4><div class="table-wrap"><table><thead><tr><th scope="col">Tipo</th><th scope="col">ID</th><th scope="col">Hash</th></tr></thead><tbody>${bindingRows
+    .map(
+      ([kind, id, hashValue]) =>
+        `<tr><th scope="row">${kind}</th><td>${code(id ?? "ausente")}</td><td>${hashValue ? `${code(shortHash(hashValue))}${disclosure(`Hash completo de ${kind.toLowerCase()}`, hashValue)}` : "ausente"}</td></tr>`,
+    )
+    .join(
+      "",
+    )}</tbody></table></div><h4>No autoridades explícitas</h4><ul>${e.non_authorities.map((value) => `<li>${escapeHtml(value)}</li>`).join("")}</ul></section><section class="card"><h3>Approved Artifact</h3>${dl(
+    [
+      [
+        "Presencia",
+        a.present
+          ? "Artefacto aprobado local — Presente"
+          : "Ausente — no existe un Approved Artifact",
+      ],
+      ["ID", code(a.approved_artifact_id ?? "ausente")],
+      hashField("Hash del Approved Artifact", a.artifact_hash),
+      ["Builder", code(a.builder_identity ?? "ausente")],
+      ["Construido", text(a.build_timestamp ?? "ausente")],
+      ["Exportación", `No exportado ${code(a.export_status)}`],
+      ["Publicación", `No publicado ${code(a.publication_status)}`],
+      [
+        "Uso en producción",
+        `Uso en producción no autorizado ${code(a.production_reliance)}`,
+      ],
+      [
+        "Consumo por vlatam-global",
+        `No autorizado ${code(a.vlatam_global_consumption)}`,
+      ],
+    ],
+  )}</section><section class="card"><h3>Qué significa este estado</h3><ul><li><strong>“Aprobado” no significa exportado.</strong></li><li><strong>“Approved Artifact” no significa autorizado para producción.</strong></li><li>La exportación y el uso en producción requieren compuertas posteriores e independientes.</li><li>El estado actual del repositorio puede ser sintético y estar pendiente; las etiquetas de origen anteriores indican exactamente cuál es el caso.</li></ul></section>`;
 }
 
 function governance(model: OperatorReadModel): string {
@@ -984,15 +1123,17 @@ export function renderOperatorConsole(
           ? openrouter(model)
           : pathname === "/operator/review"
             ? review(model)
-            : pathname === "/operator/governance"
-              ? governance(model)
-              : pathname === "/operator/blockers"
-                ? blockers(model)
-                : pathname === "/operator/actions"
-                  ? actions(model)
-                  : pathname === "/operator/execution"
-                    ? execution(model)
-                    : audit(model);
+            : pathname === "/operator/arca-review"
+              ? arcaReview(model)
+              : pathname === "/operator/governance"
+                ? governance(model)
+                : pathname === "/operator/blockers"
+                  ? blockers(model)
+                  : pathname === "/operator/actions"
+                    ? actions(model)
+                    : pathname === "/operator/execution"
+                      ? execution(model)
+                      : audit(model);
   return shell(model, pathname, content);
 }
 

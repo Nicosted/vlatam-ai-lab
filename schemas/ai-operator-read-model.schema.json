@@ -33,7 +33,7 @@
     "tournament"
   ],
   "properties": {
-    "contract_version": { "const": "1.6.0" },
+    "contract_version": { "const": "1.7.0" },
     "system_summary": {
       "type": "object",
       "required": [
@@ -63,7 +63,7 @@
         "active_blockers": { "type": "integer", "minimum": 0 },
         "execution_authorized_count": { "type": "integer", "minimum": 0 },
         "last_evaluated_at": { "type": "string", "format": "date-time" },
-        "read_model_contract_version": { "const": "1.6.0" },
+        "read_model_contract_version": { "const": "1.7.0" },
         "read_model_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
       },
       "additionalProperties": false
@@ -300,31 +300,196 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
+        "source_context",
         "candidate_artifact_id",
         "candidate_sha256",
+        "acquisition_id",
+        "source",
+        "captured_at",
+        "parser_id",
+        "parser_version",
+        "parsed_output_sha256",
+        "tariff_line_count",
+        "candidate_states",
         "review_lifecycle",
+        "review_id",
+        "review_sha256",
         "evaluation_outcome",
         "reviewer_present",
+        "reviewer_identity",
+        "decision_timestamp",
         "expires_at",
+        "review_statement",
+        "rejection_reason",
         "unresolved_findings_count",
+        "findings",
+        "separation_of_duties",
+        "evaluation_id",
+        "evaluation_sha256",
+        "evaluated_at",
+        "evaluation_reason_codes",
+        "evaluation_bindings",
         "eligible_for_approved_artifact_building",
+        "approved_artifact_created",
         "export_authorized",
-        "publication_authorized"
+        "publication_authorized",
+        "production_reliance_authorized",
+        "database_write_authorized",
+        "network_call_authorized",
+        "scheduler_authorized",
+        "deployment_authorized",
+        "vlatam_global_access_authorized",
+        "execution_performed"
       ],
       "properties": {
+        "source_context": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "projection_source",
+            "fixture_kind",
+            "synthetic_candidate",
+            "real_human_decision"
+          ],
+          "properties": {
+            "projection_source": {
+              "enum": ["repository-current", "synthetic_fixture"]
+            },
+            "fixture_kind": { "type": ["string", "null"] },
+            "synthetic_candidate": { "type": "boolean" },
+            "real_human_decision": { "enum": ["absent", "present"] }
+          }
+        },
         "candidate_artifact_id": { "type": ["string", "null"] },
         "candidate_sha256": {
           "type": ["string", "null"],
           "pattern": "^[a-f0-9]{64}$"
         },
+        "acquisition_id": { "type": ["string", "null"] },
+        "source": { "type": ["string", "null"] },
+        "captured_at": { "type": ["string", "null"], "format": "date-time" },
+        "parser_id": { "type": ["string", "null"] },
+        "parser_version": { "type": ["string", "null"] },
+        "parsed_output_sha256": {
+          "type": ["string", "null"],
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "tariff_line_count": { "type": ["integer", "null"], "minimum": 0 },
+        "candidate_states": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "validation_status",
+            "review_state",
+            "approval_status",
+            "publication_status"
+          ],
+          "properties": {
+            "validation_status": { "type": ["string", "null"] },
+            "review_state": { "type": ["string", "null"] },
+            "approval_status": { "type": ["string", "null"] },
+            "publication_status": { "type": ["string", "null"] }
+          }
+        },
         "review_lifecycle": { "type": "string" },
+        "review_id": { "type": ["string", "null"] },
+        "review_sha256": {
+          "type": ["string", "null"],
+          "pattern": "^[a-f0-9]{64}$"
+        },
         "evaluation_outcome": { "type": "string" },
         "reviewer_present": { "type": "boolean" },
+        "reviewer_identity": { "type": ["string", "null"] },
+        "decision_timestamp": {
+          "type": ["string", "null"],
+          "format": "date-time"
+        },
         "expires_at": { "type": ["string", "null"], "format": "date-time" },
+        "review_statement": { "type": ["string", "null"] },
+        "rejection_reason": { "type": ["string", "null"] },
         "unresolved_findings_count": { "type": "integer", "minimum": 0 },
+        "findings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "severity",
+              "category",
+              "finding_code",
+              "description",
+              "resolution_status"
+            ],
+            "properties": {
+              "severity": { "type": "string" },
+              "category": { "type": "string" },
+              "finding_code": { "type": "string" },
+              "description": { "type": "string" },
+              "resolution_status": { "type": "string" }
+            }
+          }
+        },
+        "separation_of_duties": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "acquisition_operator_identity",
+            "parser_runtime_identity",
+            "candidate_producer_identity",
+            "evidence_reviewer_identity",
+            "reviewer_independence_asserted"
+          ],
+          "properties": {
+            "acquisition_operator_identity": { "type": ["string", "null"] },
+            "parser_runtime_identity": { "type": ["string", "null"] },
+            "candidate_producer_identity": { "type": ["string", "null"] },
+            "evidence_reviewer_identity": { "type": ["string", "null"] },
+            "reviewer_independence_asserted": { "type": "boolean" }
+          }
+        },
+        "evaluation_id": { "type": "string" },
+        "evaluation_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "evaluated_at": { "type": "string", "format": "date-time" },
+        "evaluation_reason_codes": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "evaluation_bindings": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "candidate_artifact_id",
+            "candidate_sha256",
+            "review_id",
+            "review_sha256"
+          ],
+          "properties": {
+            "candidate_artifact_id": { "type": ["string", "null"] },
+            "candidate_sha256": {
+              "type": ["string", "null"],
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "review_id": { "type": ["string", "null"] },
+            "review_sha256": {
+              "type": ["string", "null"],
+              "pattern": "^[a-f0-9]{64}$"
+            }
+          }
+        },
         "eligible_for_approved_artifact_building": { "type": "boolean" },
+        "approved_artifact_created": { "const": false },
         "export_authorized": { "const": false },
-        "publication_authorized": { "const": false }
+        "publication_authorized": { "const": false },
+        "production_reliance_authorized": { "const": false },
+        "database_write_authorized": { "const": false },
+        "network_call_authorized": { "const": false },
+        "scheduler_authorized": { "const": false },
+        "deployment_authorized": { "const": false },
+        "vlatam_global_access_authorized": { "const": false },
+        "execution_performed": { "const": false }
       }
     },
     "arca_approved_artifact": {
@@ -345,6 +510,7 @@
         "export_status",
         "publication_status",
         "production_reliance",
+        "vlatam_global_consumption",
         "export_authorized",
         "publication_authorized",
         "production_reliance_authorized",
@@ -382,6 +548,7 @@
         "export_status": { "const": "not_exported" },
         "publication_status": { "const": "not_published" },
         "production_reliance": { "const": "not_authorized" },
+        "vlatam_global_consumption": { "const": "not_authorized" },
         "export_authorized": { "const": false },
         "publication_authorized": { "const": false },
         "production_reliance_authorized": { "const": false },
