@@ -89,7 +89,7 @@ function review(
   const decided = lifecycle !== "pending";
   const reviewer = decided
     ? {
-        identity: "human:synthetic-evidence-reviewer",
+        identity: "human:synthetic-independent-reviewer",
         identity_type: "human" as const,
         role: "evidence_reviewer" as const,
       }
@@ -269,7 +269,7 @@ test("skipped or inconsistent lifecycle transitions are invalid", () => {
   );
 });
 
-test("malformed and automated reviewer identities are invalid", () => {
+test("reviewer identities use the closed human namespace", () => {
   for (const identity of ["", "   "]) {
     const malformed = structuredClone(review("approved")) as unknown as Record<
       string,
@@ -278,29 +278,87 @@ test("malformed and automated reviewer identities are invalid", () => {
     (malformed["reviewer"] as Record<string, unknown>)["identity"] = identity;
     assertReason(outcome(malformed), "invalid_review", "review_schema_invalid");
   }
-  const automated = structuredClone(review("approved")) as unknown as Record<
-    string,
-    unknown
-  >;
-  (automated["reviewer"] as Record<string, unknown>)["identity_type"] =
-    "automated";
-  assertReason(outcome(automated), "invalid_review", "review_schema_invalid");
+  for (const identity of [
+    "synthetic-reviewer",
+    "dependabot[bot]",
+    "github-actions[bot]",
+    "copilot",
+    "ci-runner",
+    "service-account@example.com",
+    "runtime:auto-reviewer",
+    "bot:auto-reviewer",
+  ]) {
+    const invalidIdentity = structuredClone(review("approved"));
+    (invalidIdentity.reviewer as unknown as Record<string, unknown>)[
+      "identity"
+    ] = identity;
+    (
+      invalidIdentity.separation_of_duties as unknown as Record<string, unknown>
+    )["evidence_reviewer_identity"] = identity;
+    assertReason(
+      outcome(reseal(invalidIdentity)),
+      "invalid_review",
+      "review_schema_invalid",
+    );
+  }
 
-  const disguisedAutomation = structuredClone(review("approved"));
-  (disguisedAutomation.reviewer as unknown as Record<string, unknown>)[
-    "identity"
-  ] = "runtime:auto-reviewer";
-  (
-    disguisedAutomation.separation_of_duties as unknown as Record<
-      string,
-      unknown
-    >
-  )["evidence_reviewer_identity"] = "runtime:auto-reviewer";
+  const automatedType = structuredClone(
+    review("approved"),
+  ) as unknown as Record<string, unknown>;
+  (automatedType["reviewer"] as Record<string, unknown>)["identity_type"] =
+    "automated";
   assertReason(
-    outcome(reseal(disguisedAutomation)),
+    outcome(automatedType),
     "invalid_review",
-    "reviewer_not_human",
+    "review_schema_invalid",
   );
+});
+
+test("future decisions are invalid before lifecycle outcomes", () => {
+  for (const lifecycle of ["approved", "rejected", "superseded"] as const) {
+    const futureDecision = review(lifecycle, {
+      decision_timestamp: "2026-07-23T15:00:00.000Z",
+      expires_at: lifecycle === "approved" ? "2026-07-30T15:00:00.000Z" : null,
+    });
+    assertReason(
+      outcome(futureDecision),
+      "invalid_review",
+      "review_decision_in_future",
+    );
+  }
+});
+
+test("approved expiry must be strictly after the decision", () => {
+  for (const expiresAt of [DECIDED, "2026-07-22T13:59:59.999Z"] as const) {
+    assertReason(
+      outcome(review("approved", { expires_at: expiresAt })),
+      "invalid_review",
+      "review_expiry_not_after_decision",
+    );
+  }
+});
+
+test("approval temporal boundaries use only the injected evaluation time", () => {
+  assertReason(
+    outcome(review("approved")),
+    "eligible_for_approved_artifact_building",
+    "review_approved_for_later_builder_only",
+  );
+  assertReason(
+    outcome(review("approved", { decision_timestamp: AT })),
+    "eligible_for_approved_artifact_building",
+    "review_approved_for_later_builder_only",
+  );
+});
+
+test("decision and expiry mutations change the review hash", () => {
+  const approved = review("approved");
+  const decisionMutation = review("approved", { decision_timestamp: AT });
+  const expiryMutation = review("approved", {
+    expires_at: "2026-07-30T15:00:00.000Z",
+  });
+  assert.notEqual(decisionMutation.review_sha256, approved.review_sha256);
+  assert.notEqual(expiryMutation.review_sha256, approved.review_sha256);
 });
 
 test("reviewer cannot be candidate producer or parser runtime", () => {

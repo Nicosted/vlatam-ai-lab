@@ -164,6 +164,18 @@ separate AI-128 builder; it creates no artifact and grants no export,
 publication, production, database, network, scheduler, deployment, or
 `vlatam-global` authority.
 
+Every decided lifecycle requires a canonical decision timestamp no later than
+the evaluator's explicitly injected `evaluatedAt`. Any expiry carried by a
+decided review must be canonical and strictly later than its decision; future
+decisions and non-forward expiries are invalid review records before lifecycle
+outcomes are considered. The evaluator never reads local wall-clock time.
+
+Evidence reviewer identities use the closed
+`human:<stable-id>` namespace (`^human:[a-z0-9][a-z0-9._@-]*$`) in addition to
+the fixed `human` identity type and `evidence_reviewer` role. Arbitrary or
+automation-shaped identities therefore fail schema validation. Separation-of-
+duties comparisons use the exact validated identity without normalization.
+
 The repository example under `data/fixtures/arca/` is explicitly synthetic and
 pending. It contains no reviewer, decision, or fabricated approval.
 

@@ -26,6 +26,7 @@ const SHA256_PATTERN = "^[a-f0-9]{64}$";
 const TIMESTAMP_PATTERN =
   "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{3}Z$";
 const NON_EMPTY_PATTERN = ".*\\S.*";
+const HUMAN_IDENTITY_PATTERN = "^human:[a-z0-9][a-z0-9._@-]*$";
 
 export type ArcaReviewLifecycle =
   | "pending"
@@ -141,7 +142,9 @@ export type ArcaReviewReasonCode =
   | "review_hash_invalid"
   | "review_identity_invalid"
   | "review_timestamp_invalid"
+  | "review_decision_in_future"
   | "review_expiry_missing"
+  | "review_expiry_not_after_decision"
   | "lifecycle_transition_invalid"
   | "reviewer_missing"
   | "reviewer_not_human"
@@ -326,7 +329,7 @@ export const GOVERNED_ARCA_CANDIDATE_REVIEW_SCHEMA = {
           additionalProperties: false,
           required: ["identity", "identity_type", "role"],
           properties: {
-            identity: { type: "string", pattern: NON_EMPTY_PATTERN },
+            identity: { type: "string", pattern: HUMAN_IDENTITY_PATTERN },
             identity_type: { const: "human" },
             role: { const: "evidence_reviewer" },
           },
@@ -396,7 +399,12 @@ export const GOVERNED_ARCA_CANDIDATE_REVIEW_SCHEMA = {
         acquisition_operator_identity: nullableIdentity,
         parser_runtime_identity: { type: "string", pattern: NON_EMPTY_PATTERN },
         candidate_producer_identity: nullableIdentity,
-        evidence_reviewer_identity: nullableIdentity,
+        evidence_reviewer_identity: {
+          anyOf: [
+            { type: "null" },
+            { type: "string", pattern: HUMAN_IDENTITY_PATTERN },
+          ],
+        },
         future_artifact_builder_identity: { type: "null" },
         future_publisher_export_approver_identity: { type: "null" },
         reviewer_independence_asserted: { type: "boolean" },
@@ -428,7 +436,9 @@ const EVALUATION_REASON_CODES: readonly ArcaReviewReasonCode[] = [
   "review_hash_invalid",
   "review_identity_invalid",
   "review_timestamp_invalid",
+  "review_decision_in_future",
   "review_expiry_missing",
+  "review_expiry_not_after_decision",
   "lifecycle_transition_invalid",
   "reviewer_missing",
   "reviewer_not_human",
@@ -581,10 +591,6 @@ function isCanonicalTimestamp(value: unknown): value is string {
   return !Number.isNaN(parsed.getTime()) && parsed.toISOString() === value;
 }
 
-function isAutomatedIdentity(value: string): boolean {
-  return /^(?:automation|bot|runtime|service|system):/i.test(value);
-}
-
 function isRepositoryRelativePath(value: string | null): boolean {
   if (value === null) return true;
   const pathOnly = value.split("#", 1)[0] ?? "";
@@ -701,6 +707,7 @@ function bindingReasons(
 
 function reviewSemanticReasons(
   review: GovernedArcaCandidateReview,
+  evaluatedAt: string,
 ): ArcaReviewReasonCode[] {
   const reasons: ArcaReviewReasonCode[] = [];
   const transition = `${review.lifecycle_transition.from ?? "initial"}->${review.lifecycle_transition.to}`;
@@ -733,10 +740,7 @@ function reviewSemanticReasons(
   )
     reasons.push("candidate_producer_identity_missing");
   if (review.reviewer) {
-    if (
-      review.reviewer.identity_type !== "human" ||
-      isAutomatedIdentity(review.reviewer.identity)
-    )
+    if (review.reviewer.identity_type !== "human")
       reasons.push("reviewer_not_human");
     if (review.reviewer.role !== "evidence_reviewer")
       reasons.push("reviewer_role_invalid");
@@ -765,15 +769,37 @@ function reviewSemanticReasons(
   } else if (review.separation_of_duties.evidence_reviewer_identity !== null) {
     reasons.push("review_identity_invalid");
   }
-  if (hasDecision && !isCanonicalTimestamp(review.decision_timestamp))
+  const decisionIsCanonical = isCanonicalTimestamp(review.decision_timestamp);
+  const expiryIsCanonical = isCanonicalTimestamp(review.expires_at);
+  if (hasDecision && !decisionIsCanonical)
     reasons.push("review_timestamp_invalid");
+  if (
+    hasDecision &&
+    decisionIsCanonical &&
+    review.decision_timestamp > evaluatedAt
+  )
+    reasons.push("review_decision_in_future");
   if (!hasDecision && review.decision_timestamp !== null)
     reasons.push("review_timestamp_invalid");
   if (
     (review.lifecycle === "pending" || review.lifecycle === "approved") &&
-    !isCanonicalTimestamp(review.expires_at)
+    !expiryIsCanonical
   )
     reasons.push("review_expiry_missing");
+  if (
+    hasDecision &&
+    review.expires_at !== null &&
+    !expiryIsCanonical &&
+    review.lifecycle !== "approved"
+  )
+    reasons.push("review_timestamp_invalid");
+  if (
+    hasDecision &&
+    decisionIsCanonical &&
+    expiryIsCanonical &&
+    review.expires_at <= review.decision_timestamp
+  )
+    reasons.push("review_expiry_not_after_decision");
   if (review.lifecycle === "approved" && !review.review_statement?.trim())
     reasons.push("approval_statement_missing");
   if (review.lifecycle === "rejected" && !review.rejection_reason?.trim())
@@ -864,7 +890,7 @@ export function evaluateGovernedArcaCandidateReview(
       outcome = "invalid_review";
       reasonCodes = ["review_hash_invalid"];
     } else {
-      const semanticReasons = reviewSemanticReasons(review);
+      const semanticReasons = reviewSemanticReasons(review, evaluatedAt);
       if (semanticReasons.length > 0) {
         outcome = "invalid_review";
         reasonCodes = semanticReasons;

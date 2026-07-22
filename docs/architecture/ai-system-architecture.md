@@ -373,8 +373,12 @@ expiry, and an optional supersession reference. It excludes uploads, prompts,
 private reasoning, provider objects, executable content, credentials, customer
 data, and database connection data. Evidence reviewers must be human and
 independent of the acquisition operator, candidate producer, and parser/runtime
-identity. Future builder and publisher/export-approver roles remain unassigned
-in this phase.
+identity. Human identities are closed to the `human:<stable-id>` namespace and
+are compared exactly after schema validation. Every non-pending decision must
+be canonical and no later than the explicitly injected evaluation timestamp;
+any decided review expiry must be strictly later than that decision. The
+evaluator has no internal wall-clock dependency. Future builder and publisher/
+export-approver roles remain unassigned in this phase.
 
 The Operator Read Model `1.5.0` projects candidate/review hashes, lifecycle,
 outcome, reviewer presence, expiry, unresolved-findings count, later-builder

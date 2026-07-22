@@ -111,7 +111,10 @@
           "additionalProperties": false,
           "required": ["identity", "identity_type", "role"],
           "properties": {
-            "identity": { "type": "string", "pattern": ".*\\S.*" },
+            "identity": {
+              "type": "string",
+              "pattern": "^human:[a-z0-9][a-z0-9._@-]*$"
+            },
             "identity_type": { "const": "human" },
             "role": { "const": "evidence_reviewer" }
           }
@@ -231,7 +234,10 @@
         "evidence_reviewer_identity": {
           "anyOf": [
             { "type": "null" },
-            { "type": "string", "pattern": ".*\\S.*" }
+            {
+              "type": "string",
+              "pattern": "^human:[a-z0-9][a-z0-9._@-]*$"
+            }
           ]
         },
         "future_artifact_builder_identity": { "type": "null" },

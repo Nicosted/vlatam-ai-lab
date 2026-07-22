@@ -14,6 +14,15 @@ Date: 2026-07-22
   were present before branch creation.
 - Implementation branch: `feat/ai-127-arca-candidate-human-review`.
 
+### PR #122 follow-up hardening baseline
+
+- Follow-up baseline commit:
+  `5fb905197a73d988714be2ad6a6e461e9fe978e4`.
+- Before the follow-up, the worktree and index were clean, the local branch
+  exactly matched origin, and PR #122 remained open and draft against `main`.
+- The follow-up addresses temporal validity and a closed reviewer identity
+  namespace without changing the contract versions or evaluator precedence.
+
 ## Contracts, canonicalization, and identities
 
 - Review contract: `governed_arca_candidate_review`, version `1.0.0`.
@@ -31,9 +40,9 @@ Date: 2026-07-22
   derived review identity fields; evaluation hashing likewise omits only its
   two derived evaluation identity fields.
 - Published review schema file SHA-256:
-  `c290f77d445acaae51d90a787830e1cc572884e314db466c66fbc84be556fc05`.
+  `3ced2b680961ff26dcb0d999410df16b2789adb0c5cef24e1702215256857af1`.
 - Published evaluation schema file SHA-256:
-  `c63f83440825b712b9bbbe783882f6a757ed091c302eed92012d459aed949048`.
+  `6bc5cf9555f04fe9ea4b17f5f354225738786a11fe6340076f46c9ac533f934f`.
 - Repository synthetic candidate canonical SHA-256:
   `7d6bd452fe023a6cf2b946a01065817eeda756f3e7b57b963d151d41e8bb6073`.
 - Repository pending review canonical SHA-256:
@@ -55,7 +64,8 @@ and `superseded`; unknown or skipped values are invalid. Evaluator precedence:
 
 1. `invalid_candidate` (authoritative AI-126 schema/semantic validation);
 2. `invalid_review` (closed schema, deterministic identity/hash, reviewer,
-   timestamps, expiry requirements, separation of duties, statements/reasons,
+   timestamps, future-decision rejection, expiry-after-decision requirements,
+   closed human identity namespace, separation of duties, statements/reasons,
    supersession shape, and blocking findings);
 3. `candidate_binding_mismatch` (every exact load-bearing binding);
 4. `superseded`;
@@ -66,12 +76,20 @@ and `superseded`; unknown or skipped values are invalid. Evaluator precedence:
 
 The acquisition operator, parser/runtime, candidate producer, evidence
 reviewer, future builder, and future publisher/export approver are explicit
-roles. The evidence reviewer must be a non-empty human identity, must match the
-reviewer role assignment, must explicitly assert independence, and must differ
-from the acquisition operator, candidate producer, and parser/runtime identity.
-Decided reviews must identify the acquisition operator and candidate producer;
-the evaluator never infers either role. Future builder and publisher/export
-approver identities are contractually null in AI-127.
+roles. The evidence reviewer must use the closed `human:<stable-id>` namespace,
+must match the reviewer role assignment exactly, must explicitly assert
+independence, and must differ exactly from the acquisition operator, candidate
+producer, and parser/runtime identity. Decided reviews must identify the
+acquisition operator and candidate producer; the evaluator never infers or
+normalizes any role identity. Future builder and publisher/export approver
+identities are contractually null in AI-127.
+
+Every decided lifecycle requires a canonical decision timestamp at or before
+the explicitly injected evaluation time. A decided review carrying an expiry
+must place it strictly after the decision. Future decisions return
+`invalid_review` with `review_decision_in_future`; equal or earlier expiries
+return `invalid_review` with `review_expiry_not_after_decision`. The evaluator
+does not consult local wall-clock time.
 
 ## Synthetic evidence versus repository current state
 
@@ -85,12 +103,21 @@ adding mutation UI or endpoints.
 ## Validation record
 
 - Focused AI-127 review/schema/fixture/boundary/Operator tests plus AI-126
-  ingestion/parser and existing review-governance regressions: **45 passed, 0
-  failed** across **38 top-level tests** and **1 suite**.
+  ingestion/parser and existing review-governance regressions: **78 passed, 0
+  failed** across **52 top-level tests** and **9 suites**.
+- Temporal coverage includes future approved, rejected, and superseded
+  decisions; expiry equal to and before the decision; valid approval before
+  expiry; equality at the injected evaluation timestamp; and temporal hash
+  mutation.
+- Identity coverage rejects arbitrary identities and the requested automated
+  forms while accepting only the closed `human:<stable-id>` namespace. The
+  synthetic approved test identity is
+  `human:synthetic-independent-reviewer`; the repository-current pending
+  fixture still has no reviewer or decision.
 - Published review and result schemas compile in strict AJV, match their source
   constants, reject unknown fields, and validate the repository pending state
   and deterministic result.
-- Full repository test suite: **1,149 passed, 0 failed** across **207 top-level
+- Full repository test suite: **1,153 passed, 0 failed** across **211 top-level
   tests** and **152 suites**.
 - TypeScript typecheck: passed.
 - TypeScript build: passed.
@@ -107,9 +134,9 @@ adding mutation UI or endpoints.
   required false-authority fields, negative architecture assertions, and
   explicit non-authorization documentation.
 - Review schema file SHA-256:
-  `c290f77d445acaae51d90a787830e1cc572884e314db466c66fbc84be556fc05`.
+  `3ced2b680961ff26dcb0d999410df16b2789adb0c5cef24e1702215256857af1`.
 - Evaluation schema file SHA-256:
-  `c63f83440825b712b9bbbe783882f6a757ed091c302eed92012d459aed949048`.
+  `6bc5cf9555f04fe9ea4b17f5f354225738786a11fe6340076f46c9ac533f934f`.
 
 ## Pre-existing repository-wide debt
 

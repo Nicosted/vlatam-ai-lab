@@ -25,8 +25,11 @@ test("ARCA candidate review evaluator is pure, injected, and production-isolated
   assert.doesNotMatch(source, /from .*export|from .*publisher/i);
   assert.doesNotMatch(source, /vlatam-global|vlatamGlobal/);
   assert.doesNotMatch(source, /process\.env|secret|credential/i);
+  assert.doesNotMatch(source, /Date\.now\s*\(|new Date\s*\(\s*\)/);
   assert.match(source, /candidateValue: unknown/);
   assert.match(source, /reviewValue: unknown/);
+  assert.match(source, /evaluatedAt: string/);
+  assert.match(source, /\^human:\[a-z0-9\]/);
   assert.match(source, /export_authorized: false/);
   assert.match(source, /publication_authorized: false/);
   assert.match(source, /execution_performed: false/);
