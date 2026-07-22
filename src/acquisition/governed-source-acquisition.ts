@@ -18,6 +18,39 @@ export const DEFAULT_ALLOWED_ARCA_HOSTS: readonly string[] = Object.freeze([
   ...COMPILED_ALLOWED_ARCA_HOSTS,
 ]);
 
+export const GOVERNED_ARCA_SOURCE_IDENTITY =
+  "ar-arca-arancel-integrado" as const;
+export const GOVERNED_ARCA_EXACT_SOURCE_URLS: readonly string[] = Object.freeze(
+  [
+    "https://www.arca.gob.ar/aduana/arancelintegrado/nomenclador.txt",
+    "https://www.afip.gob.ar/aduana/arancelintegrado/nomenclador.txt",
+  ],
+);
+
+export const GOVERNED_ARCA_ACQUISITION_POLICY = Object.freeze({
+  policy_version: "1.0.0",
+  source_identity: GOVERNED_ARCA_SOURCE_IDENTITY,
+  exact_source_urls: GOVERNED_ARCA_EXACT_SOURCE_URLS,
+  allowed_hosts: DEFAULT_ALLOWED_ARCA_HOSTS,
+  protocols: ["https:"],
+  redirect_mode: "manual-allowlisted-hosts",
+  maximum_redirects: 5,
+  allowed_media_types: [
+    "application/octet-stream",
+    "application/zip",
+    "text/plain",
+    "text/html",
+  ],
+  credentials: "unsupported",
+  cookies: "disabled",
+  retries: 0,
+});
+
+export const GOVERNED_ARCA_ACQUISITION_POLICY_SHA256 = createHash("sha256")
+  .update("vlatam-ai-lab/governed-arca-acquisition-policy/v1\n")
+  .update(JSON.stringify(GOVERNED_ARCA_ACQUISITION_POLICY))
+  .digest("hex");
+
 export type AcquisitionMode = "live" | "replay";
 
 export interface SourceAcquisitionRequest {
@@ -65,12 +98,39 @@ export class SourceAcquisitionError extends Error {
       | "REPLAY_CAPTURE_TIME_REQUIRED"
       | "EMPTY_CONTENT"
       | "ACQUISITION_EXISTS"
-      | "PUBLISH_FAILED",
+      | "PUBLISH_FAILED"
+      | "NETWORK_CALL_LIMIT",
     message: string,
   ) {
     super(message);
     this.name = "SourceAcquisitionError";
   }
+}
+
+export interface SourceAcquisitionExecutionOptions {
+  /** Test seam and controlled-boundary injection; the request URL remains governed. */
+  readonly fetchImplementation?: typeof fetch;
+  readonly maximumNetworkCalls?: number;
+  readonly onNetworkCall?: (url: string) => void;
+}
+
+export function resolveGovernedArcaSourceIdentity(rawUrl: string): {
+  sourceIdentity: typeof GOVERNED_ARCA_SOURCE_IDENTITY;
+  requestedUrl: string;
+  host: string;
+} {
+  const parsed = parseAllowedUrl(rawUrl);
+  if (!GOVERNED_ARCA_EXACT_SOURCE_URLS.includes(parsed.href)) {
+    throw new SourceAcquisitionError(
+      "HOST_NOT_ALLOWED",
+      "Requested URL is not an exact governed ARCA source URL.",
+    );
+  }
+  return {
+    sourceIdentity: GOVERNED_ARCA_SOURCE_IDENTITY,
+    requestedUrl: parsed.href,
+    host: parsed.hostname.toLowerCase(),
+  };
 }
 
 const DEFAULT_TIMEOUT_MS = 30_000;
@@ -249,10 +309,13 @@ async function readLive(
   initialUrl: URL,
   timeoutMs: number,
   maxBytes: number,
+  options: SourceAcquisitionExecutionOptions,
 ): Promise<{ body: Uint8Array; contentType: string; effectiveUrl: URL }> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   let currentUrl = initialUrl;
+  let networkCalls = 0;
+  const transport = options.fetchImplementation ?? globalThis.fetch;
 
   try {
     for (
@@ -260,7 +323,18 @@ async function readLive(
       redirectCount <= MAX_REDIRECTS;
       redirectCount += 1
     ) {
-      const response = await fetch(currentUrl, {
+      if (
+        options.maximumNetworkCalls !== undefined &&
+        networkCalls >= options.maximumNetworkCalls
+      ) {
+        throw new SourceAcquisitionError(
+          "NETWORK_CALL_LIMIT",
+          "Governed acquisition network-call limit reached.",
+        );
+      }
+      networkCalls += 1;
+      options.onNetworkCall?.(currentUrl.href);
+      const response = await transport(currentUrl, {
         method: "GET",
         redirect: "manual",
         signal: controller.signal,
@@ -408,6 +482,7 @@ async function publishAcquisition(
 
 export async function acquireSource(
   request: SourceAcquisitionRequest,
+  executionOptions: SourceAcquisitionExecutionOptions = {},
 ): Promise<SourceAcquisitionRecord> {
   const timeoutMs = request.timeoutMs ?? DEFAULT_TIMEOUT_MS;
   const maxBytes = request.maxBytes ?? DEFAULT_MAX_BYTES;
@@ -456,7 +531,12 @@ export async function acquireSource(
     }
     contentType = "application/octet-stream";
   } else {
-    const live = await readLive(requestedUrl, timeoutMs, maxBytes);
+    const live = await readLive(
+      requestedUrl,
+      timeoutMs,
+      maxBytes,
+      executionOptions,
+    );
     body = live.body;
     contentType = live.contentType;
     effectiveUrl = live.effectiveUrl;

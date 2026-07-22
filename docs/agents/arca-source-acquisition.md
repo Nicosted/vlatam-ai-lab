@@ -4,6 +4,8 @@
 
 This capability is a manual, production-isolated acquisition boundary for public ARCA/AFIP sources. Acquisition itself does not schedule runs, parse downloaded content, approve evidence, call an LLM, or publish artifacts to `vlatam-global`. AI-126 adds a separate replay-only ingestion step described below; it does not change acquisition authority.
 
+AI-131 adds a separate controlled one-shot live runner. Repository-current state remains blocked by `config/ai-131-controlled-live-arca-kill-switch.json`; there is no live authorization, consumed authorization, live run, live acquisition, or live candidate checked in.
+
 ## Purpose
 
 The existing ARCA parser consumes repository-local files. This capability adds the missing step before parsing:
@@ -50,6 +52,16 @@ Official HTTPS source
 - `serviciosweb.afip.gob.ar`
 
 Adding a host requires a reviewed code change. There is no request-level allowlist override.
+
+For AI-131, the controlled runner further narrows this host policy to one exact URL from the exported `GOVERNED_ARCA_EXACT_SOURCE_URLS`. Its proposal binds acquisition policy SHA-256 `9d3b61ad4b374c83f783bac5f861795aec9e4cabbe92fde07002381677cf4280`; no wildcard, discovered link, alternate hostname, fallback, custom header, cookie, proxy, credential or retry is accepted.
+
+## AI-131 controlled live-run boundary
+
+The manual `pnpm arca:controlled-live-run` CLI accepts only proposal, authorization, kill-switch, reviewed root-configuration and explicit timestamp/run identities. `--preflight` performs no writes, no authorization consumption, no ingestion and no network call. Execution requires a distinct `human:<stable-id>` authorizer, an exact proposal/hash/source/policy match, valid time windows, safe governed roots, an unconsumed authorization and a valid disabled repository artifact. The kill switch is reread immediately before transport.
+
+Authorization consumption is an exclusive no-overwrite file written before transport. The journal is written first and binds attempt one and transport attempt one. The acquisition boundary receives a maximum-network-call value of one, fixed non-authentication headers, no cookie input, no retry and the existing manual redirect checks. A redirect can therefore be validated but cannot cause a second call in the controlled run.
+
+Successful bytes flow only through AI-126 and stop at an AI-130-persisted candidate with human review required. Recovery before consumption aborts safely; after consumption/before transport requires an operator; unknown transport delivery is never retried; acquired bytes and created candidates can resume locally without fetch. No review, evaluation, Approved Artifact, export, publication or production authorization is created.
 
 ## Usage
 

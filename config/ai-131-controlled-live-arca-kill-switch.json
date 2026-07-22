@@ -1,0 +1,11 @@
+{
+  "schema_version": "1.0.0",
+  "kill_switch_id": "controlled-live-arca-run",
+  "kill_switch_sha256": "049959fe2bb74aa9e1aa40cb75ac264a52c3a0fc1431fafe8be1a82fe17ea8e1",
+  "state": "active",
+  "reviewed_artifact_id": "repository-current-ai-131-blocked-state",
+  "reviewed_by": "human:repository-governance",
+  "reviewed_at": "2026-07-22T00:00:00.000Z",
+  "reason": "Repository-current state remains blocked; no live authorization or execution is approved.",
+  "live_execution_blocked": true
+}

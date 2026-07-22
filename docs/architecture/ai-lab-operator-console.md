@@ -111,6 +111,12 @@ only repository-backed AI-129 state. A later Operator integration must be a
 separately reviewed read-only projection over an explicitly configured root;
 it must never invoke a store write command from HTTP.
 
+AI-131 likewise adds no Operator mutation. There is no Run now button,
+authorization form, POST endpoint, kill-switch control, or request-derived
+root. Repository-current live-run status is the checked-in active kill switch
+plus explicit absence of authorization/run/acquisition/candidate in the
+AI-131 template; any future read-only projection requires separate review.
+
 ## Status and audit-safe rendering
 
 Status labels are explicit and never conveyed by color alone. IDs, versions, hashes, counts, timestamps, and repository-relative evidence paths may render. Prompts, raw documents, model responses, tokens, keys, environment values, sensitive payloads, provider error bodies, and stack traces may not render. Full source documents and raw configuration JSON are intentionally absent.

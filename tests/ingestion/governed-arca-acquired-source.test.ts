@@ -370,7 +370,7 @@ test("rejects acquisition-record path escape even with a matching record hash", 
   }
 });
 
-test("rejects live acquisition provenance and unsupported media classification", async () => {
+test("accepts controlled live acquisition provenance and rejects unsupported media classification", async () => {
   const fixture = await prepareFixture();
   try {
     const metadata = JSON.parse(
@@ -388,7 +388,13 @@ test("rejects live acquisition provenance and unsupported media classification",
     liveInput.acquisition.acquisition_record_sha256 = hash(
       await readFile(fixture.metadataPath),
     );
-    await expectFailure(fixture, "INVALID_PROVENANCE", liveInput);
+    const live = await ingestGovernedArcaAcquiredSource(liveInput, {
+      acquisitionRoot: fixture.acquisitionRoot,
+      candidateRoot: fixture.candidateRoot,
+    });
+    assert.equal(live.candidate.review_state, "human_review_required");
+
+    await rm(fixture.candidateRoot, { recursive: true, force: true });
 
     metadata.mode = "replay";
     metadata.content_type = "application/zip";

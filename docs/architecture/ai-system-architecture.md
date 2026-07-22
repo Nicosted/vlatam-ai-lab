@@ -225,6 +225,14 @@ seed advisory cases.
   caller timestamps. No network, acquisition, model, database, scheduler,
   export, publisher, deployment, production, or `vlatam-global` boundary is
   imported.
+- **AI-131 controlled live-run seam (2026-07-22):** a closed proposal and
+  independent one-shot human authorization bind one exact allowlisted ARCA
+  URL, the governed acquisition policy, fixed roots, one attempt and one
+  successful network call. A repository-owned active kill switch blocks
+  current execution. The crash journal and atomic consumption record prevent
+  reuse; unknown delivery never retries. Successful mocked execution uses the
+  existing acquisition transport, AI-126 parser and AI-130 `record_candidate`,
+  then stops with review required and every downstream authority false.
 - **Must not contain:** model SDK calls, vendor response objects, or any
   post-review content.
 - **Owner today:** `src/agents/source-monitor.ts`,

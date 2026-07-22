@@ -1,0 +1,10 @@
+{
+  "template_version": "1.0.0",
+  "template_only": true,
+  "repository_current_authorization_present": false,
+  "repository_current_authorization_consumed": false,
+  "repository_current_live_run_present": false,
+  "repository_current_live_acquisition_present": false,
+  "repository_current_live_candidate_present": false,
+  "instructions": "Create proposal, independent authorization, and reviewed root configuration only after merge; this template grants no authority."
+}
