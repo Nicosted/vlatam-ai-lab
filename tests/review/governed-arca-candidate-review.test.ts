@@ -14,6 +14,7 @@ import {
   createArcaCandidateBinding,
   evaluateGovernedArcaCandidateReview,
   sealGovernedArcaCandidateReview,
+  validateGovernedArcaCandidateReviewEvaluation,
   type ArcaReviewReasonCode,
   type GovernedArcaCandidateReview,
 } from "../../src/review/governed-arca-candidate-review.js";
@@ -570,5 +571,17 @@ test("published closed schemas compile, match source constants, and validate res
   );
   const ajv = new Ajv({ allErrors: true, strict: true });
   assert.equal(ajv.compile(reviewSchema)(review()), true);
-  assert.equal(ajv.compile(evaluationSchema)(outcome(review())), true);
+  const evaluation = outcome(review());
+  assert.equal(ajv.compile(evaluationSchema)(evaluation), true);
+  assert.deepEqual(validateGovernedArcaCandidateReviewEvaluation(evaluation), {
+    valid: true,
+    errors: [],
+  });
+  const mutated = structuredClone(evaluation);
+  (mutated as unknown as Record<string, unknown>)["evaluation_sha256"] =
+    "0".repeat(64);
+  assert.equal(
+    validateGovernedArcaCandidateReviewEvaluation(mutated).valid,
+    false,
+  );
 });

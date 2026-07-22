@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import { canonicalizeOpenRouterRegistryJson } from "../providers/openrouter-registry.js";
 import type { TournamentOperatorReadModel } from "../tournament/index.js";
 
-export const OPERATOR_READ_MODEL_CONTRACT_VERSION = "1.5.0" as const;
+export const OPERATOR_READ_MODEL_CONTRACT_VERSION = "1.6.0" as const;
 export const OPERATOR_READ_MODEL_HASH_DOMAIN =
   "vlatam-ai-lab:operator-read-model:v1" as const;
 
@@ -216,6 +216,7 @@ export interface OperatorReadModelInput {
   };
   readonly audit_references: readonly string[];
   readonly arca_candidate_review?: OperatorArcaCandidateReview;
+  readonly arca_approved_artifact?: OperatorApprovedArcaArtifact;
   readonly additional_governed_candidates?: readonly OperatorGovernedCandidate[];
   readonly tournament?: TournamentOperatorReadModel;
 }
@@ -231,6 +232,29 @@ export interface OperatorArcaCandidateReview {
   readonly eligible_for_approved_artifact_building: boolean;
   readonly export_authorized: false;
   readonly publication_authorized: false;
+}
+
+export interface OperatorApprovedArcaArtifact {
+  readonly present: boolean;
+  readonly approved_artifact_id: string | null;
+  readonly approved_artifact_sha256: string | null;
+  readonly candidate_artifact_id: string | null;
+  readonly candidate_sha256: string | null;
+  readonly review_id: string | null;
+  readonly review_sha256: string | null;
+  readonly evaluation_id: string | null;
+  readonly evaluation_sha256: string | null;
+  readonly builder_identity: string | null;
+  readonly build_timestamp: string | null;
+  readonly export_status: "not_exported";
+  readonly publication_status: "not_published";
+  readonly production_reliance: "not_authorized";
+  readonly export_authorized: false;
+  readonly publication_authorized: false;
+  readonly production_reliance_authorized: false;
+  readonly database_write_authorized: false;
+  readonly network_call_authorized: false;
+  readonly vlatam_global_access_authorized: false;
 }
 
 export interface OperatorBlocker {
@@ -320,6 +344,7 @@ export interface OperatorReadModel {
   };
   readonly audit_references: readonly string[];
   readonly arca_candidate_review: OperatorArcaCandidateReview;
+  readonly arca_approved_artifact: OperatorApprovedArcaArtifact;
   readonly tournament: TournamentOperatorReadModel;
 }
 
@@ -685,6 +710,28 @@ export function buildOperatorReadModel(
       eligible_for_approved_artifact_building: false,
       export_authorized: false,
       publication_authorized: false,
+    },
+    arca_approved_artifact: input.arca_approved_artifact ?? {
+      present: false,
+      approved_artifact_id: null,
+      approved_artifact_sha256: null,
+      candidate_artifact_id: null,
+      candidate_sha256: null,
+      review_id: null,
+      review_sha256: null,
+      evaluation_id: null,
+      evaluation_sha256: null,
+      builder_identity: null,
+      build_timestamp: null,
+      export_status: "not_exported",
+      publication_status: "not_published",
+      production_reliance: "not_authorized",
+      export_authorized: false,
+      publication_authorized: false,
+      production_reliance_authorized: false,
+      database_write_authorized: false,
+      network_call_authorized: false,
+      vlatam_global_access_authorized: false,
     },
     tournament: input.tournament ?? {
       registered_candidates: [],

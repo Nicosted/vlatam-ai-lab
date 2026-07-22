@@ -29,10 +29,11 @@
     "validation_evidence_metadata",
     "audit_references",
     "arca_candidate_review",
+    "arca_approved_artifact",
     "tournament"
   ],
   "properties": {
-    "contract_version": { "const": "1.5.0" },
+    "contract_version": { "const": "1.6.0" },
     "system_summary": {
       "type": "object",
       "required": [
@@ -62,7 +63,7 @@
         "active_blockers": { "type": "integer", "minimum": 0 },
         "execution_authorized_count": { "type": "integer", "minimum": 0 },
         "last_evaluated_at": { "type": "string", "format": "date-time" },
-        "read_model_contract_version": { "const": "1.5.0" },
+        "read_model_contract_version": { "const": "1.6.0" },
         "read_model_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
       },
       "additionalProperties": false
@@ -324,6 +325,69 @@
         "eligible_for_approved_artifact_building": { "type": "boolean" },
         "export_authorized": { "const": false },
         "publication_authorized": { "const": false }
+      }
+    },
+    "arca_approved_artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "present",
+        "approved_artifact_id",
+        "approved_artifact_sha256",
+        "candidate_artifact_id",
+        "candidate_sha256",
+        "review_id",
+        "review_sha256",
+        "evaluation_id",
+        "evaluation_sha256",
+        "builder_identity",
+        "build_timestamp",
+        "export_status",
+        "publication_status",
+        "production_reliance",
+        "export_authorized",
+        "publication_authorized",
+        "production_reliance_authorized",
+        "database_write_authorized",
+        "network_call_authorized",
+        "vlatam_global_access_authorized"
+      ],
+      "properties": {
+        "present": { "type": "boolean" },
+        "approved_artifact_id": { "type": ["string", "null"] },
+        "approved_artifact_sha256": {
+          "type": ["string", "null"],
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "candidate_artifact_id": { "type": ["string", "null"] },
+        "candidate_sha256": {
+          "type": ["string", "null"],
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "review_id": { "type": ["string", "null"] },
+        "review_sha256": {
+          "type": ["string", "null"],
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "evaluation_id": { "type": ["string", "null"] },
+        "evaluation_sha256": {
+          "type": ["string", "null"],
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "builder_identity": { "type": ["string", "null"] },
+        "build_timestamp": {
+          "type": ["string", "null"],
+          "format": "date-time"
+        },
+        "export_status": { "const": "not_exported" },
+        "publication_status": { "const": "not_published" },
+        "production_reliance": { "const": "not_authorized" },
+        "export_authorized": { "const": false },
+        "publication_authorized": { "const": false },
+        "production_reliance_authorized": { "const": false },
+        "database_write_authorized": { "const": false },
+        "network_call_authorized": { "const": false },
+        "vlatam_global_access_authorized": { "const": false }
       }
     },
     "tournament": {
