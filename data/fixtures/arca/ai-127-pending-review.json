@@ -1,0 +1,96 @@
+{
+  "fixture_kind": "repository_pending_example",
+  "synthetic_candidate": true,
+  "real_human_review_performed": false,
+  "candidate": {
+    "schema_version": "1.0.0",
+    "artifact_type": "arca_acquired_source_parse_candidate",
+    "acquisition_artifact": {
+      "acquisition_id": "ar-arca-arancel-integrado--2026-07-14--aaaaaaaaaaaaaaaa",
+      "acquisition_record_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "source_id": "ar-arca-arancel-integrado",
+      "requested_url": "https://www.arca.gob.ar/aduana/arancelintegrado/nomenclador.txt",
+      "effective_url": "https://www.arca.gob.ar/aduana/arancelintegrado/nomenclador.txt",
+      "captured_at": "2026-07-14T12:00:00.000Z",
+      "media_type": "text/plain",
+      "raw_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "parser": {
+      "parser_id": "arca-nomenclador-txt",
+      "parser_version": "1.0.0",
+      "configuration_sha256": "7554a0888bbe3ea152645a44581301ff7cb73f68871d670440e79bba213d2f02"
+    },
+    "parsing_timestamp": "2026-07-14T12:05:00.000Z",
+    "parsed_output_sha256": "1f75e4bd8c7008942078da29236fe46f2542fd695a36dfd185e4412aab778387",
+    "validation_status": "valid",
+    "review_state": "human_review_required",
+    "approval_status": "not_approved",
+    "publication_status": "not_publishable",
+    "parsed_output": {
+      "tariff_lines_count": 1,
+      "tariff_lines": [
+        {
+          "ncm_code": "4202.92.00",
+          "ncm_code_clean": "42029200",
+          "hs6_code": "4202.92",
+          "description": "BOLSOS DE VIAJE",
+          "aec_rate": 10,
+          "derecho_extra_zona": 20,
+          "tasa_estadistica": 3,
+          "iva_rate": 21,
+          "iva_is_inferred": true,
+          "unidad_estadistica": "UN",
+          "source": "ARCA Arancel Integrado",
+          "source_url": "https://www.arca.gob.ar/aduana/arancelintegrado/nomenclador.txt",
+          "snapshot_date": "2026-07-14"
+        }
+      ]
+    }
+  },
+  "review": {
+    "schema_version": "1.0.0",
+    "artifact_type": "governed_arca_candidate_human_review",
+    "canonicalization_version": "review-json-v1",
+    "review_id": "arca-review--c1ac0ed41aa5128cfda67758f042272f02830c3759f51884091e3e19ed4a0205",
+    "review_sha256": "c1ac0ed41aa5128cfda67758f042272f02830c3759f51884091e3e19ed4a0205",
+    "candidate_binding": {
+      "candidate_schema_version": "1.0.0",
+      "candidate_artifact_type": "arca_acquired_source_parse_candidate",
+      "candidate_artifact_id": "arca-candidate--7d6bd452fe023a6cf2b946a01065817eeda756f3e7b57b963d151d41e8bb6073",
+      "candidate_sha256": "7d6bd452fe023a6cf2b946a01065817eeda756f3e7b57b963d151d41e8bb6073",
+      "acquisition_id": "ar-arca-arancel-integrado--2026-07-14--aaaaaaaaaaaaaaaa",
+      "acquisition_record_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "raw_byte_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "parser_id": "arca-nomenclador-txt",
+      "parser_version": "1.0.0",
+      "parser_configuration_sha256": "7554a0888bbe3ea152645a44581301ff7cb73f68871d670440e79bba213d2f02",
+      "parsing_timestamp": "2026-07-14T12:05:00.000Z",
+      "parsed_output_sha256": "1f75e4bd8c7008942078da29236fe46f2542fd695a36dfd185e4412aab778387",
+      "tariff_line_count": 1,
+      "repository_relative_candidate_path": "data/fixtures/arca/ai-127-pending-review.json#/candidate"
+    },
+    "lifecycle": "pending",
+    "lifecycle_transition": {
+      "from": null,
+      "to": "pending"
+    },
+    "scope": "approved_artifact_building_only",
+    "reviewer": null,
+    "decision_timestamp": null,
+    "expires_at": "2026-08-22T15:00:00.000Z",
+    "review_statement": null,
+    "rejection_reason": null,
+    "reason_codes": [],
+    "findings": [],
+    "separation_of_duties": {
+      "acquisition_operator_identity": null,
+      "parser_runtime_identity": "runtime:arca-nomenclador-txt@1.0.0",
+      "candidate_producer_identity": null,
+      "evidence_reviewer_identity": null,
+      "future_artifact_builder_identity": null,
+      "future_publisher_export_approver_identity": null,
+      "reviewer_independence_asserted": false
+    },
+    "superseded_by": null
+  }
+}

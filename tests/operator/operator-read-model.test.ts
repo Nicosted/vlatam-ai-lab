@@ -99,6 +99,18 @@ describe("AI LAB operator read model", () => {
     assert.equal(result.consumption.attempted_count, 0);
     assert.equal(result.gateway_adapter_state.gateway_invoked, false);
     assert.equal(result.gateway_adapter_state.transport_invoked, false);
+    assert.equal(result.arca_candidate_review.review_lifecycle, "pending");
+    assert.equal(
+      result.arca_candidate_review.evaluation_outcome,
+      "pending_human_review",
+    );
+    assert.equal(result.arca_candidate_review.reviewer_present, false);
+    assert.equal(
+      result.arca_candidate_review.eligible_for_approved_artifact_building,
+      false,
+    );
+    assert.equal(result.arca_candidate_review.export_authorized, false);
+    assert.equal(result.arca_candidate_review.publication_authorized, false);
     assert.equal(result.governed_candidates.length, 2);
     const minimax = result.governed_candidates.find(
       (candidate) => candidate.candidate_id === "minimax/minimax-m2.7",
@@ -197,6 +209,18 @@ describe("AI LAB operator read model", () => {
       artifact_overrides: { dossier: null },
     });
     assert.equal(missing.system_summary.overall_status, "invalid_state");
+    const invalidArcaReview = await loadRepositoryOperatorReadModel({
+      ...baseOptions,
+      artifact_overrides: { arca_review_fixture: {} },
+    });
+    assert.equal(
+      invalidArcaReview.system_summary.overall_status,
+      "invalid_state",
+    );
+    assert.equal(
+      invalidArcaReview.arca_candidate_review.evaluation_outcome,
+      "invalid_candidate",
+    );
   });
 
   it("fails closed for evidence, proposal, and runtime binding hash mismatches", async () => {

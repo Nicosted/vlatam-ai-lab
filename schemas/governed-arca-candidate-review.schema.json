@@ -1,0 +1,266 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.vlatam.local/governed-arca-candidate-review.schema.json",
+  "title": "Governed ARCA candidate independent human review",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "artifact_type",
+    "canonicalization_version",
+    "review_id",
+    "review_sha256",
+    "candidate_binding",
+    "lifecycle",
+    "lifecycle_transition",
+    "scope",
+    "reviewer",
+    "decision_timestamp",
+    "expires_at",
+    "review_statement",
+    "rejection_reason",
+    "reason_codes",
+    "findings",
+    "separation_of_duties",
+    "superseded_by"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "artifact_type": { "const": "governed_arca_candidate_human_review" },
+    "canonicalization_version": { "const": "review-json-v1" },
+    "review_id": { "type": "string", "pattern": "^arca-review--[a-f0-9]{64}$" },
+    "review_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "candidate_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "candidate_schema_version",
+        "candidate_artifact_type",
+        "candidate_artifact_id",
+        "candidate_sha256",
+        "acquisition_id",
+        "acquisition_record_sha256",
+        "raw_byte_sha256",
+        "parser_id",
+        "parser_version",
+        "parser_configuration_sha256",
+        "parsing_timestamp",
+        "parsed_output_sha256",
+        "tariff_line_count",
+        "repository_relative_candidate_path"
+      ],
+      "properties": {
+        "candidate_schema_version": { "type": "string", "pattern": ".*\\S.*" },
+        "candidate_artifact_type": { "type": "string", "pattern": ".*\\S.*" },
+        "candidate_artifact_id": {
+          "type": "string",
+          "pattern": "^arca-candidate--[a-f0-9]{64}$"
+        },
+        "candidate_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "acquisition_id": { "type": "string", "pattern": ".*\\S.*" },
+        "acquisition_record_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "raw_byte_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "parser_id": { "type": "string", "pattern": ".*\\S.*" },
+        "parser_version": { "type": "string", "pattern": ".*\\S.*" },
+        "parser_configuration_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "parsing_timestamp": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{3}Z$"
+        },
+        "parsed_output_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "tariff_line_count": { "type": "integer", "minimum": 1 },
+        "repository_relative_candidate_path": {
+          "anyOf": [
+            { "type": "null" },
+            { "type": "string", "pattern": ".*\\S.*" }
+          ]
+        }
+      }
+    },
+    "lifecycle": {
+      "enum": ["pending", "approved", "rejected", "expired", "superseded"]
+    },
+    "lifecycle_transition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["from", "to"],
+      "properties": {
+        "from": {
+          "enum": [null, "pending", "approved", "rejected", "expired"]
+        },
+        "to": {
+          "enum": ["pending", "approved", "rejected", "expired", "superseded"]
+        }
+      }
+    },
+    "scope": { "const": "approved_artifact_building_only" },
+    "reviewer": {
+      "anyOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["identity", "identity_type", "role"],
+          "properties": {
+            "identity": {
+              "type": "string",
+              "pattern": "^human:[a-z0-9][a-z0-9._@-]*$"
+            },
+            "identity_type": { "const": "human" },
+            "role": { "const": "evidence_reviewer" }
+          }
+        }
+      ]
+    },
+    "decision_timestamp": {
+      "anyOf": [
+        { "type": "null" },
+        {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{3}Z$"
+        }
+      ]
+    },
+    "expires_at": {
+      "anyOf": [
+        { "type": "null" },
+        {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{3}Z$"
+        }
+      ]
+    },
+    "review_statement": {
+      "anyOf": [{ "type": "null" }, { "type": "string", "pattern": ".*\\S.*" }]
+    },
+    "rejection_reason": {
+      "anyOf": [{ "type": "null" }, { "type": "string", "pattern": ".*\\S.*" }]
+    },
+    "reason_codes": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "identity_verified",
+          "provenance_verified",
+          "parser_output_verified",
+          "completeness_verified",
+          "regulatory_accuracy_verified",
+          "identity_conflict",
+          "provenance_mismatch",
+          "parser_output_issue",
+          "incomplete_evidence",
+          "regulatory_inaccuracy",
+          "other_controlled"
+        ]
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "severity",
+          "category",
+          "finding_code",
+          "description",
+          "resolution_status"
+        ],
+        "properties": {
+          "severity": {
+            "enum": ["blocker", "high", "medium", "low", "informational"]
+          },
+          "category": {
+            "enum": [
+              "identity",
+              "provenance",
+              "parser_output",
+              "completeness",
+              "consistency",
+              "regulatory_accuracy",
+              "publication_readiness",
+              "other_controlled"
+            ]
+          },
+          "finding_code": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9._-]*$"
+          },
+          "description": {
+            "type": "string",
+            "pattern": ".*\\S.*",
+            "maxLength": 500
+          },
+          "resolution_status": { "enum": ["open", "resolved", "accepted_risk"] }
+        }
+      }
+    },
+    "separation_of_duties": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "acquisition_operator_identity",
+        "parser_runtime_identity",
+        "candidate_producer_identity",
+        "evidence_reviewer_identity",
+        "future_artifact_builder_identity",
+        "future_publisher_export_approver_identity",
+        "reviewer_independence_asserted"
+      ],
+      "properties": {
+        "acquisition_operator_identity": {
+          "anyOf": [
+            { "type": "null" },
+            { "type": "string", "pattern": ".*\\S.*" }
+          ]
+        },
+        "parser_runtime_identity": { "type": "string", "pattern": ".*\\S.*" },
+        "candidate_producer_identity": {
+          "anyOf": [
+            { "type": "null" },
+            { "type": "string", "pattern": ".*\\S.*" }
+          ]
+        },
+        "evidence_reviewer_identity": {
+          "anyOf": [
+            { "type": "null" },
+            {
+              "type": "string",
+              "pattern": "^human:[a-z0-9][a-z0-9._@-]*$"
+            }
+          ]
+        },
+        "future_artifact_builder_identity": { "type": "null" },
+        "future_publisher_export_approver_identity": { "type": "null" },
+        "reviewer_independence_asserted": { "type": "boolean" }
+      }
+    },
+    "superseded_by": {
+      "anyOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["review_id", "review_sha256"],
+          "properties": {
+            "review_id": {
+              "type": "string",
+              "pattern": "^arca-review--[a-f0-9]{64}$"
+            },
+            "review_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+          }
+        }
+      ]
+    }
+  }
+}

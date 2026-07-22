@@ -192,6 +192,13 @@ seed advisory cases.
   hash-bound candidate with mandatory human review; it is neither an Approved
   Artifact nor publishable to `vlatam-global`. The seam has no scheduler,
   discovery, network, LLM, approval, database, or export authority.
+- **AI-127 candidate-review seam (2026-07-22):** an independent human review
+  record binds the complete immutable candidate identity and every
+  load-bearing acquisition/parser/output field. A pure evaluator fails closed
+  across invalid candidate/review, binding mismatch, pending, rejected,
+  expired, and superseded states. Its best result permits only a later AI-128
+  builder to evaluate the same separately supplied candidate and review; no
+  Approved Artifact or operational authority is created.
 - **Must not contain:** model SDK calls, vendor response objects, or any
   post-review content.
 - **Owner today:** `src/agents/source-monitor.ts`,
@@ -353,6 +360,30 @@ access, and runtime enablement as false. The execution chain
 is unchanged; the review layer sits strictly before it and cannot invoke it.
 The Operator Read Model (`1.1.0`) and the Spanish read-only console
 (`/operator/review`) expose the workflow state without any mutation surface.
+
+### Layer 8.2 — ARCA candidate human review (AI-127)
+
+The AI-127 seam is:
+
+`immutable ARCA parse candidate → independent human review record → identity/integrity verification → deterministic evaluator → pending | rejected | expired | superseded | eligible_for_approved_artifact_building`
+
+The review contract is limited to controlled decisions, statements, reason
+codes, findings, identity/hash bindings, reviewer metadata, timestamps,
+expiry, and an optional supersession reference. It excludes uploads, prompts,
+private reasoning, provider objects, executable content, credentials, customer
+data, and database connection data. Evidence reviewers must be human and
+independent of the acquisition operator, candidate producer, and parser/runtime
+identity. Human identities are closed to the `human:<stable-id>` namespace and
+are compared exactly after schema validation. Every non-pending decision must
+be canonical and no later than the explicitly injected evaluation timestamp;
+any decided review expiry must be strictly later than that decision. The
+evaluator has no internal wall-clock dependency. Future builder and publisher/
+export-approver roles remain unassigned in this phase.
+
+The Operator Read Model `1.5.0` projects candidate/review hashes, lifecycle,
+outcome, reviewer presence, expiry, unresolved-findings count, later-builder
+eligibility, and explicit false export/publication authority. It adds no form,
+button, endpoint, persistence, or mutation surface.
 
 ## 4. Architectural terminology (defined here, used everywhere)
 
