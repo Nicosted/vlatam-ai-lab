@@ -144,6 +144,29 @@ pnpm crawler:arca:ingest-acquired -- \
 The command exposes no URL, prompt, live-mode, or arbitrary raw-file argument.
 All failure modes clean staging files and leave no partial candidate.
 
+## AI-127 independent candidate review boundary
+
+AI-127 adds a separate, pure review evaluator after the immutable AI-126
+candidate. The closed review contract binds the complete candidate canonical
+SHA-256 and filesystem-independent artifact ID together with the candidate
+schema/type, acquisition ID and record/raw hashes, parser identity/version/
+configuration, parsing timestamp, parsed-output hash, and tariff-line count.
+A repository path is optional provenance only and never replaces those
+bindings.
+
+The lifecycle is closed to `pending`, `approved`, `rejected`, `expired`, and
+`superseded`. The evaluator first reuses the authoritative AI-126 validator,
+then verifies the review contract and review hash, exact candidate bindings,
+separation of duties, expiry, controlled findings, and lifecycle. An approval
+with an unresolved blocker or high finding fails closed. The only positive
+outcome is `eligible_for_approved_artifact_building`, which is input for a
+separate AI-128 builder; it creates no artifact and grants no export,
+publication, production, database, network, scheduler, deployment, or
+`vlatam-global` authority.
+
+The repository example under `data/fixtures/arca/` is explicitly synthetic and
+pending. It contains no reviewer, decision, or fabricated approval.
+
 ## Deferred work
 
 The following belong to later, separately reviewed PRs:
@@ -153,3 +176,4 @@ The following belong to later, separately reviewed PRs:
 - concurrency locks and durable run records;
 - alerts and GitHub artifacts;
 - reviewed regulatory change feed.
+- AI-128 Approved ARCA Artifact Builder.

@@ -1,11 +1,11 @@
 # AI LAB Operator Read Model
 
-Status: backend read model implemented (contract `1.4.0`); local read-only
+Status: backend read model implemented (contract `1.5.0`); local read-only
 console implemented; future internal API not implemented.
 
 ## Purpose
 
-The Operator Read Model contract `1.4.0` consolidates already-evaluated,
+The Operator Read Model contract `1.5.0` consolidates already-evaluated,
 repository-governed state into one concise, deterministic, audit-safe JSON
 representation. It feeds the local read-only Operator Console and a future
 internal read-only API. It cannot approve, authorize, configure, mutate,
@@ -14,6 +14,17 @@ consume, or execute anything.
 The dependency direction is:
 
 `registries + evidence + readiness + proposal + preflight + activation review + gold case + authorization + consumption + gateway metadata → pure builder → read-only console → future internal API`
+
+## Contract 1.5.0 additions (2026-07-22)
+
+Version `1.5.0` adds an audit-safe `arca_candidate_review` projection backed by
+the synthetic pending AI-127 repository example. It exposes only candidate
+identity/hash, review lifecycle, evaluator outcome, reviewer presence, expiry,
+unresolved-findings count, later-builder eligibility, and false export and
+publication authority. The repository state has no reviewer, no decision, no
+approval, and no eligibility. The projection calls the authoritative AI-127
+evaluator and does not re-decide review validity. No approval button, form,
+POST endpoint, persistence, or mutation control was added.
 
 ## Contract 1.4.0 additions (2026-07-17)
 

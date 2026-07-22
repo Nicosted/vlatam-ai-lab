@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import { canonicalizeOpenRouterRegistryJson } from "../providers/openrouter-registry.js";
 import type { TournamentOperatorReadModel } from "../tournament/index.js";
 
-export const OPERATOR_READ_MODEL_CONTRACT_VERSION = "1.4.0" as const;
+export const OPERATOR_READ_MODEL_CONTRACT_VERSION = "1.5.0" as const;
 export const OPERATOR_READ_MODEL_HASH_DOMAIN =
   "vlatam-ai-lab:operator-read-model:v1" as const;
 
@@ -215,8 +215,22 @@ export interface OperatorReadModelInput {
     } | null;
   };
   readonly audit_references: readonly string[];
+  readonly arca_candidate_review?: OperatorArcaCandidateReview;
   readonly additional_governed_candidates?: readonly OperatorGovernedCandidate[];
   readonly tournament?: TournamentOperatorReadModel;
+}
+
+export interface OperatorArcaCandidateReview {
+  readonly candidate_artifact_id: string | null;
+  readonly candidate_sha256: string | null;
+  readonly review_lifecycle: string;
+  readonly evaluation_outcome: string;
+  readonly reviewer_present: boolean;
+  readonly expires_at: string | null;
+  readonly unresolved_findings_count: number;
+  readonly eligible_for_approved_artifact_building: boolean;
+  readonly export_authorized: false;
+  readonly publication_authorized: false;
 }
 
 export interface OperatorBlocker {
@@ -305,6 +319,7 @@ export interface OperatorReadModel {
     readonly gold_case_outcome: string;
   };
   readonly audit_references: readonly string[];
+  readonly arca_candidate_review: OperatorArcaCandidateReview;
   readonly tournament: TournamentOperatorReadModel;
 }
 
@@ -659,6 +674,18 @@ export function buildOperatorReadModel(
       gold_case_outcome: input.gold_case.outcome,
     },
     audit_references: [...input.audit_references].sort(),
+    arca_candidate_review: input.arca_candidate_review ?? {
+      candidate_artifact_id: null,
+      candidate_sha256: null,
+      review_lifecycle: "unavailable",
+      evaluation_outcome: "invalid_candidate",
+      reviewer_present: false,
+      expires_at: null,
+      unresolved_findings_count: 0,
+      eligible_for_approved_artifact_building: false,
+      export_authorized: false,
+      publication_authorized: false,
+    },
     tournament: input.tournament ?? {
       registered_candidates: [],
       runtime_evidence: [],

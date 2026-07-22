@@ -257,6 +257,57 @@ function sha256(value: Uint8Array | string): string {
   return createHash("sha256").update(value).digest("hex");
 }
 
+export interface GovernedArcaCandidateValidationResult {
+  readonly valid: boolean;
+  readonly errors: readonly string[];
+}
+
+/**
+ * Authoritative AI-126 candidate validation. AI-127 and later consumers must
+ * reuse this boundary instead of compiling a weaker copy of the schema.
+ */
+export function validateGovernedArcaCandidate(
+  value: unknown,
+): GovernedArcaCandidateValidationResult {
+  if (!validateCandidate(value)) {
+    return {
+      valid: false,
+      errors: [ajv.errorsText(validateCandidate.errors)],
+    };
+  }
+
+  const candidate = value as GovernedArcaCandidateArtifact;
+  const errors: string[] = [];
+  if (
+    candidate.parser.parser_id !== ARCA_NOMENCLADOR_PARSER_ID ||
+    candidate.parser.parser_version !== ARCA_NOMENCLADOR_PARSER_VERSION ||
+    candidate.parser.configuration_sha256 !==
+      ARCA_NOMENCLADOR_PARSER_CONFIGURATION_HASH
+  ) {
+    errors.push("candidate_parser_identity_mismatch");
+  }
+  const parsedTimestamp = new Date(candidate.parsing_timestamp);
+  if (
+    Number.isNaN(parsedTimestamp.getTime()) ||
+    parsedTimestamp.toISOString() !== candidate.parsing_timestamp
+  ) {
+    errors.push("candidate_parsing_timestamp_not_canonical_utc");
+  }
+  if (
+    candidate.parsed_output.tariff_lines_count !==
+    candidate.parsed_output.tariff_lines.length
+  ) {
+    errors.push("candidate_tariff_line_count_mismatch");
+  }
+  if (
+    candidate.parsed_output_sha256 !==
+    sha256(JSON.stringify(candidate.parsed_output))
+  ) {
+    errors.push("candidate_parsed_output_sha256_mismatch");
+  }
+  return { valid: errors.length === 0, errors };
+}
+
 function assertCanonicalTimestamp(value: string, field: string): void {
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime()) || parsed.toISOString() !== value) {
@@ -591,10 +642,11 @@ function buildCandidate(
     publication_status: "not_publishable",
     parsed_output: parsedOutput,
   };
-  if (!validateCandidate(candidate)) {
+  const validation = validateGovernedArcaCandidate(candidate);
+  if (!validation.valid) {
     throw new GovernedArcaIngestionError(
       "INVALID_OUTPUT",
-      `Candidate parsed artifact is invalid: ${ajv.errorsText(validateCandidate.errors)}`,
+      `Candidate parsed artifact is invalid: ${validation.errors.join(", ")}`,
     );
   }
   return candidate;

@@ -28,10 +28,11 @@
     "required_human_actions",
     "validation_evidence_metadata",
     "audit_references",
+    "arca_candidate_review",
     "tournament"
   ],
   "properties": {
-    "contract_version": { "const": "1.4.0" },
+    "contract_version": { "const": "1.5.0" },
     "system_summary": {
       "type": "object",
       "required": [
@@ -61,7 +62,7 @@
         "active_blockers": { "type": "integer", "minimum": 0 },
         "execution_authorized_count": { "type": "integer", "minimum": 0 },
         "last_evaluated_at": { "type": "string", "format": "date-time" },
-        "read_model_contract_version": { "const": "1.4.0" },
+        "read_model_contract_version": { "const": "1.5.0" },
         "read_model_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
       },
       "additionalProperties": false
@@ -293,6 +294,37 @@
       "type": "array",
       "items": { "type": "string" },
       "uniqueItems": true
+    },
+    "arca_candidate_review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "candidate_artifact_id",
+        "candidate_sha256",
+        "review_lifecycle",
+        "evaluation_outcome",
+        "reviewer_present",
+        "expires_at",
+        "unresolved_findings_count",
+        "eligible_for_approved_artifact_building",
+        "export_authorized",
+        "publication_authorized"
+      ],
+      "properties": {
+        "candidate_artifact_id": { "type": ["string", "null"] },
+        "candidate_sha256": {
+          "type": ["string", "null"],
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "review_lifecycle": { "type": "string" },
+        "evaluation_outcome": { "type": "string" },
+        "reviewer_present": { "type": "boolean" },
+        "expires_at": { "type": ["string", "null"], "format": "date-time" },
+        "unresolved_findings_count": { "type": "integer", "minimum": 0 },
+        "eligible_for_approved_artifact_building": { "type": "boolean" },
+        "export_authorized": { "const": false },
+        "publication_authorized": { "const": false }
+      }
     },
     "tournament": {
       "type": "object",

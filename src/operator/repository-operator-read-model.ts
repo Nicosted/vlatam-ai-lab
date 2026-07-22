@@ -53,11 +53,12 @@ import {
   type RuntimeCandidate,
   type RuntimeEvidencePack,
 } from "../tournament/index.js";
+import { evaluateGovernedArcaCandidateReview } from "../review/governed-arca-candidate-review.js";
 
 export const REPOSITORY_OPERATOR_EVALUATED_AT =
   "2026-07-15T12:00:00.000Z" as const;
 
-const APPROVED_ARTIFACTS = {
+const REPOSITORY_ARTIFACTS = {
   models: "config/ai-openrouter-model-registry.json",
   routes: "config/ai-openrouter-route-registry.json",
   adapter: "config/ai-openrouter-adapter.json",
@@ -79,9 +80,10 @@ const APPROVED_ARTIFACTS = {
   runtime_evidence_eve: "config/ai-runtime-evidence-eve.json",
   runtime_evidence_cloudflare: "config/ai-runtime-evidence-cloudflare.json",
   glm_conformance: "config/ai-122-glm-fireworks-conformance-result.json",
+  arca_review_fixture: "data/fixtures/arca/ai-127-pending-review.json",
 } as const;
 
-type ArtifactKey = keyof typeof APPROVED_ARTIFACTS;
+type ArtifactKey = keyof typeof REPOSITORY_ARTIFACTS;
 
 export interface RepositoryOperatorReadModelOptions {
   readonly repository_root: string;
@@ -103,7 +105,7 @@ function safeRead(
   try {
     return {
       value: JSON.parse(
-        readFileSync(resolve(root, APPROVED_ARTIFACTS[key]), "utf8"),
+        readFileSync(resolve(root, REPOSITORY_ARTIFACTS[key]), "utf8"),
       ) as unknown,
       error: null,
     };
@@ -128,7 +130,7 @@ export async function loadRepositoryOperatorReadModel(
     throw new Error("repository_operator_invalid_evaluated_at");
 
   const loaded = Object.fromEntries(
-    (Object.keys(APPROVED_ARTIFACTS) as ArtifactKey[]).map((key) => [
+    (Object.keys(REPOSITORY_ARTIFACTS) as ArtifactKey[]).map((key) => [
       key,
       safeRead(options.repository_root, key, options.artifact_overrides),
     ]),
@@ -147,6 +149,28 @@ export async function loadRepositoryOperatorReadModel(
   const proposal = loaded.proposal.value;
   const approval = loaded.approval.value;
   const runtime = loaded.runtime.value;
+  const arcaReviewFixture = loaded.arca_review_fixture.value;
+  const arcaCandidate = isRecord(arcaReviewFixture)
+    ? arcaReviewFixture.candidate
+    : null;
+  const arcaReview = isRecord(arcaReviewFixture)
+    ? arcaReviewFixture.review
+    : null;
+  const arcaReviewEvaluation = evaluateGovernedArcaCandidateReview(
+    arcaCandidate,
+    arcaReview,
+    options.evaluated_at,
+  );
+  if (
+    arcaReviewEvaluation.outcome === "invalid_candidate" ||
+    arcaReviewEvaluation.outcome === "invalid_review" ||
+    arcaReviewEvaluation.outcome === "candidate_binding_mismatch"
+  )
+    sourceErrors.push(
+      ...arcaReviewEvaluation.reason_codes.map(
+        (reason) => `arca_candidate_review:${reason}`,
+      ),
+    );
   const tournamentCandidateInputs: unknown[] = [
     loaded.tournament_native.value,
     loaded.tournament_eve.value,
@@ -715,7 +739,7 @@ export async function loadRepositoryOperatorReadModel(
       test_totals: options.test_totals ?? null,
     },
     audit_references: [
-      ...Object.values(APPROVED_ARTIFACTS),
+      ...Object.values(REPOSITORY_ARTIFACTS),
       "config/ai-openrouter-glm-readiness-dossier.json",
       "config/ai-openrouter-glm-external-evidence-pack.json",
       "config/ai-openrouter-glm-supervised-enablement-proposal.json",
@@ -727,6 +751,25 @@ export async function loadRepositoryOperatorReadModel(
       "config/ai-commercial-document-pilot-operation.json",
       "reports/ai-lab-glm-fireworks-endpoint-evidence-2026-07-17.md",
     ],
+    arca_candidate_review: {
+      candidate_artifact_id: arcaReviewEvaluation.candidate_artifact_id,
+      candidate_sha256: arcaReviewEvaluation.candidate_sha256,
+      review_lifecycle:
+        isRecord(arcaReview) && typeof arcaReview.lifecycle === "string"
+          ? arcaReview.lifecycle
+          : "invalid",
+      evaluation_outcome: arcaReviewEvaluation.outcome,
+      reviewer_present: isRecord(arcaReview) && arcaReview.reviewer !== null,
+      expires_at:
+        isRecord(arcaReview) && typeof arcaReview.expires_at === "string"
+          ? arcaReview.expires_at
+          : null,
+      unresolved_findings_count: arcaReviewEvaluation.unresolved_findings_count,
+      eligible_for_approved_artifact_building:
+        arcaReviewEvaluation.eligible_for_approved_artifact_building,
+      export_authorized: false,
+      publication_authorized: false,
+    },
     additional_governed_candidates: [
       {
         candidate_id: GLM_MODEL_ID,

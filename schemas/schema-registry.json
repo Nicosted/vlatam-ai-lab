@@ -1,6 +1,32 @@
 {
   "contracts": [
     {
+      "contract_name": "governed_arca_candidate_review",
+      "schema_file": "schemas/governed-arca-candidate-review.schema.json",
+      "valid_fixture": null,
+      "invalid_fixtures": [],
+      "test_file": "tests/review/governed-arca-candidate-review.test.ts",
+      "status": "implemented",
+      "purpose": "Closed independent-human-review record with complete immutable AI-126 candidate identity, integrity, provenance, parser and output bindings plus controlled findings and separation of duties.",
+      "downstream_role": "Evidence for deterministic review evaluation only; never an Approved Artifact, export authorization, publication authority, production authority, or runtime instruction.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": false
+    },
+    {
+      "contract_name": "governed_arca_candidate_review_evaluation",
+      "schema_file": "schemas/governed-arca-candidate-review-evaluation.schema.json",
+      "valid_fixture": null,
+      "invalid_fixtures": [],
+      "test_file": "tests/review/governed-arca-candidate-review.test.ts",
+      "status": "implemented",
+      "purpose": "Deterministic fail-closed result for candidate validity, review integrity, exact bindings, lifecycle, expiry, findings and later-builder-only eligibility.",
+      "downstream_role": "AI-128 builder eligibility input only; explicitly creates nothing and authorizes no export, publication, production reliance, network, database, scheduler, deployment, or vlatam-global access.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": true
+    },
+    {
       "contract_name": "governed_arca_acquired_source_input",
       "schema_file": "schemas/governed-arca-acquired-source-input.schema.json",
       "valid_fixture": null,
