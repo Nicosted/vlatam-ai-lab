@@ -572,6 +572,9 @@ export const GOVERNED_ARCA_CANDIDATE_REVIEW_EVALUATION_SCHEMA = {
 
 const ajv = new Ajv({ allErrors: true, strict: true });
 const validateReview = ajv.compile(GOVERNED_ARCA_CANDIDATE_REVIEW_SCHEMA);
+const validateEvaluation = ajv.compile(
+  GOVERNED_ARCA_CANDIDATE_REVIEW_EVALUATION_SCHEMA,
+);
 
 function hash(domain: string, value: unknown): string {
   return createHash("sha256")
@@ -825,13 +828,55 @@ type EvaluationWithoutIdentity = Omit<
   "evaluation_id" | "evaluation_sha256"
 >;
 
-function sealEvaluation(
+function evaluationHashPayload(
+  value: EvaluationWithoutIdentity | GovernedArcaCandidateReviewEvaluation,
+): EvaluationWithoutIdentity {
+  const clone = structuredClone(value) as Record<string, unknown>;
+  delete clone["evaluation_id"];
+  delete clone["evaluation_sha256"];
+  return clone as unknown as EvaluationWithoutIdentity;
+}
+
+export function computeGovernedArcaReviewEvaluationSha256(
+  value: EvaluationWithoutIdentity | GovernedArcaCandidateReviewEvaluation,
+): string {
+  return hash(
+    ARCA_CANDIDATE_REVIEW_EVALUATION_HASH_DOMAIN,
+    evaluationHashPayload(value),
+  );
+}
+
+export interface GovernedArcaReviewEvaluationValidationResult {
+  readonly valid: boolean;
+  readonly errors: readonly string[];
+}
+
+/** Authoritative AI-127 validation for supplied immutable evaluations. */
+export function validateGovernedArcaCandidateReviewEvaluation(
+  value: unknown,
+): GovernedArcaReviewEvaluationValidationResult {
+  if (!validateEvaluation(value)) {
+    return {
+      valid: false,
+      errors: [ajv.errorsText(validateEvaluation.errors)],
+    };
+  }
+  const evaluation = value as GovernedArcaCandidateReviewEvaluation;
+  const errors: string[] = [];
+  if (!isCanonicalTimestamp(evaluation.evaluated_at))
+    errors.push("evaluation_timestamp_not_canonical_utc");
+  const expectedSha256 = computeGovernedArcaReviewEvaluationSha256(evaluation);
+  if (evaluation.evaluation_sha256 !== expectedSha256)
+    errors.push("evaluation_sha256_mismatch");
+  if (evaluation.evaluation_id !== `arca-review-evaluation--${expectedSha256}`)
+    errors.push("evaluation_id_mismatch");
+  return { valid: errors.length === 0, errors };
+}
+
+export function sealGovernedArcaCandidateReviewEvaluation(
   value: EvaluationWithoutIdentity,
 ): GovernedArcaCandidateReviewEvaluation {
-  const evaluationSha256 = hash(
-    ARCA_CANDIDATE_REVIEW_EVALUATION_HASH_DOMAIN,
-    value,
-  );
+  const evaluationSha256 = computeGovernedArcaReviewEvaluationSha256(value);
   return {
     ...value,
     evaluation_id: `arca-review-evaluation--${evaluationSha256}`,
@@ -929,7 +974,7 @@ export function evaluateGovernedArcaCandidateReview(
   }
 
   const eligible = outcome === "eligible_for_approved_artifact_building";
-  return sealEvaluation({
+  return sealGovernedArcaCandidateReviewEvaluation({
     schema_version: ARCA_CANDIDATE_REVIEW_EVALUATION_CONTRACT_VERSION,
     artifact_type: "governed_arca_candidate_review_evaluation",
     evaluated_at: evaluatedAt,

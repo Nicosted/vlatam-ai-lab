@@ -111,6 +111,28 @@ describe("AI LAB operator read model", () => {
     );
     assert.equal(result.arca_candidate_review.export_authorized, false);
     assert.equal(result.arca_candidate_review.publication_authorized, false);
+    assert.deepEqual(result.arca_approved_artifact, {
+      present: false,
+      approved_artifact_id: null,
+      approved_artifact_sha256: null,
+      candidate_artifact_id: null,
+      candidate_sha256: null,
+      review_id: null,
+      review_sha256: null,
+      evaluation_id: null,
+      evaluation_sha256: null,
+      builder_identity: null,
+      build_timestamp: null,
+      export_status: "not_exported",
+      publication_status: "not_published",
+      production_reliance: "not_authorized",
+      export_authorized: false,
+      publication_authorized: false,
+      production_reliance_authorized: false,
+      database_write_authorized: false,
+      network_call_authorized: false,
+      vlatam_global_access_authorized: false,
+    });
     assert.equal(result.governed_candidates.length, 2);
     const minimax = result.governed_candidates.find(
       (candidate) => candidate.candidate_id === "minimax/minimax-m2.7",

@@ -199,6 +199,14 @@ seed advisory cases.
   expired, and superseded states. Its best result permits only a later AI-128
   builder to evaluate the same separately supplied candidate and review; no
   Approved Artifact or operational authority is created.
+- **AI-128 approved-artifact seam (2026-07-22):** the deterministic local
+  builder revalidates the exact candidate/review/evaluation set, recomputes
+  AI-127 at the supplied evaluation timestamp, enforces builder separation of
+  duties and review freshness at the build timestamp, then writes one
+  immutable Approved ARCA Artifact through atomic no-overwrite staging. Its
+  payload is the unchanged candidate parsed output. Export, publication,
+  production reliance, database, network, scheduler, deployment, and
+  `vlatam-global` authority remain false.
 - **Must not contain:** model SDK calls, vendor response objects, or any
   post-review content.
 - **Owner today:** `src/agents/source-monitor.ts`,
@@ -384,6 +392,26 @@ The Operator Read Model `1.5.0` projects candidate/review hashes, lifecycle,
 outcome, reviewer presence, expiry, unresolved-findings count, later-builder
 eligibility, and explicit false export/publication authority. It adds no form,
 button, endpoint, persistence, or mutation surface.
+
+### Layer 8.3 — Approved ARCA Artifact Builder (AI-128)
+
+The AI-128 seam is:
+
+`AI-126 candidate + AI-127 review + supplied AI-127 evaluation → authoritative revalidation + exact recomputation → builder separation of duties → immutable local Approved ARCA Artifact`
+
+Artifact and result contracts are closed at `1.0.0`. Canonical hashes use
+sorted-key JSON `review-json-v1` and explicit domain separation. Only the two
+derived artifact identity fields are excluded from their own hash payload.
+The supplied evaluation is never trusted by outcome alone: its schema,
+canonical timestamp, hash and ID must validate, and its complete canonical
+value must equal the AI-127 result recomputed at `evaluated_at`.
+
+The builder accepts no URLs, prompts, raw source files, credentials, network
+flags, publisher flags, or production flags. Its only write is to a configured
+local approved-artifact root using symlink rejection, staging, atomic hard-link
+publication and collision refusal. The fixed artifact states are `approved`,
+`not_exported`, `not_published`, and `not_authorized` for production reliance
+and `vlatam-global` consumption.
 
 ## 4. Architectural terminology (defined here, used everywhere)
 

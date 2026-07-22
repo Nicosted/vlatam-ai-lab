@@ -1,11 +1,11 @@
 # AI LAB Operator Read Model
 
-Status: backend read model implemented (contract `1.5.0`); local read-only
+Status: backend read model implemented (contract `1.6.0`); local read-only
 console implemented; future internal API not implemented.
 
 ## Purpose
 
-The Operator Read Model contract `1.5.0` consolidates already-evaluated,
+The Operator Read Model contract `1.6.0` consolidates already-evaluated,
 repository-governed state into one concise, deterministic, audit-safe JSON
 representation. It feeds the local read-only Operator Console and a future
 internal read-only API. It cannot approve, authorize, configure, mutate,
@@ -14,6 +14,17 @@ consume, or execute anything.
 The dependency direction is:
 
 `registries + evidence + readiness + proposal + preflight + activation review + gold case + authorization + consumption + gateway metadata → pure builder → read-only console → future internal API`
+
+## Contract 1.6.0 additions (2026-07-22)
+
+Version `1.6.0` adds an audit-safe `arca_approved_artifact` projection. The
+repository-backed state is explicitly absent: artifact ID/hash,
+candidate/review/evaluation bindings, builder identity, and build timestamp are
+all null. Export remains `not_exported`, publication remains `not_published`,
+production reliance remains `not_authorized`, and every external/write
+authority is false. The projection does not discover, build, approve, export,
+or publish artifacts and adds no form, button, POST endpoint, persistence, or
+mutation control.
 
 ## Contract 1.5.0 additions (2026-07-22)
 

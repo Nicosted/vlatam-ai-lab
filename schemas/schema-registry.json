@@ -1,6 +1,32 @@
 {
   "contracts": [
     {
+      "contract_name": "approved_arca_artifact",
+      "schema_file": "schemas/approved-arca-artifact.schema.json",
+      "valid_fixture": null,
+      "invalid_fixtures": [],
+      "test_file": "tests/artifacts/approved-arca-artifact-builder.test.ts",
+      "status": "implemented",
+      "purpose": "Immutable Approved ARCA Artifact with exact candidate, human-review, evaluation, builder, configuration, timestamp and payload bindings.",
+      "downstream_role": "Local reviewed artifact only; export, publication, production reliance and vlatam-global consumption remain explicitly unauthorized.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": true
+    },
+    {
+      "contract_name": "approved_arca_artifact_build_result",
+      "schema_file": "schemas/approved-arca-artifact-build-result.schema.json",
+      "valid_fixture": null,
+      "invalid_fixtures": [],
+      "test_file": "tests/artifacts/approved-arca-artifact-builder.test.ts",
+      "status": "implemented",
+      "purpose": "Closed fail-closed outcome taxonomy for AI-128 validation, separation of duties and immutable local publication.",
+      "downstream_role": "Audit-safe build result only; every external, runtime and production authority is fixed false.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": true
+    },
+    {
       "contract_name": "governed_arca_candidate_review",
       "schema_file": "schemas/governed-arca-candidate-review.schema.json",
       "valid_fixture": null,

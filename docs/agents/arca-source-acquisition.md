@@ -179,6 +179,44 @@ duties comparisons use the exact validated identity without normalization.
 The repository example under `data/fixtures/arca/` is explicitly synthetic and
 pending. It contains no reviewer, decision, or fabricated approval.
 
+## AI-128 Approved ARCA Artifact Builder boundary
+
+AI-128 consumes one exact AI-126 candidate, one exact AI-127 human-review
+record, one supplied AI-127 evaluation, an explicit builder identity, and an
+explicit build timestamp. It reuses the authoritative candidate validator,
+validates the supplied evaluation's closed schema and self-hash, recomputes
+AI-127 at the supplied evaluation timestamp, and requires complete canonical
+equivalence with that recomputed result. Eligibility is then rechecked at
+build time, including review expiry and timestamp ordering.
+
+Builder identities are closed to `human:<stable-id>` or the exact versioned
+service identity `service:approved-arca-builder@1.0.0`. The builder must differ
+from the reviewer, acquisition operator, candidate producer, parser/runtime,
+and any future publisher/export approver. AI-127's future builder and
+publisher fields must remain null; AI-128 assigns the actual builder only in
+the immutable artifact.
+
+The approved payload is an exact structured clone of the candidate parsed
+output. It is not reparsed or reinterpreted and receives no LLM-derived
+content. Local publication validates every root component before and after
+creation, rejects symbolic links and non-directories, writes through a staging
+file and atomic no-overwrite hard link, and cleans staging on every outcome.
+
+```bash
+pnpm arca:build-approved -- \
+  --candidate path/to/candidate.json \
+  --review path/to/review.json \
+  --evaluation path/to/evaluation.json \
+  --approved-artifact-root path/to/local-approved-artifacts \
+  --builder-identity human:stable-id \
+  --build-timestamp 2026-07-22T15:00:00.000Z
+```
+
+The repository does not contain a real approval or Approved ARCA Artifact.
+Only tests construct synthetic positive inputs. Every artifact and result
+keeps export, publication, production reliance, database, network, scheduler,
+deployment, and `vlatam-global` authority disabled.
+
 ## Deferred work
 
 The following belong to later, separately reviewed PRs:
