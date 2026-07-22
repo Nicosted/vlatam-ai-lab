@@ -11,26 +11,14 @@
 import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync } from 'fs';
 import { join } from 'path';
 import crypto from 'crypto';
+import {
+  parseNomencladorFile,
+  type TariffLine,
+} from '../parsers/arca-nomenclador.js';
 
 const SOURCES_DIR = join(process.cwd(), 'data', 'sources', 'arca');
 const PARSED_DIR = join(process.cwd(), 'data', 'parsed', 'arca');
 const DIFFS_DIR = join(process.cwd(), 'data', 'diffs', 'arca');
-
-interface TariffLine {
-  ncm_code: string;
-  ncm_code_clean: string;
-  hs6_code: string;
-  description: string;
-  aec_rate: number | null;
-  derecho_extra_zona: number | null;
-  tasa_estadistica: number | null;
-  iva_rate: number | null;
-  iva_is_inferred: boolean;
-  unidad_estadistica: string;
-  source: string;
-  source_url: string;
-  snapshot_date: string;
-}
 
 interface ArcaSnapshot {
   snapshot_id: string;
@@ -46,110 +34,6 @@ interface ArcaSnapshot {
 function computeHash(filePath: string): string {
   const content = readFileSync(filePath);
   return crypto.createHash('sha256').update(content).digest('hex');
-}
-
-function parseNomencladorFile(filePath: string): TariffLine[] {
-  const content = readFileSync(filePath, 'latin1');
-  const lines = content.split('\n');
-  const tariffLines: TariffLine[] = [];
-  
-  for (const line of lines) {
-    const trimmed = line.trim();
-    if (!trimmed) continue;
-    
-    // Parse @-delimited fields
-    const fields = trimmed.split('@');
-    
-    // Type 2 = tariff position
-    if (fields[0] !== '2') continue;
-    
-    // Extract NCM code (field 1)
-    const ncmFull = fields[1]?.trim() || '';
-    if (!ncmFull) continue;
-    
-    // Clean NCM (remove verification digit suffix like .110V)
-    // Format: 4202.92.00.110V -> 4202.92.00 (base) + .110V (suffix)
-    const ncmParts = ncmFull.split('.');
-    let ncmCode = ncmFull;
-    let ncmClean = ncmFull.replace(/\./g, '');
-    
-    // If has more than 4 parts (like 4202.92.00.110V), extract base NCM8
-    if (ncmParts.length > 4) {
-      ncmCode = ncmParts.slice(0, 4).join('.');
-      ncmClean = ncmCode.replace(/\./g, '');
-    }
-    
-    // HS6 = first 6 digits of clean NCM
-    const hs6Clean = ncmClean.substring(0, 6);
-    const hs6Code = `${hs6Clean.substring(0, 4)}.${hs6Clean.substring(4, 6)}`;
-    
-    // Parse numeric fields (derechos)
-    // File structure:
-    // Field 3 (fields[2]): AEC rate
-    // Field 4 (fields[3]): Derecho Extra-zona
-    // Field 5 (fields[4]): Tasa estadística
-    // Field 6 (fields[5]): DIE (Derecho Importación Específico)
-    const parseRate = (field: string | undefined): number | null => {
-      if (!field) return null;
-      const trimmed = field.trim();
-      if (trimmed === '') return null;
-      // Handle '000.00' as 0, not null
-      if (trimmed === '000.00' || trimmed === '000.00@') return 0;
-      const val = parseFloat(trimmed);
-      return isNaN(val) ? null : val;
-    };
-    
-    const aecRate = parseRate(fields[2]);           // Field 3: Derecho AEC
-    const derechoEZ = parseRate(fields[3]);         // Field 4: Derecho extra-zona
-    const tasaEst = parseRate(fields[4]);           // Field 5: Tasa estadística
-    const dieRate = parseRate(fields[5]);           // Field 6: DIE
-    
-    // Field 9: Unidad estadística
-    const unidadEst = fields[8]?.trim() || '';
-    
-    // Field 11: Description (with leading spaces, needs trim)
-    const description = fields[10]?.trim() || '';
-    
-    /**
-     * IVA extraction strategy:
-     * 
-     * IMPORTANT: The ARCA nomenclature file does NOT contain explicit IVA rates.
-     * IVA (Impuesto al Valor Agregado) is a separate tax applied at import time.
-     * Standard IVA rates in Argentina:
-     * - 21% for most products (general rate)
-     * - 10.5% for reduced-rate products (e.g., certain food, medical)
-     * - 27% for luxury items
-     * 
-     * We apply default 21% when we have tariff data (AEC or EZ present).
-    */
-    let ivaRate: number | null = null;
-    let ivaIsInferred = false;
-    
-    // Apply default 21% IVA if we have tariff data
-    // This is the standard general IVA rate for most imports in Argentina
-    if (aecRate !== null || derechoEZ !== null) {
-      ivaRate = 21.0;
-      ivaIsInferred = true;
-    }
-    
-    tariffLines.push({
-      ncm_code: ncmFull,
-      ncm_code_clean: ncmClean,
-      hs6_code: hs6Code,
-      description,
-      aec_rate: aecRate,
-      derecho_extra_zona: derechoEZ,
-      tasa_estadistica: tasaEst,
-      iva_rate: ivaRate,
-      iva_is_inferred: ivaIsInferred,
-      unidad_estadistica: unidadEst,
-      source: 'ARCA Arancel Integrado',
-      source_url: 'https://www.afip.gob.ar/aduana/arancelintegrado/',
-      snapshot_date: '2026-06-14',
-    });
-  }
-  
-  return tariffLines;
 }
 
 function findLatestNomencladorFile(): string | null {

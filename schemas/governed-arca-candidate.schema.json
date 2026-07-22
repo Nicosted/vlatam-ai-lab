@@ -1,0 +1,140 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.vlatam.local/governed-arca-candidate.schema.json",
+  "title": "Governed ARCA parse candidate",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "artifact_type",
+    "acquisition_artifact",
+    "parser",
+    "parsing_timestamp",
+    "parsed_output_sha256",
+    "validation_status",
+    "review_state",
+    "approval_status",
+    "publication_status",
+    "parsed_output"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "artifact_type": { "const": "arca_acquired_source_parse_candidate" },
+    "acquisition_artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "acquisition_id",
+        "acquisition_record_sha256",
+        "source_id",
+        "requested_url",
+        "effective_url",
+        "captured_at",
+        "media_type",
+        "raw_sha256"
+      ],
+      "properties": {
+        "acquisition_id": {
+          "type": "string",
+          "pattern": "^ar-arca-arancel-integrado--[0-9]{4}-[0-9]{2}-[0-9]{2}--[a-f0-9]{16}$"
+        },
+        "acquisition_record_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "source_id": { "type": "string", "minLength": 1 },
+        "requested_url": { "type": "string", "minLength": 1 },
+        "effective_url": { "type": "string", "minLength": 1 },
+        "captured_at": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{3}Z$"
+        },
+        "media_type": { "type": "string", "minLength": 1 },
+        "raw_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "parser": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["parser_id", "parser_version", "configuration_sha256"],
+      "properties": {
+        "parser_id": { "const": "arca-nomenclador-txt" },
+        "parser_version": { "const": "1.0.0" },
+        "configuration_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "parsing_timestamp": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{3}Z$"
+    },
+    "parsed_output_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "validation_status": { "const": "valid" },
+    "review_state": { "const": "human_review_required" },
+    "approval_status": { "const": "not_approved" },
+    "publication_status": { "const": "not_publishable" },
+    "parsed_output": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tariff_lines_count", "tariff_lines"],
+      "properties": {
+        "tariff_lines_count": { "type": "integer", "minimum": 1 },
+        "tariff_lines": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "ncm_code",
+              "ncm_code_clean",
+              "hs6_code",
+              "description",
+              "aec_rate",
+              "derecho_extra_zona",
+              "tasa_estadistica",
+              "iva_rate",
+              "iva_is_inferred",
+              "unidad_estadistica",
+              "source",
+              "source_url",
+              "snapshot_date"
+            ],
+            "properties": {
+              "ncm_code": { "type": "string", "minLength": 1 },
+              "ncm_code_clean": {
+                "type": "string",
+                "pattern": "^[0-9]{8,}[A-Z]?$"
+              },
+              "hs6_code": {
+                "type": "string",
+                "pattern": "^[0-9]{4}\\.[0-9]{2}$"
+              },
+              "description": { "type": "string", "minLength": 1 },
+              "aec_rate": { "type": ["number", "null"] },
+              "derecho_extra_zona": { "type": ["number", "null"] },
+              "tasa_estadistica": { "type": ["number", "null"] },
+              "iva_rate": { "type": ["number", "null"] },
+              "iva_is_inferred": { "type": "boolean" },
+              "unidad_estadistica": { "type": "string" },
+              "source": { "const": "ARCA Arancel Integrado" },
+              "source_url": { "type": "string", "minLength": 1 },
+              "snapshot_date": {
+                "type": "string",
+                "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,6 +1,32 @@
 {
   "contracts": [
     {
+      "contract_name": "governed_arca_acquired_source_input",
+      "schema_file": "schemas/governed-arca-acquired-source-input.schema.json",
+      "valid_fixture": null,
+      "invalid_fixtures": [],
+      "test_file": "tests/ingestion/governed-arca-acquired-source.test.ts",
+      "status": "implemented",
+      "purpose": "Closed parser-input contract binding a governed ARCA acquisition identity, provenance fields, record and raw-byte hashes, supported parser identity, and deterministic parsing timestamp.",
+      "downstream_role": "Replay-only input to candidate parsing; never arbitrary file ingestion, approval, publication, or runtime integration.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": false
+    },
+    {
+      "contract_name": "governed_arca_candidate",
+      "schema_file": "schemas/governed-arca-candidate.schema.json",
+      "valid_fixture": null,
+      "invalid_fixtures": [],
+      "test_file": "tests/ingestion/governed-arca-acquired-source.test.ts",
+      "status": "implemented",
+      "purpose": "Deterministic parsed candidate with acquisition, byte, parser, configuration and output hashes plus explicit mandatory human review.",
+      "downstream_role": "Human-review candidate only; explicitly not an Approved Artifact and not publishable to vlatam-global.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": false
+    },
+    {
       "contract_name": "ai_runtime_candidate",
       "schema_file": "schemas/ai-runtime-candidate.schema.json",
       "valid_fixture": "data/fixtures/tournament/valid-contracts.json",

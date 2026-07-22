@@ -2,7 +2,7 @@
 
 ## Status
 
-This capability is a manual, production-isolated acquisition boundary for public ARCA/AFIP sources. It does not schedule runs, parse downloaded content, approve evidence, call an LLM, or publish artifacts to `vlatam-global`.
+This capability is a manual, production-isolated acquisition boundary for public ARCA/AFIP sources. Acquisition itself does not schedule runs, parse downloaded content, approve evidence, call an LLM, or publish artifacts to `vlatam-global`. AI-126 adds a separate replay-only ingestion step described below; it does not change acquisition authority.
 
 ## Purpose
 
@@ -12,7 +12,10 @@ The existing ARCA parser consumes repository-local files. This capability adds t
 Official HTTPS source
 → governed acquisition
 → immutable raw bytes + metadata
-→ parser (separate step)
+→ integrity-bound acquired-source input
+→ supported-content classification
+→ existing ARCA parser
+→ candidate parsed artifact requiring human review
 → snapshot/delta/evidence/review/export
 ```
 
@@ -100,12 +103,49 @@ The acquisition ID is derived from the source ID, UTC capture date, and a hash p
 
 Before a live run, an operator must verify that the URL is an official ARCA/AFIP source. After a run, the output remains unreviewed raw evidence. It must pass through the existing parser, snapshot, delta, evidence, human-review, and export boundaries before `vlatam-global` may consume it.
 
+## AI-126 acquired-source ingestion boundary
+
+AI-126 accepts only the closed
+`governed-arca-acquired-source-input` contract. The contract identifies an
+artifact under a separately configured governed acquisition root; it cannot
+name an arbitrary raw file. Before invoking the shared ARCA nomenclador parser,
+the adapter:
+
+1. derives the acquisition directory from the source ID, capture date, and
+   acquisition ID;
+2. rejects traversal and symlinks and opens regular files with no-follow
+   semantics;
+3. verifies the exact acquisition-record SHA-256;
+4. verifies requested/effective URL, source host and ID, capture timestamp,
+   media type, replay mode, acquisition identity, raw path, byte length, and
+   raw-byte SHA-256 as one consistent binding;
+5. classifies only supported ARCA delimiter text; and
+6. invokes parser identity `arca-nomenclador-txt` version `1.0.0` with its
+   exact configuration hash.
+
+Successful parsing publishes an immutable candidate JSON atomically. It binds
+the acquisition-record hash, raw-byte hash, parser identity/version/config,
+caller-supplied parsing timestamp, and parsed-output hash. Its fixed states are
+`human_review_required`, `not_approved`, and `not_publishable`. It is not an
+Approved Artifact and has no route to `vlatam-global`.
+
+Deterministic local replay:
+
+```bash
+pnpm crawler:arca:ingest-acquired -- \
+  --contract path/to/governed-input.json \
+  --acquisition-root path/to/governed-acquisitions \
+  --candidate-root path/to/local-candidates
+```
+
+The command exposes no URL, prompt, live-mode, or arbitrary raw-file argument.
+All failure modes clean staging files and leave no partial candidate.
+
 ## Deferred work
 
 The following belong to later, separately reviewed PRs:
 
 - discovery of the current nomenclador download link from the landing page;
-- parser integration and format-signature validation;
 - idempotent scheduled execution;
 - concurrency locks and durable run records;
 - alerts and GitHub artifacts;
