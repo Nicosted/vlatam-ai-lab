@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.vlatam.local/controlled-live-arca-run-authorization.schema.json",
+  "title": "Controlled live ARCA run authorization",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "authorization_id",
+    "authorization_sha256",
+    "proposal_id",
+    "proposal_sha256",
+    "requested_url",
+    "acquisition_policy_sha256",
+    "expected_source_identity",
+    "authorization_identity",
+    "authorized_at",
+    "not_before",
+    "expires_at",
+    "maximum_attempts",
+    "maximum_network_calls",
+    "scope"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "authorization_id": {
+      "type": "string",
+      "pattern": "^arca-live-authorization--[a-f0-9]{64}$"
+    },
+    "authorization_sha256": { "$ref": "#/$defs/sha256" },
+    "proposal_id": { "type": "string", "minLength": 1 },
+    "proposal_sha256": { "$ref": "#/$defs/sha256" },
+    "requested_url": { "type": "string", "format": "uri" },
+    "acquisition_policy_sha256": { "$ref": "#/$defs/sha256" },
+    "expected_source_identity": { "const": "ar-arca-arancel-integrado" },
+    "authorization_identity": {
+      "type": "string",
+      "pattern": "^human:[a-z0-9][a-z0-9._@-]*$"
+    },
+    "authorized_at": { "$ref": "#/$defs/timestamp" },
+    "not_before": { "$ref": "#/$defs/timestamp" },
+    "expires_at": { "$ref": "#/$defs/timestamp" },
+    "maximum_attempts": { "const": 1 },
+    "maximum_network_calls": { "const": 1 },
+    "scope": { "const": "controlled_live_arca_acquisition_only" }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "timestamp": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{3}Z$"
+    }
+  }
+}

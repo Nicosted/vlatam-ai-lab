@@ -553,7 +553,7 @@ function assertRecordBindings(
     expected.source_id !== GOVERNED_ARCA_SOURCE_ID ||
     expected.acquisition_id !== expectedAcquisitionId ||
     record.schema_version !== "1.0.0" ||
-    record.mode !== "replay" ||
+    (record.mode !== "replay" && record.mode !== "live") ||
     record.acquisition_id !== expected.acquisition_id ||
     record.source_id !== expected.source_id ||
     record.requested_url !== requestedUrl.href ||

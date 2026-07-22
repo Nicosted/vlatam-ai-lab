@@ -7,7 +7,7 @@ const BOUNDARY_FILES = [
   "src/cli/arca-acquired-source-ingestion.ts",
 ];
 
-test("governed ARCA ingestion remains replay-only and production-isolated", async () => {
+test("governed ARCA ingestion remains acquisition-bound and production-isolated", async () => {
   const source = (
     await Promise.all(BOUNDARY_FILES.map((path) => readFile(path, "utf8")))
   ).join("\n");
@@ -19,7 +19,7 @@ test("governed ARCA ingestion remains replay-only and production-isolated", asyn
   assert.doesNotMatch(source, /scheduler|cron|setInterval/i);
   assert.doesNotMatch(source, /approved-artifact\.schema|ApprovedArtifact/);
   assert.doesNotMatch(source, /vlatam-global|vlatamGlobal/);
-  assert.match(source, /record\.mode !== "replay"/);
+  assert.match(source, /record\.mode !== "replay" && record\.mode !== "live"/);
   assert.match(source, /review_state: "human_review_required"/);
   assert.match(source, /publication_status: "not_publishable"/);
 });
