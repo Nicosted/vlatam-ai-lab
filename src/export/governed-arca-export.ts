@@ -1597,9 +1597,12 @@ export async function executeGovernedArcaExport(
     record_sha256: computeRecordSha256(recordBase),
   };
   const recordJson = canonicalBytes(record);
-  const consumption = {
+  const consumptionId = `arca-export-consumption--${attemptHash}`;
+  const consumptionWithoutHash = {
     schema_version: "1.0.0",
     consumption_type: "arca_export_authorization_consumption",
+    consumption_id: consumptionId,
+    consumption_sha256: "0".repeat(64),
     proposal_id: proposal.proposal_id,
     proposal_sha256: proposal.proposal_sha256,
     authorization_id: authorization.authorization_id,
@@ -1612,6 +1615,13 @@ export async function executeGovernedArcaExport(
     package_sha256: pkg.package_sha256,
     export_attempt_id: attemptId,
     consumed_at: input.executionTimestamp,
+  };
+  const consumption = {
+    ...consumptionWithoutHash,
+    consumption_sha256: domainHash(
+      "vlatam-ai-lab/arca-export-consumption-record/v1",
+      without(consumptionWithoutHash, "consumption_sha256"),
+    ),
   };
   const consumptionJson = canonicalBytes(consumption);
   const consumptionRelativePath = `consumptions/${authorization.authorization_id}.json`;
@@ -1991,9 +2001,14 @@ export async function recoverGovernedArcaExport(
       "authorization_consumption_integrity_invalid",
     ]);
   }
-  const expectedConsumption = {
+  const expectedConsumptionWithoutHash = {
     schema_version: "1.0.0",
     consumption_type: "arca_export_authorization_consumption",
+    consumption_id: `arca-export-consumption--${journal.export_attempt_id.replace(
+      "arca-export-attempt--",
+      "",
+    )}`,
+    consumption_sha256: "0".repeat(64),
     proposal_id: journal.proposal_id,
     proposal_sha256: journal.proposal_sha256,
     authorization_id: journal.authorization_id,
@@ -2006,6 +2021,13 @@ export async function recoverGovernedArcaExport(
     package_sha256: journal.package_sha256,
     export_attempt_id: journal.export_attempt_id,
     consumed_at: journal.created_at,
+  };
+  const expectedConsumption = {
+    ...expectedConsumptionWithoutHash,
+    consumption_sha256: domainHash(
+      "vlatam-ai-lab/arca-export-consumption-record/v1",
+      without(expectedConsumptionWithoutHash, "consumption_sha256"),
+    ),
   };
   if (
     canonicalBytes(parsedConsumption) !== journal.consumption_json ||

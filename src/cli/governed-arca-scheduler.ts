@@ -2,7 +2,7 @@
 
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
-import { join, resolve, sep } from "node:path";
+import { dirname, join, resolve, sep } from "node:path";
 
 import {
   executeGovernedArcaExport,
@@ -19,6 +19,7 @@ import {
 import {
   generateSchedulerPilotSummary,
   inspectSchedulerRecovery,
+  loadDurableSchedulerRecoveryEvidence,
   loadExactRequestBoundArtifact,
   observeGovernedArcaScheduler,
   runGovernedArcaSchedulerOnce,
@@ -26,6 +27,7 @@ import {
   type ScheduledRunRequest,
   type SchedulerActivation,
   type SchedulerConfiguration,
+  type SchedulerDurableRecoveryInput,
   type SchedulerKillSwitch,
   type SchedulerObservationInput,
 } from "../scheduler/governed-arca-scheduler.js";
@@ -94,6 +96,35 @@ function objectAt(
   return nested as Record<string, unknown>;
 }
 
+export async function observeGovernedSchedulerBundle(
+  bundle: Record<string, unknown>,
+): Promise<Record<string, unknown>> {
+  const reported = bundle as unknown as SchedulerObservationInput;
+  return observeGovernedArcaScheduler({
+    ...reported,
+    ai131: {
+      ...reported.ai131,
+      authorizationAvailable: false,
+      recoveryState: "unknown",
+      authoritative: false,
+    },
+    ai132: {
+      ...reported.ai132,
+      authorizationAvailable: false,
+      recoveryState: "unknown",
+      authoritative: false,
+    },
+    ai130Authoritative: false,
+  });
+}
+
+export function assertDurableRecoveryBundle(
+  bundle: Record<string, unknown>,
+): asserts bundle is Record<string, unknown> {
+  if ("lease" in bundle || "journal" in bundle)
+    throw new Error("caller_supplied_recovery_evidence_rejected");
+}
+
 export async function runGovernedSchedulerBundleOnce(
   bundle: Record<string, unknown>,
 ): Promise<unknown> {
@@ -104,19 +135,44 @@ export async function runGovernedSchedulerBundleOnce(
     "configuration",
   ) as unknown as SchedulerConfiguration;
   const request = objectAt(bundle, "request") as unknown as ScheduledRunRequest;
+  const load = (
+    binding: ScheduledRunRequest["ai_131"]["configuration"],
+    identityField: string,
+    sha256Field: string,
+  ) =>
+    loadExactRequestBoundArtifact(binding, dirname(binding.path), {
+      identityField,
+      sha256Field,
+    });
   const [ai131Configuration, ai131Proposal, ai131Authorization, ai131Switch] =
     await Promise.all([
-      loadExactRequestBoundArtifact(request.ai_131.configuration),
-      loadExactRequestBoundArtifact(request.ai_131.proposal),
-      loadExactRequestBoundArtifact(request.ai_131.authorization),
-      loadExactRequestBoundArtifact(request.ai_131.kill_switch),
+      load(
+        request.ai_131.configuration,
+        "configuration_id",
+        "configuration_sha256",
+      ),
+      load(request.ai_131.proposal, "proposal_id", "proposal_sha256"),
+      load(
+        request.ai_131.authorization,
+        "authorization_id",
+        "authorization_sha256",
+      ),
+      load(request.ai_131.kill_switch, "kill_switch_id", "kill_switch_sha256"),
     ]);
   const [ai132Configuration, ai132Proposal, ai132Authorization, ai132Switch] =
     await Promise.all([
-      loadExactRequestBoundArtifact(request.ai_132.configuration),
-      loadExactRequestBoundArtifact(request.ai_132.proposal),
-      loadExactRequestBoundArtifact(request.ai_132.authorization),
-      loadExactRequestBoundArtifact(request.ai_132.kill_switch),
+      load(
+        request.ai_132.configuration,
+        "configuration_id",
+        "configuration_sha256",
+      ),
+      load(request.ai_132.proposal, "proposal_id", "proposal_sha256"),
+      load(
+        request.ai_132.authorization,
+        "authorization_id",
+        "authorization_sha256",
+      ),
+      load(request.ai_132.kill_switch, "kill_switch_id", "kill_switch_sha256"),
     ]);
   const boundaryRunId = String(bundle["ai_131_run_id"] ?? "");
   const assertPath = (
@@ -277,8 +333,10 @@ export async function runGovernedSchedulerBundleOnce(
           executionTimestamp: trustedTimestamp,
         });
         if (result.authorization_consumed)
-          await loadExactRequestBoundArtifact(
+          await load(
             request.ai_131.expected_consumption,
+            "consumption_id",
+            "consumption_sha256",
           );
         return {
           outcome:
@@ -315,8 +373,10 @@ export async function runGovernedSchedulerBundleOnce(
           executionTimestamp: trustedTimestamp,
         });
         if (result.authorization_consumed)
-          await loadExactRequestBoundArtifact(
+          await load(
             request.ai_132.expected_consumption,
+            "consumption_id",
+            "consumption_sha256",
           );
         return {
           outcome: result.outcome === "completed" ? "verified" : "blocked",
@@ -345,31 +405,39 @@ async function main(): Promise<void> {
     const bundle = await readJson(args.input);
     let output: unknown;
     if (args.command === "observe")
-      output = await observeGovernedArcaScheduler(
-        bundle as unknown as SchedulerObservationInput,
-      );
+      output = await observeGovernedSchedulerBundle(bundle);
     else if (args.command === "run-once")
       output = await runGovernedSchedulerBundleOnce(bundle);
     else if (args.command === "recover") {
-      const configuration = objectAt(
-        bundle,
-        "configuration",
-      ) as unknown as SchedulerConfiguration;
-      const request = objectAt(
-        bundle,
-        "request",
-      ) as unknown as ScheduledRunRequest;
+      assertDurableRecoveryBundle(bundle);
+      const recoveryInput = bundle as unknown as SchedulerDurableRecoveryInput;
+      const durable = await loadDurableSchedulerRecoveryEvidence(recoveryInput);
+      const configuration = durable.configuration;
+      const request = durable.request;
       const ai131Configuration = await loadExactRequestBoundArtifact(
         request.ai_131.configuration,
+        dirname(request.ai_131.configuration.path),
+        {
+          identityField: "configuration_id",
+          sha256Field: "configuration_sha256",
+        },
       );
       const ai132Configuration = await loadExactRequestBoundArtifact(
         request.ai_132.configuration,
+        dirname(request.ai_132.configuration.path),
+        {
+          identityField: "configuration_id",
+          sha256Field: "configuration_sha256",
+        },
       );
       output = await inspectSchedulerRecovery({
         configuration,
-        lease: objectAt(bundle, "lease") as never,
-        journal: bundle["journal"] ?? null,
-        timestamp: String(bundle["timestamp"] ?? ""),
+        lease: durable.lease,
+        journal: durable.journal,
+        timestamp: recoveryInput.timestamp,
+        attemptReservations: durable.reservations,
+        schedulerResultPresent: durable.resultPresent,
+        recoveryResultPresent: durable.recoveryResultPresent,
         inspectAi131: async () => {
           const stateRoot = String(
             (
@@ -391,7 +459,7 @@ async function main(): Promise<void> {
           const result = await inspectControlledLiveRunRecovery(
             stateRoot,
             request.ai_131.authoritative_journal.identity,
-            String(bundle["timestamp"] ?? ""),
+            recoveryInput.timestamp,
           );
           const detail = result.details.join(":");
           return {
@@ -432,9 +500,14 @@ async function main(): Promise<void> {
             journalId: request.ai_132.authoritative_journal.identity,
             killSwitch: await loadExactRequestBoundArtifact(
               request.ai_132.kill_switch,
+              dirname(request.ai_132.kill_switch.path),
+              {
+                identityField: "kill_switch_id",
+                sha256Field: "kill_switch_sha256",
+              },
             ),
             killSwitchPath: request.ai_132.kill_switch.path,
-            recoveryTimestamp: String(bundle["timestamp"] ?? ""),
+            recoveryTimestamp: recoveryInput.timestamp,
           });
           const detail = result.details.join(":");
           return {

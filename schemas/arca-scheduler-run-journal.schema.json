@@ -225,7 +225,7 @@
         "authoritative_journal": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["path", "identity"],
+          "required": ["path", "identity", "sha256", "canonical_sha256"],
           "properties": {
             "path": {
               "type": "string",
@@ -234,6 +234,14 @@
             "identity": {
               "type": "string",
               "minLength": 1
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "canonical_sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
             }
           }
         },
@@ -457,7 +465,7 @@
         "authoritative_journal": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["path", "identity"],
+          "required": ["path", "identity", "sha256", "canonical_sha256"],
           "properties": {
             "path": {
               "type": "string",
@@ -466,6 +474,14 @@
             "identity": {
               "type": "string",
               "minLength": 1
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "canonical_sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
             }
           }
         },

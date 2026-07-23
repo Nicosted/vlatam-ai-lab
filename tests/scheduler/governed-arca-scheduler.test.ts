@@ -7,12 +7,17 @@ import {
   readdir,
   realpath,
   symlink,
+  unlink,
   writeFile,
 } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import test from "node:test";
 
+import {
+  assertDurableRecoveryBundle,
+  observeGovernedSchedulerBundle,
+} from "../../src/cli/governed-arca-scheduler.js";
 import {
   MAXIMUM_ACTIVATION_MILLISECONDS,
   acceptSchedulerSlot,
@@ -26,8 +31,8 @@ import {
   computeSchedulerJournalSha256,
   computeSchedulerKillSwitchSha256,
   generateSchedulerPilotSummary,
-  heartbeatSchedulerLease,
   inspectSchedulerRecovery,
+  loadDurableSchedulerRecoveryEvidence,
   loadExactRequestBoundArtifact,
   observeGovernedArcaScheduler,
   reserveSchedulerAttempt,
@@ -44,6 +49,7 @@ import {
   type SchedulerAttemptReservation,
   type SchedulerBoundaryEvidenceBinding,
   type SchedulerConfiguration,
+  type SchedulerDurableRecoveryInput,
   type SchedulerKillSwitch,
   type SchedulerLease,
   type SchedulerRunJournal,
@@ -77,8 +83,9 @@ async function exactArtifact(
   name: string,
   identityKey: string,
   identity: string,
+  explicitShaKey?: string,
 ): Promise<ExactArtifactBinding> {
-  const shaKey = identityKey.replace(/_id$/, "_sha256");
+  const shaKey = explicitShaKey ?? identityKey.replace(/_id$/, "_sha256");
   const value = {
     schema_version: "1.0.0",
     [identityKey]: identity,
@@ -99,66 +106,121 @@ async function boundary(
   root: string,
   name: "ai-131" | "ai-132",
 ): Promise<SchedulerBoundaryEvidenceBinding> {
-  const configuration = await exactArtifact(
-    root,
-    `${name}-configuration`,
-    "configuration_id",
-    `${name}-configuration`,
+  const boundaryRoot = join(root, name);
+  const reviewedInputRoot = join(boundaryRoot, "reviewed-inputs");
+  const stateRoot = join(boundaryRoot, "state");
+  const primaryRoot = join(
+    boundaryRoot,
+    name === "ai-131" ? "acquisitions" : "exports",
   );
+  const secondaryRoot =
+    name === "ai-131" ? join(boundaryRoot, "candidates") : stateRoot;
+  await Promise.all(
+    [reviewedInputRoot, stateRoot, primaryRoot, secondaryRoot].map((path) =>
+      mkdir(path, { recursive: true }),
+    ),
+  );
+  const configurationValue =
+    name === "ai-131"
+      ? {
+          schema_version: "1.0.0",
+          configuration_id: `${name}-configuration`,
+          configuration_sha256: HASH,
+          acquisition_output: {
+            identity: `${name}-acquisitions`,
+            path: primaryRoot,
+          },
+          candidate_output: {
+            identity: `${name}-candidates`,
+            path: secondaryRoot,
+          },
+          run_state: { identity: `${name}-state`, path: stateRoot },
+        }
+      : {
+          schema_version: "1.0.0",
+          configuration_id: `${name}-configuration`,
+          configuration_sha256: HASH,
+          export_root: { identity: `${name}-exports`, path: primaryRoot },
+          export_state_root: {
+            identity: `${name}-state`,
+            path: stateRoot,
+          },
+        };
+  const configurationPath = join(reviewedInputRoot, "configuration.json");
+  await writeFile(configurationPath, canonicalBytes(configurationValue));
+  const configuration: ExactArtifactBinding = {
+    path: configurationPath,
+    identity: `${name}-configuration`,
+    sha256: HASH,
+    canonical_sha256: bytesHash(configurationValue),
+  };
   const proposal = await exactArtifact(
-    root,
+    reviewedInputRoot,
     `${name}-proposal`,
     "proposal_id",
     `${name}-proposal`,
   );
   const authorization = await exactArtifact(
-    root,
+    reviewedInputRoot,
     `${name}-authorization`,
     "authorization_id",
     `${name}-authorization`,
   );
   const consumption = await exactArtifact(
-    root,
+    join(stateRoot, "consumptions"),
     `${name}-consumption`,
     "consumption_id",
     `${name}-consumption`,
   );
   const killSwitch = await exactArtifact(
-    root,
+    reviewedInputRoot,
     `${name}-kill-switch`,
     "kill_switch_id",
     `${name}-kill-switch`,
   );
+  const isAi131 = name === "ai-131";
+  const authoritativeJournal = await exactArtifact(
+    join(stateRoot, "journals"),
+    `${name}-journal`,
+    isAi131 ? "run_id" : "journal_id",
+    `${name}-journal`,
+    "journal_sha256",
+  );
+  const durableResult = await exactArtifact(
+    join(stateRoot, "records"),
+    `${name}-result`,
+    isAi131 ? "run_id" : "package_id",
+    `${name}-result`,
+    "record_sha256",
+  );
+  const primaryEvidence = await exactArtifact(
+    name === "ai-131" ? primaryRoot : join(primaryRoot, "packages"),
+    `${name}-primary`,
+    isAi131 ? "acquisition_id" : "package_id",
+    `${name}-primary`,
+    isAi131 ? "acquisition_record_sha256" : "package_sha256",
+  );
+  const secondaryEvidence = await exactArtifact(
+    name === "ai-131" ? secondaryRoot : join(stateRoot, "records"),
+    `${name}-secondary`,
+    isAi131 ? "candidate_id" : "package_id",
+    `${name}-secondary`,
+    isAi131 ? "candidate_sha256" : "record_sha256",
+  );
+  const recoveryRoot = join(stateRoot, "recovery");
+  await mkdir(recoveryRoot, { recursive: true });
   return {
     configuration,
     proposal,
     authorization,
     expected_consumption: consumption,
-    authoritative_journal: {
-      path: join(root, `${name}-journal.json`),
-      identity: `${name}-journal`,
-    },
-    durable_result: {
-      path: join(root, `${name}-result.json`),
-      identity: `${name}-result`,
-      sha256: HASH,
-      canonical_sha256: HASH,
-    },
-    primary_evidence: {
-      path: join(root, `${name}-primary.json`),
-      identity: `${name}-primary`,
-      sha256: HASH,
-      canonical_sha256: HASH,
-    },
-    secondary_evidence: {
-      path: join(root, `${name}-secondary.json`),
-      identity: `${name}-secondary`,
-      sha256: HASH,
-      canonical_sha256: HASH,
-    },
+    authoritative_journal: authoritativeJournal,
+    durable_result: durableResult,
+    primary_evidence: primaryEvidence,
+    secondary_evidence: secondaryEvidence,
     kill_switch: killSwitch,
     recovery_root: {
-      path: join(root, `${name}-recovery`),
+      path: recoveryRoot,
       identity: `${name}-recovery`,
     },
   };
@@ -393,9 +455,75 @@ async function reserve(
   });
 }
 
-test("all eleven AI-133 contracts are closed Draft 2020-12 schemas", async () => {
+async function durableRecoveryFixture(
+  state:
+    | "lease_acquired"
+    | "acquisition_execution_started"
+    | "export_execution_started" = "lease_acquired",
+): Promise<{
+  value: Fixture;
+  input: SchedulerDurableRecoveryInput;
+  lease: SchedulerLease;
+  journal: SchedulerRunJournal;
+}> {
+  const value = await fixture();
+  await acceptSchedulerSlot({
+    configuration: value.configuration,
+    activation: value.activation,
+    request: value.request,
+    acceptedAt: NOW,
+  });
+  const acquired = await acquireSchedulerLease({
+    configuration: value.configuration,
+    activation: value.activation,
+    ownerId: "durable-recovery-owner",
+    processIdentity: "durable-recovery-process",
+    timestamp: NOW,
+  });
+  assert.equal(acquired.status, "acquired");
+  const lease = acquired.lease!;
+  const journal = recoveryJournal(value, lease, state);
+  const stateRoot = value.configuration.state_root.path;
+  const requestPath = join(
+    stateRoot,
+    "requests",
+    `${value.request.request_id}.json`,
+  );
+  const journalPath = join(stateRoot, "journals", `${journal.run_id}.json`);
+  await mkdir(dirname(requestPath), { recursive: true });
+  await mkdir(dirname(journalPath), { recursive: true });
+  await writeFile(requestPath, canonicalBytes(value.request));
+  await writeFile(journalPath, canonicalBytes(journal));
+  if (state === "acquisition_execution_started") await reserve(value, "ai_131");
+  if (state === "export_execution_started") await reserve(value, "ai_132");
+  const configurationPath = join(value.root, "scheduler-configuration.json");
+  await writeFile(configurationPath, canonicalBytes(value.configuration));
+  return {
+    value,
+    lease,
+    journal,
+    input: {
+      schema_version: "1.0.0",
+      configuration: {
+        path: configurationPath,
+        identity: value.configuration.configuration_id,
+        sha256: value.configuration.configuration_sha256,
+        canonical_sha256: bytesHash(value.configuration),
+      },
+      state_root: value.configuration.state_root,
+      run_id: journal.run_id,
+      request_id: value.request.request_id,
+      lease_path: schedulerLeasePath(value.configuration),
+      journal_path: journalPath,
+      request_path: requestPath,
+      timestamp: LATER,
+    },
+  };
+}
+
+test("all twelve AI-133 contracts are closed Draft 2020-12 schemas", async () => {
   const hashes = schedulerSchemaHashes();
-  assert.equal(Object.keys(hashes).length, 11);
+  assert.equal(Object.keys(hashes).length, 12);
   for (const hash of Object.values(hashes))
     assert.match(hash, /^[a-f0-9]{64}$/);
   const files = {
@@ -406,6 +534,7 @@ test("all eleven AI-133 contracts are closed Draft 2020-12 schemas", async () =>
     run_journal: "arca-scheduler-run-journal.schema.json",
     run_result: "arca-scheduler-run-result.schema.json",
     observation: "arca-scheduler-observation.schema.json",
+    recovery_input: "arca-scheduler-recovery-input.schema.json",
     recovery_decision: "arca-scheduler-recovery-decision.schema.json",
     kill_switch: "arca-scheduler-kill-switch.schema.json",
     attempt_ledger: "arca-scheduler-attempt-ledger.schema.json",
@@ -432,7 +561,7 @@ test("all eleven AI-133 contracts are closed Draft 2020-12 schemas", async () =>
   }
 });
 
-test("crash after AI-131 authorization consumption before callback return", async () => {
+test("AI-131 callback exception after execution start becomes recovery", async () => {
   const value = await fixture();
   const result = await runGovernedArcaSchedulerOnce({
     ...value,
@@ -454,7 +583,7 @@ test("crash after AI-131 authorization consumption before callback return", asyn
   assert.match(String(result["stop_reason"]), /unknown_delivery/);
 });
 
-test("crash after AI-132 authorization consumption before callback return", async () => {
+test("AI-132 callback exception after execution start becomes recovery", async () => {
   const value = await fixture();
   const result = await runGovernedArcaSchedulerOnce({
     ...value,
@@ -483,8 +612,85 @@ test("execution_started with missing evidence never safe-aborts", async () => {
     lease,
     journal: recoveryJournal(value, lease, "acquisition_execution_started"),
     timestamp: LATER,
+    attemptReservations: [await reserve(value, "ai_131")],
   });
   assert.equal(decision["decision"], "lease_expired_recovery");
+});
+
+test("durable recovery loads exact scheduler lease journal request slot and ledger", async () => {
+  const durable = await durableRecoveryFixture("acquisition_execution_started");
+  const loaded = await loadDurableSchedulerRecoveryEvidence(durable.input);
+  assert.equal(loaded.lease.lease_sha256, durable.lease.lease_sha256);
+  assert.equal(loaded.journal.journal_sha256, durable.journal.journal_sha256);
+  assert.equal(
+    loaded.request.request_sha256,
+    durable.value.request.request_sha256,
+  );
+  assert.equal(loaded.slot["request_id"], durable.value.request.request_id);
+  assert.equal(loaded.reservations.length, 1);
+});
+
+test("recover CLI rejects caller-supplied lease and journal objects", () => {
+  assert.throws(
+    () => assertDurableRecoveryBundle({ lease: {}, journal: {} }),
+    /caller_supplied_recovery_evidence_rejected/,
+  );
+});
+
+test("durable recovery rejects caller-supplied or alternate journal paths", async () => {
+  const durable = await durableRecoveryFixture();
+  await assert.rejects(
+    loadDurableSchedulerRecoveryEvidence({
+      ...durable.input,
+      journal_path: join(durable.value.root, "alternate-journal.json"),
+    }),
+    /exact_path_mismatch/,
+  );
+});
+
+test("durable recovery rejects a valid self-hashed journal outside reviewed root", async () => {
+  const durable = await durableRecoveryFixture();
+  const outside = join(
+    durable.value.root,
+    "outside",
+    `${durable.journal.run_id}.json`,
+  );
+  await mkdir(dirname(outside), { recursive: true });
+  await writeFile(outside, canonicalBytes(durable.journal));
+  await assert.rejects(
+    loadDurableSchedulerRecoveryEvidence({
+      ...durable.input,
+      journal_path: outside,
+    }),
+    /exact_path_mismatch|path_substituted/,
+  );
+});
+
+test("durable recovery rejects a symlinked scheduler journal", async () => {
+  const durable = await durableRecoveryFixture();
+  const target = join(durable.value.root, "journal-target.json");
+  await writeFile(target, canonicalBytes(durable.journal));
+  await unlink(durable.input.journal_path);
+  await symlink(target, durable.input.journal_path);
+  await assert.rejects(
+    loadDurableSchedulerRecoveryEvidence(durable.input),
+    /symbolic_link_rejected/,
+  );
+});
+
+test("exact durable pre-authority evidence permits safe abort", async () => {
+  const durable = await durableRecoveryFixture();
+  const loaded = await loadDurableSchedulerRecoveryEvidence(durable.input);
+  const decision = await inspectSchedulerRecovery({
+    configuration: loaded.configuration,
+    lease: loaded.lease,
+    journal: loaded.journal,
+    timestamp: durable.input.timestamp,
+    attemptReservations: loaded.reservations,
+    schedulerResultPresent: loaded.resultPresent,
+    recoveryResultPresent: loaded.recoveryResultPresent,
+  });
+  assert.equal(decision["decision"], "safe_abort_before_authority");
 });
 
 test("exact authoritative non-consumption permits safe abort", async () => {
@@ -495,6 +701,7 @@ test("exact authoritative non-consumption permits safe abort", async () => {
     lease,
     journal: recoveryJournal(value, lease, "acquisition_execution_started"),
     timestamp: LATER,
+    attemptReservations: [await reserve(value, "ai_131")],
     inspectAi131: async () => ({
       status: "not_consumed",
       evidence: value.request.ai_131.expected_consumption,
@@ -511,6 +718,7 @@ test("divergent consumption fails closed", async () => {
     lease,
     journal: recoveryJournal(value, lease, "acquisition_execution_started"),
     timestamp: LATER,
+    attemptReservations: [await reserve(value, "ai_131")],
     inspectAi131: async () => ({
       status: "divergent_evidence",
       evidence: value.request.ai_131.expected_consumption,
@@ -554,6 +762,186 @@ test("exact AI-131 unknown delivery blocks AI-132", async () => {
   assert.equal(result["final_state"], "unknown_delivery_manual_review");
 });
 
+test("verified AI-131 callback with missing durable candidate blocks AI-132", async () => {
+  const value = await fixture();
+  let exportPreflights = 0;
+  const result = await runGovernedArcaSchedulerOnce({
+    ...value,
+    runId: "missing-ai-131-candidate",
+    ownerId: "owner",
+    processIdentity: "process",
+    timestamp: NOW,
+    trustedNow: () => NOW,
+    observation: observation(value),
+    acquisitionBoundary: {
+      preflight: async () => ({ authorized: true, evidenceSha256: HASH }),
+      execute: async () => {
+        await unlink(value.request.ai_131.secondary_evidence.path);
+        return {
+          outcome: "verified",
+          authorizationConsumed: true,
+          evidenceSha256: HASH,
+        };
+      },
+    },
+    exportBoundary: {
+      preflight: async () => {
+        exportPreflights += 1;
+        return { authorized: false, evidenceSha256: HASH };
+      },
+      execute: async () => ({
+        outcome: "blocked",
+        authorizationConsumed: false,
+        evidenceSha256: HASH,
+      }),
+    },
+  });
+  assert.equal(result["final_state"], "recovery_required");
+  assert.equal(exportPreflights, 0);
+});
+
+test("verified AI-131 callback with divergent acquired source blocks AI-132", async () => {
+  const value = await fixture();
+  let exportPreflights = 0;
+  const result = await runGovernedArcaSchedulerOnce({
+    ...value,
+    runId: "divergent-ai-131-acquisition",
+    ownerId: "owner",
+    processIdentity: "process",
+    timestamp: NOW,
+    trustedNow: () => NOW,
+    observation: observation(value),
+    acquisitionBoundary: {
+      preflight: async () => ({ authorized: true, evidenceSha256: HASH }),
+      execute: async () => {
+        await writeFile(value.request.ai_131.primary_evidence.path, "{}\n");
+        return {
+          outcome: "verified",
+          authorizationConsumed: true,
+          evidenceSha256: HASH,
+        };
+      },
+    },
+    exportBoundary: {
+      preflight: async () => {
+        exportPreflights += 1;
+        return { authorized: false, evidenceSha256: HASH };
+      },
+      execute: async () => ({
+        outcome: "blocked",
+        authorizationConsumed: false,
+        evidenceSha256: HASH,
+      }),
+    },
+  });
+  assert.equal(result["final_state"], "recovery_required");
+  assert.equal(exportPreflights, 0);
+});
+
+test("verified AI-131 callback with divergent authoritative journal blocks AI-132", async () => {
+  const value = await fixture();
+  let exportPreflights = 0;
+  const result = await runGovernedArcaSchedulerOnce({
+    ...value,
+    runId: "divergent-ai-131-journal",
+    ownerId: "owner",
+    processIdentity: "process",
+    timestamp: NOW,
+    trustedNow: () => NOW,
+    observation: observation(value),
+    acquisitionBoundary: {
+      preflight: async () => ({ authorized: true, evidenceSha256: HASH }),
+      execute: async () => {
+        await writeFile(
+          value.request.ai_131.authoritative_journal.path,
+          "{}\n",
+        );
+        return {
+          outcome: "verified",
+          authorizationConsumed: true,
+          evidenceSha256: HASH,
+        };
+      },
+    },
+    exportBoundary: {
+      preflight: async () => {
+        exportPreflights += 1;
+        return { authorized: false, evidenceSha256: HASH };
+      },
+      execute: async () => ({
+        outcome: "blocked",
+        authorizationConsumed: false,
+        evidenceSha256: HASH,
+      }),
+    },
+  });
+  assert.equal(result["final_state"], "recovery_required");
+  assert.equal(exportPreflights, 0);
+});
+
+test("verified exact AI-131 durable outputs permit AI-132 preflight", async () => {
+  const value = await fixture();
+  let exportPreflights = 0;
+  const result = await runGovernedArcaSchedulerOnce({
+    ...value,
+    runId: "exact-ai-131-allows-ai-132-preflight",
+    ownerId: "owner",
+    processIdentity: "process",
+    timestamp: NOW,
+    trustedNow: () => NOW,
+    observation: observation(value),
+    acquisitionBoundary: {
+      preflight: async () => ({ authorized: true, evidenceSha256: HASH }),
+      execute: async () => ({
+        outcome: "verified",
+        authorizationConsumed: true,
+        evidenceSha256: HASH,
+        authoritativeConsumptionEvidence:
+          value.request.ai_131.expected_consumption,
+      }),
+    },
+    exportBoundary: {
+      preflight: async () => {
+        exportPreflights += 1;
+        return { authorized: false, evidenceSha256: HASH };
+      },
+      execute: async () => ({
+        outcome: "blocked",
+        authorizationConsumed: false,
+        evidenceSha256: HASH,
+      }),
+    },
+  });
+  assert.equal(result["final_state"], "completed");
+  assert.equal(exportPreflights, 1);
+});
+
+test("verified AI-132 callback with missing package record becomes recovery", async () => {
+  const value = await fixture();
+  const result = await runGovernedArcaSchedulerOnce({
+    ...value,
+    runId: "missing-ai-132-package-record",
+    ownerId: "owner",
+    processIdentity: "process",
+    timestamp: NOW,
+    trustedNow: () => NOW,
+    observation: observation(value),
+    acquisitionBoundary: null,
+    exportBoundary: {
+      preflight: async () => ({ authorized: true, evidenceSha256: HASH }),
+      execute: async () => {
+        await unlink(value.request.ai_132.durable_result.path);
+        return {
+          outcome: "verified",
+          authorizationConsumed: true,
+          evidenceSha256: HASH,
+        };
+      },
+    },
+  });
+  assert.equal(result["final_state"], "recovery_required");
+});
+
 test("boundary exception becomes recovery_required", async () => {
   const value = await fixture();
   const result = await runGovernedArcaSchedulerOnce({
@@ -583,9 +971,13 @@ test("AI-131 evidence hashes are non-null and exact", async () => {
   const value = await fixture();
   assert.match(value.request.ai_131.configuration.sha256, /^[a-f0-9]{64}$/);
   assert.equal(
-    (await loadExactRequestBoundArtifact(value.request.ai_131.proposal))[
-      "proposal_id"
-    ],
+    (
+      await loadExactRequestBoundArtifact(
+        value.request.ai_131.proposal,
+        dirname(value.request.ai_131.proposal.path),
+        { identityField: "proposal_id", sha256Field: "proposal_sha256" },
+      )
+    )["proposal_id"],
     value.request.ai_131.proposal.identity,
   );
 });
@@ -599,8 +991,100 @@ test("CLI rejects substituted artifact bytes", async () => {
   const value = await fixture();
   await writeFile(value.request.ai_131.proposal.path, '{"proposal_id":"x"}\n');
   await assert.rejects(
-    loadExactRequestBoundArtifact(value.request.ai_131.proposal),
+    loadExactRequestBoundArtifact(
+      value.request.ai_131.proposal,
+      dirname(value.request.ai_131.proposal.path),
+      { identityField: "proposal_id", sha256Field: "proposal_sha256" },
+    ),
     /hash_mismatch|noncanonical/,
+  );
+});
+
+test("artifact-specific identity rejects an unrelated matching id field", async () => {
+  const value = await fixture();
+  const path = join(value.root, "wrong-semantic-identity.json");
+  const artifact = {
+    proposal_id: "wrong-proposal",
+    authorization_id: value.request.ai_131.proposal.identity,
+    proposal_sha256: HASH,
+  };
+  await writeFile(path, canonicalBytes(artifact));
+  await assert.rejects(
+    loadExactRequestBoundArtifact(
+      {
+        path,
+        identity: value.request.ai_131.proposal.identity,
+        sha256: HASH,
+        canonical_sha256: bytesHash(artifact),
+      },
+      value.root,
+      { identityField: "proposal_id", sha256Field: "proposal_sha256" },
+    ),
+    /identity_mismatch/,
+  );
+});
+
+test("artifact-specific semantic hash rejects an unrelated matching hash field", async () => {
+  const value = await fixture();
+  const path = join(value.root, "wrong-semantic-hash.json");
+  const artifact = {
+    proposal_id: value.request.ai_131.proposal.identity,
+    proposal_sha256: "b".repeat(64),
+    authorization_sha256: HASH,
+  };
+  await writeFile(path, canonicalBytes(artifact));
+  await assert.rejects(
+    loadExactRequestBoundArtifact(
+      {
+        path,
+        identity: value.request.ai_131.proposal.identity,
+        sha256: HASH,
+        canonical_sha256: bytesHash(artifact),
+      },
+      value.root,
+      { identityField: "proposal_id", sha256Field: "proposal_sha256" },
+    ),
+    /semantic_hash_mismatch/,
+  );
+});
+
+test("exact artifact outside its reviewed root is rejected", async () => {
+  const value = await fixture();
+  await assert.rejects(
+    loadExactRequestBoundArtifact(
+      value.request.ai_131.proposal,
+      join(value.root, "different-reviewed-root"),
+      { identityField: "proposal_id", sha256Field: "proposal_sha256" },
+    ),
+    /root_substitution/,
+  );
+});
+
+test("atomic scheduler lease competition permits exactly one acquisition", async () => {
+  const value = await fixture();
+  const outcomes = await Promise.all([
+    acquireSchedulerLease({
+      configuration: value.configuration,
+      activation: value.activation,
+      ownerId: "owner-a",
+      processIdentity: "process-a",
+      timestamp: NOW,
+    }),
+    acquireSchedulerLease({
+      configuration: value.configuration,
+      activation: value.activation,
+      ownerId: "owner-b",
+      processIdentity: "process-b",
+      timestamp: NOW,
+    }),
+  ]);
+  assert.equal(
+    outcomes.filter((outcome) => outcome.status === "acquired").length,
+    1,
+  );
+  assert.equal(
+    outcomes.filter((outcome) => outcome.status === "competing").length,
+    1,
   );
 });
 
@@ -769,14 +1253,43 @@ test("activation expires before AI-131 call", async () => {
 
 test("activation expires after AI-131 consumption", async () => {
   const value = await fixture();
-  const reservation = await reserve(value, "ai_131");
-  const next = await advanceSchedulerAttempt({
-    configuration: value.configuration,
-    expected: reservation,
-    state: "recovery_required",
-    authoritativeConsumptionEvidence: value.request.ai_131.expected_consumption,
+  let ai131Returned = false;
+  let ai132Executions = 0;
+  const result = await runGovernedArcaSchedulerOnce({
+    ...value,
+    runId: "expires-after-ai-131-consumption",
+    ownerId: "owner",
+    processIdentity: "process",
+    timestamp: NOW,
+    trustedNow: () => (ai131Returned ? value.activation.expires_at : NOW),
+    observation: observation(value),
+    acquisitionBoundary: {
+      preflight: async () => ({ authorized: true, evidenceSha256: HASH }),
+      execute: async () => {
+        ai131Returned = true;
+        return {
+          outcome: "verified",
+          authorizationConsumed: true,
+          evidenceSha256: HASH,
+          authoritativeConsumptionEvidence:
+            value.request.ai_131.expected_consumption,
+        };
+      },
+    },
+    exportBoundary: {
+      preflight: async () => ({ authorized: true, evidenceSha256: HASH }),
+      execute: async () => {
+        ai132Executions += 1;
+        return {
+          outcome: "verified",
+          authorizationConsumed: true,
+          evidenceSha256: HASH,
+        };
+      },
+    },
   });
-  assert.equal(next.state, "recovery_required");
+  assert.equal(result["final_state"], "recovery_required");
+  assert.equal(ai132Executions, 0);
 });
 
 test("activation expires before AI-132 call", async () => {
@@ -866,15 +1379,50 @@ test("scheduler switch path substitution", async () => {
 
 test("heartbeat during delayed AI-131 execution", async () => {
   const value = await fixture();
-  const lease = await expiredLease(value);
-  const next = await heartbeatSchedulerLease({
-    configuration: value.configuration,
-    expectedLease: lease,
-    ownerId: lease.owner_id,
-    processIdentity: lease.process_identity,
-    timestamp: "2026-07-23T12:01:00.000Z",
+  let pulses = 0;
+  const result = await runGovernedArcaSchedulerOnce({
+    ...value,
+    runId: "delayed-ai-131-heartbeats",
+    ownerId: "owner",
+    processIdentity: "process",
+    timestamp: NOW,
+    trustedNow: () => NOW,
+    heartbeatWait: async (signal) => {
+      if (signal.aborted) return;
+      if (pulses >= 3) {
+        await new Promise<void>((resolveAbort) =>
+          signal.addEventListener("abort", () => resolveAbort(), {
+            once: true,
+          }),
+        );
+        return;
+      }
+      await new Promise<void>((resolveImmediate) =>
+        setImmediate(resolveImmediate),
+      );
+      pulses += 1;
+    },
+    observation: observation(value),
+    acquisitionBoundary: {
+      preflight: async () => ({ authorized: true, evidenceSha256: HASH }),
+      execute: async () => {
+        while (pulses < 2)
+          await new Promise<void>((resolveImmediate) =>
+            setImmediate(resolveImmediate),
+          );
+        return {
+          outcome: "verified",
+          authorizationConsumed: true,
+          evidenceSha256: HASH,
+          authoritativeConsumptionEvidence:
+            value.request.ai_131.expected_consumption,
+        };
+      },
+    },
+    exportBoundary: null,
   });
-  assert.notEqual(next.lease_sha256, lease.lease_sha256);
+  assert.equal(result["final_state"], "completed");
+  assert.ok(pulses >= 2);
 });
 
 test("heartbeat failure produces recovery_required", async () => {
@@ -901,6 +1449,90 @@ test("heartbeat failure produces recovery_required", async () => {
     exportBoundary: null,
   });
   assert.equal(result["final_state"], "recovery_required");
+});
+
+test("heartbeat failure during result persistence writes durable recovery", async () => {
+  const value = await fixture();
+  const resultsRoot = join(value.configuration.state_root.path, "results");
+  const result = await runGovernedArcaSchedulerOnce({
+    ...value,
+    runId: "result-persistence-heartbeat-failure",
+    ownerId: "owner",
+    processIdentity: "process",
+    timestamp: NOW,
+    trustedNow: () => NOW,
+    heartbeatWait: async (signal) => {
+      while (!signal.aborted) {
+        const visible = await readdir(resultsRoot).catch(() => []);
+        if (visible.length > 0)
+          throw new Error("result_persistence_heartbeat_failed");
+        await new Promise<void>((resolveImmediate) =>
+          setImmediate(resolveImmediate),
+        );
+      }
+    },
+    observation: observation(value),
+    acquisitionBoundary: null,
+    exportBoundary: null,
+  });
+  assert.equal(result["final_state"], "recovery_required");
+  assert.match(
+    String(result["stop_reason"]),
+    /result_persistence_heartbeat_failed/,
+  );
+  const recovery = JSON.parse(
+    await readFile(
+      join(
+        value.configuration.state_root.path,
+        "recovery-results",
+        "result-persistence-heartbeat-failure.json",
+      ),
+      "utf8",
+    ),
+  ) as Record<string, unknown>;
+  assert.equal(recovery["final_state"], "recovery_required");
+  assert.ok(await readFile(schedulerLeasePath(value.configuration), "utf8"));
+});
+
+test("final in-flight heartbeat failure after journal completion prevents release", async () => {
+  const value = await fixture();
+  const completedRoot = join(
+    value.configuration.state_root.path,
+    "completed-journals",
+  );
+  const result = await runGovernedArcaSchedulerOnce({
+    ...value,
+    runId: "journal-completion-in-flight-heartbeat-failure",
+    ownerId: "owner",
+    processIdentity: "process",
+    timestamp: NOW,
+    trustedNow: () => NOW,
+    heartbeatWait: async (signal) =>
+      new Promise<void>((resolveWait, rejectWait) => {
+        signal.addEventListener(
+          "abort",
+          () => {
+            void readdir(completedRoot)
+              .then((entries) => {
+                if (entries.length > 0)
+                  rejectWait(new Error("journal_completion_heartbeat_failed"));
+                else resolveWait();
+              })
+              .catch(() => resolveWait());
+          },
+          { once: true },
+        );
+      }),
+    observation: observation(value),
+    acquisitionBoundary: null,
+    exportBoundary: null,
+  });
+  assert.equal(result["final_state"], "recovery_required");
+  assert.match(
+    String(result["stop_reason"]),
+    /journal_completion_heartbeat_failed/,
+  );
+  assert.ok(await readFile(schedulerLeasePath(value.configuration), "utf8"));
 });
 
 test("recovery does not inspect a non-expired active lease as stale", async () => {
@@ -944,6 +1576,9 @@ for (const [name, state, inspector] of [
       lease,
       journal: recoveryJournal(value, lease, state),
       timestamp: LATER,
+      attemptReservations: [
+        await reserve(value, inspector === "ai131" ? "ai_131" : "ai_132"),
+      ],
       ...(inspector === "ai131"
         ? {
             inspectAi131: async () => ({
@@ -969,6 +1604,7 @@ test("repeated recovery is idempotent", async () => {
     lease,
     journal: recoveryJournal(value, lease, "acquisition_execution_started"),
     timestamp: LATER,
+    attemptReservations: [await reserve(value, "ai_131")],
     inspectAi131: async () => ({
       status: "not_consumed" as const,
       evidence: value.request.ai_131.expected_consumption,
@@ -988,6 +1624,7 @@ test("exact completion after crash recovery", async () => {
     lease,
     journal: recoveryJournal(value, lease, "acquisition_execution_started"),
     timestamp: LATER,
+    attemptReservations: [await reserve(value, "ai_131")],
     inspectAi131: async () => ({
       status: "consumed_completed",
       evidence: value.request.ai_131.expected_consumption,
@@ -1040,6 +1677,55 @@ test("observation unverified claims cannot enable execution", async () => {
   });
   assert.equal(observed["ai_131_readiness"], "unverified_reported_input");
   assert.equal(observed["ai_131_authorization_available"], false);
+  assert.ok(
+    (observed["reasons_for_not_executing"] as string[]).includes(
+      "ai_131_authorization_missing_or_unverified",
+    ),
+  );
+  assert.ok(
+    (observed["reasons_for_not_executing"] as string[]).includes(
+      "ai_131_unverified_reported_input",
+    ),
+  );
+});
+
+test("missing authorization and unresolved recovery are explicit observation blockers", async () => {
+  const value = await fixture();
+  const observed = await observeGovernedArcaScheduler({
+    ...observation(value),
+    ai131: {
+      readiness: "ready",
+      authorizationAvailable: false,
+      recoveryState: "recovery_required",
+      authoritative: true,
+    },
+    persist: false,
+  });
+  const reasons = observed["reasons_for_not_executing"] as string[];
+  assert.ok(reasons.includes("ai_131_authorization_missing_or_unverified"));
+  assert.ok(reasons.includes("ai_131_recovery_recovery_required"));
+});
+
+test("observe CLI ignores caller authoritative provenance flags", async () => {
+  const value = await fixture();
+  const observed = await observeGovernedSchedulerBundle(
+    observation(value) as unknown as Record<string, unknown>,
+  );
+  assert.equal(observed["ai_131_readiness"], "unverified_reported_input");
+  assert.equal(observed["ai_132_readiness"], "unverified_reported_input");
+  assert.equal(
+    observed["ai_130_integrity_status"],
+    "unverified_reported_input",
+  );
+  assert.equal(observed["ai_131_authorization_available"], false);
+  assert.equal(observed["ai_132_authorization_available"], false);
+  assert.equal(observed["ai_131_recovery_state"], "unknown");
+  assert.equal(observed["ai_132_recovery_state"], "unknown");
+  assert.ok(
+    (observed["reasons_for_not_executing"] as string[]).includes(
+      "slot_eligibility_unverified",
+    ),
+  );
 });
 
 test("AI-130 observation inspection remains read-only", async () => {
@@ -1073,6 +1759,7 @@ test("zero network during observe and recover", async () => {
       lease,
       journal: recoveryJournal(value, lease, "lease_acquired"),
       timestamp: LATER,
+      attemptReservations: [],
     });
     assert.equal(calls, 0);
   } finally {
@@ -1138,10 +1825,14 @@ test("symlink substitution is rejected for exact request-bound artifacts", async
   const linked = join(value.root, "linked.json");
   await symlink(target, linked);
   await assert.rejects(
-    loadExactRequestBoundArtifact({
-      ...value.request.ai_131.proposal,
-      path: linked,
-    }),
+    loadExactRequestBoundArtifact(
+      {
+        ...value.request.ai_131.proposal,
+        path: linked,
+      },
+      dirname(linked),
+      { identityField: "proposal_id", sha256Field: "proposal_sha256" },
+    ),
     /symbolic_link_rejected/,
   );
 });

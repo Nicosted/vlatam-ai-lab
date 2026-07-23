@@ -92,6 +92,19 @@
       "downstream_allowed_field_present": true
     },
     {
+      "contract_name": "arca_scheduler_recovery_input",
+      "schema_file": "schemas/arca-scheduler-recovery-input.schema.json",
+      "valid_fixture": null,
+      "invalid_fixtures": [],
+      "test_file": "tests/scheduler/governed-arca-scheduler.test.ts",
+      "status": "implemented_local_durable_evidence_only",
+      "purpose": "Closed exact-path recovery request that identifies reviewed scheduler configuration and durable state without accepting caller copies of lease or journal evidence.",
+      "downstream_role": "Read-only recovery provenance only; grants no retry, acquisition, export or downstream authority.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": false
+    },
+    {
       "contract_name": "arca_scheduler_recovery_decision",
       "schema_file": "schemas/arca-scheduler-recovery-decision.schema.json",
       "valid_fixture": null,

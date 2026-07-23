@@ -9,6 +9,7 @@ import {
   SCHEDULER_LEASE_SCHEMA,
   SCHEDULER_OBSERVATION_SCHEMA,
   SCHEDULER_RECOVERY_DECISION_SCHEMA,
+  SCHEDULER_RECOVERY_INPUT_SCHEMA,
   SCHEDULER_RUN_JOURNAL_SCHEMA,
   SCHEDULER_RUN_RESULT_SCHEMA,
   SCHEDULER_SLOT_ACCEPTANCE_SCHEMA,
@@ -24,6 +25,7 @@ const schemas = {
   "arca-scheduler-observation.schema.json": SCHEDULER_OBSERVATION_SCHEMA,
   "arca-scheduler-recovery-decision.schema.json":
     SCHEDULER_RECOVERY_DECISION_SCHEMA,
+  "arca-scheduler-recovery-input.schema.json": SCHEDULER_RECOVERY_INPUT_SCHEMA,
   "arca-scheduler-kill-switch.schema.json": SCHEDULER_KILL_SWITCH_SCHEMA,
   "arca-scheduler-attempt-ledger.schema.json": SCHEDULER_ATTEMPT_LEDGER_SCHEMA,
   "arca-scheduler-slot-acceptance.schema.json":

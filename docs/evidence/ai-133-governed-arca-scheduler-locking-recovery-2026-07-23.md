@@ -8,8 +8,8 @@ scheduler remains inactive and execution-blocked.
 
 - Repository: `Nicosted/vlatam-ai-lab`.
 - Branch: `feat/ai-133-governed-arca-scheduler-locking-recovery`.
-- Reviewed starting commit:
-  `fd23ffb6dfeab1666a8cfcd17c864b9fc24beec8`.
+- Second-review starting commit:
+  `70de8c91530a9178d8e7817d448f91393ada3d32`.
 - Base: `3e149f27b891ba5b81c03d0097dc7f950a485405` (AI-132).
 - Before modification, local HEAD exactly matched the remote branch, the index
   and worktree were clean, and PR #128 was open, draft, and unmerged.
@@ -21,17 +21,60 @@ scheduler remains inactive and execution-blocked.
 
 ## Review findings and exact remediation
 
-| Finding                          | Remediation                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| P0-A exact boundary evidence     | The scheduled request and journal now carry closed AI-131/AI-132 evidence bindings for configuration, proposal, authorization, expected consumption, authoritative journal, durable result/record, primary and secondary output evidence, exact kill switch, and recovery root. Exact artifacts bind semantic SHA-256 and exact byte SHA-256. Authority-capable journal entries require a non-null SHA-256 and enter `authority_outcome_unknown`. |
-| CLI boundary substitution        | The CLI rejects nested AI-131/AI-132 inputs, loads proposal/authorization/configuration/switch files only from request bindings, checks regular-file/no-symlink/no-traversal status, semantic identity/hash and exact bytes, and derives consumption/journal/result/package roots from the loaded configurations.                                                                                                                                 |
-| P0-B recovery booleans           | Scheduler recovery is asynchronous and read-only. It validates scheduler evidence first, then calls the existing AI-131 read-only recovery inspector and a new read-only AI-132 inspector. It never calls transport, publishes, retries, creates authorization, deletes/steals a lease, or changes a switch.                                                                                                                                      |
-| P0-C attempt counting            | Two new closed contracts implement activation-scoped atomic attempt reservations and durable slot acceptance. Caps count reservations, not completed result files. Reserved, consumed, completed, and recovery-required states remain durable and no-overwrite. AI-131 and AI-132 use separate reservations.                                                                                                                                      |
-| P1-A trusted time/switch reread  | Authority transitions use an injected trusted clock in tests and wall-clock UTC by default. Immediately before each transition the scheduler heartbeats, obtains time, rereads the exact scheduler switch bytes, revalidates configuration/activation/window/duration, reloads exact boundary artifacts, and reserves the attempt. The entire sequence repeats before AI-132.                                                                     |
-| P1-B heartbeat lifecycle         | Explicit heartbeats cover validation, preflight, observation/result persistence, and finalization. A bounded abortable heartbeat loop runs during asynchronous boundary callbacks, is awaited on exit, advances exact expected lease bytes, and makes heartbeat failure recovery-required. Release uses the latest bytes and occurs only after durable terminal evidence.                                                                         |
-| P1-C exceptions/unknown delivery | Every preflight and execution callback is caught. An exception after `execution_started` persists recovery-required evidence, leaves the reservation counted, retains the lease/journal, stops AI-132, and never retries. AI-131 transport uncertainty is recorded as unknown delivery unless authoritative inspection proves otherwise.                                                                                                          |
-| P1-D cadence/no catch-up         | Durable slot IDs bind configuration, activation, interval, and scheduled UTC slot. Acceptance is no-overwrite, permits only the current/next policy slot, blocks execution before a next slot is due, rejects historical slots, duplicate request IDs, duplicate semantic slots, out-of-window runs, and catch-up/backlog behavior.                                                                                                               |
-| P2 observations                  | Caller readiness is recorded as `unverified_reported_input` unless an authoritative inspector marks it authoritative. Unverified input clears authorization availability and forces execution readiness blocked. Observation and recovery remain zero-network.                                                                                                                                                                                    |
+| Second-review finding                 | Exact remediation                                                                                                                                                                                                                                                                                                                                                                                                   |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| P0-A caller-supplied recovery objects | Added the closed `arca-scheduler-recovery-input` contract. Recover accepts only the reviewed configuration binding, reviewed state-root binding, run/request IDs, exact lease/journal/request paths, and trusted timestamp. It rejects caller `lease` and `journal` objects and reloads configuration, switch, lease, journal, request, slot, attempt ledger, and any result/recovery result from disk.             |
+| P0-A unsafe safe-abort                | Safe abort now requires a complete exact scheduler evidence set, no visible unresolved result, no execution-started reservation, or exact authoritative non-consumption from the relevant AI-131/AI-132 inspector. Missing, divergent, or incomplete scheduler evidence remains recovery-required/fail-closed.                                                                                                      |
+| P0-B callback trust                   | A verified callback is no longer sufficient. The scheduler reloads every exact request-bound consumption, journal, durable result/record, acquired-source/candidate or package/record, recovery root, and current switch before continuation. Reviewed output roots come from the exact boundary configuration, and any visible recovery record blocks continuation.                                                |
+| P0-B generic field scanning           | The loader now requires an artifact-specific identity field and semantic-hash field. It never searches arbitrary `*_id` or `*_sha256` fields. Exact byte SHA-256, semantic SHA-256, absolute reviewed root, component safety, regular-file status, and no-symlink status are mandatory.                                                                                                                             |
+| P1-A heartbeat completion race        | The abortable heartbeat loop catches both driver and lease-heartbeat failures, is always awaited after shutdown, and checks the final in-flight failure before returning. Observation, result writing, journal completion, and release are inside the recovery-sensitive lifecycle. A failure writes durable recovery evidence and leaves the lease in place.                                                       |
+| P1-B exception reconciliation         | Execution exceptions reload the exact request-bound outputs before classification. Unresolved or divergent evidence writes scheduler `recovery_required`, retains journal/lease/reservation evidence, blocks AI-132 after AI-131 uncertainty, and remains non-retryable. The recover command then invokes the real read-only AI-131/AI-132 inspectors over the loaded request bindings.                             |
+| P2-A caller provenance                | Observe ignores caller `authoritative`, `ai130Authoritative`, and equivalent claims. Caller readiness is encoded as `unverified_reported_input`; unavailable authoritative derivation forces blocked readiness. Reasons explicitly identify missing AI-131/AI-132 authorization, unresolved recovery, unverified AI-130/readiness provenance, switch state, cap exhaustion, slot eligibility, and activation state. |
+| P2-B traceability overclaim           | Both matrices below now name the exact file, exact test, test type, durable artifacts, and expected outcome. O-11 maps to actual concurrent lease acquisition. Actual AI-131/AI-132 consumption and journal claims map to their authoritative recovery-inspector integration tests; scheduler-only tests are not described as real external calls.                                                                  |
+
+## Durable scheduler recovery provenance model
+
+The recovery input contains no authoritative scheduler object copies. It binds
+the reviewed configuration by path, identity, semantic SHA-256 and canonical
+byte SHA-256; binds the reviewed state root by identity and absolute path; and
+names the exact run, request, lease, journal and request paths plus a trusted
+timestamp.
+
+Recovery derives all other paths from the loaded configuration and request. It
+loads the exact reviewed switch, active lease, active journal, request, semantic
+slot record, all request-bound attempt reservations, and at most one normal
+result plus the exact recovery result. Each scheduler artifact must be canonical
+JSON, validate its closed schema and self hash, remain under the reviewed state
+root without symlinks or traversal, and match configuration, activation, lease,
+run, request and slot bindings. An alternate file with valid internal hashes
+does not satisfy the derived exact path.
+
+## Post-boundary verification sequence
+
+After AI-131 returns `verified`, the scheduler reloads, in order, the exact
+consumption record, authoritative run journal, durable run record, acquired
+source record, candidate, recovery directory state and current AI-131 switch.
+State artifacts must be under `run_state`, acquisition evidence under
+`acquisition_output`, and candidate evidence under `candidate_output`, as
+declared by the exact reviewed AI-131 configuration. AI-132 preflight is not
+called unless all checks pass.
+
+After AI-132 returns `verified`, the scheduler reloads the exact consumption,
+export journal, durable export record, package, secondary durable record,
+recovery directory state and current export switch. State artifacts must be
+under `export_state_root` and package bytes under `export_root`, as declared by
+the exact reviewed AI-132 configuration. Missing, divergent, substituted or
+unresolved output produces durable scheduler recovery and no normal release.
+
+## Observation provenance model
+
+Observe is a local, read-only projection. Caller-reported readiness is never
+authority. Unless a repository inspector can establish provenance, AI-130,
+AI-131 and AI-132 readiness is reported as `unverified_reported_input`,
+authorization availability is cleared, and overall execution readiness is
+blocked with explicit machine-readable reasons. Observe and recover do not call
+transport, mutate boundary evidence, retry an authority-bearing operation, or
+write to an external database.
 
 ## Exact authoritative evidence bindings
 
@@ -127,11 +170,12 @@ the maximum run duration.
 | --------------------------- | ------------------------------------------------------------------ |
 | Scheduler configuration     | `e88b10e24027fa84f25f65ec20a1b90b788813c17c05a380bf4e5b9b1fe133d5` |
 | Scheduler activation        | `cebd9c35540d3c8bded6d0d314b6b86e9d52e3f0072071452b8aa78228a47bb4` |
-| Scheduled run request       | `0e21d33706c52739205f05236d819357404d75326d62a7ed3ab4b6a382577952` |
+| Scheduled run request       | `1579fb89e0c6d9dbc563d301a7bfdeaa9ee0f54c0605ce0c12cedf46ae496b4c` |
 | Scheduler lease             | `05d37eaf7ab5c6ab0442a6a0f5aff776dd829ccf820e8c8921d12f3bcc7f2d1d` |
-| Scheduler run journal       | `b4f9b0b50e97ede301c41712c77e8f01c7cca8c0be64c0ae8b0a4dd5d761489e` |
+| Scheduler run journal       | `a64f8b0b1606a5ef7242127c009ad12fbb181cef66e1db6716c918b756691a6f` |
 | Scheduler run result        | `aaa16209cda32b7c87518cb134010fa7dfa9bde554eabe76f5a7dc854ed5e963` |
 | Scheduler observation       | `a1840b68b876a474467ce00653ebe79fcec2341a89dd086f66b6026f3e3c2be9` |
+| Scheduler recovery input    | `7ea2fc54e5c46801c9a433db5e75e76ba4cecf5b545a0cf31c03f7a276bc1d4f` |
 | Scheduler recovery decision | `e97a9c5ae07230f5a400c507ed9b70281b5cc239173bdb81705d80ec34b34fb7` |
 | Scheduler kill switch       | `543f100d6dcf78b0ed0bccf0e81f42a09c3e2fba415603786a30bb9212cde302` |
 | Attempt ledger              | `1a80ee9472ecc58dce5e90d89fa216205248e6e9ec893cdef43771ba39a717e9` |
@@ -149,7 +193,7 @@ architecture test is explicitly named.
 
 | ID   | Original scenario              | Exact test name                                                                                                                                                       |
 | ---- | ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| O-01 | Closed contracts               | `all eleven AI-133 contracts are closed Draft 2020-12 schemas`                                                                                                        |
+| O-01 | Closed contracts               | `all twelve AI-133 contracts are closed Draft 2020-12 schemas`                                                                                                        |
 | O-02 | Repository blocked state       | `configuration and activation remain exact, bounded and repository-current blocked`                                                                                   |
 | O-03 | Configuration hash binding     | `configuration and activation remain exact, bounded and repository-current blocked`                                                                                   |
 | O-04 | Activation duration bound      | `configuration and activation remain exact, bounded and repository-current blocked`                                                                                   |
@@ -159,7 +203,7 @@ architecture test is explicitly named.
 | O-08 | Artifact byte substitution     | `CLI rejects substituted artifact bytes`                                                                                                                              |
 | O-09 | Symlink rejection              | `symlink substitution is rejected for exact request-bound artifacts`                                                                                                  |
 | O-10 | Nested input rejection         | `CLI rejects nested input not matching request-bound paths`                                                                                                           |
-| O-11 | Atomic lease competition       | `atomic daily-cap competition`                                                                                                                                        |
+| O-11 | Atomic lease competition       | `atomic scheduler lease competition permits exactly one acquisition`                                                                                                  |
 | O-12 | Exact heartbeat bytes          | `heartbeat during delayed AI-131 execution`                                                                                                                           |
 | O-13 | Latest-byte release            | `exact lease release after latest heartbeat bytes`                                                                                                                    |
 | O-14 | Active lease not stale         | `recovery does not inspect a non-expired active lease as stale`                                                                                                       |
@@ -193,62 +237,111 @@ architecture test is explicitly named.
 | O-42 | Zero downstream authority      | `zero downstream authority`                                                                                                                                           |
 | O-43 | Architecture isolation         | `AI-133 scheduler has no direct transport, database, provider, deployment or vlatam-global boundary` in `tests/architecture/governed-arca-scheduler-boundary.test.ts` |
 
-## REQUEST_CHANGES traceability matrix
+The following keyed continuation supplies the remaining required columns for
+every original row. Together, the two tables are the corrected original matrix.
 
-| ID   | Review scenario                 | Exact test name                                                       |
-| ---- | ------------------------------- | --------------------------------------------------------------------- |
-| R-01 | Crash after AI-131 consumption  | `crash after AI-131 authorization consumption before callback return` |
-| R-02 | Crash after AI-132 consumption  | `crash after AI-132 authorization consumption before callback return` |
-| R-03 | Missing evidence after start    | `execution_started with missing evidence never safe-aborts`           |
-| R-04 | Exact non-consumption           | `exact authoritative non-consumption permits safe abort`              |
-| R-05 | Divergent consumption           | `divergent consumption fails closed`                                  |
-| R-06 | AI-131 unknown delivery         | `exact AI-131 unknown delivery blocks AI-132`                         |
-| R-07 | Boundary exception              | `boundary exception becomes recovery_required`                        |
-| R-08 | AI-131 exact hashes             | `AI-131 evidence hashes are non-null and exact`                       |
-| R-09 | Nested mismatch                 | `CLI rejects nested input not matching request-bound paths`           |
-| R-10 | Substituted bytes               | `CLI rejects substituted artifact bytes`                              |
-| R-11 | Atomic daily cap                | `atomic daily-cap competition`                                        |
-| R-12 | Atomic activation cap           | `atomic activation-cap competition`                                   |
-| R-13 | Reservation crash count         | `crash after reservation remains counted`                             |
-| R-14 | Consumed failure count          | `consumed but failed attempt remains counted`                         |
-| R-15 | Separate reservations           | `separate AI-131 and AI-132 attempt reservations`                     |
-| R-16 | Duplicate request               | `duplicate request rejected`                                          |
-| R-17 | Duplicate semantic slot         | `duplicate semantic slot rejected`                                    |
-| R-18 | Historical slot                 | `historical missed slot rejected`                                     |
-| R-19 | No catch-up                     | `no catch-up after downtime`                                          |
-| R-20 | Operating window                | `operating-window rejection`                                          |
-| R-21 | Expiry before AI-131            | `activation expires before AI-131 call`                               |
-| R-22 | Expiry after AI-131 consumption | `activation expires after AI-131 consumption`                         |
-| R-23 | Expiry before AI-132            | `activation expires before AI-132 call`                               |
-| R-24 | Switch change before AI-131     | `scheduler switch changes before AI-131`                              |
-| R-25 | Switch change before AI-132     | `scheduler switch changes before AI-132`                              |
-| R-26 | Switch path substitution        | `scheduler switch path substitution`                                  |
-| R-27 | Delayed AI-131 heartbeat        | `heartbeat during delayed AI-131 execution`                           |
-| R-28 | Heartbeat failure               | `heartbeat failure produces recovery_required`                        |
-| R-29 | Active lease recovery block     | `recovery does not inspect a non-expired active lease as stale`       |
-| R-30 | Stale AI-131 unresolved         | `stale lease plus unresolved AI-131 journal remains blocked`          |
-| R-31 | Stale AI-132 unresolved         | `stale lease plus unresolved AI-132 journal remains blocked`          |
-| R-32 | Repeated recovery               | `repeated recovery is idempotent`                                     |
-| R-33 | Completion after crash          | `exact completion after crash recovery`                               |
-| R-34 | Activation/daily counters       | `activation-wide counters differ correctly from daily counters`       |
-| R-35 | Pilot attempt categories        | `pilot summary counts reserved consumed and recovery attempts`        |
-| R-36 | Unverified observation          | `observation unverified claims cannot enable execution`               |
-| R-37 | AI-130 read-only                | `AI-130 observation inspection remains read-only`                     |
-| R-38 | Zero-network observe/recover    | `zero network during observe and recover`                             |
-| R-39 | Zero database writes            | `zero external database writes`                                       |
-| R-40 | Zero vlatam-global access       | `zero vlatam-global access`                                           |
-| R-41 | Zero downstream authority       | `zero downstream authority`                                           |
-| R-42 | Latest heartbeat release        | `exact lease release after latest heartbeat bytes`                    |
+| ID   | Exact test file                                               | Type         | Durable artifacts exercised                              | Expected outcome                                    |
+| ---- | ------------------------------------------------------------- | ------------ | -------------------------------------------------------- | --------------------------------------------------- |
+| O-01 | `tests/scheduler/governed-arca-scheduler.test.ts`             | Integration  | Twelve checked-in schemas and runtime schemas            | Closed Draft 2020-12 parity                         |
+| O-02 | `tests/scheduler/governed-arca-scheduler.test.ts`             | Integration  | Repository config, switch and activation-template paths  | Inactive, zero cap, switches active, no activation  |
+| O-03 | `tests/scheduler/governed-arca-scheduler.test.ts`             | Integration  | Repository scheduler configuration                       | Exact semantic and byte hash                        |
+| O-04 | `tests/scheduler/governed-arca-scheduler.test.ts`             | Unit         | Activation template                                      | Duration remains within policy bound                |
+| O-05 | `tests/scheduler/governed-arca-scheduler.test.ts`             | Unit         | Activation value                                         | Expired status                                      |
+| O-06 | `tests/scheduler/governed-arca-scheduler.test.ts`             | Integration  | Scheduled request fixture                                | Request self hash exact                             |
+| O-07 | `tests/scheduler/governed-arca-scheduler.test.ts`             | Integration  | AI-131 request-bound artifacts                           | Non-null exact identity/hash bindings               |
+| O-08 | `tests/scheduler/governed-arca-scheduler.test.ts`             | Integration  | Proposal file with changed bytes                         | Exact-byte mismatch rejected                        |
+| O-09 | `tests/scheduler/governed-arca-scheduler.test.ts`             | Integration  | Symlinked request-bound artifact                         | Symlink rejected                                    |
+| O-10 | `tests/scheduler/governed-arca-scheduler.test.ts`             | Unit         | Caller bundle                                            | Nested boundary objects rejected                    |
+| O-11 | `tests/scheduler/governed-arca-scheduler.test.ts`             | Integration  | Competing exclusive lease writes                         | Exactly one acquired, one competing                 |
+| O-12 | `tests/scheduler/governed-arca-scheduler.test.ts`             | Integration  | Lease heartbeat replacements                             | Multiple exact heartbeats during delayed boundary   |
+| O-13 | `tests/scheduler/governed-arca-scheduler.test.ts`             | Integration  | Latest lease bytes                                       | Release accepts only latest exact lease             |
+| O-14 | `tests/scheduler/governed-arca-scheduler.test.ts`             | Integration  | Non-expired lease                                        | Active lease is not stale-recovered                 |
+| O-15 | `tests/scheduler/governed-arca-scheduler.test.ts`             | Integration  | Stale lease, AI-131 journal and reservation              | Unresolved AI-131 remains recovery-required         |
+| O-16 | `tests/scheduler/governed-arca-scheduler.test.ts`             | Integration  | Stale lease, AI-132 journal and reservation              | Unresolved AI-132 remains recovery-required         |
+| O-17 | `tests/scheduler/governed-arca-scheduler.test.ts`             | Integration  | Same lease/journal inspected twice                       | Identical decision; no writes                       |
+| O-18 | `tests/scheduler/governed-arca-scheduler.test.ts`             | Integration  | Exact authoritative recovery evidence                    | Completed-after-recovery                            |
+| O-19 | `tests/scheduler/governed-arca-scheduler.test.ts`             | Integration  | Execution journal, reservation and non-consumption proof | Safe abort only on positive proof                   |
+| O-20 | `tests/scheduler/governed-arca-scheduler.test.ts`             | Integration  | Execution-started journal with missing evidence          | Never safe abort                                    |
+| O-21 | `tests/scheduler/governed-arca-scheduler.test.ts`             | Integration  | Divergent consumption evidence                           | Malformed-evidence fail closed                      |
+| O-22 | `tests/scheduler/governed-arca-scheduler.test.ts`             | Integration  | AI-131 reservation, journal and result                   | Unknown delivery; AI-132 not called                 |
+| O-23 | `tests/scheduler/governed-arca-scheduler.test.ts`             | Integration  | Scheduler journal and recovery result                    | Boundary exception becomes recovery                 |
+| O-24 | `tests/scheduler/governed-arca-scheduler.test.ts`             | Integration  | Competing daily attempt-ledger reservations              | Daily cap atomically permits one                    |
+| O-25 | `tests/scheduler/governed-arca-scheduler.test.ts`             | Integration  | Competing activation attempt-ledger reservations         | Activation cap atomically permits one               |
+| O-26 | `tests/scheduler/governed-arca-scheduler.test.ts`             | Integration  | Reserved attempt record                                  | Crash reservation remains counted                   |
+| O-27 | `tests/scheduler/governed-arca-scheduler.test.ts`             | Integration  | Consumed/recovery attempt record                         | Consumed failure remains counted                    |
+| O-28 | `tests/scheduler/governed-arca-scheduler.test.ts`             | Integration  | AI-131 and AI-132 reservations                           | Separate durable reservations                       |
+| O-29 | `tests/scheduler/governed-arca-scheduler.test.ts`             | Integration  | Request acceptance record                                | Duplicate request rejected                          |
+| O-30 | `tests/scheduler/governed-arca-scheduler.test.ts`             | Integration  | Semantic slot acceptance                                 | Duplicate slot rejected                             |
+| O-31 | `tests/scheduler/governed-arca-scheduler.test.ts`             | Integration  | Historical request slot                                  | Missed historical slot rejected                     |
+| O-32 | `tests/scheduler/governed-arca-scheduler.test.ts`             | Integration  | Current and missed slot inputs                           | No catch-up execution                               |
+| O-33 | `tests/scheduler/governed-arca-scheduler.test.ts`             | Integration  | Configuration window and request slot                    | Outside-window request rejected                     |
+| O-34 | `tests/scheduler/governed-arca-scheduler.test.ts`             | Integration  | Scheduler switch changed before AI-131                   | Recovery before AI-131 authority                    |
+| O-35 | `tests/scheduler/governed-arca-scheduler.test.ts`             | Integration  | Scheduler switch changed before AI-132                   | Recovery before AI-132 authority                    |
+| O-36 | `tests/scheduler/governed-arca-scheduler.test.ts`             | Integration  | Substituted switch path                                  | Exact configured path required                      |
+| O-37 | `tests/scheduler/governed-arca-scheduler.test.ts`             | Integration  | Observation record                                       | Caller claims remain unverified and blocked         |
+| O-38 | `tests/scheduler/governed-arca-scheduler.test.ts`             | Integration  | AI-130 observation inputs                                | Read-only local inspection                          |
+| O-39 | `tests/scheduler/governed-arca-scheduler.test.ts`             | Integration  | Observation and recovery artifacts                       | Zero network calls                                  |
+| O-40 | `tests/scheduler/governed-arca-scheduler.test.ts`             | Integration  | Scheduler authority flags                                | Zero external database writes                       |
+| O-41 | `tests/scheduler/governed-arca-scheduler.test.ts`             | Integration  | Scheduler authority flags                                | Zero vlatam-global access                           |
+| O-42 | `tests/scheduler/governed-arca-scheduler.test.ts`             | Integration  | Scheduler authority flags                                | All downstream authority false                      |
+| O-43 | `tests/architecture/governed-arca-scheduler-boundary.test.ts` | Architecture | Scheduler and CLI source imports                         | No transport/provider/DB/deployment/global boundary |
+
+## Second REQUEST_CHANGES integration traceability matrix
+
+Every entry below names the exact test file and test. “Durable artifacts”
+describes files actually created or read by that test; no entry treats a caller
+boolean as authoritative evidence.
+
+| ID   | Exact test file                                               | Exact test name                                                                                      | Type         | Durable artifacts exercised                                               | Expected outcome                                               |
+| ---- | ------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ------------ | ------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| I-01 | `tests/scheduler/governed-arca-scheduler.test.ts`             | `recover CLI rejects caller-supplied lease and journal objects`                                      | Unit         | Rejected caller bundle only                                               | Caller copies rejected before recovery                         |
+| I-02 | `tests/scheduler/governed-arca-scheduler.test.ts`             | `durable recovery loads exact scheduler lease journal request slot and ledger`                       | Integration  | Config, switch, lease, journal, request, slot, attempt ledger             | Exact evidence loaded under reviewed root                      |
+| I-03 | `tests/scheduler/governed-arca-scheduler.test.ts`             | `durable recovery rejects caller-supplied or alternate journal paths`                                | Integration  | Derived journal path and alternate path                                   | Alternate path rejected                                        |
+| I-04 | `tests/scheduler/governed-arca-scheduler.test.ts`             | `durable recovery rejects a valid self-hashed journal outside reviewed root`                         | Integration  | Valid self-hashed journal copied outside state root                       | Outside-root journal rejected                                  |
+| I-05 | `tests/scheduler/governed-arca-scheduler.test.ts`             | `durable recovery rejects a symlinked scheduler journal`                                             | Integration  | Active journal replaced by symlink                                        | Symlink rejected                                               |
+| I-06 | `tests/scheduler/governed-arca-scheduler.test.ts`             | `execution_started with missing evidence never safe-aborts`                                          | Integration  | Lease, execution-started journal, AI-131 reservation                      | Recovery required; never safe abort                            |
+| I-07 | `tests/scheduler/governed-arca-scheduler.test.ts`             | `exact durable pre-authority evidence permits safe abort`                                            | Integration  | Config, switch, lease, pre-authority journal, request, slot, empty ledger | Exact safe abort                                               |
+| I-08 | `tests/live-run/controlled-live-arca-run.test.ts`             | `crash inspection never retries automatically and consumption is atomic`                             | Integration  | Real AI-131 consumption and authoritative journal                         | Consumption remains atomic; no retry                           |
+| I-09 | `tests/live-run/controlled-live-arca-run.test.ts`             | `recovery resumes acquisition and candidate persistence from exact local bytes without fetch`        | Integration  | AI-131 consumption, journal, acquired bytes, record and candidate         | Inspector/recovery uses exact local evidence; zero fetch       |
+| I-10 | `tests/export/governed-arca-export.test.ts`                   | `crash after consumption recovers exact package and record without duplication`                      | Integration  | Real AI-132 consumption, export journal, package and record               | Exact completion; no duplicate                                 |
+| I-11 | `tests/export/governed-arca-export.test.ts`                   | `prepared journal distinguishes absent from exact visible consumption`                               | Integration  | AI-132 prepared journal and exact consumption                             | Inspector distinguishes absent from consumed                   |
+| I-12 | `tests/scheduler/governed-arca-scheduler.test.ts`             | `verified AI-131 callback with missing durable candidate blocks AI-132`                              | Integration  | Scheduler lease/journal/ledger plus exact-bound AI-131 output files       | Durable recovery; AI-132 preflight count remains zero          |
+| I-13 | `tests/scheduler/governed-arca-scheduler.test.ts`             | `verified AI-131 callback with divergent acquired source blocks AI-132`                              | Integration  | Exact-bound acquired-source file overwritten after callback               | Byte divergence causes recovery; AI-132 not called             |
+| I-14 | `tests/scheduler/governed-arca-scheduler.test.ts`             | `verified AI-131 callback with divergent authoritative journal blocks AI-132`                        | Integration  | Exact-bound AI-131 authoritative journal overwritten                      | Journal divergence causes recovery; AI-132 not called          |
+| I-15 | `tests/scheduler/governed-arca-scheduler.test.ts`             | `verified exact AI-131 durable outputs permit AI-132 preflight`                                      | Integration  | Exact consumption, journal, run record, acquisition and candidate files   | AI-132 preflight called exactly once                           |
+| I-16 | `tests/scheduler/governed-arca-scheduler.test.ts`             | `verified AI-132 callback with missing package record becomes recovery`                              | Integration  | Exact package/export bindings with deleted durable package record         | Durable scheduler recovery; no completed result                |
+| I-17 | `tests/scheduler/governed-arca-scheduler.test.ts`             | `artifact-specific identity rejects an unrelated matching id field`                                  | Integration  | Exact artifact with only unrelated matching identity                      | Artifact-specific identity mismatch rejected                   |
+| I-18 | `tests/scheduler/governed-arca-scheduler.test.ts`             | `artifact-specific semantic hash rejects an unrelated matching hash field`                           | Integration  | Exact artifact with only unrelated matching semantic hash                 | Artifact-specific hash mismatch rejected                       |
+| I-19 | `tests/scheduler/governed-arca-scheduler.test.ts`             | `exact artifact outside its reviewed root is rejected`                                               | Integration  | Valid artifact and different reviewed root                                | Root substitution rejected                                     |
+| I-20 | `tests/scheduler/governed-arca-scheduler.test.ts`             | `durable recovery rejects caller-supplied or alternate journal paths`                                | Integration  | Same durable journal binding attempted at alternate path                  | Exact derived path wins; substitution rejected                 |
+| I-21 | `tests/scheduler/governed-arca-scheduler.test.ts`             | `heartbeat during delayed AI-131 execution`                                                          | Integration  | Scheduler lease repeatedly replaced with exact heartbeat bytes            | Multiple lifecycle heartbeats; completed                       |
+| I-22 | `tests/scheduler/governed-arca-scheduler.test.ts`             | `final in-flight heartbeat failure after journal completion prevents release`                        | Integration  | Completed journal, recovery result and retained lease                     | Final loop failure detected after shutdown                     |
+| I-23 | `tests/scheduler/governed-arca-scheduler.test.ts`             | `heartbeat failure during result persistence writes durable recovery`                                | Integration  | Normal result visibility, recovery result and retained lease              | Recovery written; completed not reported                       |
+| I-24 | `tests/scheduler/governed-arca-scheduler.test.ts`             | `final in-flight heartbeat failure after journal completion prevents release`                        | Integration  | Completed journal, recovery result and retained lease                     | Journal-finalization failure becomes recovery                  |
+| I-25 | `tests/scheduler/governed-arca-scheduler.test.ts`             | `final in-flight heartbeat failure after journal completion prevents release`                        | Integration  | Exact lease remains after terminal-journal heartbeat failure              | Normal lease release prevented                                 |
+| I-26 | `tests/live-run/controlled-live-arca-run.test.ts`             | `crash inspection never retries automatically and consumption is atomic`                             | Integration  | AI-131 authorized journal before consumption                              | Exact pre-consumption crash is classified without retry        |
+| I-27 | `tests/live-run/controlled-live-arca-run.test.ts`             | `crash inspection never retries automatically and consumption is atomic`                             | Integration  | AI-131 consumption and acquisition-started authoritative journal          | Visible consumption is recovery-required; no retry             |
+| I-28 | `tests/scheduler/governed-arca-scheduler.test.ts`             | `exact AI-131 unknown delivery blocks AI-132`                                                        | Integration  | AI-131 consumed reservation, scheduler journal and terminal result        | Unknown delivery; AI-132 call count zero                       |
+| I-29 | `tests/scheduler/governed-arca-scheduler.test.ts`             | `activation expires after AI-131 consumption`                                                        | Integration  | AI-131 consumed attempt, scheduler journal and recovery result            | AI-132 execute count zero                                      |
+| I-30 | `tests/scheduler/governed-arca-scheduler.test.ts`             | `observe CLI ignores caller authoritative provenance flags`                                          | Integration  | Local observation record                                                  | Caller provenance ignored; readiness unverified                |
+| I-31 | `tests/scheduler/governed-arca-scheduler.test.ts`             | `missing authorization and unresolved recovery are explicit observation blockers`                    | Integration  | Local observation record                                                  | Missing authorizations appear in reasons                       |
+| I-32 | `tests/scheduler/governed-arca-scheduler.test.ts`             | `missing authorization and unresolved recovery are explicit observation blockers`                    | Integration  | Local observation record                                                  | AI-131/AI-132 recovery blockers appear in reasons              |
+| I-33 | `tests/scheduler/governed-arca-scheduler.test.ts`             | `observation unverified claims cannot enable execution`                                              | Integration  | Local observation record                                                  | Unverified AI-130 forces blocked observation                   |
+| I-34 | `tests/scheduler/governed-arca-scheduler.test.ts`             | `zero network during observe and recover`                                                            | Integration  | Observation plus read-only recovery evidence                              | Observe makes zero network calls and no authority writes       |
+| I-35 | `tests/scheduler/governed-arca-scheduler.test.ts`             | `zero network during observe and recover`                                                            | Integration  | Observation plus read-only recovery evidence                              | Recover makes zero network calls and no authority writes       |
+| I-36 | `tests/scheduler/governed-arca-scheduler.test.ts`             | `repeated recovery is idempotent`                                                                    | Integration  | Same exact lease/journal/reservation inspected twice                      | Byte-equivalent decision; no mutation                          |
+| I-37 | `tests/scheduler/governed-arca-scheduler.test.ts`             | `exact completion after crash recovery`                                                              | Integration  | Exact consumed boundary evidence and scheduler recovery inputs            | Completed-after-recovery only with authoritative outputs       |
+| I-38 | `tests/scheduler/governed-arca-scheduler.test.ts`             | `recovery does not inspect a non-expired active lease as stale`                                      | Integration  | Active exact lease                                                        | `active_lease_not_stale`; boundary inspector not called        |
+| I-39 | `tests/scheduler/governed-arca-scheduler.test.ts`             | `stale lease plus unresolved AI-131 journal remains blocked`                                         | Integration  | Expired/stale lease, execution-started journal and attempt reservation    | Staleness alone is insufficient; manual recovery               |
+| I-40 | `tests/architecture/governed-arca-scheduler-boundary.test.ts` | `AI-133 scheduler has no direct transport, database, provider, deployment or vlatam-global boundary` | Architecture | Scheduler and CLI source imports                                          | No downstream authority, external DB or vlatam-global boundary |
 
 ## Validation
 
-- Focused AI-133 plus architecture: **48/48**.
-- AI-128/130/131/132/133 combined regression and architecture: **112/112**.
-- Full repository suite outside the process sandbox: **1,272/1,272** tests,
+- Focused AI-133 scheduler: **64/64**; with the three AI-133 architecture
+  boundaries: **67/67**.
+- AI-128/130/131/132/133 combined regression and architecture: **131/131**.
+- Full repository suite outside the process sandbox: **1,291/1,291** tests,
   **153/153** suites.
-- The sandboxed full-suite pass reached **1,270/1,272**; its only failures were
-  the known nested-`tsx` temporary IPC socket restriction. The exact same two
-  CLI subprocess tests passed in the approved outside-sandbox run.
 - Typecheck: passed.
 - Build: passed.
 - Scoped ESLint: passed.
