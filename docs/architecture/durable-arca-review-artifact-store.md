@@ -2,6 +2,14 @@
 
 Status: AI-130 implemented locally; no live acquisition or external authority.
 
+AI-132 uses `readVerifiedDurableArcaExportSource()` as a read-only verification
+seam. The helper requires an existing hardened store, rejects an operation lock
+or any recovery journal, verifies the complete immutable event chain and every
+workflow record, recomputes the projection, then returns the exact candidate,
+review, evaluation, Approved Artifact, persistence event and projection. It
+never initializes, locks, recovers or writes the store. The projection is not
+trusted as authority by itself.
+
 AI-131 may call the existing `record_candidate` command only after a controlled one-shot acquisition has produced an exact AI-126 candidate. The live-run proposal binds the AI-130 store configuration hash, not a request-supplied store path. Root paths come only from a separately reviewed local configuration file. AI-131 stores no review, evaluation or Approved Artifact and every store command keeps network/database/scheduler/deployment/export/publication/production/`vlatam-global` authority false.
 
 ## Boundary

@@ -1,0 +1,11 @@
+{
+  "schema_version": "1.0.0",
+  "kill_switch_id": "governed-arca-export",
+  "kill_switch_sha256": "5279e0fd3ae7a6526f5638565f2fde7bae17becc61b519277567edebd6c42b2b",
+  "state": "active",
+  "reviewed_artifact_id": null,
+  "reviewed_by": null,
+  "reviewed_at": null,
+  "reason": "Repository-current AI-132 state is blocked. Disablement requires a separate reviewed artifact.",
+  "export_blocked": true
+}
