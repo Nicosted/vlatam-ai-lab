@@ -19,6 +19,9 @@
     "stale_lease_recovery_threshold_seconds",
     "maximum_observations_per_24_hours",
     "maximum_runs_per_24_hours",
+    "kill_switch_path",
+    "kill_switch_reviewed_sha256",
+    "kill_switch_canonical_sha256",
     "state_root",
     "observation_root",
     "ai_131",
@@ -111,6 +114,18 @@
       "minimum": 0,
       "maximum": 24
     },
+    "kill_switch_path": {
+      "type": "string",
+      "minLength": 1
+    },
+    "kill_switch_reviewed_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "kill_switch_canonical_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
     "state_root": {
       "type": "object",
       "additionalProperties": false,
@@ -148,7 +163,8 @@
         "configuration_id",
         "configuration_sha256",
         "kill_switch_path",
-        "kill_switch_reviewed_sha256"
+        "kill_switch_reviewed_sha256",
+        "kill_switch_canonical_sha256"
       ],
       "properties": {
         "configuration_id": {
@@ -164,6 +180,10 @@
           "minLength": 1
         },
         "kill_switch_reviewed_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "kill_switch_canonical_sha256": {
           "type": "string",
           "pattern": "^[a-f0-9]{64}$"
         }
@@ -176,7 +196,8 @@
         "configuration_id",
         "configuration_sha256",
         "kill_switch_path",
-        "kill_switch_reviewed_sha256"
+        "kill_switch_reviewed_sha256",
+        "kill_switch_canonical_sha256"
       ],
       "properties": {
         "configuration_id": {
@@ -192,6 +213,10 @@
           "minLength": 1
         },
         "kill_switch_reviewed_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "kill_switch_canonical_sha256": {
           "type": "string",
           "pattern": "^[a-f0-9]{64}$"
         }

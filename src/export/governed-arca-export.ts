@@ -1768,6 +1768,133 @@ export interface ArcaExportRecoveryInput {
   readonly recoveryTimestamp: string;
 }
 
+/**
+ * Read-only authoritative reconciliation for an existing AI-132 journal.
+ * Unlike recovery, this inspector never publishes a package or record and
+ * never changes a journal, consumption, authorization, switch, or root.
+ */
+export async function inspectGovernedArcaExportRecovery(
+  input: ArcaExportRecoveryInput,
+): Promise<ArcaExportResult> {
+  const timestamp = canonicalTimestamp(input.recoveryTimestamp)
+    ? input.recoveryTimestamp
+    : "1970-01-01T00:00:00.000Z";
+  if (
+    !canonicalTimestamp(input.recoveryTimestamp) ||
+    !validateConfiguration(input.configuration) ||
+    !/^arca-export-journal--[a-f0-9]{64}$/.test(input.journalId)
+  )
+    return result(timestamp, "recovery_required", [
+      "inspection_binding_invalid",
+    ]);
+  const configuration = input.configuration as ArcaExportRootConfiguration;
+  if (
+    configuration.configuration_sha256 !==
+    computeArcaExportConfigurationSha256(configuration)
+  )
+    return result(timestamp, "recovery_required", [
+      "inspection_configuration_divergent",
+    ]);
+  let stateRoot: string;
+  try {
+    stateRoot = await validateExistingRoot(
+      configuration.export_state_root.path,
+    );
+  } catch {
+    return result(timestamp, "recovery_required", [
+      "inspection_root_missing_or_substituted",
+    ]);
+  }
+  const journalPath = join(stateRoot, "journals", `${input.journalId}.json`);
+  let journal: ArcaExportJournal;
+  try {
+    const bytes = await readExactVisibleBytes(journalPath);
+    if (bytes === null) throw new Error("missing");
+    journal = JSON.parse(bytes) as ArcaExportJournal;
+  } catch {
+    return result(timestamp, "recovery_required", [
+      "inspection_journal_missing_or_malformed",
+    ]);
+  }
+  if (
+    !validateJournal(journal) ||
+    journal.journal_sha256 !== computeJournalSha256(journal) ||
+    journal.journal_id !== input.journalId ||
+    journal.root_configuration_sha256 !== configuration.configuration_sha256 ||
+    journal.export_state_root_identity !==
+      configuration.export_state_root.identity
+  )
+    return result(timestamp, "recovery_required", [
+      "inspection_journal_divergent",
+    ]);
+  let consumption: string | null;
+  try {
+    consumption = await readExactVisibleBytes(
+      join(stateRoot, journal.consumption_relative_path),
+    );
+  } catch {
+    return result(timestamp, "recovery_required", [
+      "inspection_consumption_substituted",
+    ]);
+  }
+  if (consumption === null && journal.stage === "prepared")
+    return result(timestamp, "authorization_not_yet_valid", [
+      "exact_pre_authority_non_consumption_proven",
+    ]);
+  if (consumption === null || consumption !== journal.consumption_json)
+    return result(
+      timestamp,
+      "recovery_required",
+      ["inspection_consumption_missing_or_divergent"],
+      undefined,
+      undefined,
+      undefined,
+      { consumed: consumption !== null },
+    );
+  if (journal.stage !== "completed")
+    return result(
+      timestamp,
+      "recovery_required",
+      ["exact_authorization_consumption_visible_recovery_required"],
+      undefined,
+      undefined,
+      undefined,
+      { consumed: true },
+    );
+  const packageBytes = await readExactVisibleBytes(
+    join(
+      resolve(configuration.export_root.path),
+      "packages",
+      `${journal.package_id}.json`,
+    ),
+  ).catch(() => null);
+  const recordBytes = await readExactVisibleBytes(
+    join(stateRoot, "records", `${journal.package_id}.json`),
+  ).catch(() => null);
+  if (
+    packageBytes !== journal.package_json ||
+    recordBytes !== journal.record_json
+  )
+    return result(
+      timestamp,
+      "recovery_required",
+      ["completed_journal_durable_evidence_missing_or_divergent"],
+      undefined,
+      undefined,
+      undefined,
+      { consumed: true },
+    );
+  return result(
+    timestamp,
+    "completed",
+    ["exact_durable_export_completion_visible"],
+    undefined,
+    undefined,
+    undefined,
+    { consumed: true, created: true, recorded: true },
+  );
+}
+
 export async function recoverGovernedArcaExport(
   input: ArcaExportRecoveryInput,
 ): Promise<ArcaExportResult> {

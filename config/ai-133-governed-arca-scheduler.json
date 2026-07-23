@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "configuration_id": "repository-current-governed-arca-scheduler",
-  "configuration_sha256": "c58b12220832de50b690cc14eb2a4c1b8becfd0fae9160749ab1e76436dbf1fb",
+  "configuration_sha256": "6b3ea65b9199a0ef3cbaebe5c5a8ea2a33a36c6b596e5065db12d2e32b69d9ca",
   "scheduler_identity": "service:governed-arca-scheduler@1.0.0",
   "active": false,
   "schedule_mode": "observation_only",
@@ -18,6 +18,9 @@
   "stale_lease_recovery_threshold_seconds": 900,
   "maximum_observations_per_24_hours": 24,
   "maximum_runs_per_24_hours": 0,
+  "kill_switch_path": "config/ai-133-governed-arca-scheduler-kill-switch.json",
+  "kill_switch_reviewed_sha256": "26e9aa69d40bc072ec295596ecbc0a47f4cf4ee49f016c6dc36fffc2a45ce3f3",
+  "kill_switch_canonical_sha256": "5332f4c564470185ba34bafd0069879ab2bddbf76fdeca5107bb6c0ff826c5c0",
   "state_root": {
     "identity": "repository-current-arca-scheduler-state",
     "path": "var/arca-scheduler/state"
@@ -30,13 +33,15 @@
     "configuration_id": "controlled-live-arca-run-boundary-v1",
     "configuration_sha256": "e25751566d66cd4817285b2f01248eea20277d3d1b312958a892420d8b3be164",
     "kill_switch_path": "config/ai-131-controlled-live-arca-kill-switch.json",
-    "kill_switch_reviewed_sha256": "049959fe2bb74aa9e1aa40cb75ac264a52c3a0fc1431fafe8be1a82fe17ea8e1"
+    "kill_switch_reviewed_sha256": "049959fe2bb74aa9e1aa40cb75ac264a52c3a0fc1431fafe8be1a82fe17ea8e1",
+    "kill_switch_canonical_sha256": "7955cb6b43139c7ab17e3dfe88cd95e09a73e3c35cebfd646d87b64e478979e1"
   },
   "ai_132": {
     "configuration_id": "governed-arca-exporter-v1",
     "configuration_sha256": "1f26a84fe1c10b7c3b351eb72d74fdf53bcfdd222bdb764e1d2465d1f63f1d3d",
     "kill_switch_path": "config/ai-132-governed-arca-export-kill-switch.json",
-    "kill_switch_reviewed_sha256": "5279e0fd3ae7a6526f5638565f2fde7bae17becc61b519277567edebd6c42b2b"
+    "kill_switch_reviewed_sha256": "5279e0fd3ae7a6526f5638565f2fde7bae17becc61b519277567edebd6c42b2b",
+    "kill_switch_canonical_sha256": "fe3505a6816f57057d0a603586128ca547ebe4ab5029ab1da7df38fe94779d14"
   },
   "durable_ai_130_store": {
     "identity": "service:durable-arca-review-store@1.0.0",

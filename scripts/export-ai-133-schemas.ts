@@ -2,6 +2,7 @@ import { writeFile } from "node:fs/promises";
 
 import {
   SCHEDULED_RUN_REQUEST_SCHEMA,
+  SCHEDULER_ATTEMPT_LEDGER_SCHEMA,
   SCHEDULER_ACTIVATION_SCHEMA,
   SCHEDULER_CONFIGURATION_SCHEMA,
   SCHEDULER_KILL_SWITCH_SCHEMA,
@@ -10,6 +11,7 @@ import {
   SCHEDULER_RECOVERY_DECISION_SCHEMA,
   SCHEDULER_RUN_JOURNAL_SCHEMA,
   SCHEDULER_RUN_RESULT_SCHEMA,
+  SCHEDULER_SLOT_ACCEPTANCE_SCHEMA,
 } from "../src/scheduler/governed-arca-scheduler.js";
 
 const schemas = {
@@ -23,6 +25,9 @@ const schemas = {
   "arca-scheduler-recovery-decision.schema.json":
     SCHEDULER_RECOVERY_DECISION_SCHEMA,
   "arca-scheduler-kill-switch.schema.json": SCHEDULER_KILL_SWITCH_SCHEMA,
+  "arca-scheduler-attempt-ledger.schema.json": SCHEDULER_ATTEMPT_LEDGER_SCHEMA,
+  "arca-scheduler-slot-acceptance.schema.json":
+    SCHEDULER_SLOT_ACCEPTANCE_SCHEMA,
 } as const;
 
 for (const [name, schema] of Object.entries(schemas))

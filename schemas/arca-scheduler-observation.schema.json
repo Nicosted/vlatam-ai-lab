@@ -76,7 +76,8 @@
         "kill_switch_active",
         "recovery_required",
         "missing",
-        "invalid"
+        "invalid",
+        "unverified_reported_input"
       ]
     },
     "ai_131_authorization_available": {
@@ -92,7 +93,8 @@
         "kill_switch_active",
         "recovery_required",
         "missing",
-        "invalid"
+        "invalid",
+        "unverified_reported_input"
       ]
     },
     "ai_132_authorization_available": {
@@ -102,7 +104,12 @@
       "enum": ["clear", "recovery_required", "unknown"]
     },
     "ai_130_integrity_status": {
-      "enum": ["verified", "unavailable", "invalid"]
+      "enum": [
+        "verified",
+        "unavailable",
+        "invalid",
+        "unverified_reported_input"
+      ]
     },
     "daily_observation_count": {
       "type": "integer",

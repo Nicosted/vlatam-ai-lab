@@ -1,23 +1,29 @@
 #!/usr/bin/env tsx
 
+import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
-import { resolve } from "node:path";
+import { join, resolve, sep } from "node:path";
 
 import {
   executeGovernedArcaExport,
+  inspectGovernedArcaExportRecovery,
   preflightGovernedArcaExport,
   type ArcaExportExecutionInput,
 } from "../export/governed-arca-export.js";
 import {
   executeControlledLiveArcaRun,
+  inspectControlledLiveRunRecovery,
   preflightControlledLiveArcaRun,
   type ControlledLiveRunExecutionInput,
 } from "../live-run/controlled-live-arca-run.js";
 import {
   generateSchedulerPilotSummary,
   inspectSchedulerRecovery,
+  loadExactRequestBoundArtifact,
   observeGovernedArcaScheduler,
   runGovernedArcaSchedulerOnce,
+  canonicalizeSchedulerJson,
+  type ScheduledRunRequest,
   type SchedulerActivation,
   type SchedulerConfiguration,
   type SchedulerKillSwitch,
@@ -88,22 +94,157 @@ function objectAt(
   return nested as Record<string, unknown>;
 }
 
-async function runOnce(bundle: Record<string, unknown>): Promise<unknown> {
-  const ai131 = objectAt(bundle, "ai_131");
-  const ai132 = objectAt(bundle, "ai_132");
-  const ai131Input = objectAt(
-    ai131,
-    "input",
-  ) as unknown as ControlledLiveRunExecutionInput;
-  const ai132Input = objectAt(
-    ai132,
-    "input",
-  ) as unknown as ArcaExportExecutionInput;
+export async function runGovernedSchedulerBundleOnce(
+  bundle: Record<string, unknown>,
+): Promise<unknown> {
+  if ("ai_131" in bundle || "ai_132" in bundle)
+    throw new Error("nested_boundary_input_rejected");
+  const configuration = objectAt(
+    bundle,
+    "configuration",
+  ) as unknown as SchedulerConfiguration;
+  const request = objectAt(bundle, "request") as unknown as ScheduledRunRequest;
+  const [ai131Configuration, ai131Proposal, ai131Authorization, ai131Switch] =
+    await Promise.all([
+      loadExactRequestBoundArtifact(request.ai_131.configuration),
+      loadExactRequestBoundArtifact(request.ai_131.proposal),
+      loadExactRequestBoundArtifact(request.ai_131.authorization),
+      loadExactRequestBoundArtifact(request.ai_131.kill_switch),
+    ]);
+  const [ai132Configuration, ai132Proposal, ai132Authorization, ai132Switch] =
+    await Promise.all([
+      loadExactRequestBoundArtifact(request.ai_132.configuration),
+      loadExactRequestBoundArtifact(request.ai_132.proposal),
+      loadExactRequestBoundArtifact(request.ai_132.authorization),
+      loadExactRequestBoundArtifact(request.ai_132.kill_switch),
+    ]);
+  const boundaryRunId = String(bundle["ai_131_run_id"] ?? "");
+  const assertPath = (
+    actual: string,
+    expected: string,
+    reason: string,
+  ): void => {
+    if (resolve(actual) !== resolve(expected)) throw new Error(reason);
+  };
+  const ai131StateRoot = String(
+    (ai131Configuration["run_state"] as Record<string, unknown> | undefined)?.[
+      "path"
+    ] ?? "",
+  );
+  const ai131AuthorizationId = String(
+    ai131Authorization["authorization_id"] ?? "",
+  );
+  assertPath(
+    join(ai131StateRoot, "consumptions", `${ai131AuthorizationId}.json`),
+    request.ai_131.expected_consumption.path,
+    "ai_131_consumption_path_substituted",
+  );
+  assertPath(
+    join(ai131StateRoot, "journals", `${boundaryRunId}.json`),
+    request.ai_131.authoritative_journal.path,
+    "ai_131_journal_path_substituted",
+  );
+  assertPath(
+    join(ai131StateRoot, "records", `${boundaryRunId}.json`),
+    request.ai_131.durable_result.path,
+    "ai_131_result_path_substituted",
+  );
+  const ai131AcquisitionRoot = String(
+    (
+      ai131Configuration["acquisition_output"] as
+        | Record<string, unknown>
+        | undefined
+    )?.["path"] ?? "",
+  );
+  const ai131CandidateRoot = String(
+    (
+      ai131Configuration["candidate_output"] as
+        | Record<string, unknown>
+        | undefined
+    )?.["path"] ?? "",
+  );
+  if (
+    !resolve(request.ai_131.primary_evidence.path).startsWith(
+      `${resolve(ai131AcquisitionRoot)}${sep}`,
+    )
+  )
+    throw new Error("ai_131_acquisition_evidence_root_substituted");
+  if (
+    !resolve(request.ai_131.secondary_evidence.path).startsWith(
+      `${resolve(ai131CandidateRoot)}${sep}`,
+    )
+  )
+    throw new Error("ai_131_candidate_evidence_root_substituted");
+  const ai132StateRoot = String(
+    (
+      ai132Configuration["export_state_root"] as
+        | Record<string, unknown>
+        | undefined
+    )?.["path"] ?? "",
+  );
+  const ai132ExportRoot = String(
+    (
+      ai132Configuration["export_root"] as Record<string, unknown> | undefined
+    )?.["path"] ?? "",
+  );
+  const ai132AuthorizationId = String(
+    ai132Authorization["authorization_id"] ?? "",
+  );
+  assertPath(
+    join(ai132StateRoot, "consumptions", `${ai132AuthorizationId}.json`),
+    request.ai_132.expected_consumption.path,
+    "ai_132_consumption_path_substituted",
+  );
+  assertPath(
+    join(
+      ai132StateRoot,
+      "journals",
+      `${request.ai_132.authoritative_journal.identity}.json`,
+    ),
+    request.ai_132.authoritative_journal.path,
+    "ai_132_journal_path_substituted",
+  );
+  assertPath(
+    join(
+      ai132StateRoot,
+      "records",
+      `${request.ai_132.durable_result.identity}.json`,
+    ),
+    request.ai_132.durable_result.path,
+    "ai_132_record_path_substituted",
+  );
+  assertPath(
+    join(
+      ai132ExportRoot,
+      "packages",
+      `${request.ai_132.primary_evidence.identity}.json`,
+    ),
+    request.ai_132.primary_evidence.path,
+    "ai_132_package_path_substituted",
+  );
+  const ai131Input = {
+    runId: boundaryRunId,
+    proposal: ai131Proposal,
+    authorization: ai131Authorization,
+    killSwitch: ai131Switch,
+    configuration: ai131Configuration,
+    executionTimestamp: String(bundle["timestamp"] ?? ""),
+    killSwitchPath: request.ai_131.kill_switch.path,
+  } as unknown as ControlledLiveRunExecutionInput;
+  const ai132Input = {
+    proposal: ai132Proposal,
+    authorization: ai132Authorization,
+    killSwitch: ai132Switch,
+    configuration: ai132Configuration,
+    executionTimestamp: String(bundle["timestamp"] ?? ""),
+    killSwitchPath: request.ai_132.kill_switch.path,
+  } as unknown as ArcaExportExecutionInput;
+  const hashResult = (value: unknown): string =>
+    createHash("sha256")
+      .update(`${canonicalizeSchedulerJson(value)}\n`)
+      .digest("hex");
   return runGovernedArcaSchedulerOnce({
-    configuration: objectAt(
-      bundle,
-      "configuration",
-    ) as unknown as SchedulerConfiguration,
+    configuration,
     activation: objectAt(
       bundle,
       "activation",
@@ -112,7 +253,7 @@ async function runOnce(bundle: Record<string, unknown>): Promise<unknown> {
       bundle,
       "scheduler_kill_switch",
     ) as unknown as SchedulerKillSwitch,
-    request: objectAt(bundle, "request"),
+    request,
     runId: String(bundle["run_id"] ?? ""),
     ownerId: String(bundle["owner_id"] ?? ""),
     processIdentity: String(bundle["process_identity"] ?? ""),
@@ -122,15 +263,23 @@ async function runOnce(bundle: Record<string, unknown>): Promise<unknown> {
       "persist"
     >,
     acquisitionBoundary: {
-      preflight: async () => {
-        const result = await preflightControlledLiveArcaRun(ai131Input);
+      preflight: async (trustedTimestamp) => {
+        const exact = { ...ai131Input, executionTimestamp: trustedTimestamp };
+        const result = await preflightControlledLiveArcaRun(exact);
         return {
           authorized: result.lifecycle === "authorized",
-          evidenceSha256: null,
+          evidenceSha256: hashResult(result),
         };
       },
-      execute: async () => {
-        const result = await executeControlledLiveArcaRun(ai131Input);
+      execute: async (trustedTimestamp) => {
+        const result = await executeControlledLiveArcaRun({
+          ...ai131Input,
+          executionTimestamp: trustedTimestamp,
+        });
+        if (result.authorization_consumed)
+          await loadExactRequestBoundArtifact(
+            request.ai_131.expected_consumption,
+          );
         return {
           outcome:
             result.outcome === "completed"
@@ -139,24 +288,46 @@ async function runOnce(bundle: Record<string, unknown>): Promise<unknown> {
                 ? "unknown"
                 : "blocked",
           authorizationConsumed: result.authorization_consumed,
-          evidenceSha256: null,
+          evidenceSha256: hashResult(result),
+          ...(result.authorization_consumed
+            ? {
+                authoritativeConsumptionEvidence:
+                  request.ai_131.expected_consumption,
+              }
+            : {}),
         };
       },
     },
     exportBoundary: {
-      preflight: async () => {
-        const result = await preflightGovernedArcaExport(ai132Input);
+      preflight: async (trustedTimestamp) => {
+        const result = await preflightGovernedArcaExport({
+          ...ai132Input,
+          executionTimestamp: trustedTimestamp,
+        });
         return {
           authorized: result.outcome === "package_exported",
-          evidenceSha256: result.package_sha256,
+          evidenceSha256: hashResult(result),
         };
       },
-      execute: async () => {
-        const result = await executeGovernedArcaExport(ai132Input);
+      execute: async (trustedTimestamp) => {
+        const result = await executeGovernedArcaExport({
+          ...ai132Input,
+          executionTimestamp: trustedTimestamp,
+        });
+        if (result.authorization_consumed)
+          await loadExactRequestBoundArtifact(
+            request.ai_132.expected_consumption,
+          );
         return {
           outcome: result.outcome === "completed" ? "verified" : "blocked",
           authorizationConsumed: result.authorization_consumed,
-          evidenceSha256: result.package_sha256,
+          evidenceSha256: hashResult(result),
+          ...(result.authorization_consumed
+            ? {
+                authoritativeConsumptionEvidence:
+                  request.ai_132.expected_consumption,
+              }
+            : {}),
         };
       },
     },
@@ -177,14 +348,112 @@ async function main(): Promise<void> {
       output = await observeGovernedArcaScheduler(
         bundle as unknown as SchedulerObservationInput,
       );
-    else if (args.command === "run-once") output = await runOnce(bundle);
-    else if (args.command === "recover")
-      output = inspectSchedulerRecovery({
+    else if (args.command === "run-once")
+      output = await runGovernedSchedulerBundleOnce(bundle);
+    else if (args.command === "recover") {
+      const configuration = objectAt(
+        bundle,
+        "configuration",
+      ) as unknown as SchedulerConfiguration;
+      const request = objectAt(
+        bundle,
+        "request",
+      ) as unknown as ScheduledRunRequest;
+      const ai131Configuration = await loadExactRequestBoundArtifact(
+        request.ai_131.configuration,
+      );
+      const ai132Configuration = await loadExactRequestBoundArtifact(
+        request.ai_132.configuration,
+      );
+      output = await inspectSchedulerRecovery({
+        configuration,
         lease: objectAt(bundle, "lease") as never,
         journal: bundle["journal"] ?? null,
         timestamp: String(bundle["timestamp"] ?? ""),
+        inspectAi131: async () => {
+          const stateRoot = String(
+            (
+              ai131Configuration["run_state"] as
+                | Record<string, unknown>
+                | undefined
+            )?.["path"] ?? "",
+          );
+          if (
+            resolve(
+              join(
+                stateRoot,
+                "journals",
+                `${request.ai_131.authoritative_journal.identity}.json`,
+              ),
+            ) !== resolve(request.ai_131.authoritative_journal.path)
+          )
+            throw new Error("ai_131_recovery_journal_path_substituted");
+          const result = await inspectControlledLiveRunRecovery(
+            stateRoot,
+            request.ai_131.authoritative_journal.identity,
+            String(bundle["timestamp"] ?? ""),
+          );
+          const detail = result.details.join(":");
+          return {
+            status:
+              result.outcome === "completed"
+                ? "consumed_completed"
+                : result.outcome === "network_call_not_performed" &&
+                    detail.includes("safe_to_abort")
+                  ? "not_consumed"
+                  : detail.includes("delivery_unknown")
+                    ? "unknown_delivery"
+                    : detail.includes("hash_invalid")
+                      ? "divergent_evidence"
+                      : "consumed_recovery_required",
+            evidence: request.ai_131.expected_consumption,
+          };
+        },
+        inspectAi132: async () => {
+          const exportStateRoot = String(
+            (
+              ai132Configuration["export_state_root"] as
+                | Record<string, unknown>
+                | undefined
+            )?.["path"] ?? "",
+          );
+          if (
+            resolve(
+              join(
+                exportStateRoot,
+                "journals",
+                `${request.ai_132.authoritative_journal.identity}.json`,
+              ),
+            ) !== resolve(request.ai_132.authoritative_journal.path)
+          )
+            throw new Error("ai_132_recovery_journal_path_substituted");
+          const result = await inspectGovernedArcaExportRecovery({
+            configuration: ai132Configuration,
+            journalId: request.ai_132.authoritative_journal.identity,
+            killSwitch: await loadExactRequestBoundArtifact(
+              request.ai_132.kill_switch,
+            ),
+            killSwitchPath: request.ai_132.kill_switch.path,
+            recoveryTimestamp: String(bundle["timestamp"] ?? ""),
+          });
+          const detail = result.details.join(":");
+          return {
+            status:
+              result.outcome === "completed"
+                ? "consumed_completed"
+                : detail.includes("non_consumption_proven")
+                  ? "not_consumed"
+                  : detail.includes("divergent") ||
+                      detail.includes("substituted")
+                    ? "divergent_evidence"
+                    : result.authorization_consumed
+                      ? "consumed_recovery_required"
+                      : "unknown_delivery",
+            evidence: request.ai_132.expected_consumption,
+          };
+        },
       });
-    else
+    } else
       output = await generateSchedulerPilotSummary({
         configuration: objectAt(
           bundle,

@@ -1,22 +1,20 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.vlatam.local/arca-scheduler-recovery-decision.schema.json",
-  "title": "Governed ARCA scheduler recovery decision",
+  "$id": "https://schemas.vlatam.local/arca-scheduler-slot-acceptance.schema.json",
+  "title": "Governed ARCA scheduler durable eligible-slot acceptance",
   "type": "object",
   "additionalProperties": false,
   "required": [
     "schema_version",
-    "decision_id",
-    "decision_sha256",
-    "run_id",
-    "decided_at",
-    "lease_sha256",
-    "journal_sha256",
-    "decision",
-    "automatic_retry_authorized",
-    "authorization_regeneration_authorized",
-    "kill_switch_change_authorized",
-    "reasons",
+    "slot_id",
+    "slot_sha256",
+    "configuration_sha256",
+    "activation_sha256",
+    "observation_interval_seconds",
+    "scheduled_for",
+    "request_id",
+    "request_sha256",
+    "accepted_at",
     "acquisition_authority_created",
     "export_authority_created",
     "import_authorized",
@@ -31,57 +29,41 @@
     "schema_version": {
       "const": "1.0.0"
     },
-    "decision_id": {
-      "type": "string",
-      "pattern": "^[a-z0-9][a-z0-9._-]{0,127}$"
-    },
-    "decision_sha256": {
+    "slot_id": {
       "type": "string",
       "pattern": "^[a-f0-9]{64}$"
     },
-    "run_id": {
+    "slot_sha256": {
       "type": "string",
-      "pattern": "^[a-z0-9][a-z0-9._-]{0,127}$"
+      "pattern": "^[a-f0-9]{64}$"
     },
-    "decided_at": {
+    "configuration_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "activation_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "observation_interval_seconds": {
+      "type": "integer",
+      "minimum": 300
+    },
+    "scheduled_for": {
       "type": "string",
       "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{3}Z$"
     },
-    "lease_sha256": {
+    "request_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{0,127}$"
+    },
+    "request_sha256": {
       "type": "string",
       "pattern": "^[a-f0-9]{64}$"
     },
-    "journal_sha256": {
-      "type": ["string", "null"],
-      "pattern": "^[a-f0-9]{64}$"
-    },
-    "decision": {
-      "enum": [
-        "safe_abort_before_authority",
-        "authority_consumed_recovery",
-        "unknown_delivery_manual_review",
-        "lease_expired_recovery",
-        "malformed_evidence_fail_closed",
-        "active_lease_not_stale",
-        "completed_after_recovery"
-      ]
-    },
-    "automatic_retry_authorized": {
-      "const": false
-    },
-    "authorization_regeneration_authorized": {
-      "const": false
-    },
-    "kill_switch_change_authorized": {
-      "const": false
-    },
-    "reasons": {
-      "type": "array",
-      "minItems": 1,
-      "items": {
-        "type": "string",
-        "minLength": 1
-      }
+    "accepted_at": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{3}Z$"
     },
     "acquisition_authority_created": {
       "const": false

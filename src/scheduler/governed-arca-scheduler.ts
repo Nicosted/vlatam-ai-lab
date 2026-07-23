@@ -87,6 +87,57 @@ const rootBindingSchema = {
   },
 } as const;
 
+const exactArtifactBindingSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["path", "identity", "sha256", "canonical_sha256"],
+  properties: {
+    path: { type: "string", minLength: 1 },
+    identity: { type: "string", minLength: 1 },
+    sha256: { type: "string", pattern: SHA256 },
+    canonical_sha256: { type: "string", pattern: SHA256 },
+  },
+} as const;
+
+const expectedArtifactBindingSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["path", "identity"],
+  properties: {
+    path: { type: "string", minLength: 1 },
+    identity: { type: "string", minLength: 1 },
+  },
+} as const;
+
+const boundaryEvidenceBindingSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: [
+    "configuration",
+    "proposal",
+    "authorization",
+    "expected_consumption",
+    "authoritative_journal",
+    "durable_result",
+    "primary_evidence",
+    "secondary_evidence",
+    "kill_switch",
+    "recovery_root",
+  ],
+  properties: {
+    configuration: exactArtifactBindingSchema,
+    proposal: exactArtifactBindingSchema,
+    authorization: exactArtifactBindingSchema,
+    expected_consumption: exactArtifactBindingSchema,
+    authoritative_journal: expectedArtifactBindingSchema,
+    durable_result: exactArtifactBindingSchema,
+    primary_evidence: exactArtifactBindingSchema,
+    secondary_evidence: exactArtifactBindingSchema,
+    kill_switch: exactArtifactBindingSchema,
+    recovery_root: expectedArtifactBindingSchema,
+  },
+} as const;
+
 const falseAuthorityRequired = [...FALSE_AUTHORITY_KEYS];
 
 export const SCHEDULER_CONFIGURATION_SCHEMA = {
@@ -110,6 +161,9 @@ export const SCHEDULER_CONFIGURATION_SCHEMA = {
     "stale_lease_recovery_threshold_seconds",
     "maximum_observations_per_24_hours",
     "maximum_runs_per_24_hours",
+    "kill_switch_path",
+    "kill_switch_reviewed_sha256",
+    "kill_switch_canonical_sha256",
     "state_root",
     "observation_root",
     "ai_131",
@@ -176,6 +230,9 @@ export const SCHEDULER_CONFIGURATION_SCHEMA = {
       minimum: 0,
       maximum: 24,
     },
+    kill_switch_path: { type: "string", minLength: 1 },
+    kill_switch_reviewed_sha256: { type: "string", pattern: SHA256 },
+    kill_switch_canonical_sha256: { type: "string", pattern: SHA256 },
     state_root: rootBindingSchema,
     observation_root: rootBindingSchema,
     ai_131: {
@@ -186,12 +243,14 @@ export const SCHEDULER_CONFIGURATION_SCHEMA = {
         "configuration_sha256",
         "kill_switch_path",
         "kill_switch_reviewed_sha256",
+        "kill_switch_canonical_sha256",
       ],
       properties: {
         configuration_id: { type: "string", pattern: ID },
         configuration_sha256: { type: "string", pattern: SHA256 },
         kill_switch_path: { type: "string", minLength: 1 },
         kill_switch_reviewed_sha256: { type: "string", pattern: SHA256 },
+        kill_switch_canonical_sha256: { type: "string", pattern: SHA256 },
       },
     },
     ai_132: {
@@ -202,12 +261,14 @@ export const SCHEDULER_CONFIGURATION_SCHEMA = {
         "configuration_sha256",
         "kill_switch_path",
         "kill_switch_reviewed_sha256",
+        "kill_switch_canonical_sha256",
       ],
       properties: {
         configuration_id: { type: "string", pattern: ID },
         configuration_sha256: { type: "string", pattern: SHA256 },
         kill_switch_path: { type: "string", minLength: 1 },
         kill_switch_reviewed_sha256: { type: "string", pattern: SHA256 },
+        kill_switch_canonical_sha256: { type: "string", pattern: SHA256 },
       },
     },
     durable_ai_130_store: {
@@ -295,10 +356,9 @@ export const SCHEDULED_RUN_REQUEST_SCHEMA = {
     "scheduled_for",
     "created_at",
     "created_by",
-    "ai_131_proposal_path",
-    "ai_131_authorization_path",
-    "ai_132_proposal_path",
-    "ai_132_authorization_path",
+    "eligible_slot_id",
+    "ai_131",
+    "ai_132",
     ...falseAuthorityRequired,
   ],
   properties: {
@@ -313,10 +373,9 @@ export const SCHEDULED_RUN_REQUEST_SCHEMA = {
     scheduled_for: { type: "string", pattern: TIMESTAMP },
     created_at: { type: "string", pattern: TIMESTAMP },
     created_by: { type: "string", pattern: HUMAN },
-    ai_131_proposal_path: { type: ["string", "null"] },
-    ai_131_authorization_path: { type: ["string", "null"] },
-    ai_132_proposal_path: { type: ["string", "null"] },
-    ai_132_authorization_path: { type: ["string", "null"] },
+    eligible_slot_id: { type: "string", pattern: SHA256 },
+    ai_131: boundaryEvidenceBindingSchema,
+    ai_132: boundaryEvidenceBindingSchema,
     ...FALSE_AUTHORITIES,
   },
 } as const;
@@ -391,7 +450,7 @@ const journalEntrySchema = {
     sequence: { type: "integer", minimum: 0 },
     state: { enum: SCHEDULER_STATES },
     timestamp: { type: "string", pattern: TIMESTAMP },
-    evidence_sha256: { type: ["string", "null"], pattern: SHA256 },
+    evidence_sha256: { type: "string", pattern: SHA256 },
   },
 } as const;
 
@@ -412,9 +471,9 @@ export const SCHEDULER_RUN_JOURNAL_SCHEMA = {
     "activation_sha256",
     "lease_sha256",
     "entries",
-    "acquisition_authorization_consumed",
-    "export_authorization_consumed",
-    "unknown_delivery",
+    "ai_131_evidence",
+    "ai_132_evidence",
+    "authority_outcome",
     ...falseAuthorityRequired,
   ],
   properties: {
@@ -428,9 +487,19 @@ export const SCHEDULER_RUN_JOURNAL_SCHEMA = {
     activation_sha256: { type: "string", pattern: SHA256 },
     lease_sha256: { type: "string", pattern: SHA256 },
     entries: { type: "array", minItems: 1, items: journalEntrySchema },
-    acquisition_authorization_consumed: { type: "boolean" },
-    export_authorization_consumed: { type: "boolean" },
-    unknown_delivery: { type: "boolean" },
+    ai_131_evidence: boundaryEvidenceBindingSchema,
+    ai_132_evidence: boundaryEvidenceBindingSchema,
+    authority_outcome: {
+      enum: [
+        "not_started",
+        "authority_outcome_unknown",
+        "not_consumed",
+        "consumed_completed",
+        "consumed_recovery_required",
+        "unknown_delivery",
+        "divergent_evidence",
+      ],
+    },
     ...FALSE_AUTHORITIES,
   },
 } as const;
@@ -442,6 +511,7 @@ const readinessEnum = [
   "recovery_required",
   "missing",
   "invalid",
+  "unverified_reported_input",
 ] as const;
 
 export const SCHEDULER_OBSERVATION_SCHEMA = {
@@ -500,7 +570,9 @@ export const SCHEDULER_OBSERVATION_SCHEMA = {
     ai_132_recovery_state: {
       enum: ["clear", "recovery_required", "unknown"],
     },
-    ai_130_integrity_status: { enum: ["verified", "unavailable", "invalid"] },
+    ai_130_integrity_status: {
+      enum: ["verified", "unavailable", "invalid", "unverified_reported_input"],
+    },
     daily_observation_count: { type: "integer", minimum: 0 },
     daily_execution_attempt_count: { type: "integer", minimum: 0 },
     activation_execution_attempt_count: { type: "integer", minimum: 0 },
@@ -550,6 +622,8 @@ export const SCHEDULER_RECOVERY_DECISION_SCHEMA = {
         "unknown_delivery_manual_review",
         "lease_expired_recovery",
         "malformed_evidence_fail_closed",
+        "active_lease_not_stale",
+        "completed_after_recovery",
       ],
     },
     automatic_retry_authorized: { const: false },
@@ -636,6 +710,88 @@ export const SCHEDULER_RUN_RESULT_SCHEMA = {
   },
 } as const;
 
+export const SCHEDULER_ATTEMPT_LEDGER_SCHEMA = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  $id: "https://schemas.vlatam.local/arca-scheduler-attempt-ledger.schema.json",
+  title: "Governed ARCA scheduler activation-scoped attempt ledger record",
+  type: "object",
+  additionalProperties: false,
+  required: [
+    "schema_version",
+    "reservation_id",
+    "reservation_sha256",
+    "scheduler_configuration_id",
+    "scheduler_configuration_sha256",
+    "activation_id",
+    "activation_sha256",
+    "eligible_slot_id",
+    "scheduled_for",
+    "request_id",
+    "request_sha256",
+    "boundary_type",
+    "reserved_at",
+    "state",
+    "authoritative_consumption_evidence",
+    ...falseAuthorityRequired,
+  ],
+  properties: {
+    schema_version: { const: "1.0.0" },
+    reservation_id: { type: "string", pattern: SHA256 },
+    reservation_sha256: { type: "string", pattern: SHA256 },
+    scheduler_configuration_id: { type: "string", pattern: ID },
+    scheduler_configuration_sha256: { type: "string", pattern: SHA256 },
+    activation_id: { type: "string", pattern: ID },
+    activation_sha256: { type: "string", pattern: SHA256 },
+    eligible_slot_id: { type: "string", pattern: SHA256 },
+    scheduled_for: { type: "string", pattern: TIMESTAMP },
+    request_id: { type: "string", pattern: ID },
+    request_sha256: { type: "string", pattern: SHA256 },
+    boundary_type: { enum: ["ai_131", "ai_132"] },
+    reserved_at: { type: "string", pattern: TIMESTAMP },
+    state: {
+      enum: ["reserved", "consumed", "completed", "recovery_required"],
+    },
+    authoritative_consumption_evidence: {
+      anyOf: [{ type: "null" }, exactArtifactBindingSchema],
+    },
+    ...FALSE_AUTHORITIES,
+  },
+} as const;
+
+export const SCHEDULER_SLOT_ACCEPTANCE_SCHEMA = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  $id: "https://schemas.vlatam.local/arca-scheduler-slot-acceptance.schema.json",
+  title: "Governed ARCA scheduler durable eligible-slot acceptance",
+  type: "object",
+  additionalProperties: false,
+  required: [
+    "schema_version",
+    "slot_id",
+    "slot_sha256",
+    "configuration_sha256",
+    "activation_sha256",
+    "observation_interval_seconds",
+    "scheduled_for",
+    "request_id",
+    "request_sha256",
+    "accepted_at",
+    ...falseAuthorityRequired,
+  ],
+  properties: {
+    schema_version: { const: "1.0.0" },
+    slot_id: { type: "string", pattern: SHA256 },
+    slot_sha256: { type: "string", pattern: SHA256 },
+    configuration_sha256: { type: "string", pattern: SHA256 },
+    activation_sha256: { type: "string", pattern: SHA256 },
+    observation_interval_seconds: { type: "integer", minimum: 300 },
+    scheduled_for: { type: "string", pattern: TIMESTAMP },
+    request_id: { type: "string", pattern: ID },
+    request_sha256: { type: "string", pattern: SHA256 },
+    accepted_at: { type: "string", pattern: TIMESTAMP },
+    ...FALSE_AUTHORITIES,
+  },
+} as const;
+
 const schemas = {
   configuration: SCHEDULER_CONFIGURATION_SCHEMA,
   activation: SCHEDULER_ACTIVATION_SCHEMA,
@@ -646,6 +802,8 @@ const schemas = {
   observation: SCHEDULER_OBSERVATION_SCHEMA,
   recovery_decision: SCHEDULER_RECOVERY_DECISION_SCHEMA,
   kill_switch: SCHEDULER_KILL_SWITCH_SCHEMA,
+  attempt_ledger: SCHEDULER_ATTEMPT_LEDGER_SCHEMA,
+  slot_acceptance: SCHEDULER_SLOT_ACCEPTANCE_SCHEMA,
 } as const;
 
 const validators = Object.fromEntries(
@@ -656,6 +814,12 @@ const validators = Object.fromEntries(
 );
 
 export type SchedulerContractName = keyof typeof schemas;
+
+export function schedulerContractSchemas(): Readonly<
+  Record<SchedulerContractName, unknown>
+> {
+  return schemas;
+}
 
 export function validateSchedulerContract(
   name: SchedulerContractName,
@@ -691,6 +855,9 @@ export interface SchedulerConfiguration {
   readonly stale_lease_recovery_threshold_seconds: number;
   readonly maximum_observations_per_24_hours: number;
   readonly maximum_runs_per_24_hours: number;
+  readonly kill_switch_path: string;
+  readonly kill_switch_reviewed_sha256: string;
+  readonly kill_switch_canonical_sha256: string;
   readonly state_root: { readonly identity: string; readonly path: string };
   readonly observation_root: {
     readonly identity: string;
@@ -720,6 +887,49 @@ interface BoundaryBinding {
   readonly configuration_sha256: string;
   readonly kill_switch_path: string;
   readonly kill_switch_reviewed_sha256: string;
+  readonly kill_switch_canonical_sha256: string;
+}
+
+export interface ExactArtifactBinding {
+  readonly path: string;
+  readonly identity: string;
+  readonly sha256: string;
+  readonly canonical_sha256: string;
+}
+
+export interface ExpectedArtifactBinding {
+  readonly path: string;
+  readonly identity: string;
+}
+
+export interface SchedulerBoundaryEvidenceBinding {
+  readonly configuration: ExactArtifactBinding;
+  readonly proposal: ExactArtifactBinding;
+  readonly authorization: ExactArtifactBinding;
+  readonly expected_consumption: ExactArtifactBinding;
+  readonly authoritative_journal: ExpectedArtifactBinding;
+  readonly durable_result: ExactArtifactBinding;
+  readonly primary_evidence: ExactArtifactBinding;
+  readonly secondary_evidence: ExactArtifactBinding;
+  readonly kill_switch: ExactArtifactBinding;
+  readonly recovery_root: ExpectedArtifactBinding;
+}
+
+export interface ScheduledRunRequest {
+  readonly schema_version: "1.0.0";
+  readonly request_id: string;
+  readonly request_sha256: string;
+  readonly configuration_id: string;
+  readonly configuration_sha256: string;
+  readonly activation_id: string;
+  readonly activation_sha256: string;
+  readonly mode: "observe" | "run_once";
+  readonly scheduled_for: string;
+  readonly created_at: string;
+  readonly created_by: string;
+  readonly eligible_slot_id: string;
+  readonly ai_131: SchedulerBoundaryEvidenceBinding;
+  readonly ai_132: SchedulerBoundaryEvidenceBinding;
 }
 
 export interface SchedulerActivation {
@@ -791,11 +1001,18 @@ export interface SchedulerRunJournal {
     readonly sequence: number;
     readonly state: (typeof SCHEDULER_STATES)[number];
     readonly timestamp: string;
-    readonly evidence_sha256: string | null;
+    readonly evidence_sha256: string;
   }[];
-  readonly acquisition_authorization_consumed: boolean;
-  readonly export_authorization_consumed: boolean;
-  readonly unknown_delivery: boolean;
+  readonly ai_131_evidence: SchedulerBoundaryEvidenceBinding;
+  readonly ai_132_evidence: SchedulerBoundaryEvidenceBinding;
+  readonly authority_outcome:
+    | "not_started"
+    | "authority_outcome_unknown"
+    | "not_consumed"
+    | "consumed_completed"
+    | "consumed_recovery_required"
+    | "unknown_delivery"
+    | "divergent_evidence";
   readonly acquisition_authority_created: false;
   readonly export_authority_created: false;
   readonly import_authorized: false;
@@ -881,6 +1098,93 @@ export function computeSchedulerRunResultSha256(value: object): string {
     "vlatam-ai-lab/arca-scheduler-run-result/v1",
     without(value, "result_sha256"),
   );
+}
+
+export function computeSchedulerAttemptReservationSha256(
+  value: object,
+): string {
+  return domainHash(
+    "vlatam-ai-lab/arca-scheduler-attempt-reservation/v1",
+    without(value, "reservation_sha256"),
+  );
+}
+
+export function computeSchedulerSlotAcceptanceSha256(value: object): string {
+  return domainHash(
+    "vlatam-ai-lab/arca-scheduler-slot-acceptance/v1",
+    without(value, "slot_sha256"),
+  );
+}
+
+export function computeEligibleSlotId(input: {
+  readonly configurationSha256: string;
+  readonly activationSha256: string;
+  readonly observationIntervalSeconds: number;
+  readonly scheduledFor: string;
+}): string {
+  return domainHash("vlatam-ai-lab/arca-scheduler-eligible-slot/v1", {
+    configuration_sha256: input.configurationSha256,
+    activation_sha256: input.activationSha256,
+    observation_interval_seconds: input.observationIntervalSeconds,
+    scheduled_for: input.scheduledFor,
+  });
+}
+
+function bytesSha256(bytes: string): string {
+  return createHash("sha256").update(bytes).digest("hex");
+}
+
+function artifactHasIdentity(
+  artifact: Record<string, unknown>,
+  identity: string,
+): boolean {
+  return Object.entries(artifact).some(
+    ([key, value]) =>
+      (key === "identity" ||
+        key === "configuration_id" ||
+        key.endsWith("_id")) &&
+      value === identity,
+  );
+}
+
+function artifactHasSha256(
+  artifact: Record<string, unknown>,
+  sha256: string,
+): boolean {
+  return Object.entries(artifact).some(
+    ([key, value]) => key.endsWith("_sha256") && value === sha256,
+  );
+}
+
+export async function loadExactRequestBoundArtifact(
+  binding: ExactArtifactBinding,
+  allowedRoot?: string,
+): Promise<Record<string, unknown>> {
+  const path = binding.path;
+  if (!isAbsolute(path) || resolve(path) !== path)
+    throw new Error("bound_artifact_path_not_absolute");
+  if (allowedRoot) {
+    const root = resolve(allowedRoot);
+    if (path !== root && !path.startsWith(`${root}${sep}`))
+      throw new Error("bound_artifact_root_substitution");
+  }
+  const raw = await readExactRegular(path);
+  let value: unknown;
+  try {
+    value = JSON.parse(raw);
+  } catch {
+    throw new Error("bound_artifact_malformed");
+  }
+  if (!value || typeof value !== "object" || Array.isArray(value))
+    throw new Error("bound_artifact_malformed");
+  const record = value as Record<string, unknown>;
+  if (bytesSha256(raw) !== binding.canonical_sha256)
+    throw new Error("bound_artifact_hash_mismatch");
+  if (!artifactHasIdentity(record, binding.identity))
+    throw new Error("bound_artifact_identity_mismatch");
+  if (!artifactHasSha256(record, binding.sha256))
+    throw new Error("bound_artifact_semantic_hash_mismatch");
+  return record;
 }
 
 function exactHashValid(
@@ -1156,10 +1460,15 @@ export async function heartbeatSchedulerLease(input: {
     `.${basename(path)}.${randomUUID()}.heartbeat`,
   );
   await writeExclusiveDurable(temporary, canonicalBytes(next));
-  if ((await readExactRegular(path)) !== expectedBytes)
-    throw new Error("divergent_lease_bytes");
-  await rename(temporary, path);
-  await syncDirectory(dirname(path));
+  try {
+    if ((await readExactRegular(path)) !== expectedBytes)
+      throw new Error("divergent_lease_bytes");
+    await rename(temporary, path);
+    await syncDirectory(dirname(path));
+  } catch (error: unknown) {
+    await unlink(temporary).catch(() => undefined);
+    throw error;
+  }
   return next;
 }
 
@@ -1188,20 +1497,36 @@ export function computeSchedulerRecoveryDecisionSha256(value: object): string {
   );
 }
 
-export function inspectSchedulerRecovery(input: {
+export interface AuthoritativeRecoveryInspection {
+  readonly status:
+    | "not_consumed"
+    | "consumed_completed"
+    | "consumed_recovery_required"
+    | "unknown_delivery"
+    | "divergent_evidence";
+  readonly evidence: ExactArtifactBinding;
+}
+
+export async function inspectSchedulerRecovery(input: {
+  readonly configuration: SchedulerConfiguration;
   readonly lease: SchedulerLease;
   readonly journal: unknown;
   readonly timestamp: string;
-}): Record<string, unknown> {
+  readonly inspectAi131?: () => Promise<AuthoritativeRecoveryInspection>;
+  readonly inspectAi132?: () => Promise<AuthoritativeRecoveryInspection>;
+}): Promise<Record<string, unknown>> {
   let decision:
     | "safe_abort_before_authority"
     | "authority_consumed_recovery"
     | "unknown_delivery_manual_review"
     | "lease_expired_recovery"
-    | "malformed_evidence_fail_closed";
+    | "malformed_evidence_fail_closed"
+    | "active_lease_not_stale"
+    | "completed_after_recovery" = "lease_expired_recovery";
   let journalSha256: string | null = null;
   const reasons: string[] = [];
   if (
+    !validateSchedulerConfiguration(input.configuration) ||
     !exactHashValid(
       "lease",
       input.lease,
@@ -1210,7 +1535,18 @@ export function inspectSchedulerRecovery(input: {
     )
   ) {
     decision = "malformed_evidence_fail_closed";
-    reasons.push("lease_missing_malformed_or_divergent");
+    reasons.push("scheduler_or_lease_missing_malformed_or_substituted");
+  } else if (
+    input.lease.scheduler_configuration_sha256 !==
+      input.configuration.configuration_sha256 ||
+    Math.max(
+      Date.parse(input.lease.expires_at),
+      Date.parse(input.lease.heartbeat_at) +
+        input.configuration.stale_lease_recovery_threshold_seconds * 1_000,
+    ) > Date.parse(input.timestamp)
+  ) {
+    decision = "active_lease_not_stale";
+    reasons.push("active_heartbeating_lease_is_not_recoverable");
   } else if (input.journal === null) {
     decision = "lease_expired_recovery";
     reasons.push("expired_lease_without_run_journal_requires_review");
@@ -1227,26 +1563,131 @@ export function inspectSchedulerRecovery(input: {
   } else {
     const journal = input.journal as SchedulerRunJournal;
     journalSha256 = journal.journal_sha256;
-    if (journal.unknown_delivery) {
+    const bindingMatches = (
+      evidence: SchedulerBoundaryEvidenceBinding,
+      configured: BoundaryBinding,
+    ): boolean =>
+      evidence.configuration.identity === configured.configuration_id &&
+      evidence.configuration.sha256 === configured.configuration_sha256 &&
+      resolve(evidence.kill_switch.path) ===
+        resolve(configured.kill_switch_path) &&
+      evidence.kill_switch.sha256 === configured.kill_switch_reviewed_sha256 &&
+      evidence.kill_switch.canonical_sha256 ===
+        configured.kill_switch_canonical_sha256 &&
+      Object.values(evidence).every(
+        (binding) =>
+          isAbsolute(binding.path) &&
+          resolve(binding.path) === binding.path &&
+          !binding.path.split(sep).includes(".."),
+      );
+    if (
+      journal.configuration_sha256 !==
+        input.configuration.configuration_sha256 ||
+      journal.activation_sha256 !== input.lease.activation_sha256 ||
+      journal.lease_sha256 !== input.lease.lease_sha256 ||
+      journal.entries.some((entry, index) => entry.sequence !== index) ||
+      !bindingMatches(journal.ai_131_evidence, input.configuration.ai_131) ||
+      !bindingMatches(journal.ai_132_evidence, input.configuration.ai_132)
+    ) {
+      decision = "malformed_evidence_fail_closed";
+      reasons.push("scheduler_journal_binding_substituted_or_divergent");
+    }
+    const ai131Started = journal.entries.some(
+      (entry) => entry.state === "acquisition_execution_started",
+    );
+    const ai132Started = journal.entries.some(
+      (entry) => entry.state === "export_execution_started",
+    );
+    const inspections: AuthoritativeRecoveryInspection[] = [];
+    try {
+      if (reasons.length) throw new Error(reasons[0]);
+      if (ai131Started) {
+        if (!input.inspectAi131)
+          throw new Error("ai_131_authoritative_inspector_missing");
+        const inspection = await input.inspectAi131();
+        if (
+          canonicalizeSchedulerJson(inspection.evidence) !==
+          canonicalizeSchedulerJson(
+            journal.ai_131_evidence.expected_consumption,
+          )
+        )
+          throw new Error("ai_131_inspection_evidence_substituted");
+        inspections.push(inspection);
+      }
+      if (ai132Started) {
+        if (!input.inspectAi132)
+          throw new Error("ai_132_authoritative_inspector_missing");
+        const inspection = await input.inspectAi132();
+        if (
+          canonicalizeSchedulerJson(inspection.evidence) !==
+          canonicalizeSchedulerJson(
+            journal.ai_132_evidence.expected_consumption,
+          )
+        )
+          throw new Error("ai_132_inspection_evidence_substituted");
+        inspections.push(inspection);
+      }
+    } catch (error: unknown) {
+      if (decision !== "malformed_evidence_fail_closed") {
+        decision = "lease_expired_recovery";
+        reasons.push(
+          error instanceof Error
+            ? error.message
+            : "authoritative_recovery_inspection_failed",
+        );
+      }
+      inspections.length = 0;
+    }
+    if (reasons.length) {
+      // The inspector failure above has precedence over scheduler booleans.
+    } else if (
+      inspections.some(
+        (inspection) => inspection.status === "divergent_evidence",
+      )
+    ) {
+      decision = "malformed_evidence_fail_closed";
+      reasons.push("authoritative_boundary_evidence_divergent");
+    } else if (
+      inspections.some((inspection) => inspection.status === "unknown_delivery")
+    ) {
       decision = "unknown_delivery_manual_review";
       reasons.push("unknown_transport_delivery_is_never_automatically_retried");
     } else if (
-      journal.acquisition_authorization_consumed ||
-      journal.export_authorization_consumed
+      inspections.some(
+        (inspection) => inspection.status === "consumed_recovery_required",
+      )
     ) {
       decision = "authority_consumed_recovery";
       reasons.push(
-        "one_shot_authority_consumed_requires_boundary_reconciliation",
+        "exact_visible_consumption_requires_boundary_reconciliation",
       );
-    } else {
+    } else if (
+      inspections.length > 0 &&
+      inspections.every(
+        (inspection) => inspection.status === "consumed_completed",
+      )
+    ) {
+      decision = "completed_after_recovery";
+      reasons.push("exact_durable_boundary_completion_visible");
+    } else if (
+      (!ai131Started && !ai132Started) ||
+      (inspections.length > 0 &&
+        inspections.every((inspection) => inspection.status === "not_consumed"))
+    ) {
       decision = "safe_abort_before_authority";
-      reasons.push("journal_proves_no_one_shot_authority_was_consumed");
+      reasons.push("exact_authoritative_non_consumption_positively_proven");
+    } else {
+      decision = "lease_expired_recovery";
+      reasons.push("authority_outcome_unresolved_recovery_required");
     }
   }
   const unsigned = {
     schema_version: "1.0.0",
     decision_id: domainHash("vlatam-ai-lab/arca-scheduler-recovery-id/v1", {
-      lease_sha256: input.lease.lease_sha256,
+      lease_sha256:
+        typeof input.lease?.lease_sha256 === "string"
+          ? input.lease.lease_sha256
+          : "0".repeat(64),
       journal_sha256: journalSha256,
     }),
     decision_sha256: "0".repeat(64),
@@ -1258,7 +1699,10 @@ export function inspectSchedulerRecovery(input: {
         ? input.journal.run_id
         : "unknown-run",
     decided_at: input.timestamp,
-    lease_sha256: input.lease.lease_sha256,
+    lease_sha256:
+      typeof input.lease?.lease_sha256 === "string"
+        ? input.lease.lease_sha256
+        : "0".repeat(64),
     journal_sha256: journalSha256,
     decision,
     automatic_retry_authorized: false,
@@ -1296,6 +1740,348 @@ async function countCanonicalRecords(
   }
 }
 
+async function withExclusiveStateLock<T>(
+  configuration: SchedulerConfiguration,
+  name: string,
+  operation: () => Promise<T>,
+): Promise<T> {
+  const lockPath = join(resolve(configuration.state_root.path), "locks", name);
+  await mkdir(dirname(lockPath), { recursive: true, mode: 0o700 });
+  await assertSafePath(dirname(lockPath), false);
+  let handle: Awaited<ReturnType<typeof open>> | null = null;
+  for (let attempt = 0; attempt < 10_000 && !handle; attempt += 1) {
+    try {
+      handle = await open(
+        lockPath,
+        constants.O_CREAT | constants.O_EXCL | constants.O_WRONLY,
+        0o600,
+      );
+      await handle.writeFile(`${process.pid}\n`, "utf8");
+      await handle.sync();
+    } catch (error: unknown) {
+      if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error;
+      await new Promise<void>((resolveImmediate) =>
+        setImmediate(resolveImmediate),
+      );
+    }
+  }
+  if (!handle) throw new Error("scheduler_state_lock_competing");
+  try {
+    return await operation();
+  } finally {
+    await handle.close();
+    await unlink(lockPath);
+    await syncDirectory(dirname(lockPath));
+  }
+}
+
+export interface SchedulerAttemptReservation {
+  readonly schema_version: "1.0.0";
+  readonly reservation_id: string;
+  readonly reservation_sha256: string;
+  readonly scheduler_configuration_id: string;
+  readonly scheduler_configuration_sha256: string;
+  readonly activation_id: string;
+  readonly activation_sha256: string;
+  readonly eligible_slot_id: string;
+  readonly scheduled_for: string;
+  readonly request_id: string;
+  readonly request_sha256: string;
+  readonly boundary_type: "ai_131" | "ai_132";
+  readonly reserved_at: string;
+  readonly state: "reserved" | "consumed" | "completed" | "recovery_required";
+  readonly authoritative_consumption_evidence: ExactArtifactBinding | null;
+}
+
+async function readAttemptReservations(
+  configuration: SchedulerConfiguration,
+): Promise<SchedulerAttemptReservation[]> {
+  const root = join(resolve(configuration.state_root.path), "attempt-ledger");
+  let names: string[];
+  try {
+    await assertSafePath(root, false);
+    names = await readdir(root);
+  } catch (error: unknown) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return [];
+    throw error;
+  }
+  const records: SchedulerAttemptReservation[] = [];
+  for (const name of names.sort()) {
+    if (!/^[a-f0-9]{64}\.json$/.test(name))
+      throw new Error("attempt_ledger_unexpected_entry");
+    const raw = await readExactRegular(join(root, name));
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      throw new Error("attempt_ledger_malformed");
+    }
+    if (
+      raw !== canonicalBytes(parsed) ||
+      !exactHashValid(
+        "attempt_ledger",
+        parsed,
+        "reservation_sha256",
+        computeSchedulerAttemptReservationSha256,
+      )
+    )
+      throw new Error("attempt_ledger_divergent");
+    records.push(parsed as SchedulerAttemptReservation);
+  }
+  return records;
+}
+
+export async function reserveSchedulerAttempt(input: {
+  readonly configuration: SchedulerConfiguration;
+  readonly activation: SchedulerActivation;
+  readonly request: ScheduledRunRequest;
+  readonly boundaryType: "ai_131" | "ai_132";
+  readonly reservedAt: string;
+}): Promise<SchedulerAttemptReservation> {
+  return withExclusiveStateLock(
+    input.configuration,
+    "attempt-ledger.lock",
+    async () => {
+      const records = await readAttemptReservations(input.configuration);
+      const now = Date.parse(input.reservedAt);
+      const daily = records.filter(
+        (record) =>
+          Date.parse(record.reserved_at) > now - 24 * 60 * 60 * 1_000 &&
+          Date.parse(record.reserved_at) <= now,
+      );
+      const activation = records.filter(
+        (record) =>
+          record.activation_id === input.activation.activation_id &&
+          record.activation_sha256 === input.activation.activation_sha256,
+      );
+      if (daily.length >= input.configuration.maximum_runs_per_24_hours)
+        throw new Error("daily_execution_attempt_cap_reached");
+      if (
+        activation.length >=
+        input.activation.maximum_authorized_execution_attempts
+      )
+        throw new Error("activation_execution_attempt_cap_reached");
+      if (
+        records.some(
+          (record) =>
+            record.request_id === input.request.request_id &&
+            record.eligible_slot_id === input.request.eligible_slot_id &&
+            record.boundary_type === input.boundaryType,
+        )
+      )
+        throw new Error("duplicate_attempt_reservation");
+      const reservationId = domainHash(
+        "vlatam-ai-lab/arca-scheduler-attempt-reservation-id/v1",
+        {
+          request_sha256: input.request.request_sha256,
+          eligible_slot_id: input.request.eligible_slot_id,
+          boundary_type: input.boundaryType,
+        },
+      );
+      const unsigned = {
+        schema_version: "1.0.0" as const,
+        reservation_id: reservationId,
+        reservation_sha256: "0".repeat(64),
+        scheduler_configuration_id: input.configuration.configuration_id,
+        scheduler_configuration_sha256:
+          input.configuration.configuration_sha256,
+        activation_id: input.activation.activation_id,
+        activation_sha256: input.activation.activation_sha256,
+        eligible_slot_id: input.request.eligible_slot_id,
+        scheduled_for: input.request.scheduled_for,
+        request_id: input.request.request_id,
+        request_sha256: input.request.request_sha256,
+        boundary_type: input.boundaryType,
+        reserved_at: input.reservedAt,
+        state: "reserved" as const,
+        authoritative_consumption_evidence: null,
+        ...falseAuthorities,
+      };
+      const reservation = {
+        ...unsigned,
+        reservation_sha256: computeSchedulerAttemptReservationSha256(unsigned),
+      } as SchedulerAttemptReservation;
+      await writeExclusiveDurable(
+        join(
+          resolve(input.configuration.state_root.path),
+          "attempt-ledger",
+          `${reservationId}.json`,
+        ),
+        canonicalBytes(reservation),
+      );
+      return reservation;
+    },
+  );
+}
+
+export async function advanceSchedulerAttempt(input: {
+  readonly configuration: SchedulerConfiguration;
+  readonly expected: SchedulerAttemptReservation;
+  readonly state: SchedulerAttemptReservation["state"];
+  readonly authoritativeConsumptionEvidence?: ExactArtifactBinding;
+}): Promise<SchedulerAttemptReservation> {
+  return withExclusiveStateLock(
+    input.configuration,
+    "attempt-ledger.lock",
+    async () => {
+      const allowed: Record<
+        SchedulerAttemptReservation["state"],
+        readonly SchedulerAttemptReservation["state"][]
+      > = {
+        reserved: ["consumed", "completed", "recovery_required"],
+        consumed: ["completed", "recovery_required"],
+        completed: ["completed"],
+        recovery_required: ["recovery_required", "completed"],
+      };
+      if (!allowed[input.expected.state].includes(input.state))
+        throw new Error("attempt_ledger_state_regression");
+      if (
+        input.expected.authoritative_consumption_evidence &&
+        input.authoritativeConsumptionEvidence &&
+        canonicalizeSchedulerJson(
+          input.expected.authoritative_consumption_evidence,
+        ) !== canonicalizeSchedulerJson(input.authoritativeConsumptionEvidence)
+      )
+        throw new Error("attempt_consumption_evidence_divergent");
+      const path = join(
+        resolve(input.configuration.state_root.path),
+        "attempt-ledger",
+        `${input.expected.reservation_id}.json`,
+      );
+      const unsigned = {
+        ...input.expected,
+        reservation_sha256: "0".repeat(64),
+        state: input.state,
+        authoritative_consumption_evidence:
+          input.authoritativeConsumptionEvidence ??
+          input.expected.authoritative_consumption_evidence,
+      };
+      const next = {
+        ...unsigned,
+        reservation_sha256: computeSchedulerAttemptReservationSha256(unsigned),
+      };
+      if (!validateSchedulerContract("attempt_ledger", next))
+        throw new Error("attempt_ledger_transition_invalid");
+      const staging = join(
+        dirname(path),
+        `.${basename(path)}.${randomUUID()}.attempt`,
+      );
+      if ((await readExactRegular(path)) !== canonicalBytes(input.expected))
+        throw new Error("attempt_ledger_divergent");
+      await writeExclusiveDurable(staging, canonicalBytes(next));
+      if ((await readExactRegular(path)) !== canonicalBytes(input.expected))
+        throw new Error("attempt_ledger_divergent");
+      await rename(staging, path);
+      await syncDirectory(dirname(path));
+      return next as SchedulerAttemptReservation;
+    },
+  );
+}
+
+function minuteOfDay(timestamp: string): number {
+  const date = new Date(timestamp);
+  return date.getUTCHours() * 60 + date.getUTCMinutes();
+}
+
+function inAllowedOperatingWindow(
+  configuration: SchedulerConfiguration,
+  timestamp: string,
+): boolean {
+  const minute = minuteOfDay(timestamp);
+  return configuration.allowed_utc_operating_windows.some((window) => {
+    const [startHour = 0, startMinute = 0] = window.starts_at_utc
+      .split(":")
+      .map(Number);
+    const [endHour = 0, endMinute = 0] = window.ends_at_utc
+      .split(":")
+      .map(Number);
+    const start = startHour * 60 + startMinute;
+    const end = endHour * 60 + endMinute;
+    return start <= end
+      ? minute >= start && minute <= end
+      : minute >= start || minute <= end;
+  });
+}
+
+export async function acceptSchedulerSlot(input: {
+  readonly configuration: SchedulerConfiguration;
+  readonly activation: SchedulerActivation;
+  readonly request: ScheduledRunRequest;
+  readonly acceptedAt: string;
+}): Promise<Record<string, unknown>> {
+  const interval = input.configuration.observation_interval_seconds * 1_000;
+  const now = Date.parse(input.acceptedAt);
+  const currentSlot = Math.floor(now / interval) * interval;
+  const scheduled = Date.parse(input.request.scheduled_for);
+  if (scheduled < currentSlot)
+    throw new Error("historical_missed_slot_rejected");
+  if (scheduled !== currentSlot && scheduled !== currentSlot + interval)
+    throw new Error("scheduled_slot_not_current_or_next");
+  if (
+    !inAllowedOperatingWindow(input.configuration, input.request.scheduled_for)
+  )
+    throw new Error("scheduled_slot_outside_operating_window");
+  const expectedSlotId = computeEligibleSlotId({
+    configurationSha256: input.configuration.configuration_sha256,
+    activationSha256: input.activation.activation_sha256,
+    observationIntervalSeconds:
+      input.configuration.observation_interval_seconds,
+    scheduledFor: input.request.scheduled_for,
+  });
+  if (input.request.eligible_slot_id !== expectedSlotId)
+    throw new Error("eligible_slot_binding_mismatch");
+  return withExclusiveStateLock(
+    input.configuration,
+    "slot-acceptance.lock",
+    async () => {
+      const root = join(
+        resolve(input.configuration.state_root.path),
+        "slot-acceptances",
+      );
+      let names: string[] = [];
+      try {
+        names = await readdir(root);
+      } catch (error: unknown) {
+        if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+      }
+      for (const name of names) {
+        const existing = JSON.parse(
+          await readExactRegular(join(root, name)),
+        ) as Record<string, unknown>;
+        if (existing["request_id"] === input.request.request_id)
+          throw new Error("duplicate_request_rejected");
+      }
+      const unsigned = {
+        schema_version: "1.0.0",
+        slot_id: expectedSlotId,
+        slot_sha256: "0".repeat(64),
+        configuration_sha256: input.configuration.configuration_sha256,
+        activation_sha256: input.activation.activation_sha256,
+        observation_interval_seconds:
+          input.configuration.observation_interval_seconds,
+        scheduled_for: input.request.scheduled_for,
+        request_id: input.request.request_id,
+        request_sha256: input.request.request_sha256,
+        accepted_at: input.acceptedAt,
+        ...falseAuthorities,
+      };
+      const acceptance = {
+        ...unsigned,
+        slot_sha256: computeSchedulerSlotAcceptanceSha256(unsigned),
+      };
+      await writeExclusiveDurable(
+        join(root, `${expectedSlotId}.json`),
+        canonicalBytes(acceptance),
+      ).catch((error: unknown) => {
+        if ((error as NodeJS.ErrnoException).code === "EEXIST")
+          throw new Error("duplicate_semantic_slot_rejected");
+        throw error;
+      });
+      return acceptance;
+    },
+  );
+}
+
 export interface SchedulerObservationInput {
   readonly configuration: SchedulerConfiguration;
   readonly activation: SchedulerActivation | null;
@@ -1305,13 +2091,20 @@ export interface SchedulerObservationInput {
     readonly readiness: (typeof readinessEnum)[number];
     readonly authorizationAvailable: boolean;
     readonly recoveryState: "clear" | "recovery_required" | "unknown";
+    readonly authoritative?: boolean;
   };
   readonly ai132: {
     readonly readiness: (typeof readinessEnum)[number];
     readonly authorizationAvailable: boolean;
     readonly recoveryState: "clear" | "recovery_required" | "unknown";
+    readonly authoritative?: boolean;
   };
-  readonly ai130IntegrityStatus: "verified" | "unavailable" | "invalid";
+  readonly ai130IntegrityStatus:
+    | "verified"
+    | "unavailable"
+    | "invalid"
+    | "unverified_reported_input";
+  readonly ai130Authoritative?: boolean;
   readonly persist?: boolean;
 }
 
@@ -1337,17 +2130,25 @@ export async function observeGovernedArcaScheduler(
       : "invalid";
   }
   const observationRoot = resolve(input.configuration.observation_root.path);
-  const runRoot = join(resolve(input.configuration.state_root.path), "results");
   const dailyObservationCount = await countCanonicalRecords(
     observationRoot,
     "observation",
     input.timestamp,
   );
-  const dailyExecutionCount = await countCanonicalRecords(
-    runRoot,
-    "execution",
-    input.timestamp,
-  );
+  const reservations = await readAttemptReservations(input.configuration);
+  const now = Date.parse(input.timestamp);
+  const dailyExecutionCount = reservations.filter(
+    (record) =>
+      Date.parse(record.reserved_at) > now - 24 * 60 * 60 * 1_000 &&
+      Date.parse(record.reserved_at) <= now,
+  ).length;
+  const activationExecutionCount = input.activation
+    ? reservations.filter(
+        (record) =>
+          record.activation_id === input.activation?.activation_id &&
+          record.activation_sha256 === input.activation?.activation_sha256,
+      ).length
+    : 0;
   const reasons: string[] = [];
   if (!input.configuration.active)
     reasons.push("scheduler_configuration_inactive");
@@ -1362,12 +2163,19 @@ export async function observeGovernedArcaScheduler(
     reasons.push("daily_observation_cap_reached");
   if (dailyExecutionCount >= input.configuration.maximum_runs_per_24_hours)
     reasons.push("daily_execution_cap_reached");
-  if (input.ai131.readiness !== "ready")
-    reasons.push(`ai_131_${input.ai131.readiness}`);
-  if (input.ai132.readiness !== "ready")
-    reasons.push(`ai_132_${input.ai132.readiness}`);
-  if (input.ai130IntegrityStatus !== "verified")
-    reasons.push(`ai_130_${input.ai130IntegrityStatus}`);
+  const ai131Readiness = input.ai131.authoritative
+    ? input.ai131.readiness
+    : "unverified_reported_input";
+  const ai132Readiness = input.ai132.authoritative
+    ? input.ai132.readiness
+    : "unverified_reported_input";
+  const ai130IntegrityStatus = input.ai130Authoritative
+    ? input.ai130IntegrityStatus
+    : "unverified_reported_input";
+  if (ai131Readiness !== "ready") reasons.push(`ai_131_${ai131Readiness}`);
+  if (ai132Readiness !== "ready") reasons.push(`ai_132_${ai132Readiness}`);
+  if (ai130IntegrityStatus !== "verified")
+    reasons.push(`ai_130_${ai130IntegrityStatus}`);
   const observationId = domainHash(
     "vlatam-ai-lab/arca-scheduler-observation-id/v1",
     {
@@ -1385,16 +2193,20 @@ export async function observeGovernedArcaScheduler(
     activation_status: activationStatus,
     scheduler_kill_switch_status: switchStatus,
     lease_status: "absent",
-    ai_131_readiness: input.ai131.readiness,
-    ai_131_authorization_available: input.ai131.authorizationAvailable,
+    ai_131_readiness: ai131Readiness,
+    ai_131_authorization_available: Boolean(
+      input.ai131.authoritative && input.ai131.authorizationAvailable,
+    ),
     ai_131_recovery_state: input.ai131.recoveryState,
-    ai_132_readiness: input.ai132.readiness,
-    ai_132_authorization_available: input.ai132.authorizationAvailable,
+    ai_132_readiness: ai132Readiness,
+    ai_132_authorization_available: Boolean(
+      input.ai132.authoritative && input.ai132.authorizationAvailable,
+    ),
     ai_132_recovery_state: input.ai132.recoveryState,
-    ai_130_integrity_status: input.ai130IntegrityStatus,
+    ai_130_integrity_status: ai130IntegrityStatus,
     daily_observation_count: dailyObservationCount,
     daily_execution_attempt_count: dailyExecutionCount,
-    activation_execution_attempt_count: dailyExecutionCount,
+    activation_execution_attempt_count: activationExecutionCount,
     next_eligible_observation_at: new Date(
       Date.parse(input.timestamp) +
         input.configuration.observation_interval_seconds * 1000,
@@ -1431,10 +2243,11 @@ export async function generateSchedulerPilotSummary(input: {
     "observation",
     input.timestamp,
   );
-  const attempts = await countCanonicalRecords(
-    join(resolve(input.configuration.state_root.path), "results"),
-    "execution",
-    input.timestamp,
+  const records = await readAttemptReservations(input.configuration);
+  const attempts = records.filter(
+    (record) =>
+      record.activation_id === input.activation.activation_id &&
+      record.activation_sha256 === input.activation.activation_sha256,
   );
   return {
     schema_version: "1.0.0",
@@ -1450,14 +2263,25 @@ export async function generateSchedulerPilotSummary(input: {
       input.timestamp,
     ),
     observations_recorded: observations,
-    authorized_execution_attempts: attempts,
+    authorized_execution_attempts: attempts.length,
+    reserved_attempts: attempts.filter((record) => record.state === "reserved")
+      .length,
+    consumed_attempts: attempts.filter((record) => record.state === "consumed")
+      .length,
+    completed_attempts: attempts.filter(
+      (record) => record.state === "completed",
+    ).length,
+    recovery_required_attempts: attempts.filter(
+      (record) => record.state === "recovery_required",
+    ).length,
     observation_limit: input.activation.maximum_scheduler_observations,
     execution_attempt_limit:
       input.activation.maximum_authorized_execution_attempts,
     stop_reason:
       Date.parse(input.timestamp) >= Date.parse(input.activation.expires_at)
         ? "activation_expired"
-        : attempts >= input.activation.maximum_authorized_execution_attempts
+        : attempts.length >=
+            input.activation.maximum_authorized_execution_attempts
           ? "activation_attempt_cap_reached"
           : "pilot_window_open_no_unattended_authority",
     automatic_retries: false,
@@ -1468,15 +2292,18 @@ export async function generateSchedulerPilotSummary(input: {
 export interface ScheduledBoundaryOutcome {
   readonly outcome: "blocked" | "verified" | "unknown";
   readonly authorizationConsumed: boolean;
-  readonly evidenceSha256: string | null;
+  readonly evidenceSha256: string;
+  readonly authoritativeConsumptionEvidence?: ExactArtifactBinding;
 }
 
 export interface ScheduledBoundary {
-  readonly preflight: () => Promise<{
+  readonly preflight: (trustedTimestamp: string) => Promise<{
     readonly authorized: boolean;
-    readonly evidenceSha256: string | null;
+    readonly evidenceSha256: string;
   }>;
-  readonly execute: () => Promise<ScheduledBoundaryOutcome>;
+  readonly execute: (
+    trustedTimestamp: string,
+  ) => Promise<ScheduledBoundaryOutcome>;
 }
 
 async function sealJournal(
@@ -1543,15 +2370,23 @@ export async function runGovernedArcaSchedulerOnce(input: {
   readonly configuration: SchedulerConfiguration;
   readonly activation: SchedulerActivation;
   readonly killSwitch: SchedulerKillSwitch;
-  readonly request: Record<string, unknown>;
+  readonly request: ScheduledRunRequest;
   readonly runId: string;
   readonly ownerId: string;
   readonly processIdentity: string;
   readonly timestamp: string;
+  readonly trustedNow?: () => string | Promise<string>;
   readonly observation: Omit<SchedulerObservationInput, "persist">;
   readonly acquisitionBoundary: ScheduledBoundary | null;
   readonly exportBoundary: ScheduledBoundary | null;
 }): Promise<Record<string, unknown>> {
+  const trustedNow = async (): Promise<string> => {
+    const timestamp = await (input.trustedNow?.() ?? new Date().toISOString());
+    if (!new RegExp(TIMESTAMP).test(timestamp))
+      throw new Error("trusted_time_invalid");
+    return timestamp;
+  };
+  const initialTimestamp = await trustedNow();
   if (!validateSchedulerConfiguration(input.configuration))
     throw new Error("invalid_scheduler_configuration");
   if (!input.configuration.active) throw new Error("scheduler_inactive");
@@ -1559,7 +2394,7 @@ export async function runGovernedArcaSchedulerOnce(input: {
     schedulerActivationStatus(
       input.activation,
       input.configuration,
-      input.timestamp,
+      initialTimestamp,
     ) !== "active"
   )
     throw new Error("activation_not_active");
@@ -1587,46 +2422,54 @@ export async function runGovernedArcaSchedulerOnce(input: {
   )
     throw new Error("invalid_run_request");
   if (
-    input.request["configuration_sha256"] !==
+    input.request.configuration_sha256 !==
       input.configuration.configuration_sha256 ||
-    input.request["activation_sha256"] !== input.activation.activation_sha256 ||
-    input.request["mode"] !== "run_once"
+    input.request.configuration_id !== input.configuration.configuration_id ||
+    input.request.activation_sha256 !== input.activation.activation_sha256 ||
+    input.request.activation_id !== input.activation.activation_id ||
+    input.request.mode !== "run_once"
   )
     throw new Error("run_request_binding_mismatch");
+  await acceptSchedulerSlot({
+    configuration: input.configuration,
+    activation: input.activation,
+    request: input.request,
+    acceptedAt: initialTimestamp,
+  });
 
   const leaseResult = await acquireSchedulerLease({
     configuration: input.configuration,
     activation: input.activation,
     ownerId: input.ownerId,
     processIdentity: input.processIdentity,
-    timestamp: input.timestamp,
+    timestamp: initialTimestamp,
   });
   if (leaseResult.status !== "acquired" || !leaseResult.lease)
     throw new Error(`scheduler_lease_${leaseResult.status}`);
-  const lease = leaseResult.lease;
+  let lease = leaseResult.lease;
   const entries: SchedulerRunJournal["entries"][number][] = [
     {
       sequence: 0,
       state: "scheduled",
-      timestamp: input.timestamp,
-      evidence_sha256: input.request["request_sha256"] as string,
+      timestamp: initialTimestamp,
+      evidence_sha256: input.request.request_sha256,
     },
     {
       sequence: 1,
       state: "lease_acquired",
-      timestamp: input.timestamp,
+      timestamp: initialTimestamp,
       evidence_sha256: lease.lease_sha256,
     },
     {
       sequence: 2,
       state: "configuration_verified",
-      timestamp: input.timestamp,
+      timestamp: initialTimestamp,
       evidence_sha256: input.configuration.configuration_sha256,
     },
     {
       sequence: 3,
       state: "activation_verified",
-      timestamp: input.timestamp,
+      timestamp: initialTimestamp,
       evidence_sha256: input.activation.activation_sha256,
     },
   ];
@@ -1634,19 +2477,19 @@ export async function runGovernedArcaSchedulerOnce(input: {
     schema_version: "1.0.0",
     journal_id: domainHash("vlatam-ai-lab/arca-scheduler-journal-id/v1", {
       run_id: input.runId,
-      request_sha256: input.request["request_sha256"],
+      request_sha256: input.request.request_sha256,
     }),
     journal_sha256: "0".repeat(64),
     run_id: input.runId,
-    request_id: input.request["request_id"] as string,
-    request_sha256: input.request["request_sha256"] as string,
+    request_id: input.request.request_id,
+    request_sha256: input.request.request_sha256,
     configuration_sha256: input.configuration.configuration_sha256,
     activation_sha256: input.activation.activation_sha256,
     lease_sha256: lease.lease_sha256,
     entries,
-    acquisition_authorization_consumed: false,
-    export_authorization_consumed: false,
-    unknown_delivery: false,
+    ai_131_evidence: input.request.ai_131,
+    ai_132_evidence: input.request.ai_132,
+    authority_outcome: "not_started",
     ...falseAuthorities,
   };
   const initial: SchedulerRunJournal = {
@@ -1657,32 +2500,23 @@ export async function runGovernedArcaSchedulerOnce(input: {
   let currentJournal = initial;
   const advanceJournal = async (
     state: SchedulerRunJournal["entries"][number]["state"],
-    evidenceSha256: string | null,
-    changes: {
-      readonly acquisitionConsumed?: boolean;
-      readonly exportConsumed?: boolean;
-      readonly unknownDelivery?: boolean;
-    } = {},
+    evidenceSha256: string,
+    authorityOutcome: SchedulerRunJournal["authority_outcome"] = currentJournal.authority_outcome,
   ): Promise<void> => {
     const unsigned: SchedulerRunJournal = {
       ...currentJournal,
       journal_sha256: "0".repeat(64),
+      lease_sha256: lease.lease_sha256,
       entries: [
         ...currentJournal.entries,
         {
           sequence: currentJournal.entries.length,
           state,
-          timestamp: input.timestamp,
+          timestamp: await trustedNow(),
           evidence_sha256: evidenceSha256,
         },
       ],
-      acquisition_authorization_consumed:
-        changes.acquisitionConsumed ??
-        currentJournal.acquisition_authorization_consumed,
-      export_authorization_consumed:
-        changes.exportConsumed ?? currentJournal.export_authorization_consumed,
-      unknown_delivery:
-        changes.unknownDelivery ?? currentJournal.unknown_delivery,
+      authority_outcome: authorityOutcome,
     };
     const next: SchedulerRunJournal = {
       ...unsigned,
@@ -1702,52 +2536,354 @@ export async function runGovernedArcaSchedulerOnce(input: {
   let consumedAcquisition = false;
   let consumedExport = false;
   let unknownDelivery = false;
-  if (input.acquisitionBoundary) {
-    const preflight = await input.acquisitionBoundary.preflight();
+  let acquisitionReservation: SchedulerAttemptReservation | null = null;
+  let exportReservation: SchedulerAttemptReservation | null = null;
+  const boundaryEvidenceHash = (
+    binding: SchedulerBoundaryEvidenceBinding,
+  ): string =>
+    domainHash("vlatam-ai-lab/arca-scheduler-boundary-evidence/v1", binding);
+  const heartbeat = async (): Promise<string> => {
+    const timestamp = await trustedNow();
+    lease = await heartbeatSchedulerLease({
+      configuration: input.configuration,
+      expectedLease: lease,
+      ownerId: input.ownerId,
+      processIdentity: input.processIdentity,
+      timestamp,
+    });
+    return timestamp;
+  };
+  const withHeartbeatLifecycle = async <T>(
+    operation: () => Promise<T>,
+  ): Promise<T> => {
+    const stop = new AbortController();
+    let failure: Error | null = null;
+    const loop = (async () => {
+      while (!stop.signal.aborted) {
+        const pulse = AbortSignal.timeout(
+          input.configuration.heartbeat_interval_seconds * 1_000,
+        );
+        await new Promise<void>((resolvePulse) => {
+          const finish = (): void => {
+            pulse.removeEventListener("abort", finish);
+            stop.signal.removeEventListener("abort", finish);
+            resolvePulse();
+          };
+          pulse.addEventListener("abort", finish, { once: true });
+          stop.signal.addEventListener("abort", finish, { once: true });
+        });
+        if (stop.signal.aborted) break;
+        try {
+          await heartbeat();
+        } catch (error: unknown) {
+          failure =
+            error instanceof Error ? error : new Error("heartbeat_failed");
+          stop.abort();
+        }
+      }
+    })();
+    try {
+      const value = await operation();
+      if (failure) throw failure;
+      return value;
+    } finally {
+      stop.abort();
+      await loop;
+    }
+  };
+  const validateAuthorityTransition = async (
+    boundaryType: "ai_131" | "ai_132",
+  ): Promise<{
+    timestamp: string;
+    reservation: SchedulerAttemptReservation;
+  }> => {
+    const timestamp = await heartbeat();
+    const schedulerSwitchPath = resolve(input.configuration.kill_switch_path);
+    const switchBytes = await readExactRegular(schedulerSwitchPath);
+    const schedulerSwitch = JSON.parse(switchBytes) as SchedulerKillSwitch;
+    if (
+      bytesSha256(switchBytes) !==
+        input.configuration.kill_switch_canonical_sha256 ||
+      schedulerSwitch.kill_switch_sha256 !==
+        input.configuration.kill_switch_reviewed_sha256 ||
+      schedulerSwitch.kill_switch_sha256 !==
+        input.killSwitch.kill_switch_sha256 ||
+      !exactHashValid(
+        "kill_switch",
+        schedulerSwitch,
+        "kill_switch_sha256",
+        computeSchedulerKillSwitchSha256,
+      ) ||
+      schedulerSwitch.state !== "disabled" ||
+      schedulerSwitch.execution_blocked
+    )
+      throw new Error("scheduler_kill_switch_changed_or_substituted");
+    if (!validateSchedulerConfiguration(input.configuration))
+      throw new Error("scheduler_configuration_binding_changed");
+    if (
+      schedulerActivationStatus(
+        input.activation,
+        input.configuration,
+        timestamp,
+      ) !== "active"
+    )
+      throw new Error("activation_expired_before_authority");
+    if (!inAllowedOperatingWindow(input.configuration, timestamp))
+      throw new Error("outside_allowed_operating_window");
+    if (Date.parse(timestamp) < Date.parse(input.request.scheduled_for))
+      throw new Error("eligible_slot_not_due");
+    if (
+      Date.parse(timestamp) - Date.parse(initialTimestamp) >
+      input.configuration.maximum_run_duration_seconds * 1_000
+    )
+      throw new Error("maximum_run_duration_exceeded");
+    const binding =
+      boundaryType === "ai_131" ? input.request.ai_131 : input.request.ai_132;
+    await loadExactRequestBoundArtifact(binding.configuration);
+    await loadExactRequestBoundArtifact(binding.proposal);
+    await loadExactRequestBoundArtifact(binding.authorization);
+    await loadExactRequestBoundArtifact(binding.kill_switch);
+    const configured =
+      boundaryType === "ai_131"
+        ? input.configuration.ai_131
+        : input.configuration.ai_132;
+    if (
+      binding.configuration.identity !== configured.configuration_id ||
+      binding.configuration.sha256 !== configured.configuration_sha256 ||
+      resolve(binding.kill_switch.path) !==
+        resolve(configured.kill_switch_path) ||
+      binding.kill_switch.sha256 !== configured.kill_switch_reviewed_sha256 ||
+      binding.kill_switch.canonical_sha256 !==
+        configured.kill_switch_canonical_sha256
+    )
+      throw new Error("boundary_configuration_or_switch_substitution");
+    return {
+      timestamp,
+      reservation: await reserveSchedulerAttempt({
+        configuration: input.configuration,
+        activation: input.activation,
+        request: input.request,
+        boundaryType,
+        reservedAt: timestamp,
+      }),
+    };
+  };
+  const persistRecovery = async (
+    boundaryType: "ai_131" | "ai_132",
+    reservation: SchedulerAttemptReservation | null,
+    reason: string,
+  ): Promise<Record<string, unknown>> => {
+    if (reservation)
+      await advanceSchedulerAttempt({
+        configuration: input.configuration,
+        expected: reservation,
+        state: "recovery_required",
+      });
     await advanceJournal(
-      "acquisition_preflight_checked",
-      preflight.evidenceSha256,
+      "recovery_required",
+      boundaryEvidenceHash(
+        boundaryType === "ai_131" ? input.request.ai_131 : input.request.ai_132,
+      ),
+      reason.includes("unknown_delivery")
+        ? "unknown_delivery"
+        : "consumed_recovery_required",
     );
-    if (preflight.authorized) {
-      await advanceJournal("acquisition_execution_started", null);
-      const outcome = await input.acquisitionBoundary.execute();
-      acquisitionOutcome = outcome.outcome;
-      consumedAcquisition = outcome.authorizationConsumed;
-      unknownDelivery = outcome.outcome === "unknown";
-      await advanceJournal(
-        outcome.outcome === "verified"
-          ? "acquisition_verified"
-          : outcome.outcome === "unknown"
-            ? "acquisition_unknown"
-            : "acquisition_blocked",
-        outcome.evidenceSha256,
-        {
-          acquisitionConsumed: consumedAcquisition,
-          unknownDelivery,
-        },
+    const unsigned = {
+      schema_version: "1.0.0",
+      result_id: domainHash("vlatam-ai-lab/arca-scheduler-result-id/v1", {
+        run_id: input.runId,
+        request_sha256: input.request.request_sha256,
+      }),
+      result_sha256: "0".repeat(64),
+      run_id: input.runId,
+      request_id: input.request.request_id,
+      completed_at: await trustedNow(),
+      final_state: "recovery_required",
+      acquisition_outcome:
+        boundaryType === "ai_131" ? "unknown" : acquisitionOutcome,
+      export_outcome: "blocked",
+      observation_sha256: input.request.request_sha256,
+      stop_reason: reason,
+      automatic_retry_eligible: false,
+      ...falseAuthorities,
+    };
+    const recoveryResult = {
+      ...unsigned,
+      result_sha256: computeSchedulerRunResultSha256(unsigned),
+    };
+    await writeExclusiveDurable(
+      join(
+        resolve(input.configuration.state_root.path),
+        "recovery-results",
+        `${input.runId}.json`,
+      ),
+      canonicalBytes(recoveryResult),
+    );
+    return recoveryResult;
+  };
+  if (input.acquisitionBoundary) {
+    let preflight: Awaited<ReturnType<ScheduledBoundary["preflight"]>>;
+    try {
+      preflight = await withHeartbeatLifecycle(async () =>
+        input.acquisitionBoundary!.preflight(await heartbeat()),
       );
+      await advanceJournal(
+        "acquisition_preflight_checked",
+        preflight.evidenceSha256,
+      );
+    } catch (error: unknown) {
+      return persistRecovery(
+        "ai_131",
+        null,
+        `ai_131_preflight_exception:${error instanceof Error ? error.message : "unknown"}`,
+      );
+    }
+    if (preflight.authorized) {
+      try {
+        const checked = await validateAuthorityTransition("ai_131");
+        acquisitionReservation = checked.reservation;
+        await advanceJournal(
+          "acquisition_execution_started",
+          boundaryEvidenceHash(input.request.ai_131),
+          "authority_outcome_unknown",
+        );
+        const outcome = await withHeartbeatLifecycle(() =>
+          input.acquisitionBoundary!.execute(checked.timestamp),
+        );
+        await heartbeat();
+        acquisitionOutcome = outcome.outcome;
+        consumedAcquisition = outcome.authorizationConsumed;
+        unknownDelivery = outcome.outcome === "unknown";
+        if (outcome.authorizationConsumed)
+          acquisitionReservation = await advanceSchedulerAttempt({
+            configuration: input.configuration,
+            expected: acquisitionReservation,
+            state: "consumed",
+            ...(outcome.authoritativeConsumptionEvidence
+              ? {
+                  authoritativeConsumptionEvidence:
+                    outcome.authoritativeConsumptionEvidence,
+                }
+              : {}),
+          });
+        acquisitionReservation = await advanceSchedulerAttempt({
+          configuration: input.configuration,
+          expected: acquisitionReservation,
+          state:
+            outcome.authorizationConsumed && outcome.outcome !== "verified"
+              ? "recovery_required"
+              : "completed",
+        });
+        await advanceJournal(
+          outcome.outcome === "verified"
+            ? "acquisition_verified"
+            : outcome.outcome === "unknown"
+              ? "acquisition_unknown"
+              : "acquisition_blocked",
+          outcome.evidenceSha256,
+          unknownDelivery
+            ? "unknown_delivery"
+            : consumedAcquisition
+              ? outcome.outcome === "verified"
+                ? "consumed_completed"
+                : "consumed_recovery_required"
+              : "not_consumed",
+        );
+      } catch (error: unknown) {
+        return persistRecovery(
+          "ai_131",
+          acquisitionReservation,
+          `ai_131_unknown_delivery_exception:${error instanceof Error ? error.message : "unknown"}`,
+        );
+      }
     } else acquisitionOutcome = "blocked";
-  } else await advanceJournal("acquisition_not_authorized", null);
+  } else
+    await advanceJournal(
+      "acquisition_not_authorized",
+      boundaryEvidenceHash(input.request.ai_131),
+      "not_consumed",
+    );
   if (!unknownDelivery && input.exportBoundary) {
-    const preflight = await input.exportBoundary.preflight();
-    await advanceJournal("export_preflight_checked", preflight.evidenceSha256);
-    if (preflight.authorized) {
-      await advanceJournal("export_execution_started", null);
-      const outcome = await input.exportBoundary.execute();
-      exportOutcome = outcome.outcome === "verified" ? "verified" : "blocked";
-      consumedExport = outcome.authorizationConsumed;
-      await advanceJournal(
-        outcome.outcome === "verified" ? "export_verified" : "export_blocked",
-        outcome.evidenceSha256,
-        { exportConsumed: consumedExport },
+    let preflight: Awaited<ReturnType<ScheduledBoundary["preflight"]>>;
+    try {
+      preflight = await withHeartbeatLifecycle(async () =>
+        input.exportBoundary!.preflight(await heartbeat()),
       );
+      await advanceJournal(
+        "export_preflight_checked",
+        preflight.evidenceSha256,
+      );
+    } catch (error: unknown) {
+      return persistRecovery(
+        "ai_132",
+        null,
+        `ai_132_preflight_exception:${error instanceof Error ? error.message : "unknown"}`,
+      );
+    }
+    if (preflight.authorized) {
+      try {
+        const checked = await validateAuthorityTransition("ai_132");
+        exportReservation = checked.reservation;
+        await advanceJournal(
+          "export_execution_started",
+          boundaryEvidenceHash(input.request.ai_132),
+          "authority_outcome_unknown",
+        );
+        const outcome = await withHeartbeatLifecycle(() =>
+          input.exportBoundary!.execute(checked.timestamp),
+        );
+        await heartbeat();
+        exportOutcome = outcome.outcome === "verified" ? "verified" : "blocked";
+        consumedExport = outcome.authorizationConsumed;
+        if (outcome.authorizationConsumed)
+          exportReservation = await advanceSchedulerAttempt({
+            configuration: input.configuration,
+            expected: exportReservation,
+            state: "consumed",
+            ...(outcome.authoritativeConsumptionEvidence
+              ? {
+                  authoritativeConsumptionEvidence:
+                    outcome.authoritativeConsumptionEvidence,
+                }
+              : {}),
+          });
+        exportReservation = await advanceSchedulerAttempt({
+          configuration: input.configuration,
+          expected: exportReservation,
+          state:
+            outcome.authorizationConsumed && outcome.outcome !== "verified"
+              ? "recovery_required"
+              : "completed",
+        });
+        await advanceJournal(
+          outcome.outcome === "verified" ? "export_verified" : "export_blocked",
+          outcome.evidenceSha256,
+          consumedExport
+            ? outcome.outcome === "verified"
+              ? "consumed_completed"
+              : "consumed_recovery_required"
+            : "not_consumed",
+        );
+      } catch (error: unknown) {
+        return persistRecovery(
+          "ai_132",
+          exportReservation,
+          `ai_132_execution_exception:${error instanceof Error ? error.message : "unknown"}`,
+        );
+      }
     } else exportOutcome = "blocked";
   } else if (!unknownDelivery)
-    await advanceJournal("export_not_authorized", null);
+    await advanceJournal(
+      "export_not_authorized",
+      boundaryEvidenceHash(input.request.ai_132),
+    );
+  await heartbeat();
   const observation = await observeGovernedArcaScheduler({
     ...input.observation,
+    timestamp: await trustedNow(),
     persist: true,
   });
+  await heartbeat();
   await advanceJournal(
     "observation_recorded",
     observation["observation_sha256"] as string,
@@ -1759,12 +2895,12 @@ export async function runGovernedArcaSchedulerOnce(input: {
     schema_version: "1.0.0",
     result_id: domainHash("vlatam-ai-lab/arca-scheduler-result-id/v1", {
       run_id: input.runId,
-      request_sha256: input.request["request_sha256"],
+      request_sha256: input.request.request_sha256,
     }),
     result_sha256: "0".repeat(64),
     run_id: input.runId,
-    request_id: input.request["request_id"],
-    completed_at: input.timestamp,
+    request_id: input.request.request_id,
+    completed_at: await trustedNow(),
     final_state: finalState,
     acquisition_outcome: acquisitionOutcome,
     export_outcome: exportOutcome,
@@ -1785,15 +2921,20 @@ export async function runGovernedArcaSchedulerOnce(input: {
     join(
       resolve(input.configuration.state_root.path),
       "results",
-      `execution-${utcDay(input.timestamp)}-${input.runId}.json`,
+      `execution-${utcDay(await trustedNow())}-${input.runId}.json`,
     ),
     canonicalBytes(result),
   );
-  await advanceJournal(finalState, result.result_sha256 as string, {
-    acquisitionConsumed: consumedAcquisition,
-    exportConsumed: consumedExport,
-    unknownDelivery,
-  });
+  await heartbeat();
+  await advanceJournal(
+    finalState,
+    result.result_sha256 as string,
+    unknownDelivery
+      ? "unknown_delivery"
+      : consumedAcquisition || consumedExport
+        ? "consumed_completed"
+        : "not_consumed",
+  );
   await completeJournal(input.configuration, currentJournal);
   await releaseSchedulerLease({
     configuration: input.configuration,

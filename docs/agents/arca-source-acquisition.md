@@ -352,10 +352,24 @@ create either authorization or disable any switch.
 
 `pnpm arca:governed-scheduler observe --input <json>` records local readiness,
 recovery and counter state without invoking either boundary or making a
-network call. `run-once` has no retry loop and stops on unknown acquisition
-delivery. `recover` emits a fail-closed decision after lease/journal
-reconciliation; it never steals or blindly deletes a lease, regenerates
-authority, or converts uncertain delivery into a retryable failure.
+network call. Caller readiness is `unverified_reported_input` unless a
+read-only authoritative inspector supplies it. `run-once` rejects nested
+boundary objects and loads exact request-bound configuration, proposal,
+authorization, consumption, journal, result, evidence and switch identities,
+semantic hashes, byte hashes and paths. It has no retry loop and stops on
+unknown acquisition delivery.
+
+Before each authority-capable transition, the scheduler advances the exact
+lease heartbeat, obtains trusted UTC time, rereads the exact scheduler switch,
+revalidates configuration, activation, window, slot and maximum duration, then
+atomically reserves a separate AI-131 or AI-132 attempt. Reservations remain
+counted after crashes, consumption, failure or recovery. Durable semantic-slot
+acceptance rejects duplicates, historical replay and catch-up bursts.
+
+`recover` first requires an expired and stale heartbeat, then invokes the
+existing AI-131 read-only inspector and AI-132 read-only reconciliation. It
+never steals or blindly deletes a lease, publishes, regenerates authority,
+changes a switch, or converts uncertain delivery into a retryable failure.
 
 The repository-current configuration is inactive, permits zero daily
 execution attempts, and is protected by an active scheduler execution switch.

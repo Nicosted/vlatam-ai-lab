@@ -118,6 +118,32 @@
       "downstream_allowed_field_present": false
     },
     {
+      "contract_name": "arca_scheduler_attempt_ledger",
+      "schema_file": "schemas/arca-scheduler-attempt-ledger.schema.json",
+      "valid_fixture": null,
+      "invalid_fixtures": [],
+      "test_file": "tests/scheduler/governed-arca-scheduler.test.ts",
+      "status": "implemented_synthetic_test_only",
+      "purpose": "Canonical activation-scoped no-overwrite reservation evidence counted from authority transition start through recovery.",
+      "downstream_role": "Budget and recovery accounting only; every downstream authority remains false.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": true
+    },
+    {
+      "contract_name": "arca_scheduler_slot_acceptance",
+      "schema_file": "schemas/arca-scheduler-slot-acceptance.schema.json",
+      "valid_fixture": null,
+      "invalid_fixtures": [],
+      "test_file": "tests/scheduler/governed-arca-scheduler.test.ts",
+      "status": "implemented_synthetic_test_only",
+      "purpose": "Durable semantic slot acceptance preventing duplicate requests, missed-slot replay and catch-up bursts.",
+      "downstream_role": "Cadence evidence only; grants no acquisition, export or downstream authority.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": true
+    },
+    {
       "contract_name": "arca_export_proposal",
       "schema_file": "schemas/arca-export-proposal.schema.json",
       "valid_fixture": null,

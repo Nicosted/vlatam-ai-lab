@@ -1,0 +1,145 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.vlatam.local/arca-scheduler-attempt-ledger.schema.json",
+  "title": "Governed ARCA scheduler activation-scoped attempt ledger record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "reservation_id",
+    "reservation_sha256",
+    "scheduler_configuration_id",
+    "scheduler_configuration_sha256",
+    "activation_id",
+    "activation_sha256",
+    "eligible_slot_id",
+    "scheduled_for",
+    "request_id",
+    "request_sha256",
+    "boundary_type",
+    "reserved_at",
+    "state",
+    "authoritative_consumption_evidence",
+    "acquisition_authority_created",
+    "export_authority_created",
+    "import_authorized",
+    "publication_authorized",
+    "deployment_authorized",
+    "database_write_authorized",
+    "production_reliance_authorized",
+    "downstream_scheduling_authorized",
+    "vlatam_global_access_authorized"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "reservation_id": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "reservation_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "scheduler_configuration_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{0,127}$"
+    },
+    "scheduler_configuration_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "activation_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{0,127}$"
+    },
+    "activation_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "eligible_slot_id": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "scheduled_for": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{3}Z$"
+    },
+    "request_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{0,127}$"
+    },
+    "request_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "boundary_type": {
+      "enum": ["ai_131", "ai_132"]
+    },
+    "reserved_at": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{3}Z$"
+    },
+    "state": {
+      "enum": ["reserved", "consumed", "completed", "recovery_required"]
+    },
+    "authoritative_consumption_evidence": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "identity", "sha256", "canonical_sha256"],
+          "properties": {
+            "path": {
+              "type": "string",
+              "minLength": 1
+            },
+            "identity": {
+              "type": "string",
+              "minLength": 1
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "canonical_sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            }
+          }
+        }
+      ]
+    },
+    "acquisition_authority_created": {
+      "const": false
+    },
+    "export_authority_created": {
+      "const": false
+    },
+    "import_authorized": {
+      "const": false
+    },
+    "publication_authorized": {
+      "const": false
+    },
+    "deployment_authorized": {
+      "const": false
+    },
+    "database_write_authorized": {
+      "const": false
+    },
+    "production_reliance_authorized": {
+      "const": false
+    },
+    "downstream_scheduling_authorized": {
+      "const": false
+    },
+    "vlatam_global_access_authorized": {
+      "const": false
+    }
+  }
+}
