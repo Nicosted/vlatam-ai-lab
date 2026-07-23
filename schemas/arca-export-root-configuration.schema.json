@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.vlatam.local/arca-export-root-configuration.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "configuration_id",
+    "configuration_sha256",
+    "durable_store",
+    "export_root",
+    "export_state_root"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "configuration_id": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "configuration_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "durable_store": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["identity", "path", "configuration_sha256"],
+      "properties": {
+        "identity": { "type": "string", "minLength": 1 },
+        "path": { "type": "string", "minLength": 1 },
+        "configuration_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "export_root": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["identity", "path"],
+      "properties": {
+        "identity": { "type": "string", "minLength": 1 },
+        "path": { "type": "string", "minLength": 1 }
+      }
+    },
+    "export_state_root": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["identity", "path"],
+      "properties": {
+        "identity": { "type": "string", "minLength": 1 },
+        "path": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

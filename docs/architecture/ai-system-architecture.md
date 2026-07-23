@@ -233,6 +233,15 @@ seed advisory cases.
   reuse; unknown delivery never retries. Successful mocked execution uses the
   existing acquisition transport, AI-126 parser and AI-130 `record_candidate`,
   then stops with review required and every downstream authority false.
+- **AI-132 governed export seam (2026-07-22):** an exact AI-128 Approved
+  Artifact plus immutable AI-130 persistence proof and a distinct one-shot
+  human authorization can produce one deterministic repository-owned JSON
+  package in a reviewed local handoff root. The dedicated export kill switch is
+  active by default and reread immediately before package publication. A local
+  consumption record and crash journal enforce exactly-once authorization and
+  exact-byte recovery. The package remains not imported, not published, not
+  deployed and not production-authorized; no network or `vlatam-global` access
+  exists in this layer.
 - **Must not contain:** model SDK calls, vendor response objects, or any
   post-review content.
 - **Owner today:** `src/agents/source-monitor.ts`,

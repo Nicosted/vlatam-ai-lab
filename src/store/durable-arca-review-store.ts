@@ -2110,6 +2110,85 @@ export async function verifyDurableArcaStore(
   }
 }
 
+export interface DurableArcaVerifiedExportSource {
+  readonly candidate: GovernedArcaCandidateArtifact;
+  readonly review: GovernedArcaCandidateReview;
+  readonly evaluation: GovernedArcaCandidateReviewEvaluation;
+  readonly approved_artifact: ApprovedArcaArtifact;
+  readonly approved_artifact_event: DurableArcaStoreAuditEvent;
+  readonly projection: DurableArcaWorkflowProjection;
+  readonly event_count: number;
+  readonly workflow_count: number;
+}
+
+/**
+ * Read-only AI-130 verification seam for later governed boundaries.
+ * It never initializes the store, acquires a lock, recovers a journal, or
+ * writes. Any journal or in-progress writer therefore fails closed.
+ */
+export async function readVerifiedDurableArcaExportSource(
+  storeRoot: string,
+  approvedArtifactId: string,
+): Promise<DurableArcaVerifiedExportSource> {
+  const root = await validateConfiguredRoot(storeRoot);
+  const rootStat = await lstat(root);
+  if (rootStat.isSymbolicLink() || !rootStat.isDirectory())
+    throw new Error("unsafe_store_root");
+  for (const directory of Object.values(
+    DURABLE_ARCA_STORE_LAYOUT.directories,
+  )) {
+    const stat = await lstat(join(root, directory));
+    if (stat.isSymbolicLink() || !stat.isDirectory())
+      throw new Error("unsafe_store_root");
+  }
+  try {
+    await lstat(join(root, ".operation-lock"));
+    throw new Error("store_busy");
+  } catch (error: unknown) {
+    if (!isFsError(error, "ENOENT")) throw error;
+  }
+  const journalEntries = await readdir(
+    join(root, DURABLE_ARCA_STORE_LAYOUT.directories.journals),
+  );
+  if (journalEntries.length !== 0) throw new Error("recovery_journal_active");
+
+  const verified = await verifyStoreLocked(root);
+  const chain = await verifyEventChain(root);
+  let approvedArtifactEvent: DurableArcaStoreAuditEvent | undefined;
+  for (let index = chain.events.length - 1; index >= 0; index -= 1) {
+    const event = chain.events[index];
+    if (event?.approved_artifact_id === approvedArtifactId) {
+      approvedArtifactEvent = event;
+      break;
+    }
+  }
+  if (!approvedArtifactEvent) throw new Error("artifact_not_durably_persisted");
+  const records = await loadWorkflow(root, approvedArtifactEvent.candidate_id);
+  if (!records.review || !records.evaluation || !records.artifact)
+    throw new Error("artifact_workflow_incomplete");
+  if (records.artifact.approved_artifact_id !== approvedArtifactId)
+    throw new Error("artifact_binding_mismatch");
+  const projection = (await requireJson(
+    projectionPath(root, approvedArtifactEvent.candidate_id),
+  )) as DurableArcaWorkflowProjection;
+  if (
+    projection.approved_artifact.approved_artifact_id !== approvedArtifactId ||
+    projection.approved_artifact.approved_artifact_sha256 !==
+      approvedArtifactEvent.approved_artifact_sha256
+  )
+    throw new Error("projection_artifact_binding_mismatch");
+  return {
+    candidate: records.candidate,
+    review: records.review,
+    evaluation: records.evaluation,
+    approved_artifact: records.artifact,
+    approved_artifact_event: approvedArtifactEvent,
+    projection,
+    event_count: verified.eventCount,
+    workflow_count: verified.workflowCount,
+  };
+}
+
 export async function executeDurableArcaStoreCommand(
   storeRoot: string,
   commandValue: unknown,

@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.vlatam.local/arca-export-journal.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "journal_type",
+    "journal_id",
+    "journal_sha256",
+    "stage",
+    "proposal_id",
+    "proposal_sha256",
+    "authorization_id",
+    "authorization_sha256",
+    "approved_artifact_id",
+    "approved_artifact_sha256",
+    "durable_store_event_id",
+    "durable_store_event_sha256",
+    "export_attempt_id",
+    "package_id",
+    "package_sha256",
+    "package_bytes_sha256",
+    "package_json",
+    "record_json",
+    "created_at",
+    "updated_at"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "journal_type": { "const": "governed_arca_export_journal" },
+    "journal_id": {
+      "type": "string",
+      "pattern": "^arca-export-journal--[a-f0-9]{64}$"
+    },
+    "journal_sha256": { "$ref": "#/$defs/hash" },
+    "stage": {
+      "enum": [
+        "prepared",
+        "authorization_consumed",
+        "package_published",
+        "record_published",
+        "completed"
+      ]
+    },
+    "proposal_id": {
+      "type": "string",
+      "pattern": "^arca-export-proposal--[a-f0-9]{64}$"
+    },
+    "proposal_sha256": { "$ref": "#/$defs/hash" },
+    "authorization_id": {
+      "type": "string",
+      "pattern": "^arca-export-authorization--[a-f0-9]{64}$"
+    },
+    "authorization_sha256": { "$ref": "#/$defs/hash" },
+    "approved_artifact_id": {
+      "type": "string",
+      "pattern": "^approved-arca-artifact--[a-f0-9]{64}$"
+    },
+    "approved_artifact_sha256": { "$ref": "#/$defs/hash" },
+    "durable_store_event_id": {
+      "type": "string",
+      "pattern": "^arca-store-event--[a-f0-9]{64}$"
+    },
+    "durable_store_event_sha256": { "$ref": "#/$defs/hash" },
+    "export_attempt_id": {
+      "type": "string",
+      "pattern": "^arca-export-attempt--[a-f0-9]{64}$"
+    },
+    "package_id": {
+      "type": "string",
+      "pattern": "^arca-export-package--[a-f0-9]{64}$"
+    },
+    "package_sha256": { "$ref": "#/$defs/hash" },
+    "package_bytes_sha256": { "$ref": "#/$defs/hash" },
+    "package_json": { "type": "string", "minLength": 3 },
+    "record_json": { "type": "string", "minLength": 3 },
+    "created_at": { "$ref": "#/$defs/time" },
+    "updated_at": { "$ref": "#/$defs/time" }
+  },
+  "$defs": {
+    "hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "time": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{3}Z$"
+    }
+  }
+}

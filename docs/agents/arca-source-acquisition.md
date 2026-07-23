@@ -6,6 +6,8 @@ This capability is a manual, production-isolated acquisition boundary for public
 
 AI-131 adds a separate controlled one-shot live runner. Repository-current state remains blocked by `config/ai-131-controlled-live-arca-kill-switch.json`; there is no live authorization, consumed authorization, live run, live acquisition, or live candidate checked in.
 
+AI-132 adds a separate governed local export boundary after an exact AI-128 Approved Artifact has been verified through AI-130. Repository-current state remains blocked by `config/ai-132-governed-arca-export-kill-switch.json`; there is no export authorization, consumption, package, record, import acknowledgment, external transfer, or `vlatam-global` access checked in.
+
 ## Purpose
 
 The existing ARCA parser consumes repository-local files. This capability adds the missing step before parsing:
@@ -304,3 +306,25 @@ The following belong to later, separately reviewed PRs:
 - alerts and GitHub artifacts;
 - reviewed regulatory change feed.
 - AI-131 Controlled Live ARCA Run.
+
+## AI-132 governed ARCA export boundary
+
+`pnpm arca:governed-export` accepts only an exact proposal, an independent
+one-shot human authorization, the dedicated export kill switch, a reviewed
+root configuration and an explicit canonical UTC timestamp. Preflight performs
+read-only AI-128 validation plus AI-130 immutable-record, event-chain and
+projection verification. It creates no lock, directory, consumption, package,
+record, network request or external access.
+
+Execution is local handoff only. A hash-bound journal precedes authorization
+consumption; consumption is an atomic no-overwrite record; the switch is
+reread from disk immediately before package visibility; and the canonical JSON
+package is published with staging, fsync and a no-overwrite hard link. Recovery
+uses the exact package and record bytes sealed in the journal. Divergence fails
+closed and never invents a second package.
+
+The package copies the Approved Artifact payload exactly. It does not reparse,
+reinterpret, enrich, classify, summarize or invoke an LLM. It is fixed to
+`vlatam-global` / `handoff_only` and states `not_imported`, `not_published`,
+`not_deployed`, `not_authorized` and no external network transfer. AI-132 does
+not implement a consumer, publisher, deployment, scheduler or production path.

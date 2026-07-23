@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.vlatam.local/arca-export-result.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "result_type",
+    "outcome",
+    "result_timestamp",
+    "proposal_id",
+    "authorization_id",
+    "package_id",
+    "package_sha256",
+    "details",
+    "authorization_consumed",
+    "package_created",
+    "package_durably_recorded",
+    "external_transfer_performed",
+    "imported",
+    "published",
+    "deployed",
+    "production_authorized",
+    "scheduler_authorized",
+    "database_write_authorized",
+    "vlatam_global_access_performed"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "result_type": { "const": "governed_arca_export_result" },
+    "outcome": {
+      "enum": [
+        "invalid_proposal",
+        "invalid_authorization",
+        "authorization_expired",
+        "authorization_not_yet_valid",
+        "authorization_already_consumed",
+        "separation_of_duties_violation",
+        "kill_switch_active",
+        "invalid_approved_artifact",
+        "durable_store_invalid",
+        "artifact_not_durably_persisted",
+        "binding_mismatch",
+        "export_window_invalid",
+        "export_already_exists",
+        "package_collision",
+        "package_publication_failed",
+        "recovery_required",
+        "package_exported",
+        "completed"
+      ]
+    },
+    "result_timestamp": { "$ref": "#/$defs/time" },
+    "proposal_id": {
+      "type": ["string", "null"],
+      "pattern": "^arca-export-proposal--[a-f0-9]{64}$"
+    },
+    "authorization_id": {
+      "type": ["string", "null"],
+      "pattern": "^arca-export-authorization--[a-f0-9]{64}$"
+    },
+    "package_id": {
+      "type": ["string", "null"],
+      "pattern": "^arca-export-package--[a-f0-9]{64}$"
+    },
+    "package_sha256": {
+      "type": ["string", "null"],
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "details": { "type": "array", "items": { "type": "string" } },
+    "authorization_consumed": { "type": "boolean" },
+    "package_created": { "type": "boolean" },
+    "package_durably_recorded": { "type": "boolean" },
+    "external_transfer_performed": { "const": false },
+    "imported": { "const": false },
+    "published": { "const": false },
+    "deployed": { "const": false },
+    "production_authorized": { "const": false },
+    "scheduler_authorized": { "const": false },
+    "database_write_authorized": { "const": false },
+    "vlatam_global_access_performed": { "const": false }
+  },
+  "$defs": {
+    "time": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{3}Z$"
+    }
+  }
+}

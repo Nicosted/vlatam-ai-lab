@@ -1,0 +1,140 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.vlatam.local/arca-export-package.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "package_id",
+    "package_sha256",
+    "package_type",
+    "generated_at",
+    "exporter",
+    "source_approved_artifact_id",
+    "source_approved_artifact_sha256",
+    "candidate_binding",
+    "review_binding",
+    "evaluation_binding",
+    "durable_store_event_id",
+    "durable_store_event_sha256",
+    "source_provenance",
+    "approved_tariff_payload",
+    "payload_sha256",
+    "target_logical_consumer",
+    "target_environment",
+    "handoff_format",
+    "handoff_format_version",
+    "import_status",
+    "publication_status",
+    "deployment_status",
+    "production_reliance",
+    "acknowledgment_required",
+    "external_network_transfer_performed",
+    "import_authority",
+    "publication_authority",
+    "deployment_authority",
+    "production_authority",
+    "scheduler_authority",
+    "database_write_authority",
+    "external_network_transfer_authority",
+    "vlatam_global_access_authority"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "package_id": {
+      "type": "string",
+      "pattern": "^arca-export-package--[a-f0-9]{64}$"
+    },
+    "package_sha256": { "$ref": "#/$defs/hash" },
+    "package_type": { "const": "governed_arca_export_package" },
+    "generated_at": { "$ref": "#/$defs/time" },
+    "exporter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["identity", "version", "configuration_sha256"],
+      "properties": {
+        "identity": { "const": "service:governed-arca-exporter@1.0.0" },
+        "version": { "const": "1.0.0" },
+        "configuration_sha256": { "$ref": "#/$defs/hash" }
+      }
+    },
+    "source_approved_artifact_id": {
+      "type": "string",
+      "pattern": "^approved-arca-artifact--[a-f0-9]{64}$"
+    },
+    "source_approved_artifact_sha256": { "$ref": "#/$defs/hash" },
+    "candidate_binding": {
+      "$ref": "approved-arca-artifact.schema.json#/properties/candidate_binding"
+    },
+    "review_binding": {
+      "$ref": "approved-arca-artifact.schema.json#/properties/review_binding"
+    },
+    "evaluation_binding": {
+      "$ref": "approved-arca-artifact.schema.json#/properties/evaluation_binding"
+    },
+    "durable_store_event_id": {
+      "type": "string",
+      "pattern": "^arca-store-event--[a-f0-9]{64}$"
+    },
+    "durable_store_event_sha256": { "$ref": "#/$defs/hash" },
+    "source_provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "acquisition_id",
+        "acquisition_record_sha256",
+        "source_id",
+        "requested_url",
+        "effective_url",
+        "captured_at",
+        "raw_byte_sha256",
+        "parser_id",
+        "parser_version",
+        "parser_configuration_sha256",
+        "parsing_timestamp"
+      ],
+      "properties": {
+        "acquisition_id": { "type": "string", "minLength": 1 },
+        "acquisition_record_sha256": { "$ref": "#/$defs/hash" },
+        "source_id": { "type": "string", "minLength": 1 },
+        "requested_url": { "type": "string", "minLength": 1 },
+        "effective_url": { "type": "string", "minLength": 1 },
+        "captured_at": { "$ref": "#/$defs/time" },
+        "raw_byte_sha256": { "$ref": "#/$defs/hash" },
+        "parser_id": { "type": "string", "minLength": 1 },
+        "parser_version": { "type": "string", "minLength": 1 },
+        "parser_configuration_sha256": { "$ref": "#/$defs/hash" },
+        "parsing_timestamp": { "$ref": "#/$defs/time" }
+      }
+    },
+    "approved_tariff_payload": {
+      "$ref": "approved-arca-artifact.schema.json#/properties/approved_payload"
+    },
+    "payload_sha256": { "$ref": "#/$defs/hash" },
+    "target_logical_consumer": { "const": "vlatam-global" },
+    "target_environment": { "const": "handoff_only" },
+    "handoff_format": { "const": "vlatam-arca-approved-tariff-json" },
+    "handoff_format_version": { "const": "1.0.0" },
+    "import_status": { "const": "not_imported" },
+    "publication_status": { "const": "not_published" },
+    "deployment_status": { "const": "not_deployed" },
+    "production_reliance": { "const": "not_authorized" },
+    "acknowledgment_required": { "const": true },
+    "external_network_transfer_performed": { "const": false },
+    "import_authority": { "const": false },
+    "publication_authority": { "const": false },
+    "deployment_authority": { "const": false },
+    "production_authority": { "const": false },
+    "scheduler_authority": { "const": false },
+    "database_write_authority": { "const": false },
+    "external_network_transfer_authority": { "const": false },
+    "vlatam_global_access_authority": { "const": false }
+  },
+  "$defs": {
+    "hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "time": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{3}Z$"
+    }
+  }
+}
