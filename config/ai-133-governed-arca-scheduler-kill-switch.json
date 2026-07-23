@@ -1,0 +1,12 @@
+{
+  "schema_version": "1.0.0",
+  "kill_switch_id": "governed-arca-scheduler",
+  "kill_switch_sha256": "26e9aa69d40bc072ec295596ecbc0a47f4cf4ee49f016c6dc36fffc2a45ce3f3",
+  "state": "active",
+  "observation_blocked": false,
+  "execution_blocked": true,
+  "reviewed_artifact_id": "repository-current-ai-133-blocked-state",
+  "reviewed_by": "human:repository-governance",
+  "reviewed_at": "2026-07-23T00:00:00.000Z",
+  "reason": "Repository-current scheduler execution is blocked; no unattended activation is checked in."
+}

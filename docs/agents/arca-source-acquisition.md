@@ -339,3 +339,26 @@ reinterpret, enrich, classify, summarize or invoke an LLM. It is fixed to
 `vlatam-global` / `handoff_only` and states `not_imported`, `not_published`,
 `not_deployed`, `not_authorized` and no external network transfer. AI-132 does
 not implement a consumer, publisher, deployment, scheduler or production path.
+
+## AI-133 governed scheduler, locking and recovery boundary
+
+AI-133 adds a local, bounded orchestration seam around the existing AI-131 and
+AI-132 entry points. Scheduling authority remains distinct from acquisition
+and export authority. An execution iteration requires an active exact
+configuration, a separate unexpired human-reviewed activation, the disabled
+reviewed scheduler switch, an atomic durable lease, and the exact independent
+AI-131 or AI-132 artifacts required by those boundaries. The scheduler cannot
+create either authorization or disable any switch.
+
+`pnpm arca:governed-scheduler observe --input <json>` records local readiness,
+recovery and counter state without invoking either boundary or making a
+network call. `run-once` has no retry loop and stops on unknown acquisition
+delivery. `recover` emits a fail-closed decision after lease/journal
+reconciliation; it never steals or blindly deletes a lease, regenerates
+authority, or converts uncertain delivery into a retryable failure.
+
+The repository-current configuration is inactive, permits zero daily
+execution attempts, and is protected by an active scheduler execution switch.
+Only a non-authorizing activation template is checked in. There is no daemon,
+cron, hosted schedule, launch agent, background process, active pilot, or
+catch-up behavior.

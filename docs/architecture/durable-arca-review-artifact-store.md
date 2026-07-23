@@ -105,3 +105,17 @@ after its exact projection is durable because it changes derived state.
 Neither operation authorizes
 export, publication, production, network, database, scheduler, deployment, or
 `vlatam-global` access.
+
+## AI-133 read-only scheduler relationship
+
+AI-133 binds the exact AI-130 service identity and configuration hash in its
+reviewed scheduler configuration. Observation reports an explicit AI-130
+integrity status, but it does not initialize, repair, mutate or infer
+eligibility from the store. Export readiness still flows through AI-132's
+authoritative `readVerifiedDurableArcaExportSource()` path. The scheduler does
+not duplicate AI-130 replay or AI-128 eligibility logic.
+
+Scheduler leases, journals, counters, observations and results live under
+separate reviewed scheduler roots. They are not AI-130 records or events and
+cannot approve a candidate, create an Approved Artifact, import an export
+package, or confer downstream authority.

@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.vlatam.local/arca-scheduler-lease.schema.json",
+  "title": "Governed ARCA durable scheduler lease",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "lease_id",
+    "lease_sha256",
+    "scheduler_configuration_id",
+    "scheduler_configuration_sha256",
+    "activation_id",
+    "activation_sha256",
+    "owner_id",
+    "process_identity",
+    "acquired_at",
+    "expires_at",
+    "heartbeat_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "lease_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{0,127}$"
+    },
+    "lease_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "scheduler_configuration_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{0,127}$"
+    },
+    "scheduler_configuration_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "activation_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{0,127}$"
+    },
+    "activation_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "owner_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{0,127}$"
+    },
+    "process_identity": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "acquired_at": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{3}Z$"
+    },
+    "expires_at": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{3}Z$"
+    },
+    "heartbeat_at": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{3}Z$"
+    }
+  }
+}

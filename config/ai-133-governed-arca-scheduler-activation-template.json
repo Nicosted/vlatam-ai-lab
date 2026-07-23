@@ -1,0 +1,8 @@
+{
+  "template_version": "1.0.0",
+  "template_only": true,
+  "repository_current_activation_present": false,
+  "maximum_activation_hours": 72,
+  "self_renewal_authorized": false,
+  "instructions": "Create a separate exact human-reviewed activation only after merge. This template is not an activation and grants no observation, acquisition, export, import, publication, deployment, database-write or production-reliance authority."
+}
