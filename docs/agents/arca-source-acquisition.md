@@ -371,6 +371,23 @@ existing AI-131 read-only inspector and AI-132 read-only reconciliation. It
 never steals or blindly deletes a lease, publishes, regenerates authority,
 changes a switch, or converts uncertain delivery into a retryable failure.
 
+Execution-time preflight and boundary callbacks are also reconciled through
+those real inspectors. The scheduler records one of seven closed authoritative
+dispositions for each boundary. In the current acquisition-then-export
+workflow, AI-132 is invoked only after AI-131 is exactly
+`consumed_completed`, and the scheduler completes and releases its lease only
+after AI-132 is also exactly `consumed_completed`. Unknown delivery, visible
+consumption without exact durable completion, divergent/malformed evidence,
+blocked callbacks without positive non-consumption, and missing authenticated
+attempt-ledger evidence remain `recovery_required` and non-retryable.
+
+Recovery selects the compiled environment `repository-current-ai-133`; callers
+cannot choose repository, configuration, switch, state, observation,
+acquisition, candidate, export, or recovery roots. An empty attempt set is
+accepted only with the exact hash-valid ledger manifest and an empty
+manifest-bound reservation directory before any authority-capable journal
+phase.
+
 The repository-current configuration is inactive, permits zero daily
 execution attempts, and is protected by an active scheduler execution switch.
 Only a non-authorizing activation template is checked in. There is no daemon,

@@ -79,10 +79,26 @@
       ]
     },
     "acquisition_outcome": {
-      "enum": ["not_authorized", "blocked", "verified", "unknown"]
+      "enum": [
+        "not_authorized",
+        "positively_not_consumed",
+        "consumed_completed",
+        "consumed_recovery_required",
+        "unknown_delivery",
+        "divergent_evidence",
+        "malformed_evidence"
+      ]
     },
     "export_outcome": {
-      "enum": ["not_authorized", "blocked", "verified"]
+      "enum": [
+        "not_authorized",
+        "positively_not_consumed",
+        "consumed_completed",
+        "consumed_recovery_required",
+        "unknown_delivery",
+        "divergent_evidence",
+        "malformed_evidence"
+      ]
     },
     "observation_sha256": {
       "type": "string",

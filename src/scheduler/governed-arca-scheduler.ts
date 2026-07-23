@@ -19,6 +19,7 @@ import {
   resolve,
   sep,
 } from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { Ajv2020 as Ajv } from "ajv/dist/2020.js";
 
@@ -44,6 +45,17 @@ const FALSE_AUTHORITIES = {
   vlatam_global_access_authorized: { const: false },
 } as const;
 const FALSE_AUTHORITY_KEYS = Object.keys(FALSE_AUTHORITIES);
+export const AUTHORITATIVE_BOUNDARY_DISPOSITIONS = [
+  "not_authorized",
+  "positively_not_consumed",
+  "consumed_completed",
+  "consumed_recovery_required",
+  "unknown_delivery",
+  "divergent_evidence",
+  "malformed_evidence",
+] as const;
+export type AuthoritativeBoundaryDisposition =
+  (typeof AUTHORITATIVE_BOUNDARY_DISPOSITIONS)[number];
 
 export function canonicalizeSchedulerJson(value: unknown): string {
   if (value === null || typeof value !== "object") return JSON.stringify(value);
@@ -646,25 +658,148 @@ export const SCHEDULER_RECOVERY_INPUT_SCHEMA = {
   additionalProperties: false,
   required: [
     "schema_version",
-    "configuration",
-    "state_root",
+    "environment_id",
     "run_id",
     "request_id",
-    "lease_path",
-    "journal_path",
-    "request_path",
     "timestamp",
   ],
   properties: {
     schema_version: { const: "1.0.0" },
-    configuration: exactArtifactBindingSchema,
-    state_root: rootBindingSchema,
+    environment_id: { type: "string", pattern: ID },
     run_id: { type: "string", pattern: ID },
     request_id: { type: "string", pattern: ID },
-    lease_path: { type: "string", minLength: 1 },
-    journal_path: { type: "string", minLength: 1 },
-    request_path: { type: "string", minLength: 1 },
     timestamp: { type: "string", pattern: TIMESTAMP },
+  },
+} as const;
+
+const reviewedEnvironmentPathFields = [
+  "repository_root",
+  "scheduler_configuration_path",
+  "scheduler_switch_path",
+  "ai_131_configuration_path",
+  "ai_131_switch_path",
+  "ai_132_configuration_path",
+  "ai_132_switch_path",
+  "scheduler_state_root",
+  "scheduler_observation_root",
+  "ai_130_root",
+  "ai_131_state_root",
+  "ai_131_acquisition_root",
+  "ai_131_candidate_root",
+  "ai_132_state_root",
+  "ai_132_export_root",
+  "ai_132_recovery_root",
+] as const;
+
+export const SCHEDULER_REVIEWED_ENVIRONMENT_SCHEMA = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  $id: "https://schemas.vlatam.local/arca-scheduler-reviewed-environment.schema.json",
+  title: "Governed ARCA scheduler independently reviewed environment",
+  type: "object",
+  additionalProperties: false,
+  required: [
+    "schema_version",
+    "environment_id",
+    "environment_sha256",
+    ...reviewedEnvironmentPathFields,
+  ],
+  properties: {
+    schema_version: { const: "1.0.0" },
+    environment_id: { type: "string", pattern: ID },
+    environment_sha256: { type: "string", pattern: SHA256 },
+    ...Object.fromEntries(
+      reviewedEnvironmentPathFields.map((field) => [
+        field,
+        { type: "string", minLength: 1 },
+      ]),
+    ),
+  },
+} as const;
+
+const boundaryDispositionSchema = (boundaryType: "ai_131" | "ai_132") =>
+  ({
+    $schema: "https://json-schema.org/draft/2020-12/schema",
+    $id: `https://schemas.vlatam.local/arca-scheduler-${boundaryType.replace("_", "-")}-disposition.schema.json`,
+    title: `Governed ARCA scheduler ${boundaryType} authoritative disposition`,
+    type: "object",
+    additionalProperties: false,
+    required: [
+      "schema_version",
+      "boundary_type",
+      "disposition_sha256",
+      "request_id",
+      "reconciled_at",
+      "disposition",
+      "authoritative_evidence",
+      "reason",
+    ],
+    properties: {
+      schema_version: { const: "1.0.0" },
+      boundary_type: { const: boundaryType },
+      disposition_sha256: { type: "string", pattern: SHA256 },
+      request_id: { type: "string", pattern: ID },
+      reconciled_at: { type: "string", pattern: TIMESTAMP },
+      disposition: { enum: AUTHORITATIVE_BOUNDARY_DISPOSITIONS },
+      authoritative_evidence: {
+        anyOf: [{ type: "null" }, exactArtifactBindingSchema],
+      },
+      reason: { type: "string", minLength: 1 },
+    },
+  }) as const;
+
+export const SCHEDULER_AI_131_DISPOSITION_SCHEMA =
+  boundaryDispositionSchema("ai_131");
+export const SCHEDULER_AI_132_DISPOSITION_SCHEMA =
+  boundaryDispositionSchema("ai_132");
+
+const ledgerReservationBindingSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["reservation_id", "reservation_sha256"],
+  properties: {
+    reservation_id: { type: "string", pattern: SHA256 },
+    reservation_sha256: { type: "string", pattern: SHA256 },
+  },
+} as const;
+
+export const SCHEDULER_ATTEMPT_LEDGER_MANIFEST_SCHEMA = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  $id: "https://schemas.vlatam.local/arca-scheduler-attempt-ledger-manifest.schema.json",
+  title: "Governed ARCA scheduler authenticated attempt-ledger manifest",
+  type: "object",
+  additionalProperties: false,
+  required: [
+    "schema_version",
+    "ledger_version",
+    "manifest_sha256",
+    "canonical_sha256",
+    "scheduler_configuration_id",
+    "scheduler_configuration_sha256",
+    "activation_id",
+    "activation_sha256",
+    "state_root_identity",
+    "state_root_path",
+    "initialized_at",
+    "reservation_directory",
+    "reservations",
+  ],
+  properties: {
+    schema_version: { const: "1.0.0" },
+    ledger_version: { const: "1.0.0" },
+    manifest_sha256: { type: "string", pattern: SHA256 },
+    canonical_sha256: { type: "string", pattern: SHA256 },
+    scheduler_configuration_id: { type: "string", pattern: ID },
+    scheduler_configuration_sha256: { type: "string", pattern: SHA256 },
+    activation_id: { type: "string", pattern: ID },
+    activation_sha256: { type: "string", pattern: SHA256 },
+    state_root_identity: { type: "string", pattern: ID },
+    state_root_path: { type: "string", minLength: 1 },
+    initialized_at: { type: "string", pattern: TIMESTAMP },
+    reservation_directory: { type: "string", minLength: 1 },
+    reservations: {
+      type: "array",
+      items: ledgerReservationBindingSchema,
+    },
   },
 } as const;
 
@@ -730,9 +865,9 @@ export const SCHEDULER_RUN_RESULT_SCHEMA = {
     completed_at: { type: "string", pattern: TIMESTAMP },
     final_state: { enum: SCHEDULER_STATES },
     acquisition_outcome: {
-      enum: ["not_authorized", "blocked", "verified", "unknown"],
+      enum: AUTHORITATIVE_BOUNDARY_DISPOSITIONS,
     },
-    export_outcome: { enum: ["not_authorized", "blocked", "verified"] },
+    export_outcome: { enum: AUTHORITATIVE_BOUNDARY_DISPOSITIONS },
     observation_sha256: { type: "string", pattern: SHA256 },
     stop_reason: { type: "string", minLength: 1 },
     automatic_retry_eligible: { const: false },
@@ -834,7 +969,11 @@ const schemas = {
   recovery_decision: SCHEDULER_RECOVERY_DECISION_SCHEMA,
   kill_switch: SCHEDULER_KILL_SWITCH_SCHEMA,
   attempt_ledger: SCHEDULER_ATTEMPT_LEDGER_SCHEMA,
+  attempt_ledger_manifest: SCHEDULER_ATTEMPT_LEDGER_MANIFEST_SCHEMA,
   slot_acceptance: SCHEDULER_SLOT_ACCEPTANCE_SCHEMA,
+  reviewed_environment: SCHEDULER_REVIEWED_ENVIRONMENT_SCHEMA,
+  ai_131_disposition: SCHEDULER_AI_131_DISPOSITION_SCHEMA,
+  ai_132_disposition: SCHEDULER_AI_132_DISPOSITION_SCHEMA,
 } as const;
 
 const validators = Object.fromEntries(
@@ -926,6 +1065,58 @@ export interface ExactArtifactBinding {
   readonly identity: string;
   readonly sha256: string;
   readonly canonical_sha256: string;
+}
+
+export interface ReviewedRecoveryEnvironment {
+  readonly schema_version: "1.0.0";
+  readonly environment_id: string;
+  readonly environment_sha256: string;
+  readonly repository_root: string;
+  readonly scheduler_configuration_path: string;
+  readonly scheduler_switch_path: string;
+  readonly ai_131_configuration_path: string;
+  readonly ai_131_switch_path: string;
+  readonly ai_132_configuration_path: string;
+  readonly ai_132_switch_path: string;
+  readonly scheduler_state_root: string;
+  readonly scheduler_observation_root: string;
+  readonly ai_130_root: string;
+  readonly ai_131_state_root: string;
+  readonly ai_131_acquisition_root: string;
+  readonly ai_131_candidate_root: string;
+  readonly ai_132_state_root: string;
+  readonly ai_132_export_root: string;
+  readonly ai_132_recovery_root: string;
+}
+
+export interface SchedulerBoundaryDispositionRecord {
+  readonly schema_version: "1.0.0";
+  readonly boundary_type: "ai_131" | "ai_132";
+  readonly disposition_sha256: string;
+  readonly request_id: string;
+  readonly reconciled_at: string;
+  readonly disposition: AuthoritativeBoundaryDisposition;
+  readonly authoritative_evidence: ExactArtifactBinding | null;
+  readonly reason: string;
+}
+
+export interface SchedulerAttemptLedgerManifest {
+  readonly schema_version: "1.0.0";
+  readonly ledger_version: "1.0.0";
+  readonly manifest_sha256: string;
+  readonly canonical_sha256: string;
+  readonly scheduler_configuration_id: string;
+  readonly scheduler_configuration_sha256: string;
+  readonly activation_id: string;
+  readonly activation_sha256: string;
+  readonly state_root_identity: string;
+  readonly state_root_path: string;
+  readonly initialized_at: string;
+  readonly reservation_directory: string;
+  readonly reservations: readonly {
+    readonly reservation_id: string;
+    readonly reservation_sha256: string;
+  }[];
 }
 
 export interface ExpectedArtifactBinding {
@@ -1137,6 +1328,41 @@ export function computeSchedulerAttemptReservationSha256(
   return domainHash(
     "vlatam-ai-lab/arca-scheduler-attempt-reservation/v1",
     without(value, "reservation_sha256"),
+  );
+}
+
+export function computeSchedulerAttemptLedgerManifestCanonicalSha256(
+  value: object,
+): string {
+  return bytesSha256(
+    canonicalBytes(without(value, "manifest_sha256", "canonical_sha256")),
+  );
+}
+
+export function computeSchedulerAttemptLedgerManifestSha256(
+  value: object,
+): string {
+  return domainHash(
+    "vlatam-ai-lab/arca-scheduler-attempt-ledger-manifest/v1",
+    without(value, "manifest_sha256"),
+  );
+}
+
+export function computeSchedulerBoundaryDispositionSha256(
+  value: object,
+): string {
+  return domainHash(
+    "vlatam-ai-lab/arca-scheduler-boundary-disposition/v1",
+    without(value, "disposition_sha256"),
+  );
+}
+
+export function computeReviewedRecoveryEnvironmentSha256(
+  value: object,
+): string {
+  return domainHash(
+    "vlatam-ai-lab/arca-scheduler-reviewed-environment/v1",
+    without(value, "environment_sha256"),
   );
 }
 
@@ -1514,24 +1740,153 @@ export function computeSchedulerRecoveryDecisionSha256(value: object): string {
 
 export interface AuthoritativeRecoveryInspection {
   readonly status:
-    | "not_consumed"
+    | "not_authorized"
+    | "positively_not_consumed"
     | "consumed_completed"
     | "consumed_recovery_required"
     | "unknown_delivery"
-    | "divergent_evidence";
-  readonly evidence: ExactArtifactBinding;
+    | "divergent_evidence"
+    | "malformed_evidence";
+  readonly evidence: ExactArtifactBinding | null;
+  readonly reason?: string;
 }
 
 export interface SchedulerDurableRecoveryInput {
   readonly schema_version: "1.0.0";
-  readonly configuration: ExactArtifactBinding;
-  readonly state_root: { readonly identity: string; readonly path: string };
+  readonly environment_id: string;
   readonly run_id: string;
   readonly request_id: string;
-  readonly lease_path: string;
-  readonly journal_path: string;
-  readonly request_path: string;
   readonly timestamp: string;
+}
+
+const repositoryRoot = resolve(
+  fileURLToPath(new URL("../..", import.meta.url)),
+);
+const repositoryCurrentEnvironmentUnsigned = {
+  schema_version: "1.0.0" as const,
+  environment_id: "repository-current-ai-133",
+  environment_sha256: "0".repeat(64),
+  repository_root: repositoryRoot,
+  scheduler_configuration_path: join(
+    repositoryRoot,
+    "config",
+    "ai-133-governed-arca-scheduler.json",
+  ),
+  scheduler_switch_path: join(
+    repositoryRoot,
+    "config",
+    "ai-133-governed-arca-scheduler-kill-switch.json",
+  ),
+  ai_131_configuration_path: join(
+    repositoryRoot,
+    "var",
+    "arca-scheduler",
+    "reviewed",
+    "ai-131-configuration.json",
+  ),
+  ai_131_switch_path: join(
+    repositoryRoot,
+    "config",
+    "ai-131-controlled-live-arca-kill-switch.json",
+  ),
+  ai_132_configuration_path: join(
+    repositoryRoot,
+    "var",
+    "arca-scheduler",
+    "reviewed",
+    "ai-132-configuration.json",
+  ),
+  ai_132_switch_path: join(
+    repositoryRoot,
+    "config",
+    "ai-132-governed-arca-export-kill-switch.json",
+  ),
+  scheduler_state_root: join(repositoryRoot, "var", "arca-scheduler", "state"),
+  scheduler_observation_root: join(
+    repositoryRoot,
+    "var",
+    "arca-scheduler",
+    "observations",
+  ),
+  ai_130_root: join(repositoryRoot, "var", "arca-review-store"),
+  ai_131_state_root: join(
+    repositoryRoot,
+    "var",
+    "arca-scheduler",
+    "ai-131",
+    "state",
+  ),
+  ai_131_acquisition_root: join(
+    repositoryRoot,
+    "var",
+    "arca-scheduler",
+    "ai-131",
+    "acquisitions",
+  ),
+  ai_131_candidate_root: join(
+    repositoryRoot,
+    "var",
+    "arca-scheduler",
+    "ai-131",
+    "candidates",
+  ),
+  ai_132_state_root: join(
+    repositoryRoot,
+    "var",
+    "arca-scheduler",
+    "ai-132",
+    "state",
+  ),
+  ai_132_export_root: join(
+    repositoryRoot,
+    "var",
+    "arca-scheduler",
+    "ai-132",
+    "exports",
+  ),
+  ai_132_recovery_root: join(
+    repositoryRoot,
+    "var",
+    "arca-scheduler",
+    "ai-132",
+    "state",
+    "recovery",
+  ),
+};
+const repositoryCurrentEnvironment: ReviewedRecoveryEnvironment = {
+  ...repositoryCurrentEnvironmentUnsigned,
+  environment_sha256: computeReviewedRecoveryEnvironmentSha256(
+    repositoryCurrentEnvironmentUnsigned,
+  ),
+};
+
+export const REVIEWED_RECOVERY_ENVIRONMENTS: Readonly<
+  Record<string, ReviewedRecoveryEnvironment>
+> = Object.freeze({
+  [repositoryCurrentEnvironment.environment_id]: Object.freeze(
+    repositoryCurrentEnvironment,
+  ),
+});
+
+export function resolveReviewedRecoveryEnvironment(
+  environmentId: string,
+  registry: Readonly<
+    Record<string, ReviewedRecoveryEnvironment>
+  > = REVIEWED_RECOVERY_ENVIRONMENTS,
+): ReviewedRecoveryEnvironment {
+  const environment = registry[environmentId];
+  if (
+    !environment ||
+    !validateSchedulerContract("reviewed_environment", environment) ||
+    environment.environment_sha256 !==
+      computeReviewedRecoveryEnvironmentSha256(environment) ||
+    Object.values(environment)
+      .filter((value) => typeof value === "string" && value.startsWith(sep))
+      .some((path) => !isAbsolute(path) || resolve(path) !== path) ||
+    environment.repository_root === parse(environment.repository_root).root
+  )
+    throw new Error("reviewed_recovery_environment_unknown_or_invalid");
+  return environment;
 }
 
 export interface SchedulerDurableRecoveryEvidence {
@@ -1539,7 +1894,8 @@ export interface SchedulerDurableRecoveryEvidence {
   readonly lease: SchedulerLease;
   readonly journal: SchedulerRunJournal;
   readonly request: ScheduledRunRequest;
-  readonly reservations: readonly SchedulerAttemptReservation[];
+  readonly attemptLedgerManifest: SchedulerAttemptLedgerManifest | undefined;
+  readonly reservations: readonly SchedulerAttemptReservation[] | undefined;
   readonly slot: Record<string, unknown>;
   readonly resultPresent: boolean;
   readonly recoveryResultPresent: boolean;
@@ -1578,36 +1934,68 @@ async function loadExactSchedulerArtifact(
 
 export async function loadDurableSchedulerRecoveryEvidence(
   input: SchedulerDurableRecoveryInput,
+  registry: Readonly<
+    Record<string, ReviewedRecoveryEnvironment>
+  > = REVIEWED_RECOVERY_ENVIRONMENTS,
 ): Promise<SchedulerDurableRecoveryEvidence> {
   if (!validateSchedulerContract("recovery_input", input))
     throw new Error("invalid_scheduler_recovery_input");
-  const configuration = (await loadExactRequestBoundArtifact(
-    input.configuration,
-    dirname(input.configuration.path),
-    exactFields.configuration,
-  )) as unknown as SchedulerConfiguration;
-  if (!validateSchedulerConfiguration(configuration))
-    throw new Error("scheduler_recovery_configuration_divergent");
-  await loadExactRequestBoundArtifact(
-    {
-      path: resolve(configuration.kill_switch_path),
-      identity: "governed-arca-scheduler",
-      sha256: configuration.kill_switch_reviewed_sha256,
-      canonical_sha256: configuration.kill_switch_canonical_sha256,
-    },
-    dirname(resolve(configuration.kill_switch_path)),
-    exactFields.killSwitch,
+  const environment = resolveReviewedRecoveryEnvironment(
+    input.environment_id,
+    registry,
   );
-  const stateRoot = resolve(input.state_root.path);
+  const configurationRaw = await readExactRegular(
+    environment.scheduler_configuration_path,
+  );
+  let configuration: SchedulerConfiguration;
+  try {
+    configuration = JSON.parse(configurationRaw) as SchedulerConfiguration;
+  } catch {
+    throw new Error("scheduler_recovery_configuration_malformed");
+  }
   if (
-    !isAbsolute(input.state_root.path) ||
-    stateRoot !== input.state_root.path ||
-    input.state_root.identity !== configuration.state_root.identity ||
-    stateRoot !== resolve(configuration.state_root.path)
+    configurationRaw !== canonicalBytes(configuration) ||
+    !validateSchedulerConfiguration(configuration)
   )
+    throw new Error("scheduler_recovery_configuration_divergent");
+  const pinnedConfigurationPathsMatch =
+    resolve(configuration.kill_switch_path) ===
+      environment.scheduler_switch_path &&
+    resolve(configuration.state_root.path) ===
+      environment.scheduler_state_root &&
+    resolve(configuration.observation_root.path) ===
+      environment.scheduler_observation_root &&
+    resolve(configuration.durable_ai_130_store.root_path) ===
+      environment.ai_130_root &&
+    resolve(configuration.ai_131.kill_switch_path) ===
+      environment.ai_131_switch_path &&
+    resolve(configuration.ai_132.kill_switch_path) ===
+      environment.ai_132_switch_path;
+  if (!pinnedConfigurationPathsMatch)
+    throw new Error("scheduler_recovery_trust_anchor_substituted");
+  const switchRaw = await readExactRegular(environment.scheduler_switch_path);
+  const schedulerSwitch = JSON.parse(switchRaw) as SchedulerKillSwitch;
+  if (
+    bytesSha256(switchRaw) !== configuration.kill_switch_canonical_sha256 ||
+    schedulerSwitch.kill_switch_sha256 !==
+      configuration.kill_switch_reviewed_sha256 ||
+    !exactHashValid(
+      "kill_switch",
+      schedulerSwitch,
+      "kill_switch_sha256",
+      computeSchedulerKillSwitchSha256,
+    )
+  )
+    throw new Error("scheduler_recovery_switch_divergent");
+  const stateRoot = environment.scheduler_state_root;
+  if (stateRoot !== resolve(configuration.state_root.path))
     throw new Error("scheduler_recovery_root_substituted");
   await assertSafePath(stateRoot, false);
   const expectedLeasePath = schedulerLeasePath(configuration);
+  if (
+    !expectedLeasePath.startsWith(`${environment.scheduler_state_root}${sep}`)
+  )
+    throw new Error("scheduler_recovery_lease_path_substituted");
   const expectedJournalPath = join(
     stateRoot,
     "journals",
@@ -1618,28 +2006,22 @@ export async function loadDurableSchedulerRecoveryEvidence(
     "requests",
     `${input.request_id}.json`,
   );
-  if (
-    input.lease_path !== expectedLeasePath ||
-    input.journal_path !== expectedJournalPath ||
-    input.request_path !== expectedRequestPath
-  )
-    throw new Error("scheduler_recovery_exact_path_mismatch");
   const lease = (await loadExactSchedulerArtifact(
-    input.lease_path,
+    expectedLeasePath,
     stateRoot,
     "lease",
     "lease_sha256",
     computeSchedulerLeaseSha256,
   )) as unknown as SchedulerLease;
   const journal = (await loadExactSchedulerArtifact(
-    input.journal_path,
+    expectedJournalPath,
     stateRoot,
     "run_journal",
     "journal_sha256",
     computeSchedulerJournalSha256,
   )) as unknown as SchedulerRunJournal;
   const request = (await loadExactSchedulerArtifact(
-    input.request_path,
+    expectedRequestPath,
     stateRoot,
     "run_request",
     "request_sha256",
@@ -1656,6 +2038,18 @@ export async function loadDurableSchedulerRecoveryEvidence(
     request.configuration_sha256 !== configuration.configuration_sha256
   )
     throw new Error("scheduler_recovery_binding_divergent");
+  if (
+    request.ai_131.configuration.path !==
+      environment.ai_131_configuration_path ||
+    request.ai_131.kill_switch.path !== environment.ai_131_switch_path ||
+    request.ai_132.configuration.path !==
+      environment.ai_132_configuration_path ||
+    request.ai_132.kill_switch.path !== environment.ai_132_switch_path ||
+    request.ai_131.recovery_root.path !==
+      join(environment.ai_131_state_root, "recovery") ||
+    request.ai_132.recovery_root.path !== environment.ai_132_recovery_root
+  )
+    throw new Error("scheduler_recovery_boundary_trust_anchor_substituted");
   const slotPath = join(
     stateRoot,
     "slot-acceptances",
@@ -1673,11 +2067,27 @@ export async function loadDurableSchedulerRecoveryEvidence(
     slot["request_sha256"] !== request.request_sha256
   )
     throw new Error("scheduler_recovery_slot_divergent");
-  const reservations = (await readAttemptReservations(configuration)).filter(
-    (record) =>
-      record.request_id === request.request_id &&
-      record.request_sha256 === request.request_sha256,
-  );
+  let attemptLedgerManifest: SchedulerAttemptLedgerManifest | undefined;
+  let reservations: readonly SchedulerAttemptReservation[] | undefined;
+  try {
+    attemptLedgerManifest = await readAttemptLedgerManifest(configuration, {
+      activation_id: lease.activation_id,
+      activation_sha256: lease.activation_sha256,
+    });
+    reservations = (
+      await readAttemptReservations(configuration, {
+        activation_id: lease.activation_id,
+        activation_sha256: lease.activation_sha256,
+      })
+    ).filter(
+      (record) =>
+        record.request_id === request.request_id &&
+        record.request_sha256 === request.request_sha256,
+    );
+  } catch {
+    attemptLedgerManifest = undefined;
+    reservations = undefined;
+  }
   const optionalExactResult = async (
     path: string,
   ): Promise<Record<string, unknown> | null> => {
@@ -1730,6 +2140,7 @@ export async function loadDurableSchedulerRecoveryEvidence(
     lease,
     journal,
     request,
+    attemptLedgerManifest,
     reservations,
     slot,
     resultPresent,
@@ -1744,7 +2155,10 @@ export async function inspectSchedulerRecovery(input: {
   readonly timestamp: string;
   readonly inspectAi131?: () => Promise<AuthoritativeRecoveryInspection>;
   readonly inspectAi132?: () => Promise<AuthoritativeRecoveryInspection>;
-  readonly attemptReservations?: readonly SchedulerAttemptReservation[];
+  readonly attemptLedgerManifest?: SchedulerAttemptLedgerManifest | undefined;
+  readonly attemptReservations?:
+    | readonly SchedulerAttemptReservation[]
+    | undefined;
   readonly schedulerResultPresent?: boolean;
   readonly recoveryResultPresent?: boolean;
 }): Promise<Record<string, unknown>> {
@@ -1758,6 +2172,28 @@ export async function inspectSchedulerRecovery(input: {
     | "completed_after_recovery" = "lease_expired_recovery";
   let journalSha256: string | null = null;
   const reasons: string[] = [];
+  let durableManifest = input.attemptLedgerManifest;
+  let durableReservations = input.attemptReservations;
+  if (!durableManifest) {
+    try {
+      durableManifest = await readAttemptLedgerManifest(input.configuration, {
+        activation_id: input.lease.activation_id,
+        activation_sha256: input.lease.activation_sha256,
+      });
+    } catch {
+      durableManifest = undefined;
+    }
+  }
+  if (!durableReservations && durableManifest) {
+    try {
+      durableReservations = await readAttemptReservations(input.configuration, {
+        activation_id: input.lease.activation_id,
+        activation_sha256: input.lease.activation_sha256,
+      });
+    } catch {
+      durableReservations = undefined;
+    }
+  }
   if (
     !validateSchedulerConfiguration(input.configuration) ||
     !exactHashValid(
@@ -1831,10 +2267,37 @@ export async function inspectSchedulerRecovery(input: {
     const ai132Started = journal.entries.some(
       (entry) => entry.state === "export_execution_started",
     );
-    const reservations = input.attemptReservations;
-    if (!reservations) {
+    const reservations = durableReservations;
+    const manifest = durableManifest;
+    if (
+      !manifest ||
+      !validateSchedulerContract("attempt_ledger_manifest", manifest) ||
+      manifest.manifest_sha256 !==
+        computeSchedulerAttemptLedgerManifestSha256(manifest) ||
+      manifest.canonical_sha256 !==
+        computeSchedulerAttemptLedgerManifestCanonicalSha256(manifest) ||
+      manifest.scheduler_configuration_sha256 !==
+        input.configuration.configuration_sha256 ||
+      manifest.activation_sha256 !== input.lease.activation_sha256
+    ) {
+      decision = "malformed_evidence_fail_closed";
+      reasons.push("attempt_ledger_manifest_missing_or_divergent");
+    } else if (!reservations) {
       decision = "malformed_evidence_fail_closed";
       reasons.push("attempt_ledger_evidence_missing");
+    } else if (
+      manifest.reservations.length !== reservations.length ||
+      reservations.some(
+        (record) =>
+          !manifest.reservations.some(
+            (entry) =>
+              entry.reservation_id === record.reservation_id &&
+              entry.reservation_sha256 === record.reservation_sha256,
+          ),
+      )
+    ) {
+      decision = "malformed_evidence_fail_closed";
+      reasons.push("attempt_ledger_inventory_divergent");
     } else if (
       reservations.some(
         (record) =>
@@ -1867,10 +2330,11 @@ export async function inspectSchedulerRecovery(input: {
           throw new Error("ai_131_authoritative_inspector_missing");
         const inspection = await input.inspectAi131();
         if (
+          inspection.evidence !== null &&
           canonicalizeSchedulerJson(inspection.evidence) !==
-          canonicalizeSchedulerJson(
-            journal.ai_131_evidence.expected_consumption,
-          )
+            canonicalizeSchedulerJson(
+              journal.ai_131_evidence.expected_consumption,
+            )
         )
           throw new Error("ai_131_inspection_evidence_substituted");
         inspections.push(inspection);
@@ -1880,10 +2344,11 @@ export async function inspectSchedulerRecovery(input: {
           throw new Error("ai_132_authoritative_inspector_missing");
         const inspection = await input.inspectAi132();
         if (
+          inspection.evidence !== null &&
           canonicalizeSchedulerJson(inspection.evidence) !==
-          canonicalizeSchedulerJson(
-            journal.ai_132_evidence.expected_consumption,
-          )
+            canonicalizeSchedulerJson(
+              journal.ai_132_evidence.expected_consumption,
+            )
         )
           throw new Error("ai_132_inspection_evidence_substituted");
         inspections.push(inspection);
@@ -1903,7 +2368,9 @@ export async function inspectSchedulerRecovery(input: {
       // The inspector failure above has precedence over scheduler booleans.
     } else if (
       inspections.some(
-        (inspection) => inspection.status === "divergent_evidence",
+        (inspection) =>
+          inspection.status === "divergent_evidence" ||
+          inspection.status === "malformed_evidence",
       )
     ) {
       decision = "malformed_evidence_fail_closed";
@@ -1937,7 +2404,11 @@ export async function inspectSchedulerRecovery(input: {
         !input.schedulerResultPresent &&
         !input.recoveryResultPresent) ||
       (inspections.length > 0 &&
-        inspections.every((inspection) => inspection.status === "not_consumed"))
+        inspections.every(
+          (inspection) =>
+            inspection.status === "positively_not_consumed" ||
+            inspection.status === "not_authorized",
+        ))
     ) {
       decision = "safe_abort_before_authority";
       reasons.push("exact_authoritative_non_consumption_positively_proven");
@@ -2058,18 +2529,180 @@ export interface SchedulerAttemptReservation {
   readonly authoritative_consumption_evidence: ExactArtifactBinding | null;
 }
 
+function attemptLedgerRoot(configuration: SchedulerConfiguration): string {
+  return join(resolve(configuration.state_root.path), "attempt-ledger");
+}
+
+function attemptLedgerManifestPath(
+  configuration: SchedulerConfiguration,
+): string {
+  return join(attemptLedgerRoot(configuration), "manifest.json");
+}
+
+function attemptReservationDirectory(
+  configuration: SchedulerConfiguration,
+): string {
+  return join(attemptLedgerRoot(configuration), "reservations");
+}
+
+function createAttemptLedgerManifest(input: {
+  configuration: SchedulerConfiguration;
+  activation: Pick<SchedulerActivation, "activation_id" | "activation_sha256">;
+  initializedAt: string;
+  reservations?: SchedulerAttemptLedgerManifest["reservations"];
+}): SchedulerAttemptLedgerManifest {
+  const base = {
+    schema_version: "1.0.0" as const,
+    ledger_version: "1.0.0" as const,
+    manifest_sha256: "0".repeat(64),
+    canonical_sha256: "0".repeat(64),
+    scheduler_configuration_id: input.configuration.configuration_id,
+    scheduler_configuration_sha256: input.configuration.configuration_sha256,
+    activation_id: input.activation.activation_id,
+    activation_sha256: input.activation.activation_sha256,
+    state_root_identity: input.configuration.state_root.identity,
+    state_root_path: resolve(input.configuration.state_root.path),
+    initialized_at: input.initializedAt,
+    reservation_directory: attemptReservationDirectory(input.configuration),
+    reservations: [...(input.reservations ?? [])].sort((left, right) =>
+      left.reservation_id.localeCompare(right.reservation_id),
+    ),
+  };
+  const withCanonical = {
+    ...base,
+    canonical_sha256:
+      computeSchedulerAttemptLedgerManifestCanonicalSha256(base),
+  };
+  return {
+    ...withCanonical,
+    manifest_sha256: computeSchedulerAttemptLedgerManifestSha256(withCanonical),
+  };
+}
+
+async function readAttemptLedgerManifest(
+  configuration: SchedulerConfiguration,
+  activation: Pick<SchedulerActivation, "activation_id" | "activation_sha256">,
+): Promise<SchedulerAttemptLedgerManifest> {
+  const raw = await readExactRegular(attemptLedgerManifestPath(configuration));
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    throw new Error("attempt_ledger_manifest_malformed");
+  }
+  if (
+    raw !== canonicalBytes(parsed) ||
+    !validateSchedulerContract("attempt_ledger_manifest", parsed)
+  )
+    throw new Error("attempt_ledger_manifest_malformed");
+  const manifest = parsed as SchedulerAttemptLedgerManifest;
+  if (
+    manifest.manifest_sha256 !==
+      computeSchedulerAttemptLedgerManifestSha256(manifest) ||
+    manifest.canonical_sha256 !==
+      computeSchedulerAttemptLedgerManifestCanonicalSha256(manifest) ||
+    manifest.scheduler_configuration_id !== configuration.configuration_id ||
+    manifest.scheduler_configuration_sha256 !==
+      configuration.configuration_sha256 ||
+    manifest.activation_id !== activation.activation_id ||
+    manifest.activation_sha256 !== activation.activation_sha256 ||
+    manifest.state_root_identity !== configuration.state_root.identity ||
+    manifest.state_root_path !== resolve(configuration.state_root.path) ||
+    manifest.reservation_directory !==
+      attemptReservationDirectory(configuration)
+  )
+    throw new Error("attempt_ledger_manifest_divergent");
+  return manifest;
+}
+
+export async function loadSchedulerAttemptLedgerManifest(input: {
+  readonly configuration: SchedulerConfiguration;
+  readonly activation: Pick<
+    SchedulerActivation,
+    "activation_id" | "activation_sha256"
+  >;
+}): Promise<SchedulerAttemptLedgerManifest> {
+  return readAttemptLedgerManifest(input.configuration, input.activation);
+}
+
+export async function initializeSchedulerAttemptLedger(input: {
+  readonly configuration: SchedulerConfiguration;
+  readonly activation: Pick<
+    SchedulerActivation,
+    "activation_id" | "activation_sha256"
+  >;
+  readonly initializedAt: string;
+}): Promise<SchedulerAttemptLedgerManifest> {
+  const root = attemptLedgerRoot(input.configuration);
+  const reservationDirectory = attemptReservationDirectory(input.configuration);
+  await mkdir(reservationDirectory, { recursive: true, mode: 0o700 });
+  await assertSafePath(root, false);
+  await assertSafePath(reservationDirectory, false);
+  const existingNames = await readdir(reservationDirectory);
+  if (existingNames.length > 0)
+    throw new Error("attempt_ledger_uninitialized_reservations_visible");
+  const manifest = createAttemptLedgerManifest(input);
+  try {
+    await writeExclusiveDurable(
+      attemptLedgerManifestPath(input.configuration),
+      canonicalBytes(manifest),
+    );
+    return manifest;
+  } catch (error: unknown) {
+    if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error;
+    return readAttemptLedgerManifest(input.configuration, input.activation);
+  }
+}
+
+async function replaceAttemptLedgerManifest(
+  configuration: SchedulerConfiguration,
+  expected: SchedulerAttemptLedgerManifest,
+  reservations: SchedulerAttemptLedgerManifest["reservations"],
+): Promise<SchedulerAttemptLedgerManifest> {
+  const next = createAttemptLedgerManifest({
+    configuration,
+    activation: expected,
+    initializedAt: expected.initialized_at,
+    reservations,
+  });
+  const path = attemptLedgerManifestPath(configuration);
+  if ((await readExactRegular(path)) !== canonicalBytes(expected))
+    throw new Error("attempt_ledger_manifest_divergent");
+  const staging = join(
+    dirname(path),
+    `.${basename(path)}.${randomUUID()}.manifest`,
+  );
+  await writeExclusiveDurable(staging, canonicalBytes(next));
+  if ((await readExactRegular(path)) !== canonicalBytes(expected))
+    throw new Error("attempt_ledger_manifest_divergent");
+  await rename(staging, path);
+  await syncDirectory(dirname(path));
+  return next;
+}
+
 async function readAttemptReservations(
   configuration: SchedulerConfiguration,
+  activation: Pick<SchedulerActivation, "activation_id" | "activation_sha256">,
 ): Promise<SchedulerAttemptReservation[]> {
-  const root = join(resolve(configuration.state_root.path), "attempt-ledger");
+  const manifest = await readAttemptLedgerManifest(configuration, activation);
+  const root = attemptReservationDirectory(configuration);
   let names: string[];
   try {
     await assertSafePath(root, false);
     names = await readdir(root);
   } catch (error: unknown) {
-    if ((error as NodeJS.ErrnoException).code === "ENOENT") return [];
+    if ((error as NodeJS.ErrnoException).code === "ENOENT")
+      throw new Error("attempt_ledger_reservation_directory_missing");
     throw error;
   }
+  const expectedNames = manifest.reservations.map(
+    (entry) => `${entry.reservation_id}.json`,
+  );
+  if (
+    canonicalizeSchedulerJson(names.sort()) !==
+    canonicalizeSchedulerJson(expectedNames.sort())
+  )
+    throw new Error("attempt_ledger_inventory_divergent");
   const records: SchedulerAttemptReservation[] = [];
   for (const name of names.sort()) {
     if (!/^[a-f0-9]{64}\.json$/.test(name))
@@ -2091,7 +2724,13 @@ async function readAttemptReservations(
       )
     )
       throw new Error("attempt_ledger_divergent");
-    records.push(parsed as SchedulerAttemptReservation);
+    const record = parsed as SchedulerAttemptReservation;
+    const binding = manifest.reservations.find(
+      (entry) => entry.reservation_id === record.reservation_id,
+    );
+    if (!binding || binding.reservation_sha256 !== record.reservation_sha256)
+      throw new Error("attempt_ledger_inventory_divergent");
+    records.push(record);
   }
   return records;
 }
@@ -2107,7 +2746,14 @@ export async function reserveSchedulerAttempt(input: {
     input.configuration,
     "attempt-ledger.lock",
     async () => {
-      const records = await readAttemptReservations(input.configuration);
+      const manifest = await readAttemptLedgerManifest(
+        input.configuration,
+        input.activation,
+      );
+      const records = await readAttemptReservations(
+        input.configuration,
+        input.activation,
+      );
       const now = Date.parse(input.reservedAt);
       const daily = records.filter(
         (record) =>
@@ -2170,10 +2816,18 @@ export async function reserveSchedulerAttempt(input: {
         join(
           resolve(input.configuration.state_root.path),
           "attempt-ledger",
+          "reservations",
           `${reservationId}.json`,
         ),
         canonicalBytes(reservation),
       );
+      await replaceAttemptLedgerManifest(input.configuration, manifest, [
+        ...manifest.reservations,
+        {
+          reservation_id: reservation.reservation_id,
+          reservation_sha256: reservation.reservation_sha256,
+        },
+      ]);
       return reservation;
     },
   );
@@ -2211,6 +2865,7 @@ export async function advanceSchedulerAttempt(input: {
       const path = join(
         resolve(input.configuration.state_root.path),
         "attempt-ledger",
+        "reservations",
         `${input.expected.reservation_id}.json`,
       );
       const unsigned = {
@@ -2238,6 +2893,22 @@ export async function advanceSchedulerAttempt(input: {
         throw new Error("attempt_ledger_divergent");
       await rename(staging, path);
       await syncDirectory(dirname(path));
+      const manifest = await readAttemptLedgerManifest(input.configuration, {
+        activation_id: input.expected.activation_id,
+        activation_sha256: input.expected.activation_sha256,
+      });
+      await replaceAttemptLedgerManifest(
+        input.configuration,
+        manifest,
+        manifest.reservations.map((entry) =>
+          entry.reservation_id === next.reservation_id
+            ? {
+                reservation_id: next.reservation_id,
+                reservation_sha256: next.reservation_sha256,
+              }
+            : entry,
+        ),
+      );
       return next as SchedulerAttemptReservation;
     },
   );
@@ -2400,7 +3071,9 @@ export async function observeGovernedArcaScheduler(
     "observation",
     input.timestamp,
   );
-  const reservations = await readAttemptReservations(input.configuration);
+  const reservations = input.activation
+    ? await readAttemptReservations(input.configuration, input.activation)
+    : [];
   const now = Date.parse(input.timestamp);
   const dailyExecutionCount = reservations.filter(
     (record) =>
@@ -2517,7 +3190,10 @@ export async function generateSchedulerPilotSummary(input: {
     "observation",
     input.timestamp,
   );
-  const records = await readAttemptReservations(input.configuration);
+  const records = await readAttemptReservations(
+    input.configuration,
+    input.activation,
+  );
   const attempts = records.filter(
     (record) =>
       record.activation_id === input.activation.activation_id &&
@@ -2643,11 +3319,26 @@ async function verifyRecoveryRoot(
 }
 
 async function verifyBoundaryInputs(
+  boundaryType: "ai_131" | "ai_132",
   binding: SchedulerBoundaryEvidenceBinding,
+  environment: ReviewedRecoveryEnvironment,
 ): Promise<Record<string, unknown>> {
+  const configurationPath =
+    boundaryType === "ai_131"
+      ? environment.ai_131_configuration_path
+      : environment.ai_132_configuration_path;
+  const switchPath =
+    boundaryType === "ai_131"
+      ? environment.ai_131_switch_path
+      : environment.ai_132_switch_path;
+  if (
+    binding.configuration.path !== configurationPath ||
+    binding.kill_switch.path !== switchPath
+  )
+    throw new Error("boundary_reviewed_environment_path_substituted");
   const configuration = await loadExactRequestBoundArtifact(
     binding.configuration,
-    dirname(binding.configuration.path),
+    dirname(configurationPath),
     exactFields.configuration,
   );
   await loadExactRequestBoundArtifact(
@@ -2662,7 +3353,7 @@ async function verifyBoundaryInputs(
   );
   await loadExactRequestBoundArtifact(
     binding.kill_switch,
-    dirname(binding.kill_switch.path),
+    dirname(switchPath),
     exactFields.killSwitch,
   );
   return configuration;
@@ -2684,22 +3375,24 @@ function reviewedBoundaryRoot(
 async function verifyBoundaryOutputs(
   boundaryType: "ai_131" | "ai_132",
   binding: SchedulerBoundaryEvidenceBinding,
+  environment: ReviewedRecoveryEnvironment,
 ): Promise<void> {
-  const configuration = await loadExactRequestBoundArtifact(
-    binding.configuration,
-    dirname(binding.configuration.path),
-    exactFields.configuration,
+  const configuration = await verifyBoundaryInputs(
+    boundaryType,
+    binding,
+    environment,
   );
   if (boundaryType === "ai_131") {
-    const stateRoot = reviewedBoundaryRoot(configuration, "run_state");
-    const acquisitionRoot = reviewedBoundaryRoot(
-      configuration,
-      "acquisition_output",
-    );
-    const candidateRoot = reviewedBoundaryRoot(
-      configuration,
-      "candidate_output",
-    );
+    const stateRoot = environment.ai_131_state_root;
+    const acquisitionRoot = environment.ai_131_acquisition_root;
+    const candidateRoot = environment.ai_131_candidate_root;
+    if (
+      reviewedBoundaryRoot(configuration, "run_state") !== stateRoot ||
+      reviewedBoundaryRoot(configuration, "acquisition_output") !==
+        acquisitionRoot ||
+      reviewedBoundaryRoot(configuration, "candidate_output") !== candidateRoot
+    )
+      throw new Error("ai_131_reviewed_environment_root_substituted");
     await loadExactRequestBoundArtifact(
       binding.expected_consumption,
       stateRoot,
@@ -2726,8 +3419,13 @@ async function verifyBoundaryOutputs(
       exactFields.candidate,
     );
   } else {
-    const stateRoot = reviewedBoundaryRoot(configuration, "export_state_root");
-    const exportRoot = reviewedBoundaryRoot(configuration, "export_root");
+    const stateRoot = environment.ai_132_state_root;
+    const exportRoot = environment.ai_132_export_root;
+    if (
+      reviewedBoundaryRoot(configuration, "export_state_root") !== stateRoot ||
+      reviewedBoundaryRoot(configuration, "export_root") !== exportRoot
+    )
+      throw new Error("ai_132_reviewed_environment_root_substituted");
     await loadExactRequestBoundArtifact(
       binding.expected_consumption,
       stateRoot,
@@ -2754,12 +3452,13 @@ async function verifyBoundaryOutputs(
       exactFields.ai132Record,
     );
   }
+  const expectedRecoveryRoot =
+    boundaryType === "ai_131"
+      ? join(environment.ai_131_state_root, "recovery")
+      : environment.ai_132_recovery_root;
+  if (binding.recovery_root.path !== expectedRecoveryRoot)
+    throw new Error("boundary_recovery_root_substituted");
   await verifyRecoveryRoot(binding.recovery_root);
-  await loadExactRequestBoundArtifact(
-    binding.kill_switch,
-    dirname(binding.kill_switch.path),
-    exactFields.killSwitch,
-  );
 }
 
 async function sealJournal(
@@ -2826,6 +3525,7 @@ export async function runGovernedArcaSchedulerOnce(input: {
   readonly configuration: SchedulerConfiguration;
   readonly activation: SchedulerActivation;
   readonly killSwitch: SchedulerKillSwitch;
+  readonly reviewedEnvironment: ReviewedRecoveryEnvironment;
   readonly request: ScheduledRunRequest;
   readonly runId: string;
   readonly ownerId: string;
@@ -2836,6 +3536,12 @@ export async function runGovernedArcaSchedulerOnce(input: {
   readonly observation: Omit<SchedulerObservationInput, "persist">;
   readonly acquisitionBoundary: ScheduledBoundary | null;
   readonly exportBoundary: ScheduledBoundary | null;
+  readonly inspectAi131?: (
+    trustedTimestamp: string,
+  ) => Promise<AuthoritativeRecoveryInspection>;
+  readonly inspectAi132?: (
+    trustedTimestamp: string,
+  ) => Promise<AuthoritativeRecoveryInspection>;
 }): Promise<Record<string, unknown>> {
   const trustedNow = async (): Promise<string> => {
     const timestamp = await (input.trustedNow?.() ?? new Date().toISOString());
@@ -2844,8 +3550,25 @@ export async function runGovernedArcaSchedulerOnce(input: {
     return timestamp;
   };
   const initialTimestamp = await trustedNow();
+  const reviewedEnvironment = resolveReviewedRecoveryEnvironment(
+    input.reviewedEnvironment.environment_id,
+    {
+      [input.reviewedEnvironment.environment_id]: input.reviewedEnvironment,
+    },
+  );
   if (!validateSchedulerConfiguration(input.configuration))
     throw new Error("invalid_scheduler_configuration");
+  if (
+    resolve(input.configuration.kill_switch_path) !==
+      reviewedEnvironment.scheduler_switch_path ||
+    resolve(input.configuration.state_root.path) !==
+      reviewedEnvironment.scheduler_state_root ||
+    resolve(input.configuration.observation_root.path) !==
+      reviewedEnvironment.scheduler_observation_root ||
+    resolve(input.configuration.durable_ai_130_store.root_path) !==
+      reviewedEnvironment.ai_130_root
+  )
+    throw new Error("scheduler_reviewed_environment_root_substituted");
   if (!input.configuration.active) throw new Error("scheduler_inactive");
   if (
     schedulerActivationStatus(
@@ -2887,6 +3610,11 @@ export async function runGovernedArcaSchedulerOnce(input: {
     input.request.mode !== "run_once"
   )
     throw new Error("run_request_binding_mismatch");
+  await initializeSchedulerAttemptLedger({
+    configuration: input.configuration,
+    activation: input.activation,
+    initializedAt: initialTimestamp,
+  });
   await acceptSchedulerSlot({
     configuration: input.configuration,
     activation: input.activation,
@@ -2991,16 +3719,8 @@ export async function runGovernedArcaSchedulerOnce(input: {
     currentJournal = next;
   };
 
-  let acquisitionOutcome:
-    | "not_authorized"
-    | "blocked"
-    | "verified"
-    | "unknown" = "not_authorized";
-  let exportOutcome: "not_authorized" | "blocked" | "verified" =
-    "not_authorized";
-  let consumedAcquisition = false;
-  let consumedExport = false;
-  let unknownDelivery = false;
+  let acquisitionOutcome: AuthoritativeBoundaryDisposition = "not_authorized";
+  let exportOutcome: AuthoritativeBoundaryDisposition = "not_authorized";
   let acquisitionReservation: SchedulerAttemptReservation | null = null;
   let exportReservation: SchedulerAttemptReservation | null = null;
   const boundaryEvidenceHash = (
@@ -3113,7 +3833,7 @@ export async function runGovernedArcaSchedulerOnce(input: {
       throw new Error("maximum_run_duration_exceeded");
     const binding =
       boundaryType === "ai_131" ? input.request.ai_131 : input.request.ai_132;
-    await verifyBoundaryInputs(binding);
+    await verifyBoundaryInputs(boundaryType, binding, reviewedEnvironment);
     const configured =
       boundaryType === "ai_131"
         ? input.configuration.ai_131
@@ -3144,7 +3864,7 @@ export async function runGovernedArcaSchedulerOnce(input: {
     reservation: SchedulerAttemptReservation | null,
     reason: string,
   ): Promise<Record<string, unknown>> => {
-    if (reservation)
+    if (reservation && reservation.state !== "recovery_required")
       await advanceSchedulerAttempt({
         configuration: input.configuration,
         expected: reservation,
@@ -3170,9 +3890,8 @@ export async function runGovernedArcaSchedulerOnce(input: {
       request_id: input.request.request_id,
       completed_at: await trustedNow(),
       final_state: "recovery_required",
-      acquisition_outcome:
-        boundaryType === "ai_131" ? "unknown" : acquisitionOutcome,
-      export_outcome: "blocked",
+      acquisition_outcome: acquisitionOutcome,
+      export_outcome: exportOutcome,
       observation_sha256: input.request.request_sha256,
       stop_reason: reason,
       automatic_retry_eligible: false,
@@ -3192,188 +3911,357 @@ export async function runGovernedArcaSchedulerOnce(input: {
     );
     return recoveryResult;
   };
-  if (input.acquisitionBoundary) {
-    let preflight: Awaited<ReturnType<ScheduledBoundary["preflight"]>>;
+  const reconcileBoundary = async (
+    boundaryType: "ai_131" | "ai_132",
+    callback:
+      | Awaited<ReturnType<ScheduledBoundary["preflight"]>>
+      | ScheduledBoundaryOutcome
+      | null,
+    callbackError: unknown,
+    phase: "preflight" | "execution",
+    callbackInvoked: boolean,
+  ): Promise<SchedulerBoundaryDispositionRecord> => {
+    const inspector =
+      boundaryType === "ai_131" ? input.inspectAi131 : input.inspectAi132;
+    let inspection: AuthoritativeRecoveryInspection;
     try {
-      preflight = await withHeartbeatLifecycle(async () =>
-        input.acquisitionBoundary!.preflight(await heartbeat()),
-      );
-      await advanceJournal(
-        "acquisition_preflight_checked",
-        preflight.evidenceSha256,
-      );
-    } catch (error: unknown) {
-      return persistRecovery(
-        "ai_131",
-        null,
-        `ai_131_preflight_exception:${error instanceof Error ? error.message : "unknown"}`,
-      );
-    }
-    if (preflight.authorized) {
-      try {
-        const checked = await validateAuthorityTransition("ai_131");
-        acquisitionReservation = checked.reservation;
-        await advanceJournal(
-          "acquisition_execution_started",
-          boundaryEvidenceHash(input.request.ai_131),
-          "authority_outcome_unknown",
-        );
-        const outcome = await withHeartbeatLifecycle(() =>
-          input.acquisitionBoundary!.execute(checked.timestamp),
-        );
-        await heartbeat();
-        if (outcome.outcome === "verified")
-          await verifyBoundaryOutputs("ai_131", input.request.ai_131);
-        acquisitionOutcome = outcome.outcome;
-        consumedAcquisition = outcome.authorizationConsumed;
-        unknownDelivery = outcome.outcome === "unknown";
-        if (outcome.authorizationConsumed)
-          acquisitionReservation = await advanceSchedulerAttempt({
-            configuration: input.configuration,
-            expected: acquisitionReservation,
-            state: "consumed",
-            ...(outcome.authoritativeConsumptionEvidence
-              ? {
-                  authoritativeConsumptionEvidence:
-                    outcome.authoritativeConsumptionEvidence,
-                }
-              : {}),
-          });
-        acquisitionReservation = await advanceSchedulerAttempt({
-          configuration: input.configuration,
-          expected: acquisitionReservation,
-          state:
-            outcome.authorizationConsumed && outcome.outcome !== "verified"
-              ? "recovery_required"
-              : "completed",
-        });
-        await advanceJournal(
-          outcome.outcome === "verified"
-            ? "acquisition_verified"
-            : outcome.outcome === "unknown"
-              ? "acquisition_unknown"
-              : "acquisition_blocked",
-          outcome.evidenceSha256,
-          unknownDelivery
-            ? "unknown_delivery"
-            : consumedAcquisition
-              ? outcome.outcome === "verified"
-                ? "consumed_completed"
-                : "consumed_recovery_required"
-              : "not_consumed",
-        );
-      } catch (error: unknown) {
-        let reconciliation = "authoritative_evidence_unresolved";
-        try {
-          await verifyBoundaryOutputs("ai_131", input.request.ai_131);
-          reconciliation = "exact_authoritative_outputs_visible";
-        } catch (inspectionError: unknown) {
-          reconciliation = `authoritative_evidence_unresolved:${
-            inspectionError instanceof Error
-              ? inspectionError.message
-              : "unknown"
-          }`;
-        }
-        return persistRecovery(
-          "ai_131",
-          acquisitionReservation,
-          `ai_131_unknown_delivery_exception:${error instanceof Error ? error.message : "unknown"}:${reconciliation}`,
+      if (!inspector)
+        throw new Error(`${boundaryType}_authoritative_inspector_missing`);
+      inspection = await inspector(await heartbeat());
+      if (!AUTHORITATIVE_BOUNDARY_DISPOSITIONS.includes(inspection.status))
+        throw new Error(`${boundaryType}_authoritative_inspector_malformed`);
+      if (
+        inspection.evidence &&
+        canonicalizeSchedulerJson(inspection.evidence) !==
+          canonicalizeSchedulerJson(
+            boundaryType === "ai_131"
+              ? input.request.ai_131.expected_consumption
+              : input.request.ai_132.expected_consumption,
+          )
+      )
+        throw new Error(`${boundaryType}_inspection_evidence_substituted`);
+      if (inspection.status === "consumed_completed") {
+        if (phase === "execution" && !callbackInvoked)
+          throw new Error(
+            `${boundaryType}_completion_claimed_before_boundary_invocation`,
+          );
+        if (!inspection.evidence)
+          throw new Error(`${boundaryType}_completion_evidence_missing`);
+        await verifyBoundaryOutputs(
+          boundaryType,
+          boundaryType === "ai_131"
+            ? input.request.ai_131
+            : input.request.ai_132,
+          reviewedEnvironment,
         );
       }
-    } else acquisitionOutcome = "blocked";
-  } else
+    } catch (error: unknown) {
+      inspection = {
+        status: "malformed_evidence",
+        evidence: null,
+        reason: error instanceof Error ? error.message : "inspection_failed",
+      };
+    }
+    const reason = [
+      `${boundaryType}_${phase}_authoritative_reconciliation`,
+      `callback:${
+        callbackError
+          ? `exception:${callbackError instanceof Error ? callbackError.message : "unknown"}`
+          : callback
+            ? "returned"
+            : "absent"
+      }`,
+      `inspector:${inspection.reason ?? inspection.status}`,
+    ].join(":");
+    const unsigned = {
+      schema_version: "1.0.0" as const,
+      boundary_type: boundaryType,
+      disposition_sha256: "0".repeat(64),
+      request_id: input.request.request_id,
+      reconciled_at: await trustedNow(),
+      disposition: inspection.status,
+      authoritative_evidence: inspection.evidence,
+      reason,
+    };
+    const record = {
+      ...unsigned,
+      disposition_sha256: computeSchedulerBoundaryDispositionSha256(unsigned),
+    };
+    const contract =
+      boundaryType === "ai_131" ? "ai_131_disposition" : "ai_132_disposition";
+    if (!validateSchedulerContract(contract, record))
+      throw new Error(`${boundaryType}_generated_disposition_invalid`);
+    return record;
+  };
+  const persistDisposition = async (
+    record: SchedulerBoundaryDispositionRecord,
+  ): Promise<void> => {
+    await writeExclusiveDurable(
+      join(
+        resolve(input.configuration.state_root.path),
+        "boundary-dispositions",
+        `${input.runId}-${record.boundary_type}.json`,
+      ),
+      canonicalBytes(record),
+    );
+  };
+  const advanceAttemptForDisposition = async (
+    reservation: SchedulerAttemptReservation,
+    record: SchedulerBoundaryDispositionRecord,
+  ): Promise<SchedulerAttemptReservation> => {
+    let current = reservation;
+    if (
+      [
+        "consumed_completed",
+        "consumed_recovery_required",
+        "unknown_delivery",
+      ].includes(record.disposition) &&
+      record.authoritative_evidence
+    )
+      current = await advanceSchedulerAttempt({
+        configuration: input.configuration,
+        expected: current,
+        state: "consumed",
+        authoritativeConsumptionEvidence: record.authoritative_evidence,
+      });
+    return advanceSchedulerAttempt({
+      configuration: input.configuration,
+      expected: current,
+      state:
+        record.disposition === "consumed_completed"
+          ? "completed"
+          : "recovery_required",
+    });
+  };
+
+  if (!input.acquisitionBoundary) {
+    acquisitionOutcome = "not_authorized";
     await advanceJournal(
       "acquisition_not_authorized",
       boundaryEvidenceHash(input.request.ai_131),
       "not_consumed",
     );
-  if (!unknownDelivery && input.exportBoundary) {
-    let preflight: Awaited<ReturnType<ScheduledBoundary["preflight"]>>;
-    try {
-      preflight = await withHeartbeatLifecycle(async () =>
-        input.exportBoundary!.preflight(await heartbeat()),
-      );
+    return persistRecovery(
+      "ai_131",
+      null,
+      "ai_131_not_authorized_current_workflow_requires_consumed_completed",
+    );
+  }
+  let ai131Preflight: Awaited<
+    ReturnType<ScheduledBoundary["preflight"]>
+  > | null = null;
+  let ai131PreflightError: unknown;
+  try {
+    ai131Preflight = await withHeartbeatLifecycle(async () =>
+      input.acquisitionBoundary!.preflight(await heartbeat()),
+    );
+    await advanceJournal(
+      "acquisition_preflight_checked",
+      ai131Preflight.evidenceSha256,
+    );
+  } catch (error: unknown) {
+    ai131PreflightError = error;
+  }
+  const ai131PreflightDisposition = await reconcileBoundary(
+    "ai_131",
+    ai131Preflight,
+    ai131PreflightError,
+    "preflight",
+    true,
+  );
+  acquisitionOutcome = ai131PreflightDisposition.disposition;
+  if (acquisitionOutcome !== "positively_not_consumed") {
+    await persistDisposition(ai131PreflightDisposition);
+    if (acquisitionOutcome === "consumed_completed") {
       await advanceJournal(
-        "export_preflight_checked",
-        preflight.evidenceSha256,
+        "acquisition_verified",
+        ai131PreflightDisposition.disposition_sha256,
+        "consumed_completed",
       );
-    } catch (error: unknown) {
+    } else
       return persistRecovery(
-        "ai_132",
+        "ai_131",
         null,
-        `ai_132_preflight_exception:${error instanceof Error ? error.message : "unknown"}`,
+        `ai_131_${acquisitionOutcome}_after_preflight_no_export`,
+      );
+  }
+  if (acquisitionOutcome !== "consumed_completed") {
+    if (!ai131Preflight?.authorized) {
+      acquisitionOutcome = "not_authorized";
+      const unauthorized = {
+        ...ai131PreflightDisposition,
+        disposition_sha256: "0".repeat(64),
+        disposition: "not_authorized" as const,
+        reason: `${ai131PreflightDisposition.reason}:preflight_not_authorized`,
+      };
+      const sealedUnauthorized = {
+        ...unauthorized,
+        disposition_sha256:
+          computeSchedulerBoundaryDispositionSha256(unauthorized),
+      };
+      await persistDisposition(sealedUnauthorized);
+      return persistRecovery(
+        "ai_131",
+        null,
+        "ai_131_not_authorized_after_authoritative_preflight_reconciliation",
       );
     }
-    if (preflight.authorized) {
-      try {
-        const checked = await validateAuthorityTransition("ai_132");
-        exportReservation = checked.reservation;
-        await advanceJournal(
-          "export_execution_started",
-          boundaryEvidenceHash(input.request.ai_132),
-          "authority_outcome_unknown",
-        );
-        const outcome = await withHeartbeatLifecycle(() =>
-          input.exportBoundary!.execute(checked.timestamp),
-        );
-        await heartbeat();
-        if (outcome.outcome === "verified")
-          await verifyBoundaryOutputs("ai_132", input.request.ai_132);
-        exportOutcome = outcome.outcome === "verified" ? "verified" : "blocked";
-        consumedExport = outcome.authorizationConsumed;
-        if (outcome.authorizationConsumed)
-          exportReservation = await advanceSchedulerAttempt({
-            configuration: input.configuration,
-            expected: exportReservation,
-            state: "consumed",
-            ...(outcome.authoritativeConsumptionEvidence
-              ? {
-                  authoritativeConsumptionEvidence:
-                    outcome.authoritativeConsumptionEvidence,
-                }
-              : {}),
-          });
-        exportReservation = await advanceSchedulerAttempt({
-          configuration: input.configuration,
-          expected: exportReservation,
-          state:
-            outcome.authorizationConsumed && outcome.outcome !== "verified"
-              ? "recovery_required"
-              : "completed",
-        });
-        await advanceJournal(
-          outcome.outcome === "verified" ? "export_verified" : "export_blocked",
-          outcome.evidenceSha256,
-          consumedExport
-            ? outcome.outcome === "verified"
-              ? "consumed_completed"
-              : "consumed_recovery_required"
-            : "not_consumed",
-        );
-      } catch (error: unknown) {
-        let reconciliation = "authoritative_evidence_unresolved";
-        try {
-          await verifyBoundaryOutputs("ai_132", input.request.ai_132);
-          reconciliation = "exact_authoritative_outputs_visible";
-        } catch (inspectionError: unknown) {
-          reconciliation = `authoritative_evidence_unresolved:${
-            inspectionError instanceof Error
-              ? inspectionError.message
-              : "unknown"
-          }`;
-        }
-        return persistRecovery(
-          "ai_132",
-          exportReservation,
-          `ai_132_execution_exception:${error instanceof Error ? error.message : "unknown"}:${reconciliation}`,
-        );
-      }
-    } else exportOutcome = "blocked";
-  } else if (!unknownDelivery)
+    let ai131Callback: ScheduledBoundaryOutcome | null = null;
+    let ai131CallbackError: unknown;
+    let ai131Invoked = false;
+    try {
+      const checked = await validateAuthorityTransition("ai_131");
+      acquisitionReservation = checked.reservation;
+      await advanceJournal(
+        "acquisition_execution_started",
+        boundaryEvidenceHash(input.request.ai_131),
+        "authority_outcome_unknown",
+      );
+      ai131Invoked = true;
+      ai131Callback = await withHeartbeatLifecycle(() =>
+        input.acquisitionBoundary!.execute(checked.timestamp),
+      );
+    } catch (error: unknown) {
+      ai131CallbackError = error;
+    }
+    const ai131Disposition = await reconcileBoundary(
+      "ai_131",
+      ai131Callback,
+      ai131CallbackError,
+      "execution",
+      ai131Invoked,
+    );
+    acquisitionOutcome = ai131Disposition.disposition;
+    await persistDisposition(ai131Disposition);
+    if (acquisitionReservation)
+      acquisitionReservation = await advanceAttemptForDisposition(
+        acquisitionReservation,
+        ai131Disposition,
+      );
+    await advanceJournal(
+      acquisitionOutcome === "consumed_completed"
+        ? "acquisition_verified"
+        : acquisitionOutcome === "unknown_delivery"
+          ? "acquisition_unknown"
+          : "acquisition_blocked",
+      ai131Disposition.disposition_sha256,
+      acquisitionOutcome === "consumed_completed"
+        ? "consumed_completed"
+        : acquisitionOutcome === "unknown_delivery"
+          ? "unknown_delivery"
+          : "consumed_recovery_required",
+    );
+    if (acquisitionOutcome !== "consumed_completed")
+      return persistRecovery(
+        "ai_131",
+        acquisitionReservation,
+        `ai_131_${acquisitionOutcome}_authoritative_disposition_no_export`,
+      );
+  }
+
+  if (!input.exportBoundary) {
+    exportOutcome = "not_authorized";
     await advanceJournal(
       "export_not_authorized",
       boundaryEvidenceHash(input.request.ai_132),
     );
+    return persistRecovery(
+      "ai_132",
+      null,
+      "ai_132_not_authorized_full_pipeline_not_completed",
+    );
+  }
+  let ai132Preflight: Awaited<
+    ReturnType<ScheduledBoundary["preflight"]>
+  > | null = null;
+  let ai132PreflightError: unknown;
+  try {
+    ai132Preflight = await withHeartbeatLifecycle(async () =>
+      input.exportBoundary!.preflight(await heartbeat()),
+    );
+    await advanceJournal(
+      "export_preflight_checked",
+      ai132Preflight.evidenceSha256,
+    );
+  } catch (error: unknown) {
+    ai132PreflightError = error;
+  }
+  const ai132PreflightDisposition = await reconcileBoundary(
+    "ai_132",
+    ai132Preflight,
+    ai132PreflightError,
+    "preflight",
+    true,
+  );
+  exportOutcome = ai132PreflightDisposition.disposition;
+  if (exportOutcome !== "positively_not_consumed") {
+    await persistDisposition(ai132PreflightDisposition);
+    if (exportOutcome !== "consumed_completed")
+      return persistRecovery(
+        "ai_132",
+        null,
+        `ai_132_${exportOutcome}_after_preflight`,
+      );
+  }
+  if (exportOutcome !== "consumed_completed") {
+    if (!ai132Preflight?.authorized) {
+      exportOutcome = "not_authorized";
+      return persistRecovery(
+        "ai_132",
+        null,
+        "ai_132_not_authorized_after_authoritative_preflight_reconciliation",
+      );
+    }
+    let ai132Callback: ScheduledBoundaryOutcome | null = null;
+    let ai132CallbackError: unknown;
+    let ai132Invoked = false;
+    try {
+      const checked = await validateAuthorityTransition("ai_132");
+      exportReservation = checked.reservation;
+      await advanceJournal(
+        "export_execution_started",
+        boundaryEvidenceHash(input.request.ai_132),
+        "authority_outcome_unknown",
+      );
+      ai132Invoked = true;
+      ai132Callback = await withHeartbeatLifecycle(() =>
+        input.exportBoundary!.execute(checked.timestamp),
+      );
+    } catch (error: unknown) {
+      ai132CallbackError = error;
+    }
+    const ai132Disposition = await reconcileBoundary(
+      "ai_132",
+      ai132Callback,
+      ai132CallbackError,
+      "execution",
+      ai132Invoked,
+    );
+    exportOutcome = ai132Disposition.disposition;
+    await persistDisposition(ai132Disposition);
+    if (exportReservation)
+      exportReservation = await advanceAttemptForDisposition(
+        exportReservation,
+        ai132Disposition,
+      );
+    await advanceJournal(
+      exportOutcome === "consumed_completed"
+        ? "export_verified"
+        : "export_blocked",
+      ai132Disposition.disposition_sha256,
+      exportOutcome === "consumed_completed"
+        ? "consumed_completed"
+        : exportOutcome === "unknown_delivery"
+          ? "unknown_delivery"
+          : "consumed_recovery_required",
+    );
+    if (exportOutcome !== "consumed_completed")
+      return persistRecovery(
+        "ai_132",
+        exportReservation,
+        `ai_132_${exportOutcome}_authoritative_disposition`,
+      );
+  }
   try {
     const result = await withHeartbeatLifecycle(async () => {
       await heartbeat();
@@ -3387,9 +4275,12 @@ export async function runGovernedArcaSchedulerOnce(input: {
         "observation_recorded",
         observation["observation_sha256"] as string,
       );
-      const finalState = unknownDelivery
-        ? "unknown_delivery_manual_review"
-        : "completed";
+      const fullPipelineCompleted =
+        acquisitionOutcome === "consumed_completed" &&
+        exportOutcome === "consumed_completed";
+      const finalState = fullPipelineCompleted
+        ? "completed"
+        : "recovery_required";
       const resultUnsigned = {
         schema_version: "1.0.0",
         result_id: domainHash("vlatam-ai-lab/arca-scheduler-result-id/v1", {
@@ -3404,9 +4295,9 @@ export async function runGovernedArcaSchedulerOnce(input: {
         acquisition_outcome: acquisitionOutcome,
         export_outcome: exportOutcome,
         observation_sha256: observation["observation_sha256"],
-        stop_reason: unknownDelivery
-          ? "unknown_delivery_requires_manual_review_no_retry"
-          : "exact_one_shot_iteration_completed",
+        stop_reason: fullPipelineCompleted
+          ? "exact_authoritative_acquisition_and_export_completed"
+          : "boundary_disposition_requires_recovery_no_retry",
         automatic_retry_eligible: false,
         ...falseAuthorities,
       };
@@ -3428,21 +4319,20 @@ export async function runGovernedArcaSchedulerOnce(input: {
       await advanceJournal(
         finalState,
         result.result_sha256 as string,
-        unknownDelivery
-          ? "unknown_delivery"
-          : consumedAcquisition || consumedExport
-            ? "consumed_completed"
-            : "not_consumed",
+        fullPipelineCompleted
+          ? "consumed_completed"
+          : "consumed_recovery_required",
       );
       await completeJournal(input.configuration, currentJournal);
       return result;
     });
-    await releaseSchedulerLease({
-      configuration: input.configuration,
-      expectedLease: lease,
-      ownerId: input.ownerId,
-      processIdentity: input.processIdentity,
-    });
+    if (result["final_state"] === "completed")
+      await releaseSchedulerLease({
+        configuration: input.configuration,
+        expectedLease: lease,
+        ownerId: input.ownerId,
+        processIdentity: input.processIdentity,
+      });
     return result;
   } catch (error: unknown) {
     return persistRecovery(

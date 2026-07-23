@@ -6,6 +6,7 @@ import {
   readFile,
   readdir,
   realpath,
+  rename,
   symlink,
   unlink,
   writeFile,
@@ -30,8 +31,10 @@ import {
   computeSchedulerConfigurationSha256,
   computeSchedulerJournalSha256,
   computeSchedulerKillSwitchSha256,
+  computeReviewedRecoveryEnvironmentSha256,
   generateSchedulerPilotSummary,
   inspectSchedulerRecovery,
+  initializeSchedulerAttemptLedger,
   loadDurableSchedulerRecoveryEvidence,
   loadExactRequestBoundArtifact,
   observeGovernedArcaScheduler,
@@ -53,6 +56,8 @@ import {
   type SchedulerKillSwitch,
   type SchedulerLease,
   type SchedulerRunJournal,
+  type ReviewedRecoveryEnvironment,
+  type AuthoritativeBoundaryDisposition,
 } from "../../src/scheduler/governed-arca-scheduler.js";
 
 const NOW = "2026-07-23T12:00:00.000Z";
@@ -229,6 +234,7 @@ async function boundary(
 interface Fixture {
   readonly root: string;
   readonly configuration: SchedulerConfiguration;
+  readonly reviewedEnvironment: ReviewedRecoveryEnvironment;
   readonly activation: SchedulerActivation;
   readonly killSwitch: SchedulerKillSwitch;
   readonly request: ScheduledRunRequest;
@@ -339,6 +345,11 @@ async function fixture(
     ...unsignedActivation,
     activation_sha256: computeSchedulerActivationSha256(unsignedActivation),
   };
+  await initializeSchedulerAttemptLedger({
+    configuration,
+    activation,
+    initializedAt: NOW,
+  });
   const scheduledFor = options.scheduledFor ?? NOW;
   const unsignedRequest = {
     schema_version: "1.0.0" as const,
@@ -366,7 +377,46 @@ async function fixture(
     ...unsignedRequest,
     request_sha256: computeScheduledRunRequestSha256(unsignedRequest),
   };
-  return { root, configuration, activation, killSwitch, request };
+  const configurationPath = join(root, "scheduler-configuration.json");
+  await writeFile(configurationPath, canonicalBytes(configuration));
+  const environmentUnsigned = {
+    schema_version: "1.0.0" as const,
+    environment_id: "synthetic-reviewed-ai-133",
+    environment_sha256: "0".repeat(64),
+    repository_root: root,
+    scheduler_configuration_path: configurationPath,
+    scheduler_switch_path: configuration.kill_switch_path,
+    ai_131_configuration_path: request.ai_131.configuration.path,
+    ai_131_switch_path: request.ai_131.kill_switch.path,
+    ai_132_configuration_path: request.ai_132.configuration.path,
+    ai_132_switch_path: request.ai_132.kill_switch.path,
+    scheduler_state_root: configuration.state_root.path,
+    scheduler_observation_root: configuration.observation_root.path,
+    ai_130_root: configuration.durable_ai_130_store.root_path,
+    ai_131_state_root: dirname(
+      dirname(request.ai_131.expected_consumption.path),
+    ),
+    ai_131_acquisition_root: dirname(request.ai_131.primary_evidence.path),
+    ai_131_candidate_root: dirname(request.ai_131.secondary_evidence.path),
+    ai_132_state_root: dirname(
+      dirname(request.ai_132.expected_consumption.path),
+    ),
+    ai_132_export_root: dirname(dirname(request.ai_132.primary_evidence.path)),
+    ai_132_recovery_root: request.ai_132.recovery_root.path,
+  };
+  const reviewedEnvironment: ReviewedRecoveryEnvironment = {
+    ...environmentUnsigned,
+    environment_sha256:
+      computeReviewedRecoveryEnvironmentSha256(environmentUnsigned),
+  };
+  return {
+    root,
+    configuration,
+    reviewedEnvironment,
+    activation,
+    killSwitch,
+    request,
+  };
 }
 
 function observation(value: Fixture) {
@@ -389,6 +439,65 @@ function observation(value: Fixture) {
     },
     ai130IntegrityStatus: "verified" as const,
     ai130Authoritative: true,
+  };
+}
+
+function authoritativeRuntimeInspectors(
+  value: Fixture,
+  ai131Final: AuthoritativeBoundaryDisposition = "consumed_completed",
+  ai132Final: AuthoritativeBoundaryDisposition = "consumed_completed",
+) {
+  let ai131Calls = 0;
+  let ai132Calls = 0;
+  const inspection = (
+    boundaryType: "ai_131" | "ai_132",
+    disposition: AuthoritativeBoundaryDisposition,
+  ) => ({
+    status: disposition,
+    evidence: disposition.startsWith("consumed_")
+      ? boundaryType === "ai_131"
+        ? value.request.ai_131.expected_consumption
+        : value.request.ai_132.expected_consumption
+      : null,
+    reason: `synthetic_real_artifact_inspection:${disposition}`,
+  });
+  return {
+    inspectAi131: async () =>
+      inspection(
+        "ai_131",
+        ai131Calls++ === 0 ? "positively_not_consumed" : ai131Final,
+      ),
+    inspectAi132: async () =>
+      inspection(
+        "ai_132",
+        ai132Calls++ === 0 ? "positively_not_consumed" : ai132Final,
+      ),
+  };
+}
+
+function successfulRuntimeBoundaries(value: Fixture) {
+  return {
+    ...authoritativeRuntimeInspectors(value),
+    acquisitionBoundary: {
+      preflight: async () => ({ authorized: true, evidenceSha256: HASH }),
+      execute: async () => ({
+        outcome: "verified" as const,
+        authorizationConsumed: true,
+        evidenceSha256: HASH,
+        authoritativeConsumptionEvidence:
+          value.request.ai_131.expected_consumption,
+      }),
+    },
+    exportBoundary: {
+      preflight: async () => ({ authorized: true, evidenceSha256: HASH }),
+      execute: async () => ({
+        outcome: "verified" as const,
+        authorizationConsumed: true,
+        evidenceSha256: HASH,
+        authoritativeConsumptionEvidence:
+          value.request.ai_132.expected_consumption,
+      }),
+    },
   };
 }
 
@@ -463,8 +572,10 @@ async function durableRecoveryFixture(
 ): Promise<{
   value: Fixture;
   input: SchedulerDurableRecoveryInput;
+  registry: Readonly<Record<string, ReviewedRecoveryEnvironment>>;
   lease: SchedulerLease;
   journal: SchedulerRunJournal;
+  journalPath: string;
 }> {
   const value = await fixture();
   await acceptSchedulerSlot({
@@ -498,32 +609,61 @@ async function durableRecoveryFixture(
   if (state === "export_execution_started") await reserve(value, "ai_132");
   const configurationPath = join(value.root, "scheduler-configuration.json");
   await writeFile(configurationPath, canonicalBytes(value.configuration));
+  const environmentUnsigned = {
+    schema_version: "1.0.0" as const,
+    environment_id: "synthetic-reviewed-ai-133",
+    environment_sha256: "0".repeat(64),
+    repository_root: value.root,
+    scheduler_configuration_path: configurationPath,
+    scheduler_switch_path: value.configuration.kill_switch_path,
+    ai_131_configuration_path: value.request.ai_131.configuration.path,
+    ai_131_switch_path: value.request.ai_131.kill_switch.path,
+    ai_132_configuration_path: value.request.ai_132.configuration.path,
+    ai_132_switch_path: value.request.ai_132.kill_switch.path,
+    scheduler_state_root: value.configuration.state_root.path,
+    scheduler_observation_root: value.configuration.observation_root.path,
+    ai_130_root: value.configuration.durable_ai_130_store.root_path,
+    ai_131_state_root: dirname(
+      dirname(value.request.ai_131.expected_consumption.path),
+    ),
+    ai_131_acquisition_root: dirname(
+      value.request.ai_131.primary_evidence.path,
+    ),
+    ai_131_candidate_root: dirname(
+      value.request.ai_131.secondary_evidence.path,
+    ),
+    ai_132_state_root: dirname(
+      dirname(value.request.ai_132.expected_consumption.path),
+    ),
+    ai_132_export_root: dirname(
+      dirname(value.request.ai_132.primary_evidence.path),
+    ),
+    ai_132_recovery_root: value.request.ai_132.recovery_root.path,
+  };
+  const environment: ReviewedRecoveryEnvironment = {
+    ...environmentUnsigned,
+    environment_sha256:
+      computeReviewedRecoveryEnvironmentSha256(environmentUnsigned),
+  };
   return {
     value,
     lease,
     journal,
+    journalPath,
+    registry: { [environment.environment_id]: environment },
     input: {
       schema_version: "1.0.0",
-      configuration: {
-        path: configurationPath,
-        identity: value.configuration.configuration_id,
-        sha256: value.configuration.configuration_sha256,
-        canonical_sha256: bytesHash(value.configuration),
-      },
-      state_root: value.configuration.state_root,
+      environment_id: environment.environment_id,
       run_id: journal.run_id,
       request_id: value.request.request_id,
-      lease_path: schedulerLeasePath(value.configuration),
-      journal_path: journalPath,
-      request_path: requestPath,
       timestamp: LATER,
     },
   };
 }
 
-test("all twelve AI-133 contracts are closed Draft 2020-12 schemas", async () => {
+test("all sixteen AI-133 contracts are closed Draft 2020-12 schemas", async () => {
   const hashes = schedulerSchemaHashes();
-  assert.equal(Object.keys(hashes).length, 12);
+  assert.equal(Object.keys(hashes).length, 16);
   for (const hash of Object.values(hashes))
     assert.match(hash, /^[a-f0-9]{64}$/);
   const files = {
@@ -538,7 +678,12 @@ test("all twelve AI-133 contracts are closed Draft 2020-12 schemas", async () =>
     recovery_decision: "arca-scheduler-recovery-decision.schema.json",
     kill_switch: "arca-scheduler-kill-switch.schema.json",
     attempt_ledger: "arca-scheduler-attempt-ledger.schema.json",
+    attempt_ledger_manifest:
+      "arca-scheduler-attempt-ledger-manifest.schema.json",
     slot_acceptance: "arca-scheduler-slot-acceptance.schema.json",
+    reviewed_environment: "arca-scheduler-reviewed-environment.schema.json",
+    ai_131_disposition: "arca-scheduler-ai-131-disposition.schema.json",
+    ai_132_disposition: "arca-scheduler-ai-132-disposition.schema.json",
   } as const;
   for (const [name, schema] of Object.entries(schedulerContractSchemas())) {
     const checkedIn = JSON.parse(
@@ -571,13 +716,21 @@ test("AI-131 callback exception after execution start becomes recovery", async (
     timestamp: NOW,
     trustedNow: () => NOW,
     observation: observation(value),
+    ...authoritativeRuntimeInspectors(value, "unknown_delivery"),
     acquisitionBoundary: {
       preflight: async () => ({ authorized: true, evidenceSha256: HASH }),
       execute: async () => {
         throw new Error("consumed-before-return");
       },
     },
-    exportBoundary: null,
+    exportBoundary: {
+      preflight: async () => ({ authorized: true, evidenceSha256: HASH }),
+      execute: async () => ({
+        outcome: "verified",
+        authorizationConsumed: true,
+        evidenceSha256: HASH,
+      }),
+    },
   });
   assert.equal(result["final_state"], "recovery_required");
   assert.match(String(result["stop_reason"]), /unknown_delivery/);
@@ -593,7 +746,19 @@ test("AI-132 callback exception after execution start becomes recovery", async (
     timestamp: NOW,
     trustedNow: () => NOW,
     observation: observation(value),
-    acquisitionBoundary: null,
+    ...authoritativeRuntimeInspectors(
+      value,
+      "consumed_completed",
+      "consumed_recovery_required",
+    ),
+    acquisitionBoundary: {
+      preflight: async () => ({ authorized: true, evidenceSha256: HASH }),
+      execute: async () => ({
+        outcome: "verified",
+        authorizationConsumed: true,
+        evidenceSha256: HASH,
+      }),
+    },
     exportBoundary: {
       preflight: async () => ({ authorized: true, evidenceSha256: HASH }),
       execute: async () => {
@@ -619,7 +784,10 @@ test("execution_started with missing evidence never safe-aborts", async () => {
 
 test("durable recovery loads exact scheduler lease journal request slot and ledger", async () => {
   const durable = await durableRecoveryFixture("acquisition_execution_started");
-  const loaded = await loadDurableSchedulerRecoveryEvidence(durable.input);
+  const loaded = await loadDurableSchedulerRecoveryEvidence(
+    durable.input,
+    durable.registry,
+  );
   assert.equal(loaded.lease.lease_sha256, durable.lease.lease_sha256);
   assert.equal(loaded.journal.journal_sha256, durable.journal.journal_sha256);
   assert.equal(
@@ -627,7 +795,7 @@ test("durable recovery loads exact scheduler lease journal request slot and ledg
     durable.value.request.request_sha256,
   );
   assert.equal(loaded.slot["request_id"], durable.value.request.request_id);
-  assert.equal(loaded.reservations.length, 1);
+  assert.equal(loaded.reservations?.length, 1);
 });
 
 test("recover CLI rejects caller-supplied lease and journal objects", () => {
@@ -640,11 +808,14 @@ test("recover CLI rejects caller-supplied lease and journal objects", () => {
 test("durable recovery rejects caller-supplied or alternate journal paths", async () => {
   const durable = await durableRecoveryFixture();
   await assert.rejects(
-    loadDurableSchedulerRecoveryEvidence({
-      ...durable.input,
-      journal_path: join(durable.value.root, "alternate-journal.json"),
-    }),
-    /exact_path_mismatch/,
+    loadDurableSchedulerRecoveryEvidence(
+      {
+        ...durable.input,
+        journal_path: join(durable.value.root, "alternate-journal.json"),
+      } as unknown as SchedulerDurableRecoveryInput,
+      durable.registry,
+    ),
+    /invalid_scheduler_recovery_input/,
   );
 });
 
@@ -658,11 +829,14 @@ test("durable recovery rejects a valid self-hashed journal outside reviewed root
   await mkdir(dirname(outside), { recursive: true });
   await writeFile(outside, canonicalBytes(durable.journal));
   await assert.rejects(
-    loadDurableSchedulerRecoveryEvidence({
-      ...durable.input,
-      journal_path: outside,
-    }),
-    /exact_path_mismatch|path_substituted/,
+    loadDurableSchedulerRecoveryEvidence(
+      {
+        ...durable.input,
+        journal_path: outside,
+      } as unknown as SchedulerDurableRecoveryInput,
+      durable.registry,
+    ),
+    /invalid_scheduler_recovery_input/,
   );
 });
 
@@ -670,17 +844,20 @@ test("durable recovery rejects a symlinked scheduler journal", async () => {
   const durable = await durableRecoveryFixture();
   const target = join(durable.value.root, "journal-target.json");
   await writeFile(target, canonicalBytes(durable.journal));
-  await unlink(durable.input.journal_path);
-  await symlink(target, durable.input.journal_path);
+  await unlink(durable.journalPath);
+  await symlink(target, durable.journalPath);
   await assert.rejects(
-    loadDurableSchedulerRecoveryEvidence(durable.input),
+    loadDurableSchedulerRecoveryEvidence(durable.input, durable.registry),
     /symbolic_link_rejected/,
   );
 });
 
 test("exact durable pre-authority evidence permits safe abort", async () => {
   const durable = await durableRecoveryFixture();
-  const loaded = await loadDurableSchedulerRecoveryEvidence(durable.input);
+  const loaded = await loadDurableSchedulerRecoveryEvidence(
+    durable.input,
+    durable.registry,
+  );
   const decision = await inspectSchedulerRecovery({
     configuration: loaded.configuration,
     lease: loaded.lease,
@@ -703,7 +880,7 @@ test("exact authoritative non-consumption permits safe abort", async () => {
     timestamp: LATER,
     attemptReservations: [await reserve(value, "ai_131")],
     inspectAi131: async () => ({
-      status: "not_consumed",
+      status: "positively_not_consumed",
       evidence: value.request.ai_131.expected_consumption,
     }),
   });
@@ -738,6 +915,7 @@ test("exact AI-131 unknown delivery blocks AI-132", async () => {
     timestamp: NOW,
     trustedNow: () => NOW,
     observation: observation(value),
+    ...authoritativeRuntimeInspectors(value, "unknown_delivery"),
     acquisitionBoundary: {
       preflight: async () => ({ authorized: true, evidenceSha256: HASH }),
       execute: async () => ({
@@ -759,7 +937,7 @@ test("exact AI-131 unknown delivery blocks AI-132", async () => {
     },
   });
   assert.equal(exportCalls, 0);
-  assert.equal(result["final_state"], "unknown_delivery_manual_review");
+  assert.equal(result["final_state"], "recovery_required");
 });
 
 test("verified AI-131 callback with missing durable candidate blocks AI-132", async () => {
@@ -773,6 +951,7 @@ test("verified AI-131 callback with missing durable candidate blocks AI-132", as
     timestamp: NOW,
     trustedNow: () => NOW,
     observation: observation(value),
+    ...authoritativeRuntimeInspectors(value),
     acquisitionBoundary: {
       preflight: async () => ({ authorized: true, evidenceSha256: HASH }),
       execute: async () => {
@@ -811,6 +990,7 @@ test("verified AI-131 callback with divergent acquired source blocks AI-132", as
     timestamp: NOW,
     trustedNow: () => NOW,
     observation: observation(value),
+    ...authoritativeRuntimeInspectors(value),
     acquisitionBoundary: {
       preflight: async () => ({ authorized: true, evidenceSha256: HASH }),
       execute: async () => {
@@ -849,6 +1029,7 @@ test("verified AI-131 callback with divergent authoritative journal blocks AI-13
     timestamp: NOW,
     trustedNow: () => NOW,
     observation: observation(value),
+    ...authoritativeRuntimeInspectors(value),
     acquisitionBoundary: {
       preflight: async () => ({ authorized: true, evidenceSha256: HASH }),
       execute: async () => {
@@ -890,6 +1071,7 @@ test("verified exact AI-131 durable outputs permit AI-132 preflight", async () =
     timestamp: NOW,
     trustedNow: () => NOW,
     observation: observation(value),
+    ...authoritativeRuntimeInspectors(value),
     acquisitionBoundary: {
       preflight: async () => ({ authorized: true, evidenceSha256: HASH }),
       execute: async () => ({
@@ -912,7 +1094,7 @@ test("verified exact AI-131 durable outputs permit AI-132 preflight", async () =
       }),
     },
   });
-  assert.equal(result["final_state"], "completed");
+  assert.equal(result["final_state"], "recovery_required");
   assert.equal(exportPreflights, 1);
 });
 
@@ -926,7 +1108,15 @@ test("verified AI-132 callback with missing package record becomes recovery", as
     timestamp: NOW,
     trustedNow: () => NOW,
     observation: observation(value),
-    acquisitionBoundary: null,
+    ...authoritativeRuntimeInspectors(value),
+    acquisitionBoundary: {
+      preflight: async () => ({ authorized: true, evidenceSha256: HASH }),
+      execute: async () => ({
+        outcome: "verified",
+        authorizationConsumed: true,
+        evidenceSha256: HASH,
+      }),
+    },
     exportBoundary: {
       preflight: async () => ({ authorized: true, evidenceSha256: HASH }),
       execute: async () => {
@@ -1263,6 +1453,7 @@ test("activation expires after AI-131 consumption", async () => {
     timestamp: NOW,
     trustedNow: () => (ai131Returned ? value.activation.expires_at : NOW),
     observation: observation(value),
+    ...authoritativeRuntimeInspectors(value),
     acquisitionBoundary: {
       preflight: async () => ({ authorized: true, evidenceSha256: HASH }),
       execute: async () => {
@@ -1314,6 +1505,7 @@ test("scheduler switch changes before AI-131", async () => {
     timestamp: NOW,
     trustedNow: () => NOW,
     observation: observation(value),
+    ...authoritativeRuntimeInspectors(value, "malformed_evidence"),
     acquisitionBoundary: {
       preflight: async () => {
         await writeFile(
@@ -1343,7 +1535,19 @@ test("scheduler switch changes before AI-132", async () => {
     timestamp: NOW,
     trustedNow: () => NOW,
     observation: observation(value),
-    acquisitionBoundary: null,
+    ...authoritativeRuntimeInspectors(
+      value,
+      "consumed_completed",
+      "malformed_evidence",
+    ),
+    acquisitionBoundary: {
+      preflight: async () => ({ authorized: true, evidenceSha256: HASH }),
+      execute: async () => ({
+        outcome: "verified",
+        authorizationConsumed: true,
+        evidenceSha256: HASH,
+      }),
+    },
     exportBoundary: {
       preflight: async () => {
         await writeFile(
@@ -1403,6 +1607,7 @@ test("heartbeat during delayed AI-131 execution", async () => {
       pulses += 1;
     },
     observation: observation(value),
+    ...authoritativeRuntimeInspectors(value),
     acquisitionBoundary: {
       preflight: async () => ({ authorized: true, evidenceSha256: HASH }),
       execute: async () => {
@@ -1419,7 +1624,14 @@ test("heartbeat during delayed AI-131 execution", async () => {
         };
       },
     },
-    exportBoundary: null,
+    exportBoundary: {
+      preflight: async () => ({ authorized: true, evidenceSha256: HASH }),
+      execute: async () => ({
+        outcome: "verified",
+        authorizationConsumed: true,
+        evidenceSha256: HASH,
+      }),
+    },
   });
   assert.equal(result["final_state"], "completed");
   assert.ok(pulses >= 2);
@@ -1435,6 +1647,7 @@ test("heartbeat failure produces recovery_required", async () => {
     timestamp: NOW,
     trustedNow: () => NOW,
     observation: observation(value),
+    ...authoritativeRuntimeInspectors(value),
     acquisitionBoundary: {
       preflight: async () => ({ authorized: true, evidenceSha256: HASH }),
       execute: async () => {
@@ -1472,8 +1685,7 @@ test("heartbeat failure during result persistence writes durable recovery", asyn
       }
     },
     observation: observation(value),
-    acquisitionBoundary: null,
-    exportBoundary: null,
+    ...successfulRuntimeBoundaries(value),
   });
   assert.equal(result["final_state"], "recovery_required");
   assert.match(
@@ -1524,8 +1736,7 @@ test("final in-flight heartbeat failure after journal completion prevents releas
         );
       }),
     observation: observation(value),
-    acquisitionBoundary: null,
-    exportBoundary: null,
+    ...successfulRuntimeBoundaries(value),
   });
   assert.equal(result["final_state"], "recovery_required");
   assert.match(
@@ -1547,7 +1758,7 @@ test("recovery does not inspect a non-expired active lease as stale", async () =
     inspectAi131: async () => {
       inspections += 1;
       return {
-        status: "not_consumed",
+        status: "positively_not_consumed",
         evidence: value.request.ai_131.expected_consumption,
       };
     },
@@ -1606,7 +1817,7 @@ test("repeated recovery is idempotent", async () => {
     timestamp: LATER,
     attemptReservations: [await reserve(value, "ai_131")],
     inspectAi131: async () => ({
-      status: "not_consumed" as const,
+      status: "positively_not_consumed" as const,
       evidence: value.request.ai_131.expected_consumption,
     }),
   };
@@ -1792,8 +2003,7 @@ test("exact lease release after latest heartbeat bytes", async () => {
     timestamp: NOW,
     trustedNow: () => NOW,
     observation: observation(value),
-    acquisitionBoundary: null,
-    exportBoundary: null,
+    ...successfulRuntimeBoundaries(value),
   });
   assert.equal(result["final_state"], "completed");
   await assert.rejects(
@@ -1801,6 +2011,221 @@ test("exact lease release after latest heartbeat bytes", async () => {
     /ENOENT/,
   );
 });
+
+test("blocked AI-131 callback with positive non-consumption never invokes AI-132", async () => {
+  const value = await fixture();
+  let ai132Calls = 0;
+  const result = await runGovernedArcaSchedulerOnce({
+    ...value,
+    runId: "blocked-ai-131-no-export",
+    ownerId: "owner",
+    processIdentity: "process",
+    timestamp: NOW,
+    trustedNow: () => NOW,
+    observation: observation(value),
+    ...authoritativeRuntimeInspectors(value, "positively_not_consumed"),
+    acquisitionBoundary: {
+      preflight: async () => ({ authorized: true, evidenceSha256: HASH }),
+      execute: async () => ({
+        outcome: "blocked",
+        authorizationConsumed: false,
+        evidenceSha256: HASH,
+      }),
+    },
+    exportBoundary: {
+      preflight: async () => {
+        ai132Calls += 1;
+        return { authorized: true, evidenceSha256: HASH };
+      },
+      execute: async () => {
+        ai132Calls += 1;
+        return {
+          outcome: "verified",
+          authorizationConsumed: true,
+          evidenceSha256: HASH,
+        };
+      },
+    },
+  });
+  assert.equal(result["final_state"], "recovery_required");
+  assert.equal(result["acquisition_outcome"], "positively_not_consumed");
+  assert.equal(ai132Calls, 0);
+});
+
+test("unauthorized AI-131 preflight never invokes AI-132", async () => {
+  const value = await fixture();
+  let ai132Calls = 0;
+  const result = await runGovernedArcaSchedulerOnce({
+    ...value,
+    runId: "unauthorized-ai-131-no-export",
+    ownerId: "owner",
+    processIdentity: "process",
+    timestamp: NOW,
+    trustedNow: () => NOW,
+    observation: observation(value),
+    ...authoritativeRuntimeInspectors(value),
+    acquisitionBoundary: {
+      preflight: async () => ({ authorized: false, evidenceSha256: HASH }),
+      execute: async () => {
+        throw new Error("must_not_execute");
+      },
+    },
+    exportBoundary: {
+      preflight: async () => {
+        ai132Calls += 1;
+        return { authorized: true, evidenceSha256: HASH };
+      },
+      execute: async () => {
+        ai132Calls += 1;
+        throw new Error("must_not_execute");
+      },
+    },
+  });
+  assert.equal(result["acquisition_outcome"], "not_authorized");
+  assert.equal(result["final_state"], "recovery_required");
+  assert.equal(ai132Calls, 0);
+});
+
+test("AI-131 callback exception plus visible authoritative completion permits AI-132 deterministically", async () => {
+  const value = await fixture();
+  let ai131Inspections = 0;
+  let ai132Inspections = 0;
+  let ai132Executions = 0;
+  const inspectors = authoritativeRuntimeInspectors(value);
+  const result = await runGovernedArcaSchedulerOnce({
+    ...value,
+    runId: "ai-131-exception-visible-completion",
+    ownerId: "owner",
+    processIdentity: "process",
+    timestamp: NOW,
+    trustedNow: () => NOW,
+    observation: observation(value),
+    inspectAi131: async () => {
+      ai131Inspections += 1;
+      return inspectors.inspectAi131();
+    },
+    inspectAi132: async () => {
+      ai132Inspections += 1;
+      return inspectors.inspectAi132();
+    },
+    acquisitionBoundary: {
+      preflight: async () => ({ authorized: true, evidenceSha256: HASH }),
+      execute: async () => {
+        throw new Error("callback_lost_after_durable_completion");
+      },
+    },
+    exportBoundary: {
+      preflight: async () => ({ authorized: true, evidenceSha256: HASH }),
+      execute: async () => {
+        ai132Executions += 1;
+        return {
+          outcome: "verified",
+          authorizationConsumed: true,
+          evidenceSha256: HASH,
+        };
+      },
+    },
+  });
+  assert.equal(result["final_state"], "completed");
+  assert.equal(ai132Executions, 1);
+  assert.equal(ai131Inspections, 2);
+  assert.equal(ai132Inspections, 2);
+});
+
+test("AI-132 unknown retains lease and leaves its attempt recovery-required", async () => {
+  const value = await fixture();
+  const result = await runGovernedArcaSchedulerOnce({
+    ...value,
+    runId: "ai-132-unknown-retains-lease",
+    ownerId: "owner",
+    processIdentity: "process",
+    timestamp: NOW,
+    trustedNow: () => NOW,
+    observation: observation(value),
+    ...authoritativeRuntimeInspectors(
+      value,
+      "consumed_completed",
+      "unknown_delivery",
+    ),
+    acquisitionBoundary: successfulRuntimeBoundaries(value).acquisitionBoundary,
+    exportBoundary: {
+      preflight: async () => ({ authorized: true, evidenceSha256: HASH }),
+      execute: async () => ({
+        outcome: "unknown",
+        authorizationConsumed: true,
+        evidenceSha256: HASH,
+      }),
+    },
+  });
+  assert.equal(result["final_state"], "recovery_required");
+  assert.equal(result["export_outcome"], "unknown_delivery");
+  assert.ok(await readFile(schedulerLeasePath(value.configuration), "utf8"));
+  const ledgerRoot = join(
+    value.configuration.state_root.path,
+    "attempt-ledger",
+    "reservations",
+  );
+  const records = await Promise.all(
+    (await readdir(ledgerRoot)).map(async (name) =>
+      JSON.parse(await readFile(join(ledgerRoot, name), "utf8")),
+    ),
+  );
+  assert.equal(
+    records.find(
+      (record) =>
+        (record as Record<string, unknown>)["boundary_type"] === "ai_132",
+    )?.state,
+    "recovery_required",
+  );
+});
+
+for (const scenario of [
+  "missing ledger manifest fails closed",
+  "missing ledger directory fails closed",
+  "deleted reservation evidence fails closed",
+] as const)
+  test(scenario, async () => {
+    const durable = await durableRecoveryFixture(
+      scenario === "deleted reservation evidence fails closed"
+        ? "acquisition_execution_started"
+        : "lease_acquired",
+    );
+    const ledgerRoot = join(
+      durable.value.configuration.state_root.path,
+      "attempt-ledger",
+    );
+    if (scenario === "missing ledger manifest fails closed")
+      await rename(
+        join(ledgerRoot, "manifest.json"),
+        join(ledgerRoot, "manifest.removed"),
+      );
+    else if (scenario === "missing ledger directory fails closed")
+      await rename(ledgerRoot, `${ledgerRoot}.removed`);
+    else {
+      const reservationRoot = join(ledgerRoot, "reservations");
+      const [name] = await readdir(reservationRoot);
+      assert.ok(name);
+      await rename(
+        join(reservationRoot, name),
+        join(reservationRoot, `${name}.removed`),
+      );
+    }
+    const loaded = await loadDurableSchedulerRecoveryEvidence(
+      durable.input,
+      durable.registry,
+    );
+    assert.equal(loaded.attemptLedgerManifest, undefined);
+    assert.equal(loaded.reservations, undefined);
+    const decision = await inspectSchedulerRecovery({
+      configuration: loaded.configuration,
+      lease: loaded.lease,
+      journal: loaded.journal,
+      timestamp: durable.input.timestamp,
+      attemptLedgerManifest: loaded.attemptLedgerManifest,
+      attemptReservations: loaded.reservations,
+    });
+    assert.equal(decision["decision"], "malformed_evidence_fail_closed");
+  });
 
 test("configuration and activation remain exact, bounded and repository-current blocked", async () => {
   const configuration = JSON.parse(

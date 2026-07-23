@@ -15,7 +15,7 @@ test("AI-133 scheduler has no direct transport, database, provider, deployment o
     /from ["'](?:openai|@supabase|pg|postgres|@vercel)/,
     /vlatam-global/,
     /process\.env/,
-    /\.env/,
+    /(?:^|[/."'`])\.env(?:$|[/."'`])/m,
     /setInterval|setTimeout/,
     /cron|launchd|systemd|github actions/i,
   ])

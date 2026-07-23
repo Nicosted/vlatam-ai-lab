@@ -58,7 +58,10 @@
       "pattern": "^[a-f0-9]{64}$"
     },
     "mode": {
-      "enum": ["observe", "run_once"]
+      "enum": [
+        "observe",
+        "run_once"
+      ]
     },
     "scheduled_for": {
       "type": "string",
@@ -95,7 +98,12 @@
         "configuration": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["path", "identity", "sha256", "canonical_sha256"],
+          "required": [
+            "path",
+            "identity",
+            "sha256",
+            "canonical_sha256"
+          ],
           "properties": {
             "path": {
               "type": "string",
@@ -118,7 +126,12 @@
         "proposal": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["path", "identity", "sha256", "canonical_sha256"],
+          "required": [
+            "path",
+            "identity",
+            "sha256",
+            "canonical_sha256"
+          ],
           "properties": {
             "path": {
               "type": "string",
@@ -141,7 +154,12 @@
         "authorization": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["path", "identity", "sha256", "canonical_sha256"],
+          "required": [
+            "path",
+            "identity",
+            "sha256",
+            "canonical_sha256"
+          ],
           "properties": {
             "path": {
               "type": "string",
@@ -164,7 +182,12 @@
         "expected_consumption": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["path", "identity", "sha256", "canonical_sha256"],
+          "required": [
+            "path",
+            "identity",
+            "sha256",
+            "canonical_sha256"
+          ],
           "properties": {
             "path": {
               "type": "string",
@@ -187,7 +210,12 @@
         "authoritative_journal": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["path", "identity", "sha256", "canonical_sha256"],
+          "required": [
+            "path",
+            "identity",
+            "sha256",
+            "canonical_sha256"
+          ],
           "properties": {
             "path": {
               "type": "string",
@@ -210,7 +238,12 @@
         "durable_result": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["path", "identity", "sha256", "canonical_sha256"],
+          "required": [
+            "path",
+            "identity",
+            "sha256",
+            "canonical_sha256"
+          ],
           "properties": {
             "path": {
               "type": "string",
@@ -233,7 +266,12 @@
         "primary_evidence": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["path", "identity", "sha256", "canonical_sha256"],
+          "required": [
+            "path",
+            "identity",
+            "sha256",
+            "canonical_sha256"
+          ],
           "properties": {
             "path": {
               "type": "string",
@@ -256,7 +294,12 @@
         "secondary_evidence": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["path", "identity", "sha256", "canonical_sha256"],
+          "required": [
+            "path",
+            "identity",
+            "sha256",
+            "canonical_sha256"
+          ],
           "properties": {
             "path": {
               "type": "string",
@@ -279,7 +322,12 @@
         "kill_switch": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["path", "identity", "sha256", "canonical_sha256"],
+          "required": [
+            "path",
+            "identity",
+            "sha256",
+            "canonical_sha256"
+          ],
           "properties": {
             "path": {
               "type": "string",
@@ -302,7 +350,10 @@
         "recovery_root": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["path", "identity"],
+          "required": [
+            "path",
+            "identity"
+          ],
           "properties": {
             "path": {
               "type": "string",
@@ -335,7 +386,12 @@
         "configuration": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["path", "identity", "sha256", "canonical_sha256"],
+          "required": [
+            "path",
+            "identity",
+            "sha256",
+            "canonical_sha256"
+          ],
           "properties": {
             "path": {
               "type": "string",
@@ -358,7 +414,12 @@
         "proposal": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["path", "identity", "sha256", "canonical_sha256"],
+          "required": [
+            "path",
+            "identity",
+            "sha256",
+            "canonical_sha256"
+          ],
           "properties": {
             "path": {
               "type": "string",
@@ -381,7 +442,12 @@
         "authorization": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["path", "identity", "sha256", "canonical_sha256"],
+          "required": [
+            "path",
+            "identity",
+            "sha256",
+            "canonical_sha256"
+          ],
           "properties": {
             "path": {
               "type": "string",
@@ -404,7 +470,12 @@
         "expected_consumption": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["path", "identity", "sha256", "canonical_sha256"],
+          "required": [
+            "path",
+            "identity",
+            "sha256",
+            "canonical_sha256"
+          ],
           "properties": {
             "path": {
               "type": "string",
@@ -427,7 +498,12 @@
         "authoritative_journal": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["path", "identity", "sha256", "canonical_sha256"],
+          "required": [
+            "path",
+            "identity",
+            "sha256",
+            "canonical_sha256"
+          ],
           "properties": {
             "path": {
               "type": "string",
@@ -450,7 +526,12 @@
         "durable_result": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["path", "identity", "sha256", "canonical_sha256"],
+          "required": [
+            "path",
+            "identity",
+            "sha256",
+            "canonical_sha256"
+          ],
           "properties": {
             "path": {
               "type": "string",
@@ -473,7 +554,12 @@
         "primary_evidence": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["path", "identity", "sha256", "canonical_sha256"],
+          "required": [
+            "path",
+            "identity",
+            "sha256",
+            "canonical_sha256"
+          ],
           "properties": {
             "path": {
               "type": "string",
@@ -496,7 +582,12 @@
         "secondary_evidence": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["path", "identity", "sha256", "canonical_sha256"],
+          "required": [
+            "path",
+            "identity",
+            "sha256",
+            "canonical_sha256"
+          ],
           "properties": {
             "path": {
               "type": "string",
@@ -519,7 +610,12 @@
         "kill_switch": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["path", "identity", "sha256", "canonical_sha256"],
+          "required": [
+            "path",
+            "identity",
+            "sha256",
+            "canonical_sha256"
+          ],
           "properties": {
             "path": {
               "type": "string",
@@ -542,7 +638,10 @@
         "recovery_root": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["path", "identity"],
+          "required": [
+            "path",
+            "identity"
+          ],
           "properties": {
             "path": {
               "type": "string",

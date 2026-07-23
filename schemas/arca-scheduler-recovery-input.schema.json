@@ -6,56 +6,18 @@
   "additionalProperties": false,
   "required": [
     "schema_version",
-    "configuration",
-    "state_root",
+    "environment_id",
     "run_id",
     "request_id",
-    "lease_path",
-    "journal_path",
-    "request_path",
     "timestamp"
   ],
   "properties": {
     "schema_version": {
       "const": "1.0.0"
     },
-    "configuration": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["path", "identity", "sha256", "canonical_sha256"],
-      "properties": {
-        "path": {
-          "type": "string",
-          "minLength": 1
-        },
-        "identity": {
-          "type": "string",
-          "minLength": 1
-        },
-        "sha256": {
-          "type": "string",
-          "pattern": "^[a-f0-9]{64}$"
-        },
-        "canonical_sha256": {
-          "type": "string",
-          "pattern": "^[a-f0-9]{64}$"
-        }
-      }
-    },
-    "state_root": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["identity", "path"],
-      "properties": {
-        "identity": {
-          "type": "string",
-          "pattern": "^[a-z0-9][a-z0-9._-]{0,127}$"
-        },
-        "path": {
-          "type": "string",
-          "minLength": 1
-        }
-      }
+    "environment_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{0,127}$"
     },
     "run_id": {
       "type": "string",
@@ -64,18 +26,6 @@
     "request_id": {
       "type": "string",
       "pattern": "^[a-z0-9][a-z0-9._-]{0,127}$"
-    },
-    "lease_path": {
-      "type": "string",
-      "minLength": 1
-    },
-    "journal_path": {
-      "type": "string",
-      "minLength": 1
-    },
-    "request_path": {
-      "type": "string",
-      "minLength": 1
     },
     "timestamp": {
       "type": "string",

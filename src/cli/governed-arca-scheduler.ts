@@ -24,6 +24,7 @@ import {
   observeGovernedArcaScheduler,
   runGovernedArcaSchedulerOnce,
   canonicalizeSchedulerJson,
+  resolveReviewedRecoveryEnvironment,
   type ScheduledRunRequest,
   type SchedulerActivation,
   type SchedulerConfiguration,
@@ -121,7 +122,16 @@ export async function observeGovernedSchedulerBundle(
 export function assertDurableRecoveryBundle(
   bundle: Record<string, unknown>,
 ): asserts bundle is Record<string, unknown> {
-  if ("lease" in bundle || "journal" in bundle)
+  if (
+    "lease" in bundle ||
+    "journal" in bundle ||
+    "configuration" in bundle ||
+    "state_root" in bundle ||
+    "lease_path" in bundle ||
+    "journal_path" in bundle ||
+    "request_path" in bundle ||
+    typeof bundle["environment_id"] !== "string"
+  )
     throw new Error("caller_supplied_recovery_evidence_rejected");
 }
 
@@ -135,15 +145,44 @@ export async function runGovernedSchedulerBundleOnce(
     "configuration",
   ) as unknown as SchedulerConfiguration;
   const request = objectAt(bundle, "request") as unknown as ScheduledRunRequest;
+  const environment = resolveReviewedRecoveryEnvironment(
+    String(bundle["environment_id"] ?? ""),
+  );
+  const pinnedConfiguration = JSON.parse(
+    await readFile(environment.scheduler_configuration_path, "utf8"),
+  ) as unknown;
+  if (
+    canonicalizeSchedulerJson(configuration) !==
+      canonicalizeSchedulerJson(pinnedConfiguration) ||
+    request.ai_131.configuration.path !==
+      environment.ai_131_configuration_path ||
+    request.ai_131.kill_switch.path !== environment.ai_131_switch_path ||
+    request.ai_132.configuration.path !==
+      environment.ai_132_configuration_path ||
+    request.ai_132.kill_switch.path !== environment.ai_132_switch_path
+  )
+    throw new Error("reviewed_environment_trust_anchor_substituted");
   const load = (
     binding: ScheduledRunRequest["ai_131"]["configuration"],
     identityField: string,
     sha256Field: string,
   ) =>
-    loadExactRequestBoundArtifact(binding, dirname(binding.path), {
-      identityField,
-      sha256Field,
-    });
+    loadExactRequestBoundArtifact(
+      binding,
+      binding.path === environment.ai_131_configuration_path
+        ? dirname(environment.ai_131_configuration_path)
+        : binding.path === environment.ai_132_configuration_path
+          ? dirname(environment.ai_132_configuration_path)
+          : binding.path === environment.ai_131_switch_path
+            ? dirname(environment.ai_131_switch_path)
+            : binding.path === environment.ai_132_switch_path
+              ? dirname(environment.ai_132_switch_path)
+              : dirname(binding.path),
+      {
+        identityField,
+        sha256Field,
+      },
+    );
   const [ai131Configuration, ai131Proposal, ai131Authorization, ai131Switch] =
     await Promise.all([
       load(
@@ -187,6 +226,28 @@ export async function runGovernedSchedulerBundleOnce(
       "path"
     ] ?? "",
   );
+  if (
+    resolve(ai131StateRoot) !== environment.ai_131_state_root ||
+    resolve(
+      String(
+        (
+          ai131Configuration["acquisition_output"] as
+            | Record<string, unknown>
+            | undefined
+        )?.["path"] ?? "",
+      ),
+    ) !== environment.ai_131_acquisition_root ||
+    resolve(
+      String(
+        (
+          ai131Configuration["candidate_output"] as
+            | Record<string, unknown>
+            | undefined
+        )?.["path"] ?? "",
+      ),
+    ) !== environment.ai_131_candidate_root
+  )
+    throw new Error("ai_131_reviewed_environment_root_substituted");
   const ai131AuthorizationId = String(
     ai131Authorization["authorization_id"] ?? "",
   );
@@ -243,6 +304,13 @@ export async function runGovernedSchedulerBundleOnce(
       ai132Configuration["export_root"] as Record<string, unknown> | undefined
     )?.["path"] ?? "",
   );
+  if (
+    resolve(ai132StateRoot) !== environment.ai_132_state_root ||
+    resolve(ai132ExportRoot) !== environment.ai_132_export_root ||
+    resolve(request.ai_132.recovery_root.path) !==
+      environment.ai_132_recovery_root
+  )
+    throw new Error("ai_132_reviewed_environment_root_substituted");
   const ai132AuthorizationId = String(
     ai132Authorization["authorization_id"] ?? "",
   );
@@ -299,8 +367,71 @@ export async function runGovernedSchedulerBundleOnce(
     createHash("sha256")
       .update(`${canonicalizeSchedulerJson(value)}\n`)
       .digest("hex");
+  const inspectAi131 = async (trustedTimestamp: string) => {
+    const result = await inspectControlledLiveRunRecovery(
+      ai131StateRoot,
+      boundaryRunId,
+      trustedTimestamp,
+    );
+    const detail = result.details.join(":");
+    return {
+      status:
+        result.outcome === "completed"
+          ? ("consumed_completed" as const)
+          : result.outcome === "network_call_not_performed" &&
+              detail.includes("safe_to_abort")
+            ? ("positively_not_consumed" as const)
+            : detail.includes("not_authorized")
+              ? ("not_authorized" as const)
+              : detail.includes("delivery_unknown")
+                ? ("unknown_delivery" as const)
+                : detail.includes("hash_invalid") ||
+                    detail.includes("divergent") ||
+                    detail.includes("substituted")
+                  ? ("divergent_evidence" as const)
+                  : detail.includes("malformed")
+                    ? ("malformed_evidence" as const)
+                    : ("consumed_recovery_required" as const),
+      evidence:
+        result.authorization_consumed === true
+          ? request.ai_131.expected_consumption
+          : null,
+      reason: detail || result.outcome,
+    };
+  };
+  const inspectAi132 = async (trustedTimestamp: string) => {
+    const result = await inspectGovernedArcaExportRecovery({
+      configuration: ai132Configuration,
+      journalId: request.ai_132.authoritative_journal.identity,
+      killSwitch: ai132Switch,
+      killSwitchPath: request.ai_132.kill_switch.path,
+      recoveryTimestamp: trustedTimestamp,
+    });
+    const detail = result.details.join(":");
+    return {
+      status:
+        result.outcome === "completed"
+          ? ("consumed_completed" as const)
+          : detail.includes("non_consumption_proven")
+            ? ("positively_not_consumed" as const)
+            : detail.includes("not_authorized")
+              ? ("not_authorized" as const)
+              : detail.includes("divergent") || detail.includes("substituted")
+                ? ("divergent_evidence" as const)
+                : detail.includes("malformed")
+                  ? ("malformed_evidence" as const)
+                  : result.authorization_consumed
+                    ? ("consumed_recovery_required" as const)
+                    : ("unknown_delivery" as const),
+      evidence: result.authorization_consumed
+        ? request.ai_132.expected_consumption
+        : null,
+      reason: detail || result.outcome,
+    };
+  };
   return runGovernedArcaSchedulerOnce({
     configuration,
+    reviewedEnvironment: environment,
     activation: objectAt(
       bundle,
       "activation",
@@ -318,6 +449,8 @@ export async function runGovernedSchedulerBundleOnce(
       SchedulerObservationInput,
       "persist"
     >,
+    inspectAi131,
+    inspectAi132,
     acquisitionBoundary: {
       preflight: async (trustedTimestamp) => {
         const exact = { ...ai131Input, executionTimestamp: trustedTimestamp };
@@ -411,12 +544,15 @@ async function main(): Promise<void> {
     else if (args.command === "recover") {
       assertDurableRecoveryBundle(bundle);
       const recoveryInput = bundle as unknown as SchedulerDurableRecoveryInput;
+      const environment = resolveReviewedRecoveryEnvironment(
+        recoveryInput.environment_id,
+      );
       const durable = await loadDurableSchedulerRecoveryEvidence(recoveryInput);
       const configuration = durable.configuration;
       const request = durable.request;
       const ai131Configuration = await loadExactRequestBoundArtifact(
         request.ai_131.configuration,
-        dirname(request.ai_131.configuration.path),
+        dirname(environment.ai_131_configuration_path),
         {
           identityField: "configuration_id",
           sha256Field: "configuration_sha256",
@@ -424,7 +560,7 @@ async function main(): Promise<void> {
       );
       const ai132Configuration = await loadExactRequestBoundArtifact(
         request.ai_132.configuration,
-        dirname(request.ai_132.configuration.path),
+        dirname(environment.ai_132_configuration_path),
         {
           identityField: "configuration_id",
           sha256Field: "configuration_sha256",
@@ -435,6 +571,7 @@ async function main(): Promise<void> {
         lease: durable.lease,
         journal: durable.journal,
         timestamp: recoveryInput.timestamp,
+        attemptLedgerManifest: durable.attemptLedgerManifest,
         attemptReservations: durable.reservations,
         schedulerResultPresent: durable.resultPresent,
         recoveryResultPresent: durable.recoveryResultPresent,
@@ -468,13 +605,21 @@ async function main(): Promise<void> {
                 ? "consumed_completed"
                 : result.outcome === "network_call_not_performed" &&
                     detail.includes("safe_to_abort")
-                  ? "not_consumed"
-                  : detail.includes("delivery_unknown")
-                    ? "unknown_delivery"
-                    : detail.includes("hash_invalid")
-                      ? "divergent_evidence"
-                      : "consumed_recovery_required",
-            evidence: request.ai_131.expected_consumption,
+                  ? "positively_not_consumed"
+                  : detail.includes("not_authorized")
+                    ? "not_authorized"
+                    : detail.includes("delivery_unknown")
+                      ? "unknown_delivery"
+                      : detail.includes("hash_invalid")
+                        ? "divergent_evidence"
+                        : detail.includes("malformed")
+                          ? "malformed_evidence"
+                          : "consumed_recovery_required",
+            evidence:
+              result.authorization_consumed === true
+                ? request.ai_131.expected_consumption
+                : null,
+            reason: detail || result.outcome,
           };
         },
         inspectAi132: async () => {
@@ -515,14 +660,21 @@ async function main(): Promise<void> {
               result.outcome === "completed"
                 ? "consumed_completed"
                 : detail.includes("non_consumption_proven")
-                  ? "not_consumed"
-                  : detail.includes("divergent") ||
-                      detail.includes("substituted")
-                    ? "divergent_evidence"
-                    : result.authorization_consumed
-                      ? "consumed_recovery_required"
-                      : "unknown_delivery",
-            evidence: request.ai_132.expected_consumption,
+                  ? "positively_not_consumed"
+                  : detail.includes("not_authorized")
+                    ? "not_authorized"
+                    : detail.includes("divergent") ||
+                        detail.includes("substituted")
+                      ? "divergent_evidence"
+                      : detail.includes("malformed")
+                        ? "malformed_evidence"
+                        : result.authorization_consumed
+                          ? "consumed_recovery_required"
+                          : "unknown_delivery",
+            evidence: result.authorization_consumed
+              ? request.ai_132.expected_consumption
+              : null,
+            reason: detail || result.outcome,
           };
         },
       });

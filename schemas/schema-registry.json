@@ -157,6 +157,58 @@
       "downstream_allowed_field_present": true
     },
     {
+      "contract_name": "arca_scheduler_attempt_ledger_manifest",
+      "schema_file": "schemas/arca-scheduler-attempt-ledger-manifest.schema.json",
+      "valid_fixture": null,
+      "invalid_fixtures": [],
+      "test_file": "tests/scheduler/governed-arca-scheduler.test.ts",
+      "status": "implemented_synthetic_test_only",
+      "purpose": "Authenticated ledger initialization and inventory binding scheduler configuration, activation, state root and every reservation hash.",
+      "downstream_role": "Recovery evidence only; missing or inconsistent inventory fails closed.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": false
+    },
+    {
+      "contract_name": "arca_scheduler_reviewed_environment",
+      "schema_file": "schemas/arca-scheduler-reviewed-environment.schema.json",
+      "valid_fixture": null,
+      "invalid_fixtures": [],
+      "test_file": "tests/scheduler/governed-arca-scheduler.test.ts",
+      "status": "implemented_compiled_registry",
+      "purpose": "Named independently compiled trust anchors for repository, scheduler, boundary and durable evidence roots.",
+      "downstream_role": "Path trust policy only; callers cannot supply roots.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": false
+    },
+    {
+      "contract_name": "arca_scheduler_ai_131_disposition",
+      "schema_file": "schemas/arca-scheduler-ai-131-disposition.schema.json",
+      "valid_fixture": null,
+      "invalid_fixtures": [],
+      "test_file": "tests/scheduler/governed-arca-scheduler.test.ts",
+      "status": "implemented_synthetic_test_only",
+      "purpose": "Closed authoritative AI-131 disposition reconciled from the real inspector and exact request-bound durable outputs.",
+      "downstream_role": "Only consumed_completed may continue to AI-132 in the current workflow.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": false
+    },
+    {
+      "contract_name": "arca_scheduler_ai_132_disposition",
+      "schema_file": "schemas/arca-scheduler-ai-132-disposition.schema.json",
+      "valid_fixture": null,
+      "invalid_fixtures": [],
+      "test_file": "tests/scheduler/governed-arca-scheduler.test.ts",
+      "status": "implemented_synthetic_test_only",
+      "purpose": "Closed authoritative AI-132 disposition preserving unknown and visible consumption as recovery-required.",
+      "downstream_role": "Only consumed_completed permits full-pipeline completion and lease release.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": false
+    },
+    {
       "contract_name": "arca_export_proposal",
       "schema_file": "schemas/arca-export-proposal.schema.json",
       "valid_fixture": null,

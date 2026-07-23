@@ -8,8 +8,8 @@ scheduler remains inactive and execution-blocked.
 
 - Repository: `Nicosted/vlatam-ai-lab`.
 - Branch: `feat/ai-133-governed-arca-scheduler-locking-recovery`.
-- Second-review starting commit:
-  `70de8c91530a9178d8e7817d448f91393ada3d32`.
+- Latest independent-review starting commit:
+  `df2f807e9203a1bf8d6a965fc8a90fca38245397`.
 - Base: `3e149f27b891ba5b81c03d0097dc7f950a485405` (AI-132).
 - Before modification, local HEAD exactly matched the remote branch, the index
   and worktree were clean, and PR #128 was open, draft, and unmerged.
@@ -18,6 +18,81 @@ scheduler remains inactive and execution-blocked.
   draft PR; all affected generated schemas and registry entries were replaced
   together.
 - Evidence is local and synthetic. It authorizes no live scheduler or boundary.
+
+## Latest independent REQUEST_CHANGES remediation
+
+The latest review identified four remaining fail-open risks. This revision:
+
+- replaces callback-derived AI-131/AI-132 outcomes with the closed dispositions
+  `not_authorized`, `positively_not_consumed`, `consumed_completed`,
+  `consumed_recovery_required`, `unknown_delivery`, `divergent_evidence`, and
+  `malformed_evidence`;
+- invokes the real read-only boundary inspector after every preflight return or
+  throw and every execution return or throw, then verifies exact request-bound
+  outputs before accepting `consumed_completed`;
+- permits AI-132 only after the exact AI-131 disposition
+  `consumed_completed`; the current acquisition-then-export workflow does not
+  permit export after `positively_not_consumed`;
+- permits full-pipeline completion and normal lease release only when both
+  boundaries are `consumed_completed`; AI-132 unknown, unresolved, divergent,
+  malformed, blocked without positive non-consumption, or visibly consumed
+  without package/record completion is `recovery_required`;
+- replaces caller-selected recovery roots and artifact paths with the named
+  compiled environment `repository-current-ai-133`; the recovery CLI accepts
+  only environment ID, run ID, request ID, and trusted timestamp;
+- adds an authenticated ledger initialization manifest with configuration,
+  activation, state-root, version, initialization time, reservation-directory,
+  semantic hash, canonical-content hash, and exact reservation inventory; and
+- treats a missing manifest, missing directory, unexpected/deleted reservation,
+  unreadable record, or manifest/record inconsistency as malformed durable
+  evidence and therefore recovery-required.
+
+Callback success, callback `blocked`, unauthorized preflight, missing
+authorization, false booleans, and absence of an unknown flag never prove
+completion or non-consumption.
+
+## Reviewed recovery environment and pinned trust anchors
+
+The compiled registry entry has environment semantic hash
+`5ec241d86dc6e9bcf52c16e59aedd0ec6e99f86277978d81abd1031365a8b116`.
+It pins:
+
+| Anchor                                 | Exact path                                                                                                                                                             |
+| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Repository                             | `/Users/nicolasmatiasstedile/Developer/vlatam-ai-lab`                                                                                                                  |
+| Scheduler configuration                | `/Users/nicolasmatiasstedile/Developer/vlatam-ai-lab/config/ai-133-governed-arca-scheduler.json`                                                                       |
+| Scheduler switch                       | `/Users/nicolasmatiasstedile/Developer/vlatam-ai-lab/config/ai-133-governed-arca-scheduler-kill-switch.json`                                                           |
+| AI-131 configuration                   | `/Users/nicolasmatiasstedile/Developer/vlatam-ai-lab/var/arca-scheduler/reviewed/ai-131-configuration.json`                                                            |
+| AI-131 switch                          | `/Users/nicolasmatiasstedile/Developer/vlatam-ai-lab/config/ai-131-controlled-live-arca-kill-switch.json`                                                              |
+| AI-132 configuration                   | `/Users/nicolasmatiasstedile/Developer/vlatam-ai-lab/var/arca-scheduler/reviewed/ai-132-configuration.json`                                                            |
+| AI-132 switch                          | `/Users/nicolasmatiasstedile/Developer/vlatam-ai-lab/config/ai-132-governed-arca-export-kill-switch.json`                                                              |
+| Scheduler state / observation          | `/Users/nicolasmatiasstedile/Developer/vlatam-ai-lab/var/arca-scheduler/state` / `/Users/nicolasmatiasstedile/Developer/vlatam-ai-lab/var/arca-scheduler/observations` |
+| AI-130 root                            | `/Users/nicolasmatiasstedile/Developer/vlatam-ai-lab/var/arca-review-store`                                                                                            |
+| AI-131 state / acquisition / candidate | `/Users/nicolasmatiasstedile/Developer/vlatam-ai-lab/var/arca-scheduler/ai-131/state` / `.../acquisitions` / `.../candidates`                                          |
+| AI-132 state / export / recovery       | `/Users/nicolasmatiasstedile/Developer/vlatam-ai-lab/var/arca-scheduler/ai-132/state` / `.../exports` / `.../state/recovery`                                           |
+
+Same-byte files at other absolute paths and alternate repository, boundary
+configuration, switch, state, observation, AI-130, acquisition, candidate,
+export, or recovery roots are rejected.
+
+## Authenticated empty-ledger semantics
+
+An empty attempt set is positive evidence only when the exact manifest exists,
+the exact reservation directory exists and is empty, the manifest inventory is
+empty and hash-valid, the lease/activation/configuration/state-root bindings
+match, the exact request and slot are consistent, and the scheduler journal
+shows that no authority-capable phase began. `ENOENT` is never converted into
+authenticated empty history.
+
+## Execution-time authoritative reconciliation
+
+For each boundary the scheduler persists `execution_started`, invokes the
+boundary exactly once, catches its return or exception, invokes the real
+read-only inspector, derives and persists the closed disposition, advances the
+attempt ledger from exact visible consumption, verifies all request-bound
+durable outputs, and only then decides continuation or recovery. A callback
+exception does not hide visible consumption or exact completion. A completion
+claim before the boundary was invoked is rejected.
 
 ## Review findings and exact remediation
 
@@ -34,11 +109,10 @@ scheduler remains inactive and execution-blocked.
 
 ## Durable scheduler recovery provenance model
 
-The recovery input contains no authoritative scheduler object copies. It binds
-the reviewed configuration by path, identity, semantic SHA-256 and canonical
-byte SHA-256; binds the reviewed state root by identity and absolute path; and
-names the exact run, request, lease, journal and request paths plus a trusted
-timestamp.
+The recovery input contains no authoritative scheduler object copies or
+caller-selected paths. It names only the reviewed environment, run, request,
+and trusted timestamp. The compiled environment resolves every configuration,
+switch, state, observation and boundary root independently of caller input.
 
 Recovery derives all other paths from the loaded configuration and request. It
 loads the exact reviewed switch, active lease, active journal, request, semantic
@@ -173,13 +247,17 @@ the maximum run duration.
 | Scheduled run request       | `1579fb89e0c6d9dbc563d301a7bfdeaa9ee0f54c0605ce0c12cedf46ae496b4c` |
 | Scheduler lease             | `05d37eaf7ab5c6ab0442a6a0f5aff776dd829ccf820e8c8921d12f3bcc7f2d1d` |
 | Scheduler run journal       | `a64f8b0b1606a5ef7242127c009ad12fbb181cef66e1db6716c918b756691a6f` |
-| Scheduler run result        | `aaa16209cda32b7c87518cb134010fa7dfa9bde554eabe76f5a7dc854ed5e963` |
+| Scheduler run result        | `b4bec66156f7b4ddbdad5c548e4af308709e615bda10db15bbeb62d990870afd` |
 | Scheduler observation       | `a1840b68b876a474467ce00653ebe79fcec2341a89dd086f66b6026f3e3c2be9` |
-| Scheduler recovery input    | `7ea2fc54e5c46801c9a433db5e75e76ba4cecf5b545a0cf31c03f7a276bc1d4f` |
+| Scheduler recovery input    | `633fcc76df878c546436abc2e8c7f1794e00c9ce5efc23fd3630bcedc991403c` |
 | Scheduler recovery decision | `e97a9c5ae07230f5a400c507ed9b70281b5cc239173bdb81705d80ec34b34fb7` |
 | Scheduler kill switch       | `543f100d6dcf78b0ed0bccf0e81f42a09c3e2fba415603786a30bb9212cde302` |
 | Attempt ledger              | `1a80ee9472ecc58dce5e90d89fa216205248e6e9ec893cdef43771ba39a717e9` |
+| Attempt-ledger manifest     | `e30ff1dae5ee797942ba11fab4cdab3ba8367acc59aed83e3d4c306bbf18d160` |
 | Slot acceptance             | `c582393de168ff7a34bec36bcedbec2f04ad24bfc622ca4f96f9e685aacaac03` |
+| Reviewed environment        | `f490cb691b00852db68bfbd5a225855ef5b9162f21d5597b34313b840f8c1985` |
+| AI-131 disposition          | `6a590956c322ef688add51ecbccaf0abb8d8d7e2311c39ef39e2d8918ffbf064` |
+| AI-132 disposition          | `f7729a0f44ad0b4f31f6bd4c4477ac0b55d875ee8f63be425571d84782d9c965` |
 
 Repository-current scheduler configuration semantic hash:
 `6b3ea65b9199a0ef3cbaebe5c5a8ea2a33a36c6b596e5065db12d2e32b69d9ca`.
@@ -335,12 +413,66 @@ boolean as authoritative evidence.
 | I-39 | `tests/scheduler/governed-arca-scheduler.test.ts`             | `stale lease plus unresolved AI-131 journal remains blocked`                                         | Integration  | Expired/stale lease, execution-started journal and attempt reservation    | Staleness alone is insufficient; manual recovery               |
 | I-40 | `tests/architecture/governed-arca-scheduler-boundary.test.ts` | `AI-133 scheduler has no direct transport, database, provider, deployment or vlatam-global boundary` | Architecture | Scheduler and CLI source imports                                          | No downstream authority, external DB or vlatam-global boundary |
 
+## Latest corrected boundary-disposition traceability matrix
+
+This matrix supersedes boundary-disposition claims in both historical matrices
+above.
+
+| ID   | Exact test name                                                                                    | Class       | Durable files created/exercised                                               | Authoritative inspector                     | Expected scheduler disposition                            | AI-132 invoked | Lease                                |
+| ---- | -------------------------------------------------------------------------------------------------- | ----------- | ----------------------------------------------------------------------------- | ------------------------------------------- | --------------------------------------------------------- | -------------- | ------------------------------------ |
+| B-01 | `blocked AI-131 callback with positive non-consumption never invokes AI-132`                       | Integration | lease, journal, AI-131 reservation, disposition, recovery result              | AI-131 execution-time callback              | `positively_not_consumed`; recovery-required              | No             | Retained                             |
+| B-02 | `unauthorized AI-131 preflight never invokes AI-132`                                               | Integration | lease, journal, disposition, recovery result                                  | AI-131 preflight callback                   | `not_authorized`; recovery-required                       | No             | Retained                             |
+| B-03 | `blocked AI-131 callback with positive non-consumption never invokes AI-132`                       | Integration | exact AI-131 request-bound files and recovery result                          | AI-131 execution-time callback              | `positively_not_consumed`; no export under current policy | No             | Retained                             |
+| B-04 | `verified exact AI-131 durable outputs permit AI-132 preflight`                                    | Integration | AI-131 consumption, journal, record, acquisition, candidate, scheduler ledger | AI-131 preflight and execution callbacks    | `consumed_completed` permits AI-132 preflight             | Yes, preflight | Retained because AI-132 unauthorized |
+| B-05 | `verified AI-131 callback with missing durable candidate blocks AI-132`                            | Integration | missing candidate plus exact remaining AI-131 files                           | AI-131 execution-time callback              | `malformed_evidence`; recovery-required                   | No             | Retained                             |
+| B-06 | `AI-131 callback exception plus visible authoritative completion permits AI-132 deterministically` | Integration | both boundary output sets, reservations, dispositions, normal result          | Both execution-time callbacks               | both `consumed_completed`; completed                      | Yes            | Released                             |
+| B-07 | `AI-131 callback exception after execution start becomes recovery`                                 | Integration | AI-131 reservation, disposition, recovery result                              | AI-131 execution-time callback              | `unknown_delivery`; recovery-required                     | No             | Retained                             |
+| B-08 | `divergent consumption fails closed`                                                               | Integration | exact lease/journal/reservation plus divergent evidence                       | AI-131 recovery inspector callback          | `divergent_evidence`; malformed fail-closed               | No             | Retained                             |
+| B-09 | `AI-132 unknown retains lease and leaves its attempt recovery-required`                            | Integration | both reservations, AI-132 disposition, recovery result                        | Both preflight/execution callbacks          | AI-132 `unknown_delivery`; recovery-required              | Yes            | Retained                             |
+| B-10 | `AI-132 unknown retains lease and leaves its attempt recovery-required`                            | Integration | active lease after AI-132 unknown                                             | AI-132 execution-time callback              | no normal release                                         | Yes            | Retained                             |
+| B-11 | `AI-132 unknown retains lease and leaves its attempt recovery-required`                            | Integration | AI-132 reservation record                                                     | AI-132 execution-time callback              | attempt `recovery_required`                               | Yes            | Retained                             |
+| B-12 | `verified AI-132 callback with missing package record becomes recovery`                            | Integration | missing durable export record, package binding, scheduler recovery result     | AI-132 execution-time callback              | `malformed_evidence`; recovery-required                   | Yes            | Retained                             |
+| B-13 | `AI-132 callback exception after execution start becomes recovery`                                 | Integration | AI-132 reservation, disposition, recovery result                              | Real execution-time reconciliation callback | `consumed_recovery_required`; recovery-required           | Yes            | Retained                             |
+| B-14 | `exact lease release after latest heartbeat bytes`                                                 | Integration | both completed boundary attempts, result, completed journal                   | Both preflight/execution callbacks          | both `consumed_completed`; completed                      | Yes            | Released                             |
+
+The real boundary-inspector integrations remain:
+`crash inspection never retries automatically and consumption is atomic`,
+`recovery resumes acquisition and candidate persistence from exact local bytes without fetch`,
+`crash after consumption recovers exact package and record without duplication`,
+and `prepared journal distinguishes absent from exact visible consumption`.
+These tests create full AI-131/AI-132 contract artifacts; scheduler tests do not
+claim that their injected callback adapters are the boundary implementations.
+
+## Latest corrected ledger/trust/runtime traceability matrix
+
+This matrix supersedes ledger, recovery-path and runtime-reconciliation claims
+in both historical matrices above.
+
+| ID   | Exact test name                                                                                    | Class                    | Durable files created/exercised                                       | Authoritative inspector                      | Expected scheduler disposition          | AI-132 invoked | Lease                            |
+| ---- | -------------------------------------------------------------------------------------------------- | ------------------------ | --------------------------------------------------------------------- | -------------------------------------------- | --------------------------------------- | -------------- | -------------------------------- |
+| R-01 | `missing ledger directory fails closed`                                                            | Integration              | lease, journal, request, slot; renamed ledger root                    | Scheduler durable loader                     | malformed fail-closed                   | No             | Retained                         |
+| R-02 | `missing ledger manifest fails closed`                                                             | Integration              | lease, journal, request, slot; renamed manifest                       | Scheduler durable loader                     | malformed fail-closed                   | No             | Retained                         |
+| R-03 | `exact durable pre-authority evidence permits safe abort`                                          | Integration              | exact empty manifest/directory, lease, journal, request, slot         | Scheduler recovery inspector                 | safe abort before authority             | No             | Retained                         |
+| R-04 | `deleted reservation evidence fails closed`                                                        | Integration              | manifest inventory plus renamed reservation                           | Scheduler durable loader                     | malformed fail-closed                   | No             | Retained                         |
+| R-05 | `durable recovery rejects caller-supplied or alternate journal paths`                              | Integration              | caller alternate path rejected before disk selection                  | Named environment resolver                   | invalid recovery input                  | No             | Unchanged                        |
+| R-06 | `CLI rejects nested input not matching request-bound paths`                                        | Unit                     | rejected caller boundary objects                                      | CLI input gate                               | rejected                                | No             | Absent                           |
+| R-07 | `durable recovery rejects a valid self-hashed journal outside reviewed root`                       | Integration              | same-byte alternate journal                                           | Named environment resolver                   | invalid recovery input                  | No             | Unchanged                        |
+| R-08 | `durable recovery rejects caller-supplied or alternate journal paths`                              | Integration              | caller-selected repository/root fields rejected by closed schema      | Named environment resolver                   | invalid recovery input                  | No             | Unchanged                        |
+| R-09 | `configuration and activation remain exact, bounded and repository-current blocked`                | Integration              | compiled `repository-current-ai-133` registry and checked-in config   | Registry validation                          | exact pinned paths; repository blocked  | No             | Absent                           |
+| R-10 | `AI-131 callback exception plus visible authoritative completion permits AI-132 deterministically` | Integration              | AI-131 disposition and full exact-bound output set                    | AI-131 execution-time callback invoked twice | consumed completion preserved           | Yes            | Released after AI-132 completion |
+| R-11 | `AI-132 callback exception after execution start becomes recovery`                                 | Integration              | AI-132 disposition/reservation/recovery result                        | AI-132 execution-time callback               | consumed recovery-required              | Yes            | Retained                         |
+| R-12 | `AI-131 callback exception plus visible authoritative completion permits AI-132 deterministically` | Integration              | reservation transition with consumption evidence despite exception    | AI-131 execution-time callback               | attempt advances to completed           | Yes            | Released after full completion   |
+| R-13 | `repeated recovery is idempotent`                                                                  | Integration              | same exact manifest, lease, journal and reservation inspected twice   | AI-131 recovery inspector callback           | byte-equivalent decision                | No             | Retained                         |
+| R-14 | `zero network during observe and recover`                                                          | Integration              | local observation and recovery artifacts                              | Scheduler/AI boundary read-only inspectors   | no network; unchanged durable authority | No             | Retained                         |
+| R-15 | `zero vlatam-global access`                                                                        | Architecture/integration | false authority fields and source boundary scan                       | None required                                | access remains false/absent             | No             | Unchanged                        |
+| R-16 | `configuration and activation remain exact, bounded and repository-current blocked`                | Integration              | inactive config, zero cap, three active switches, activation template | Repository-current validation                | blocked                                 | No             | Absent                           |
+
 ## Validation
 
-- Focused AI-133 scheduler: **64/64**; with the three AI-133 architecture
-  boundaries: **67/67**.
-- AI-128/130/131/132/133 combined regression and architecture: **131/131**.
-- Full repository suite outside the process sandbox: **1,291/1,291** tests,
+- Focused AI-133 scheduler: **71/71**; with the three AI-133 architecture
+  boundaries: **74/74**.
+- AI-128/130/131/132/133 combined regression and architecture: **138/138**.
+- Full repository suite outside the process sandbox: **1,298/1,298** tests,
   **153/153** suites.
 - Typecheck: passed.
 - Build: passed.
