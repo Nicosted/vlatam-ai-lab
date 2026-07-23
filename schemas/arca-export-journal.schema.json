@@ -18,6 +18,14 @@
     "durable_store_event_id",
     "durable_store_event_sha256",
     "export_attempt_id",
+    "root_configuration_sha256",
+    "export_root_identity",
+    "export_state_root_identity",
+    "kill_switch_sha256",
+    "kill_switch_path",
+    "consumption_relative_path",
+    "consumption_bytes_sha256",
+    "consumption_json",
     "package_id",
     "package_sha256",
     "package_bytes_sha256",
@@ -66,6 +74,35 @@
     "export_attempt_id": {
       "type": "string",
       "pattern": "^arca-export-attempt--[a-f0-9]{64}$"
+    },
+    "root_configuration_sha256": {
+      "$ref": "#/$defs/hash"
+    },
+    "export_root_identity": {
+      "type": "string",
+      "minLength": 1
+    },
+    "export_state_root_identity": {
+      "type": "string",
+      "minLength": 1
+    },
+    "kill_switch_sha256": {
+      "$ref": "#/$defs/hash"
+    },
+    "kill_switch_path": {
+      "type": "string",
+      "minLength": 1
+    },
+    "consumption_relative_path": {
+      "type": "string",
+      "pattern": "^consumptions/arca-export-authorization--[a-f0-9]{64}\\.json$"
+    },
+    "consumption_bytes_sha256": {
+      "$ref": "#/$defs/hash"
+    },
+    "consumption_json": {
+      "type": "string",
+      "minLength": 3
     },
     "package_id": {
       "type": "string",

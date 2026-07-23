@@ -305,6 +305,16 @@ async function fixture(): Promise<Fixture> {
   };
 }
 
+function recoveryInput(value: Fixture, journalName: string) {
+  return {
+    configuration: value.configuration,
+    journalId: journalName.slice(0, -5),
+    killSwitch: value.killSwitch,
+    killSwitchPath: value.killSwitchPath,
+    recoveryTimestamp: NOW,
+  };
+}
+
 test("synthetic preflight validates exact durable source with zero writes", async (t) => {
   const value = await fixture();
   t.after(() => rm(value.root, { recursive: true, force: true }));
@@ -373,6 +383,36 @@ test("AI-132 in-memory and checked-in schemas compile as closed contracts", asyn
     const ajv = new Ajv({ strict: false });
     ajv.addSchema(approved);
     assert.doesNotThrow(() => ajv.compile(schema), path);
+  }
+  const checkedJournal = JSON.parse(
+    await readFile("schemas/arca-export-journal.schema.json", "utf8"),
+  ) as { required: string[] };
+  assert.deepEqual(
+    [...ARCA_EXPORT_JOURNAL_SCHEMA.required].sort(),
+    [...checkedJournal.required].sort(),
+  );
+  for (const binding of [
+    "root_configuration_sha256",
+    "export_root_identity",
+    "export_state_root_identity",
+    "kill_switch_sha256",
+    "kill_switch_path",
+    "consumption_relative_path",
+    "consumption_bytes_sha256",
+    "consumption_json",
+  ]) {
+    assert.equal(
+      (ARCA_EXPORT_JOURNAL_SCHEMA.required as readonly string[]).includes(
+        binding,
+      ),
+      true,
+    );
+    assert.equal(
+      (
+        DURABLE_ARCA_EXPORT_RECORD_SCHEMA.required as readonly string[]
+      ).includes(binding),
+      false,
+    );
   }
 });
 
@@ -508,9 +548,7 @@ test("crash after consumption recovers exact package and record without duplicat
   );
   assert.ok(journalName);
   const recovered = await recoverGovernedArcaExport(
-    value.configuration,
-    journalName.slice(0, -5),
-    NOW,
+    recoveryInput(value, journalName),
   );
   assert.equal(recovered.outcome, "completed", recovered.details.join(","));
   assert.equal(
@@ -553,13 +591,309 @@ test("crash after package publication converges without a duplicate", async (t) 
     join(value.configuration.export_state_root.path, "journals"),
   );
   const recovered = await recoverGovernedArcaExport(
-    value.configuration,
-    journalName!.slice(0, -5),
-    NOW,
+    recoveryInput(value, journalName!),
   );
   assert.equal(recovered.outcome, "completed");
   assert.equal(
     (await readdir(join(value.configuration.export_root.path, "packages")))
+      .length,
+    1,
+  );
+});
+
+test("prepared journal distinguishes absent from exact visible consumption", async (t) => {
+  const beforeConsumption = await fixture();
+  t.after(() => rm(beforeConsumption.root, { recursive: true, force: true }));
+  await assert.rejects(
+    () =>
+      executeGovernedArcaExport({
+        proposal: beforeConsumption.proposal,
+        authorization: beforeConsumption.authorization,
+        killSwitch: beforeConsumption.killSwitch,
+        killSwitchPath: beforeConsumption.killSwitchPath,
+        configuration: beforeConsumption.configuration,
+        executionTimestamp: NOW,
+        interruptAfterStage: "prepared",
+      }),
+    /interrupted_after/,
+  );
+  const [beforeJournal] = await readdir(
+    join(beforeConsumption.configuration.export_state_root.path, "journals"),
+  );
+  const safeAbort = await recoverGovernedArcaExport(
+    recoveryInput(beforeConsumption, beforeJournal!),
+  );
+  assert.equal(safeAbort.outcome, "recovery_required");
+  assert.deepEqual(safeAbort.details, ["safe_abort_before_consumption"]);
+  assert.equal(safeAbort.authorization_consumed, false);
+
+  const afterConsumption = await fixture();
+  t.after(() => rm(afterConsumption.root, { recursive: true, force: true }));
+  await assert.rejects(
+    () =>
+      executeGovernedArcaExport({
+        proposal: afterConsumption.proposal,
+        authorization: afterConsumption.authorization,
+        killSwitch: afterConsumption.killSwitch,
+        killSwitchPath: afterConsumption.killSwitchPath,
+        configuration: afterConsumption.configuration,
+        executionTimestamp: NOW,
+        interruptAfterConsumptionBeforeJournalUpdate: true,
+      }),
+    /consumption_visible_before_journal_update/,
+  );
+  const [afterJournal] = await readdir(
+    join(afterConsumption.configuration.export_state_root.path, "journals"),
+  );
+  const recovered = await recoverGovernedArcaExport(
+    recoveryInput(afterConsumption, afterJournal!),
+  );
+  assert.equal(recovered.outcome, "completed", recovered.details.join(","));
+  assert.equal(recovered.authorization_consumed, true);
+});
+
+test("recovery fails closed for divergent or missing consumption evidence", async (t) => {
+  const divergent = await fixture();
+  t.after(() => rm(divergent.root, { recursive: true, force: true }));
+  await assert.rejects(
+    () =>
+      executeGovernedArcaExport({
+        proposal: divergent.proposal,
+        authorization: divergent.authorization,
+        killSwitch: divergent.killSwitch,
+        killSwitchPath: divergent.killSwitchPath,
+        configuration: divergent.configuration,
+        executionTimestamp: NOW,
+        interruptAfterConsumptionBeforeJournalUpdate: true,
+      }),
+    /interrupted_after/,
+  );
+  const consumptionPath = join(
+    divergent.configuration.export_state_root.path,
+    "consumptions",
+    `${divergent.authorization.authorization_id}.json`,
+  );
+  await writeFile(consumptionPath, "{}\n");
+  const [divergentJournal] = await readdir(
+    join(divergent.configuration.export_state_root.path, "journals"),
+  );
+  const rejected = await recoverGovernedArcaExport(
+    recoveryInput(divergent, divergentJournal!),
+  );
+  assert.equal(rejected.outcome, "recovery_required");
+  assert.deepEqual(rejected.details, ["authorization_consumption_divergent"]);
+
+  const missing = await fixture();
+  t.after(() => rm(missing.root, { recursive: true, force: true }));
+  await assert.rejects(
+    () =>
+      executeGovernedArcaExport({
+        proposal: missing.proposal,
+        authorization: missing.authorization,
+        killSwitch: missing.killSwitch,
+        killSwitchPath: missing.killSwitchPath,
+        configuration: missing.configuration,
+        executionTimestamp: NOW,
+        interruptAfterStage: "authorization_consumed",
+      }),
+    /interrupted_after/,
+  );
+  await rm(
+    join(
+      missing.configuration.export_state_root.path,
+      "consumptions",
+      `${missing.authorization.authorization_id}.json`,
+    ),
+  );
+  const [missingJournal] = await readdir(
+    join(missing.configuration.export_state_root.path, "journals"),
+  );
+  const missingResult = await recoverGovernedArcaExport(
+    recoveryInput(missing, missingJournal!),
+  );
+  assert.equal(missingResult.outcome, "recovery_required");
+  assert.deepEqual(missingResult.details, [
+    "authorization_consumption_missing",
+  ]);
+});
+
+test("recovery requires the exact reviewed disabled kill switch", async (t) => {
+  const value = await fixture();
+  t.after(() => rm(value.root, { recursive: true, force: true }));
+  await assert.rejects(
+    () =>
+      executeGovernedArcaExport({
+        proposal: value.proposal,
+        authorization: value.authorization,
+        killSwitch: value.killSwitch,
+        killSwitchPath: value.killSwitchPath,
+        configuration: value.configuration,
+        executionTimestamp: NOW,
+        interruptAfterStage: "authorization_consumed",
+      }),
+    /interrupted_after/,
+  );
+  const [journalName] = await readdir(
+    join(value.configuration.export_state_root.path, "journals"),
+  );
+  const activeBytes = await readFile(
+    "config/ai-132-governed-arca-export-kill-switch.json",
+    "utf8",
+  );
+  await writeFile(value.killSwitchPath, activeBytes);
+  const active = JSON.parse(activeBytes);
+  for (const [killSwitch, path] of [
+    [active, value.killSwitchPath],
+    [value.killSwitch, join(value.root, "missing-switch.json")],
+  ] as const) {
+    const blocked = await recoverGovernedArcaExport({
+      ...recoveryInput(value, journalName!),
+      killSwitch,
+      killSwitchPath: path,
+    });
+    assert.equal(blocked.outcome, "kill_switch_active");
+  }
+  await rm(value.killSwitchPath);
+  assert.equal(
+    (await recoverGovernedArcaExport(recoveryInput(value, journalName!)))
+      .outcome,
+    "kill_switch_active",
+  );
+  await writeFile(value.killSwitchPath, "{}\n");
+  assert.equal(
+    (await recoverGovernedArcaExport(recoveryInput(value, journalName!)))
+      .outcome,
+    "kill_switch_active",
+  );
+  await writeFile(
+    value.killSwitchPath,
+    `${JSON.stringify({
+      ...value.killSwitch,
+      kill_switch_sha256: "f".repeat(64),
+    })}\n`,
+  );
+  assert.equal(
+    (await recoverGovernedArcaExport(recoveryInput(value, journalName!)))
+      .outcome,
+    "kill_switch_active",
+  );
+  const substitutedSwitch = {
+    ...value.killSwitch,
+    reason: "Different synthetic reviewed disablement.",
+    kill_switch_sha256: "0".repeat(64),
+  };
+  substitutedSwitch.kill_switch_sha256 =
+    computeArcaExportKillSwitchSha256(substitutedSwitch);
+  await writeFile(
+    value.killSwitchPath,
+    `${JSON.stringify(substitutedSwitch)}\n`,
+  );
+  assert.equal(
+    (
+      await recoverGovernedArcaExport({
+        ...recoveryInput(value, journalName!),
+        killSwitch: substitutedSwitch,
+      })
+    ).outcome,
+    "kill_switch_active",
+  );
+  assert.equal(
+    (await readdir(join(value.configuration.export_root.path, "packages")))
+      .length,
+    0,
+  );
+  await writeFile(
+    value.killSwitchPath,
+    `${JSON.stringify(value.killSwitch, null, 2)}\n`,
+  );
+  let recoveryNetworkCalls = 0;
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = (() => {
+    recoveryNetworkCalls += 1;
+    throw new Error("AI-132 recovery must not call fetch");
+  }) as typeof fetch;
+  const completed = await recoverGovernedArcaExport(
+    recoveryInput(value, journalName!),
+  ).finally(() => {
+    globalThis.fetch = originalFetch;
+  });
+  assert.equal(completed.outcome, "completed");
+  assert.equal(recoveryNetworkCalls, 0);
+});
+
+test("package-visible recovery validates exact bytes before recording", async (t) => {
+  const value = await fixture();
+  t.after(() => rm(value.root, { recursive: true, force: true }));
+  await assert.rejects(
+    () =>
+      executeGovernedArcaExport({
+        proposal: value.proposal,
+        authorization: value.authorization,
+        killSwitch: value.killSwitch,
+        killSwitchPath: value.killSwitchPath,
+        configuration: value.configuration,
+        executionTimestamp: NOW,
+        interruptAfterStage: "package_published",
+      }),
+    /interrupted_after/,
+  );
+  const [packageName] = await readdir(
+    join(value.configuration.export_root.path, "packages"),
+  );
+  await writeFile(
+    join(value.configuration.export_root.path, "packages", packageName!),
+    "{}\n",
+  );
+  const [journalName] = await readdir(
+    join(value.configuration.export_state_root.path, "journals"),
+  );
+  const rejected = await recoverGovernedArcaExport(
+    recoveryInput(value, journalName!),
+  );
+  assert.equal(rejected.outcome, "package_collision");
+  assert.equal(
+    (await readdir(join(value.configuration.export_state_root.path, "records")))
+      .length,
+    0,
+  );
+});
+
+test("duplicate recovery never creates a second package or record", async (t) => {
+  const value = await fixture();
+  t.after(() => rm(value.root, { recursive: true, force: true }));
+  await assert.rejects(
+    () =>
+      executeGovernedArcaExport({
+        proposal: value.proposal,
+        authorization: value.authorization,
+        killSwitch: value.killSwitch,
+        killSwitchPath: value.killSwitchPath,
+        configuration: value.configuration,
+        executionTimestamp: NOW,
+        interruptAfterStage: "package_published",
+      }),
+    /interrupted_after/,
+  );
+  const [journalName] = await readdir(
+    join(value.configuration.export_state_root.path, "journals"),
+  );
+  assert.equal(
+    (await recoverGovernedArcaExport(recoveryInput(value, journalName!)))
+      .outcome,
+    "completed",
+  );
+  assert.equal(
+    (await recoverGovernedArcaExport(recoveryInput(value, journalName!)))
+      .outcome,
+    "recovery_required",
+  );
+  assert.equal(
+    (await readdir(join(value.configuration.export_root.path, "packages")))
+      .length,
+    1,
+  );
+  assert.equal(
+    (await readdir(join(value.configuration.export_state_root.path, "records")))
       .length,
     1,
   );
@@ -591,6 +925,20 @@ test("final kill-switch reread blocks publication after consumption", async (t) 
     ),
     true,
   );
+  assert.equal(
+    (await readdir(join(value.configuration.export_root.path, "packages")))
+      .length,
+    0,
+  );
+  const [journalName] = await readdir(
+    join(value.configuration.export_state_root.path, "journals"),
+  );
+  const activeSwitch = JSON.parse(await readFile(value.killSwitchPath, "utf8"));
+  const recoveryBlocked = await recoverGovernedArcaExport({
+    ...recoveryInput(value, journalName!),
+    killSwitch: activeSwitch,
+  });
+  assert.equal(recoveryBlocked.outcome, "kill_switch_active");
   assert.equal(
     (await readdir(join(value.configuration.export_root.path, "packages")))
       .length,
@@ -650,4 +998,8 @@ test("CLI accepts only the narrow local argument surface", () => {
   assert.deepEqual(parseGovernedArcaExportArguments(["--preflight"]), {
     preflight: "true",
   });
+  assert.deepEqual(
+    parseGovernedArcaExportArguments(["--recover-journal", "journal-id"]),
+    { "recover-journal": "journal-id" },
+  );
 });

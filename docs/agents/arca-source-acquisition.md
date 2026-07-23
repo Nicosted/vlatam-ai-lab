@@ -323,6 +323,17 @@ package is published with staging, fsync and a no-overwrite hard link. Recovery
 uses the exact package and record bytes sealed in the journal. Divergence fails
 closed and never invents a second package.
 
+The journal also seals the exact identity-derived consumption path, canonical
+consumption bytes/hash, reviewed root-configuration identity/hash and reviewed
+export-switch hash/resolved path before consumption. Recovery reconciles the
+visible consumption record before interpreting `prepared`: absence is a safe
+pre-consumption abort, exact bytes continue as consumed, and missing
+later-stage or divergent bytes fail closed. Recovery requires the exact
+reviewed switch artifact and path and rereads it immediately before any
+missing package becomes visible. An active, missing, malformed, substituted or
+hash-invalid switch keeps consumption durable but blocks package and record
+creation.
+
 The package copies the Approved Artifact payload exactly. It does not reparse,
 reinterpret, enrich, classify, summarize or invoke an LLM. It is fixed to
 `vlatam-global` / `handoff_only` and states `not_imported`, `not_published`,

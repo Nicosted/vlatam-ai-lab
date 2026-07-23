@@ -72,7 +72,7 @@
       "invalid_fixtures": [],
       "test_file": "tests/export/governed-arca-export.test.ts",
       "status": "implemented_synthetic_test_only",
-      "purpose": "Hash-bound exact-byte crash plan created before authorization consumption or package visibility.",
+      "purpose": "Hash-bound exact-byte crash plan created before authorization consumption or package visibility, sealing the exact consumption path/bytes/hash, reviewed roots and export-switch hash/path.",
       "downstream_role": "Local recovery evidence; divergent state fails closed and never creates a replacement package.",
       "requires_human_review_semantics": true,
       "requires_traceability": true,

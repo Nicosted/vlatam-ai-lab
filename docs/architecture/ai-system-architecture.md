@@ -241,7 +241,11 @@ seed advisory cases.
   consumption record and crash journal enforce exactly-once authorization and
   exact-byte recovery. The package remains not imported, not published, not
   deployed and not production-authorized; no network or `vlatam-global` access
-  exists in this layer.
+  exists in this layer. Recovery binds and reconciles canonical authorization
+  consumption bytes even when a crash leaves the journal at `prepared`, and
+  cannot publish missing package bytes without the exact journal-bound reviewed
+  root configuration and a final reread of the exact hash/path-bound reviewed
+  disabled export switch.
 - **Must not contain:** model SDK calls, vendor response objects, or any
   post-review content.
 - **Owner today:** `src/agents/source-monitor.ts`,

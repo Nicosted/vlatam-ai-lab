@@ -87,6 +87,9 @@ export const ARCA_EXPORTER_CONFIGURATION = {
     "consumptions|journals|completed-journals|records/<identity>.json",
   publication_strategy: "staging-hard-link-no-overwrite-fsync-v1",
   payload_policy: "exact-approved-artifact-approved-payload-v1",
+  authorization_consumption:
+    "journal-sealed-canonical-no-overwrite-consumption-v1",
+  recovery_policy: "exact-consumption-reconciliation-and-kill-switch-reread-v1",
   external_transfer: false,
 } as const;
 export const ARCA_EXPORTER_CONFIGURATION_SHA256 = domainHash(
@@ -306,6 +309,14 @@ export interface ArcaExportJournal {
   readonly durable_store_event_id: string;
   readonly durable_store_event_sha256: string;
   readonly export_attempt_id: string;
+  readonly root_configuration_sha256: string;
+  readonly export_root_identity: string;
+  readonly export_state_root_identity: string;
+  readonly kill_switch_sha256: string;
+  readonly kill_switch_path: string;
+  readonly consumption_relative_path: string;
+  readonly consumption_bytes_sha256: string;
+  readonly consumption_json: string;
   readonly package_id: string;
   readonly package_sha256: string;
   readonly package_bytes_sha256: string;
@@ -796,6 +807,14 @@ export const ARCA_EXPORT_JOURNAL_SCHEMA = {
     "durable_store_event_id",
     "durable_store_event_sha256",
     "export_attempt_id",
+    "root_configuration_sha256",
+    "export_root_identity",
+    "export_state_root_identity",
+    "kill_switch_sha256",
+    "kill_switch_path",
+    "consumption_relative_path",
+    "consumption_bytes_sha256",
+    "consumption_json",
     "package_id",
     "package_sha256",
     "package_bytes_sha256",
@@ -831,6 +850,17 @@ export const ARCA_EXPORT_JOURNAL_SCHEMA = {
     durable_store_event_id: bindingProperties.durable_store_event_id,
     durable_store_event_sha256: bindingProperties.durable_store_event_sha256,
     export_attempt_id: { type: "string" },
+    root_configuration_sha256: { type: "string", pattern: SHA256 },
+    export_root_identity: { type: "string", minLength: 1 },
+    export_state_root_identity: { type: "string", minLength: 1 },
+    kill_switch_sha256: { type: "string", pattern: SHA256 },
+    kill_switch_path: { type: "string", minLength: 1 },
+    consumption_relative_path: {
+      type: "string",
+      pattern: "^consumptions/arca-export-authorization--[a-f0-9]{64}\\.json$",
+    },
+    consumption_bytes_sha256: { type: "string", pattern: SHA256 },
+    consumption_json: { type: "string", minLength: 3 },
     package_id: packageSchema.properties.package_id,
     package_sha256: { type: "string", pattern: SHA256 },
     package_bytes_sha256: { type: "string", pattern: SHA256 },
@@ -849,6 +879,7 @@ const validateConfiguration = ajv.compile(
   ARCA_EXPORT_ROOT_CONFIGURATION_SCHEMA,
 );
 const validatePackage = ajv.compile(ARCA_EXPORT_PACKAGE_SCHEMA);
+const validateRecord = ajv.compile(DURABLE_ARCA_EXPORT_RECORD_SCHEMA);
 const validateJournal = ajv.compile(ARCA_EXPORT_JOURNAL_SCHEMA);
 
 export function computeArcaExportProposalSha256(
@@ -950,6 +981,51 @@ async function exists(path: string): Promise<boolean> {
     return true;
   } catch (error: unknown) {
     if (fsError(error, "ENOENT")) return false;
+    throw error;
+  }
+}
+function isReviewedDisabledExportSwitch(
+  value: unknown,
+): value is ArcaExportKillSwitch {
+  if (!validateKillSwitch(value)) return false;
+  const typed = value as ArcaExportKillSwitch;
+  return (
+    typed.kill_switch_id === "governed-arca-export" &&
+    typed.kill_switch_sha256 === computeArcaExportKillSwitchSha256(typed) &&
+    typed.state === "disabled" &&
+    typed.export_blocked === false &&
+    typeof typed.reviewed_artifact_id === "string" &&
+    typed.reviewed_artifact_id.length > 0 &&
+    typeof typed.reviewed_by === "string" &&
+    typeof typed.reviewed_at === "string" &&
+    canonicalTimestamp(typed.reviewed_at)
+  );
+}
+async function rereadExactReviewedDisabledSwitch(
+  expected: unknown,
+  path: string,
+): Promise<boolean> {
+  if (!isReviewedDisabledExportSwitch(expected)) return false;
+  try {
+    const stat = await lstat(resolve(path));
+    if (stat.isSymbolicLink() || !stat.isFile()) return false;
+    const reread = JSON.parse(await readFile(resolve(path), "utf8")) as unknown;
+    return (
+      isReviewedDisabledExportSwitch(reread) &&
+      canonicalizeReviewJson(reread) === canonicalizeReviewJson(expected)
+    );
+  } catch {
+    return false;
+  }
+}
+async function readExactVisibleBytes(path: string): Promise<string | null> {
+  try {
+    const stat = await lstat(path);
+    if (stat.isSymbolicLink() || !stat.isFile())
+      throw new Error("recovery_visible_file_invalid");
+    return await readFile(path, "utf8");
+  } catch (error: unknown) {
+    if (fsError(error, "ENOENT")) return null;
     throw error;
   }
 }
@@ -1440,6 +1516,8 @@ function sealJournal(
 export interface ArcaExportExecutionInput extends ArcaExportPreflightInput {
   readonly killSwitchPath: string;
   readonly interruptAfterStage?: ArcaExportJournalStage;
+  /** Test-only crash injection after consumption visibility, before stage update. */
+  readonly interruptAfterConsumptionBeforeJournalUpdate?: boolean;
 }
 function interrupt(
   stage: ArcaExportJournalStage,
@@ -1519,6 +1597,24 @@ export async function executeGovernedArcaExport(
     record_sha256: computeRecordSha256(recordBase),
   };
   const recordJson = canonicalBytes(record);
+  const consumption = {
+    schema_version: "1.0.0",
+    consumption_type: "arca_export_authorization_consumption",
+    proposal_id: proposal.proposal_id,
+    proposal_sha256: proposal.proposal_sha256,
+    authorization_id: authorization.authorization_id,
+    authorization_sha256: authorization.authorization_sha256,
+    approved_artifact_id: proposal.approved_artifact_id,
+    approved_artifact_sha256: proposal.approved_artifact_sha256,
+    durable_store_event_id: proposal.durable_store_event_id,
+    durable_store_event_sha256: proposal.durable_store_event_sha256,
+    package_id: pkg.package_id,
+    package_sha256: pkg.package_sha256,
+    export_attempt_id: attemptId,
+    consumed_at: input.executionTimestamp,
+  };
+  const consumptionJson = canonicalBytes(consumption);
+  const consumptionRelativePath = `consumptions/${authorization.authorization_id}.json`;
   const journalId = `arca-export-journal--${attemptHash}`;
   let journal = sealJournal({
     schema_version: "1.0.0",
@@ -1534,6 +1630,15 @@ export async function executeGovernedArcaExport(
     durable_store_event_id: proposal.durable_store_event_id,
     durable_store_event_sha256: proposal.durable_store_event_sha256,
     export_attempt_id: attemptId,
+    root_configuration_sha256: input.configuration.configuration_sha256,
+    export_root_identity: input.configuration.export_root.identity,
+    export_state_root_identity: input.configuration.export_state_root.identity,
+    kill_switch_sha256: (input.killSwitch as ArcaExportKillSwitch)
+      .kill_switch_sha256,
+    kill_switch_path: resolve(input.killSwitchPath),
+    consumption_relative_path: consumptionRelativePath,
+    consumption_bytes_sha256: bytesHash(consumptionJson),
+    consumption_json: consumptionJson,
     package_id: pkg.package_id,
     package_sha256: pkg.package_sha256,
     package_bytes_sha256: bytesHash(packageJson),
@@ -1557,26 +1662,10 @@ export async function executeGovernedArcaExport(
     throw error;
   }
   interrupt("prepared", input.interruptAfterStage);
-  const consumption = {
-    schema_version: "1.0.0",
-    consumption_type: "arca_export_authorization_consumption",
-    proposal_id: proposal.proposal_id,
-    proposal_sha256: proposal.proposal_sha256,
-    authorization_id: authorization.authorization_id,
-    authorization_sha256: authorization.authorization_sha256,
-    approved_artifact_id: proposal.approved_artifact_id,
-    approved_artifact_sha256: proposal.approved_artifact_sha256,
-    durable_store_event_id: proposal.durable_store_event_id,
-    durable_store_event_sha256: proposal.durable_store_event_sha256,
-    package_id: pkg.package_id,
-    package_sha256: pkg.package_sha256,
-    export_attempt_id: attemptId,
-    consumed_at: input.executionTimestamp,
-  };
   try {
     await writeExclusive(
-      join(stateRoot, "consumptions", `${authorization.authorization_id}.json`),
-      canonicalBytes(consumption),
+      join(stateRoot, consumptionRelativePath),
+      consumptionJson,
     );
   } catch (error: unknown) {
     if (fsError(error, "EEXIST"))
@@ -1589,6 +1678,10 @@ export async function executeGovernedArcaExport(
       );
     throw error;
   }
+  if (input.interruptAfterConsumptionBeforeJournalUpdate)
+    throw new Error(
+      "governed_arca_export_interrupted_after:consumption_visible_before_journal_update",
+    );
   journal = sealJournal({
     ...journal,
     stage: "authorization_consumed",
@@ -1596,28 +1689,11 @@ export async function executeGovernedArcaExport(
   });
   await replace(journalPath, canonicalBytes(journal));
   interrupt("authorization_consumed", input.interruptAfterStage);
-  let finalSwitch: unknown;
-  try {
-    finalSwitch = JSON.parse(
-      await readFile(resolve(input.killSwitchPath), "utf8"),
-    );
-  } catch {
-    return result(
-      input.executionTimestamp,
-      "kill_switch_active",
-      ["final_kill_switch_reread_failed"],
-      proposal,
-      authorization,
-      pkg,
-      { consumed: true },
-    );
-  }
   if (
-    !validateKillSwitch(finalSwitch) ||
-    (finalSwitch as ArcaExportKillSwitch).kill_switch_sha256 !==
-      computeArcaExportKillSwitchSha256(finalSwitch as ArcaExportKillSwitch) ||
-    (finalSwitch as ArcaExportKillSwitch).state !== "disabled" ||
-    (finalSwitch as ArcaExportKillSwitch).export_blocked
+    !(await rereadExactReviewedDisabledSwitch(
+      input.killSwitch,
+      input.killSwitchPath,
+    ))
   )
     return result(
       input.executionTimestamp,
@@ -1684,11 +1760,36 @@ export async function executeGovernedArcaExport(
   return baseCompleted;
 }
 
+export interface ArcaExportRecoveryInput {
+  readonly configuration: unknown;
+  readonly journalId: string;
+  readonly killSwitch: unknown;
+  readonly killSwitchPath: string;
+  readonly recoveryTimestamp: string;
+}
+
 export async function recoverGovernedArcaExport(
-  configuration: ArcaExportRootConfiguration,
-  journalId: string,
-  timestamp: string,
+  input: ArcaExportRecoveryInput,
 ): Promise<ArcaExportResult> {
+  const timestamp = canonicalTimestamp(input.recoveryTimestamp)
+    ? input.recoveryTimestamp
+    : "1970-01-01T00:00:00.000Z";
+  if (
+    !canonicalTimestamp(input.recoveryTimestamp) ||
+    !validateConfiguration(input.configuration) ||
+    !/^arca-export-journal--[a-f0-9]{64}$/.test(input.journalId)
+  )
+    return result(timestamp, "recovery_required", [
+      "recovery_timestamp_or_root_configuration_invalid",
+    ]);
+  const configuration = input.configuration as ArcaExportRootConfiguration;
+  if (
+    configuration.configuration_sha256 !==
+    computeArcaExportConfigurationSha256(configuration)
+  )
+    return result(timestamp, "recovery_required", [
+      "root_configuration_hash_invalid",
+    ]);
   const stateRoot = await validateExistingRoot(
     configuration.export_state_root.path,
   );
@@ -1696,7 +1797,7 @@ export async function recoverGovernedArcaExport(
   for (const name of ["journals", "completed-journals", "records"])
     await validateOptionalChildDirectory(stateRoot, name);
   await validateOptionalChildDirectory(exportRoot, "packages");
-  const path = join(stateRoot, "journals", `${journalId}.json`);
+  const path = join(stateRoot, "journals", `${input.journalId}.json`);
   let journal: ArcaExportJournal;
   try {
     journal = JSON.parse(await readFile(path, "utf8")) as ArcaExportJournal;
@@ -1708,12 +1809,29 @@ export async function recoverGovernedArcaExport(
   if (
     !validateJournal(journal) ||
     journal.journal_sha256 !== computeJournalSha256(journal) ||
-    bytesHash(journal.package_json) !== journal.package_bytes_sha256
+    bytesHash(journal.package_json) !== journal.package_bytes_sha256 ||
+    bytesHash(journal.consumption_json) !== journal.consumption_bytes_sha256 ||
+    journal.journal_id !== input.journalId ||
+    journal.consumption_relative_path !==
+      `consumptions/${journal.authorization_id}.json` ||
+    journal.root_configuration_sha256 !== configuration.configuration_sha256 ||
+    journal.export_root_identity !== configuration.export_root.identity ||
+    journal.export_state_root_identity !==
+      configuration.export_state_root.identity
   )
     return result(timestamp, "recovery_required", [
       "export_journal_integrity_invalid",
     ]);
-  if (journal.stage === "prepared")
+  const consumptionPath = join(stateRoot, journal.consumption_relative_path);
+  let visibleConsumption: string | null;
+  try {
+    visibleConsumption = await readExactVisibleBytes(consumptionPath);
+  } catch {
+    return result(timestamp, "recovery_required", [
+      "authorization_consumption_integrity_invalid",
+    ]);
+  }
+  if (visibleConsumption === null && journal.stage === "prepared")
     return result(
       timestamp,
       "recovery_required",
@@ -1721,19 +1839,158 @@ export async function recoverGovernedArcaExport(
       undefined,
       undefined,
     );
-  const parsedPackage = JSON.parse(
-    journal.package_json,
-  ) as GovernedArcaExportPackage;
+  if (
+    visibleConsumption === null ||
+    visibleConsumption !== journal.consumption_json
+  )
+    return result(
+      timestamp,
+      "recovery_required",
+      [
+        visibleConsumption === null
+          ? "authorization_consumption_missing"
+          : "authorization_consumption_divergent",
+      ],
+      undefined,
+      undefined,
+      undefined,
+      { consumed: visibleConsumption !== null },
+    );
+  let parsedConsumption: unknown;
+  try {
+    parsedConsumption = JSON.parse(journal.consumption_json) as unknown;
+  } catch {
+    return result(timestamp, "recovery_required", [
+      "authorization_consumption_integrity_invalid",
+    ]);
+  }
+  const expectedConsumption = {
+    schema_version: "1.0.0",
+    consumption_type: "arca_export_authorization_consumption",
+    proposal_id: journal.proposal_id,
+    proposal_sha256: journal.proposal_sha256,
+    authorization_id: journal.authorization_id,
+    authorization_sha256: journal.authorization_sha256,
+    approved_artifact_id: journal.approved_artifact_id,
+    approved_artifact_sha256: journal.approved_artifact_sha256,
+    durable_store_event_id: journal.durable_store_event_id,
+    durable_store_event_sha256: journal.durable_store_event_sha256,
+    package_id: journal.package_id,
+    package_sha256: journal.package_sha256,
+    export_attempt_id: journal.export_attempt_id,
+    consumed_at: journal.created_at,
+  };
+  if (
+    canonicalBytes(parsedConsumption) !== journal.consumption_json ||
+    canonicalizeReviewJson(parsedConsumption) !==
+      canonicalizeReviewJson(expectedConsumption)
+  )
+    return result(timestamp, "recovery_required", [
+      "authorization_consumption_integrity_invalid",
+    ]);
+  let parsedPackage: GovernedArcaExportPackage;
+  try {
+    parsedPackage = JSON.parse(
+      journal.package_json,
+    ) as GovernedArcaExportPackage;
+  } catch {
+    return result(timestamp, "recovery_required", ["journal_package_invalid"]);
+  }
   if (
     !validatePackage(parsedPackage) ||
+    parsedPackage.package_sha256 !== journal.package_sha256 ||
+    parsedPackage.package_id !== journal.package_id ||
     parsedPackage.package_sha256 !==
       computeArcaExportPackageSha256(parsedPackage)
   )
     return result(timestamp, "recovery_required", ["journal_package_invalid"]);
-  const packageState = await publishNoOverwrite(
-    join(exportRoot, "packages", `${journal.package_id}.json`),
-    journal.package_json,
+  let parsedRecord: DurableArcaExportRecord;
+  try {
+    parsedRecord = JSON.parse(journal.record_json) as DurableArcaExportRecord;
+  } catch {
+    return result(timestamp, "recovery_required", ["journal_record_invalid"]);
+  }
+  if (
+    canonicalBytes(parsedRecord) !== journal.record_json ||
+    !validateRecord(parsedRecord) ||
+    parsedRecord.record_sha256 !== computeRecordSha256(parsedRecord) ||
+    parsedRecord.proposal_id !== journal.proposal_id ||
+    parsedRecord.proposal_sha256 !== journal.proposal_sha256 ||
+    parsedRecord.authorization_id !== journal.authorization_id ||
+    parsedRecord.authorization_sha256 !== journal.authorization_sha256 ||
+    parsedRecord.approved_artifact_id !== journal.approved_artifact_id ||
+    parsedRecord.approved_artifact_sha256 !==
+      journal.approved_artifact_sha256 ||
+    parsedRecord.durable_store_event_id !== journal.durable_store_event_id ||
+    parsedRecord.durable_store_event_sha256 !==
+      journal.durable_store_event_sha256 ||
+    parsedRecord.export_attempt_id !== journal.export_attempt_id ||
+    parsedRecord.package_id !== journal.package_id ||
+    parsedRecord.package_sha256 !== journal.package_sha256 ||
+    parsedRecord.package_bytes_sha256 !== journal.package_bytes_sha256
+  )
+    return result(timestamp, "recovery_required", ["journal_record_invalid"]);
+  const packagePath = join(
+    exportRoot,
+    "packages",
+    `${journal.package_id}.json`,
   );
+  let visiblePackage: string | null;
+  try {
+    visiblePackage = await readExactVisibleBytes(packagePath);
+  } catch {
+    return result(timestamp, "package_collision", [
+      "recovery_package_visible_file_invalid",
+    ]);
+  }
+  if (visiblePackage !== null && visiblePackage !== journal.package_json)
+    return result(
+      timestamp,
+      "package_collision",
+      ["recovery_package_divergent"],
+      undefined,
+      undefined,
+      parsedPackage,
+      { consumed: true },
+    );
+  if (
+    journal.kill_switch_path !== resolve(input.killSwitchPath) ||
+    !isReviewedDisabledExportSwitch(input.killSwitch) ||
+    input.killSwitch.kill_switch_sha256 !== journal.kill_switch_sha256 ||
+    !(await rereadExactReviewedDisabledSwitch(
+      input.killSwitch,
+      input.killSwitchPath,
+    ))
+  )
+    return result(
+      timestamp,
+      "kill_switch_active",
+      ["recovery_kill_switch_missing_malformed_active_or_changed"],
+      undefined,
+      undefined,
+      parsedPackage,
+      { consumed: true, created: visiblePackage !== null },
+    );
+  if (
+    visiblePackage === null &&
+    !(await rereadExactReviewedDisabledSwitch(
+      input.killSwitch,
+      input.killSwitchPath,
+    ))
+  )
+    return result(
+      timestamp,
+      "kill_switch_active",
+      ["final_recovery_kill_switch_reread_blocked"],
+      undefined,
+      undefined,
+      parsedPackage,
+      { consumed: true },
+    );
+  const packageState =
+    visiblePackage === null
+      ? await publishNoOverwrite(packagePath, journal.package_json)
+      : "same";
   if (packageState === "collision")
     return result(
       timestamp,

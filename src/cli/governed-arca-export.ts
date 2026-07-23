@@ -6,6 +6,7 @@ import { resolve } from "node:path";
 import {
   executeGovernedArcaExport,
   preflightGovernedArcaExport,
+  recoverGovernedArcaExport,
   type ArcaExportRootConfiguration,
 } from "../export/governed-arca-export.js";
 
@@ -15,6 +16,7 @@ const ALLOWED = new Set([
   "--kill-switch",
   "--configuration",
   "--execution-timestamp",
+  "--recover-journal",
   "--preflight",
   "--help",
 ]);
@@ -46,6 +48,7 @@ function help(): string {
     "",
     "Usage:",
     "  pnpm arca:governed-export --proposal <json> --authorization <json> --kill-switch <json> --configuration <json> --execution-timestamp <ISO> --preflight",
+    "  pnpm arca:governed-export --recover-journal <id> --kill-switch <json> --configuration <json> --execution-timestamp <ISO>",
     "",
     "Preflight performs zero writes, zero authorization consumption, and zero network calls.",
     "Execution remains blocked by the repository-current dedicated export kill switch.",
@@ -69,13 +72,16 @@ async function main(): Promise<void> {
     console.log(help());
     return;
   }
-  const required = [
-    "proposal",
-    "authorization",
-    "kill-switch",
-    "configuration",
-    "execution-timestamp",
-  ];
+  const recovering = typeof args["recover-journal"] === "string";
+  const required = recovering
+    ? ["recover-journal", "kill-switch", "configuration", "execution-timestamp"]
+    : [
+        "proposal",
+        "authorization",
+        "kill-switch",
+        "configuration",
+        "execution-timestamp",
+      ];
   const missing = required.filter((key) => !args[key]);
   if (missing.length) {
     console.error(`missing_required_arguments:${missing.join(",")}`);
@@ -83,13 +89,26 @@ async function main(): Promise<void> {
     return;
   }
   try {
-    const [proposal, authorization, killSwitch, configuration] =
-      await Promise.all([
-        readJson(args["proposal"]!),
-        readJson(args["authorization"]!),
-        readJson(args["kill-switch"]!),
-        readJson(args["configuration"]!),
-      ]);
+    const [killSwitch, configuration] = await Promise.all([
+      readJson(args["kill-switch"]!),
+      readJson(args["configuration"]!),
+    ]);
+    if (recovering) {
+      const result = await recoverGovernedArcaExport({
+        configuration,
+        journalId: args["recover-journal"]!,
+        killSwitch,
+        killSwitchPath: resolve(args["kill-switch"]!),
+        recoveryTimestamp: args["execution-timestamp"]!,
+      });
+      console.log(JSON.stringify(result, null, 2));
+      if (result.outcome !== "completed") process.exitCode = 1;
+      return;
+    }
+    const [proposal, authorization] = await Promise.all([
+      readJson(args["proposal"]!),
+      readJson(args["authorization"]!),
+    ]);
     const common = {
       proposal,
       authorization,
