@@ -7,8 +7,8 @@ application. The implementation starts from local commit
 `8593a03a737e91b8a9e7e2516f91988a4778f589`, whose subject is
 `AI-133: add governed ARCA scheduler locking and recovery (#128)`.
 
-The follow-up hardening review is pinned to
-`f8b68b2ef2f4aa499447c6dc5e38a76ac3bc2ece`. The shell is server-rendered by
+The execution-isolation follow-up is based on reviewed commit
+`b8305f706a2bff8b17185fd2212c849eb048bad5`. The shell is server-rendered by
 the existing Node HTTP application. It does not
 add a browser framework, authentication service, database, provider adapter, or
 runtime dependency. All rendering remains read-only.
@@ -99,6 +99,32 @@ only the common application frame and adds navigation to those views.
 - Approved Artifact presence is distinct from export, publication, production
   reliance, and `vlatam-global` consumption.
 - Rendering performs no filesystem writes and makes no network request.
+
+## Production dependency boundary
+
+The deployable composition has this read-only path:
+
+`api/index.ts` → `application-server.ts` →
+`operator-console-handler.ts` → `repository-operator-read-model.ts` →
+`openrouter-supervised-pilot-projection.ts`.
+
+The projection contains closed status types, checked-in evidence metadata,
+pure hash/evaluation helpers, and fail-closed status projections. It cannot
+accept a credential resolver, perform a provider request, authorize execution,
+or activate a runtime. Provider transport, the environment-secret provider,
+and adapter construction remain in the separately composed execution module
+`openrouter-glm-supervised-pilot.ts`. The local classifier server also remains
+separate from `api/index.ts`; classifier export and API-key handling are not
+part of the deployable UI composition.
+
+The transitive architecture test is rooted at the real `api/index.ts`. It
+recursively follows runtime static imports, export-from edges, dynamic imports,
+CommonJS `require` calls, and indirect re-exports. Erased TypeScript type-only
+edges are not runtime dependencies. The test requires the read-only projection
+edge and rejects provider adapters/transports, secret or credential loaders,
+AI-131/132/133 execution, scheduler/recovery mutation, ARCA transport,
+external database clients, deployment/DNS mutation, and `vlatam-global`
+runtime code.
 
 ## Role model and protected boundary
 

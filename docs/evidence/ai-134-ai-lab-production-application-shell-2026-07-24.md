@@ -9,8 +9,8 @@
 - Baseline subject:
   `AI-133: add governed ARCA scheduler locking and recovery (#128)`
 - Implementation branch: `feat/ai-134-ai-lab-production-shell`
-- Follow-up reviewed commit:
-  `f8b68b2ef2f4aa499447c6dc5e38a76ac3bc2ece`
+- Execution-isolation review baseline:
+  `b8305f706a2bff8b17185fd2212c849eb048bad5`
 - Remote state was not refreshed or queried.
 
 ## Derived delta
@@ -31,6 +31,16 @@ The follow-up hardening delta adds explicit runtime modes and loopback-gated
 local identity, Preview/Production fail-closed entrypoint behavior, a shared
 nonce-based HTML response policy, production-HTTPS-only HSTS, an accessible
 mobile drawer, visible mobile boundary context, and a typed status-tone map.
+
+The execution-isolation delta replaces the production path
+`api/index.ts → api-server.ts → operator-console-handler.ts →
+repository-operator-read-model.ts → openrouter-glm-supervised-pilot.ts` with
+`api/index.ts → application-server.ts → operator-console-handler.ts →
+repository-operator-read-model.ts →
+openrouter-supervised-pilot-projection.ts`. The projection is read-only and
+cannot resolve secrets or construct provider transport. The classifier server,
+OpenRouter adapter, environment-secret provider, and provider execution remain
+on the separate execution-side composition.
 
 The existing `/operator/review` and `/operator/arca-review` content paths remain
 the original review renderers. No decision or authority logic was duplicated.
@@ -77,20 +87,23 @@ Final local results:
 
 | Check                                                       | Result                               |
 | ----------------------------------------------------------- | ------------------------------------ |
-| Check                                                       | Result                               |
-| ----------------------------------------------------------- | ---------------                      |
-| Check                                                       | Result                               |
-| ----------------------------------------------------------- | ------------------------------------ |
-| Focused AI-134 UI, operator, server, and architecture tests | 74/74 passed across 7 suites         |
-| Full repository suite                                       | 1,333/1,333 passed across 157 suites |
+| Focused AI-134 UI, operator, server, and architecture tests | 75/75 passed across 7 suites         |
+| Full repository suite                                       | 1,334/1,334 passed across 157 suites |
 | TypeScript typecheck                                        | passed                               |
 | Local production build (`build:production`)                 | passed                               |
 | Scoped ESLint                                               | passed                               |
 | Scoped Prettier                                             | passed                               |
 | `git diff --check`                                          | passed                               |
 
-The transitive architecture test walks runtime imports from the browser-facing
-shell and renderer, ignores erased TypeScript type-only edges, rejects dynamic
-import bypasses, and denies scheduler, ARCA execution/transport, database,
-credential-loader, provider execution adapter, and `vlatam-global` runtime
-paths.
+The transitive architecture test starts at the actual `api/index.ts`, follows
+static imports, export-from edges, dynamic imports, `require` calls, and
+indirect re-exports, and ignores only erased TypeScript type-only edges. It
+positively requires the read-only projection and denies scheduler, ARCA
+execution/transport, database, credential/secret loader, provider adapter or
+transport, deployment/DNS mutation, and `vlatam-global` runtime paths.
+
+The entrypoint integration test imports the actual production entrypoint,
+renders `/operator`, `/operator/review`, `/operator/arca-review`, and the
+regulatory workspace with instrumented `fetch` and sensitive environment
+reads, and observes zero calls to both. It also proves the classifier execution
+route is absent from the production composition.

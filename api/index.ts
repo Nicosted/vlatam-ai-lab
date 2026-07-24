@@ -6,7 +6,7 @@ import {
   type ApplicationIdentityResolver,
 } from "../src/application/application-access.js";
 import { validateApplicationEnvironment } from "../src/application/deployment-environment.js";
-import { handleClassifierRequest } from "../src/server/api-server.js";
+import { handleApplicationRequest } from "../src/server/application-server.js";
 
 type EnvironmentSource = () => Readonly<Record<string, string | undefined>>;
 
@@ -69,7 +69,7 @@ export function createApplicationEntrypoint(
           ? options.test_identity_resolver
           : () => ANONYMOUS_IDENTITY;
 
-    await handleClassifierRequest(request, response, {
+    await handleApplicationRequest(request, response, {
       operator_repository_root: options.repository_root ?? process.cwd(),
       deployment_environment: environment.deployment_environment,
       https_context: new URL(environment.public_origin).protocol === "https:",

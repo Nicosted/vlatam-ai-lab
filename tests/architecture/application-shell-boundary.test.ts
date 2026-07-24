@@ -11,8 +11,28 @@ const UI_FILES = [
   "src/operator/operator-console.ts",
 ] as const;
 
-const LOCAL_IMPORT =
-  /(?:^|\n)\s*(?:import|export)\s+(type\s+)?(?:[^"'`;]+?\s+from\s+)?["']([^"']+)["']/g;
+const LOCAL_DEPENDENCY_PATTERNS = [
+  {
+    pattern:
+      /(?:^|\n)\s*import\s+(type\s+)?(?:[^"'`;]+?\s+from\s+)?["']([^"']+)["']/g,
+    specifier_group: 2,
+    type_group: 1,
+  },
+  {
+    pattern:
+      /(?:^|\n)\s*export\s+(type\s+)?(?:\*|\{[^}]*\})\s+from\s+["']([^"']+)["']/g,
+    specifier_group: 2,
+    type_group: 1,
+  },
+  {
+    pattern: /\bimport\s*\(\s*["']([^"']+)["']\s*\)/g,
+    specifier_group: 1,
+  },
+  {
+    pattern: /\brequire\s*\(\s*["']([^"']+)["']\s*\)/g,
+    specifier_group: 1,
+  },
+] as const;
 
 function localDependencyGraph(
   entrypoints: readonly string[],
@@ -23,20 +43,28 @@ function localDependencyGraph(
     if (visited.has(normalized)) return;
     visited.add(normalized);
     const source = read(normalized);
-    for (const match of source.matchAll(LOCAL_IMPORT)) {
-      if (match[1] !== undefined) continue;
-      const specifier = match[2]!;
-      if (!specifier.startsWith(".")) continue;
-      const unresolved = resolve(dirname(normalized), specifier);
-      const candidates = specifier.endsWith(".js")
-        ? [unresolved.slice(0, -3) + ".ts", unresolved]
-        : [unresolved, `${unresolved}.ts`, resolve(unresolved, "index.ts")];
-      const dependency = candidates.find((candidate) => existsSync(candidate));
-      assert.ok(
-        dependency,
-        `unresolved local import ${specifier} from ${file}`,
-      );
-      visit(dependency);
+    for (const dependencyPattern of LOCAL_DEPENDENCY_PATTERNS) {
+      for (const match of source.matchAll(dependencyPattern.pattern)) {
+        if (
+          "type_group" in dependencyPattern &&
+          match[dependencyPattern.type_group] !== undefined
+        )
+          continue;
+        const specifier = match[dependencyPattern.specifier_group]!;
+        if (!specifier.startsWith(".")) continue;
+        const unresolved = resolve(dirname(normalized), specifier);
+        const candidates = specifier.endsWith(".js")
+          ? [unresolved.slice(0, -3) + ".ts", unresolved]
+          : [unresolved, `${unresolved}.ts`, resolve(unresolved, "index.ts")];
+        const dependency = candidates.find((candidate) =>
+          existsSync(candidate),
+        );
+        assert.ok(
+          dependency,
+          `unresolved local dependency ${specifier} from ${file}`,
+        );
+        visit(dependency);
+      }
     }
   };
   entrypoints.forEach(visit);
@@ -84,22 +112,28 @@ describe("AI-134 application architecture boundary", () => {
     assert.doesNotMatch(config, /domains|alias|dns|deployHook/);
   });
 
-  it("checks the transitive client-facing import graph for forbidden runtime dependencies", () => {
-    const files = localDependencyGraph([
-      "src/application/application-shell.ts",
-      "src/operator/operator-console.ts",
-    ]);
-    const paths = files.join("\n");
+  it("checks the actual production entrypoint graph for forbidden runtime dependencies", () => {
+    const files = localDependencyGraph(["api/index.ts"]);
+    const paths = files.filter((file) => file.endsWith(".ts")).join("\n");
+    assert.ok(files.some((file) => file.endsWith(normalize("api/index.ts"))));
+    assert.ok(
+      files.some((file) =>
+        file.endsWith(
+          normalize("src/providers/openrouter-supervised-pilot-projection.ts"),
+        ),
+      ),
+      "production entrypoint must consume the read-only provider projection",
+    );
     assert.doesNotMatch(
       paths,
-      /(?:scheduler|controlled-live-arca-run|governed-arca-export|governed-source-acquisition|authorization-store|database-client|credential-loader|openrouter-adapter|multi-provider-gateway|vlatam-global-runtime)/i,
+      /(?:ai-131|ai-132|ai-133|scheduler|controlled-live-arca-run|governed-arca-export|governed-source-acquisition|approved-arca-artifact-builder|arca-transport|openrouter-glm-supervised-pilot|openrouter-adapter|provider-adapter|fetch-transport|secret-provider|credential-loader|database-client|supabase|postgres|prisma|multi-provider-gateway|vlatam-global-runtime|deployment-client|dns-client)/i,
     );
     for (const file of files) {
       const source = read(file);
       assert.doesNotMatch(
         source,
-        /\bimport\s*\(/,
-        `dynamic import bypass in ${file}`,
+        /\b(?:fetch|createOpenRouterFetchTransport|createOpenRouterEnvironmentSecretProvider|createClient|deploy|mutateDns|runScheduler|executeArcaTransport)\s*\(/,
+        `forbidden authority or external-client invocation in ${file}`,
       );
     }
   });

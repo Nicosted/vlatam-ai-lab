@@ -1,17 +1,5 @@
-import { createHash } from "node:crypto";
-
 import { Ajv2020 as AjvClass } from "ajv/dist/2020.js";
 
-import accountEvidenceJson from "../../config/ai-openrouter-glm-account-evidence.json" with { type: "json" };
-import activationReviewJson from "../../config/ai-openrouter-glm-activation-review.json" with { type: "json" };
-import capabilityAcceptanceJson from "../../config/ai-openrouter-glm-capability-acceptance.json" with { type: "json" };
-import evidencePackJson from "../../config/ai-openrouter-glm-external-evidence-pack.json" with { type: "json" };
-import runtimeJson from "../../config/ai-openrouter-glm-first-run-runtime.json" with { type: "json" };
-import pricingPolicyJson from "../../config/ai-openrouter-glm-pricing-policy-candidate.json" with { type: "json" };
-import readinessDossierJson from "../../config/ai-openrouter-glm-readiness-dossier.json" with { type: "json" };
-import proposalJson from "../../config/ai-openrouter-glm-supervised-enablement-proposal.json" with { type: "json" };
-import zdrReviewJson from "../../config/ai-openrouter-glm-zdr-review-candidate.json" with { type: "json" };
-import operationContractJson from "../../config/ai-commercial-document-pilot-operation.json" with { type: "json" };
 import commercialDocumentSchema from "../../schemas/ai-commercial-document-extraction.schema.json" with { type: "json" };
 import type {
   OpenRouterAdapterConfig,
@@ -22,22 +10,44 @@ import {
   createOpenRouterFetchTransport,
 } from "./openrouter-adapter.js";
 import { createOpenRouterEnvironmentSecretProvider } from "./openrouter-secret-provider.js";
+import {
+  computeGlmAccountEvidenceHash,
+  evaluateGlmGovernanceArtifacts,
+  GLM_ENDPOINT_TAG,
+  GLM_MODEL_ID,
+  GLM_OPERATION_ID,
+  GLM_PROFILE_ID,
+  GLM_PROVIDER_SLUG,
+  GLM_RESPONSE_PROVIDER_IDENTITY,
+  GLM_ROUTE_ID,
+  glmGovernanceArtifacts,
+  projectGlmFirstRunReadiness,
+} from "./openrouter-supervised-pilot-projection.js";
+export {
+  computeGlmAccountEvidenceHash,
+  computeGlmGovernanceArtifactHash,
+  computeGlmOperationContractHash,
+  evaluateGlmGovernanceArtifacts,
+  GLM_ACCOUNT_EVIDENCE_HASH_DOMAIN,
+  GLM_ENDPOINT_DISPLAY_IDENTITY,
+  GLM_ENDPOINT_TAG,
+  GLM_MODEL_ID,
+  GLM_OPERATION_HASH_DOMAIN,
+  GLM_OPERATION_ID,
+  GLM_PROFILE_ID,
+  GLM_PROVIDER_SLUG,
+  GLM_RESPONSE_PROVIDER_IDENTITY,
+  GLM_ROUTE_ID,
+  glmAccountEvidence,
+  glmGovernanceArtifacts,
+  glmOperationContract,
+  type GlmGovernanceEvaluation,
+} from "./openrouter-supervised-pilot-projection.js";
 
-export const GLM_MODEL_ID = "z-ai/glm-5.2" as const;
-export const GLM_PROVIDER_SLUG = "fireworks" as const;
-export const GLM_ENDPOINT_TAG = "fireworks" as const;
-export const GLM_RESPONSE_PROVIDER_IDENTITY = "Fireworks" as const;
-export const GLM_ENDPOINT_DISPLAY_IDENTITY =
-  "Fireworks | z-ai/glm-5.2-20260616" as const;
-export const GLM_PROFILE_ID =
-  "openrouter.glm-5.2.commercial-document-extraction.candidate" as const;
-export const GLM_ROUTE_ID =
-  "openrouter.glm-5.2.fireworks-standard-candidate" as const;
-export const GLM_OPERATION_ID = "VLATAM-PILOT-001" as const;
-export const GLM_ACCOUNT_EVIDENCE_HASH_DOMAIN =
-  "vlatam-ai-lab:openrouter-account-evidence:v1" as const;
-export const GLM_OPERATION_HASH_DOMAIN =
-  "vlatam-ai-lab:glm-operation-binding:v1" as const;
+const {
+  activation_review: activationReviewJson,
+  first_run_runtime: runtimeJson,
+} = glmGovernanceArtifacts;
 
 type JsonRecord = Record<string, unknown>;
 
@@ -62,222 +72,6 @@ function canonical(value: unknown): string {
   throw new Error("unsupported_json_value");
 }
 
-function domainHash(domain: string, value: unknown, hashField: string): string {
-  if (!isRecord(value)) throw new Error("hash_input_not_object");
-  const payload = { ...value };
-  delete payload[hashField];
-  return createHash("sha256")
-    .update(domain)
-    .update("\n")
-    .update(canonical(payload))
-    .digest("hex");
-}
-
-export function computeGlmAccountEvidenceHash(value: unknown): string {
-  return domainHash(GLM_ACCOUNT_EVIDENCE_HASH_DOMAIN, value, "evidence_hash");
-}
-
-export function computeGlmOperationContractHash(value: unknown): string {
-  return domainHash(GLM_OPERATION_HASH_DOMAIN, value, "artifact_hash");
-}
-
-export function computeGlmGovernanceArtifactHash(value: unknown): string {
-  if (!isRecord(value) || typeof value["hash_domain"] !== "string")
-    throw new Error("glm_governance_hash_domain_missing");
-  return domainHash(value["hash_domain"], value, "artifact_hash");
-}
-
-export interface GlmGovernanceEvaluation {
-  readonly outcome: "blocked" | "eligible" | "invalid";
-  readonly blockers: readonly string[];
-  readonly artifact_hashes: Readonly<Record<string, string>>;
-}
-
-export function evaluateGlmGovernanceArtifacts(
-  now = new Date(),
-): GlmGovernanceEvaluation {
-  const artifacts = [
-    operationContractJson,
-    evidencePackJson,
-    pricingPolicyJson,
-    zdrReviewJson,
-    capabilityAcceptanceJson,
-    readinessDossierJson,
-    proposalJson,
-    runtimeJson,
-    activationReviewJson,
-  ] as readonly JsonRecord[];
-  const invalid = new Set<string>();
-  const hashes: Record<string, string> = {};
-  const blockers = new Set<string>();
-  for (const artifact of artifacts) {
-    const id = String(artifact["artifact_id"] ?? "unknown");
-    const stored = String(artifact["artifact_hash"] ?? "");
-    hashes[id] = stored;
-    if (
-      !SHA256.test(stored) ||
-      stored !== computeGlmGovernanceArtifactHash(artifact)
-    )
-      invalid.add(`artifact_hash_mismatch:${id}`);
-    if (artifact["execution_authority"] !== false)
-      invalid.add(`artifact_authority_forbidden:${id}`);
-    if (Array.isArray(artifact["blockers"]))
-      for (const blocker of artifact["blockers"]) blockers.add(String(blocker));
-  }
-  const observedAt = Date.parse(evidencePackJson.observed_at);
-  const maximumEvidenceAgeMs = 30 * 24 * 60 * 60 * 1000;
-  if (
-    !Number.isFinite(observedAt) ||
-    now.getTime() - observedAt > maximumEvidenceAgeMs
-  )
-    blockers.add("metadata_evidence_expired");
-  const expectedBindings: readonly [JsonRecord, string, string][] = [
-    [
-      readinessDossierJson,
-      "model_hash",
-      "c003f49b14893bc2e477ec3d01d191822f07aa7f65e8a78b3ce3ebdbfc45f8f1",
-    ],
-    [
-      readinessDossierJson,
-      "route_hash",
-      "b1fb5f5591659ca9fb222f3115234df427718e3a65c1cfcdd127cbdac9a88151",
-    ],
-    [
-      readinessDossierJson,
-      "profile_hash",
-      "5dc48fa5584e1326293af73f392256c4dff07b6bd649c47436088d17c7650291",
-    ],
-    [
-      readinessDossierJson,
-      "operation_binding_hash",
-      operationContractJson.artifact_hash,
-    ],
-    [
-      readinessDossierJson,
-      "external_evidence_hash",
-      evidencePackJson.artifact_hash,
-    ],
-    [
-      readinessDossierJson,
-      "pricing_policy_hash",
-      pricingPolicyJson.artifact_hash,
-    ],
-    [readinessDossierJson, "zdr_review_hash", zdrReviewJson.artifact_hash],
-    [
-      readinessDossierJson,
-      "capability_acceptance_hash",
-      capabilityAcceptanceJson.artifact_hash,
-    ],
-    [
-      proposalJson,
-      "readiness_dossier_hash",
-      readinessDossierJson.artifact_hash,
-    ],
-    [
-      proposalJson,
-      "operation_binding_hash",
-      operationContractJson.artifact_hash,
-    ],
-    [runtimeJson, "proposal_hash", proposalJson.artifact_hash],
-    [runtimeJson, "readiness_dossier_hash", readinessDossierJson.artifact_hash],
-    [runtimeJson, "external_evidence_hash", evidencePackJson.artifact_hash],
-    [runtimeJson, "pricing_policy_hash", pricingPolicyJson.artifact_hash],
-    [runtimeJson, "zdr_review_hash", zdrReviewJson.artifact_hash],
-    [
-      runtimeJson,
-      "capability_acceptance_hash",
-      capabilityAcceptanceJson.artifact_hash,
-    ],
-    [
-      runtimeJson,
-      "operation_binding_hash",
-      operationContractJson.artifact_hash,
-    ],
-    [
-      runtimeJson,
-      "profile_hash",
-      "5dc48fa5584e1326293af73f392256c4dff07b6bd649c47436088d17c7650291",
-    ],
-    [
-      runtimeJson,
-      "route_hash",
-      "b1fb5f5591659ca9fb222f3115234df427718e3a65c1cfcdd127cbdac9a88151",
-    ],
-    [
-      runtimeJson,
-      "model_hash",
-      "c003f49b14893bc2e477ec3d01d191822f07aa7f65e8a78b3ce3ebdbfc45f8f1",
-    ],
-    [activationReviewJson, "runtime_hash", runtimeJson.artifact_hash],
-    [activationReviewJson, "proposal_hash", proposalJson.artifact_hash],
-    [
-      activationReviewJson,
-      "readiness_dossier_hash",
-      readinessDossierJson.artifact_hash,
-    ],
-    [
-      activationReviewJson,
-      "external_evidence_hash",
-      evidencePackJson.artifact_hash,
-    ],
-    [
-      activationReviewJson,
-      "pricing_policy_hash",
-      pricingPolicyJson.artifact_hash,
-    ],
-    [activationReviewJson, "zdr_review_hash", zdrReviewJson.artifact_hash],
-    [
-      activationReviewJson,
-      "capability_acceptance_hash",
-      capabilityAcceptanceJson.artifact_hash,
-    ],
-    [
-      activationReviewJson,
-      "operation_binding_hash",
-      operationContractJson.artifact_hash,
-    ],
-  ];
-  for (const [artifact, key, expected] of expectedBindings) {
-    const bindings = isRecord(artifact["bindings"]) ? artifact["bindings"] : {};
-    if (bindings[key] !== expected)
-      invalid.add(`artifact_binding_mismatch:${key}`);
-  }
-  if (runtimeJson.exact_model !== GLM_MODEL_ID)
-    invalid.add("runtime_model_identity_mismatch");
-  if (
-    runtimeJson.provider_catalog_slug !== GLM_PROVIDER_SLUG ||
-    runtimeJson.endpoint_tag !== GLM_ENDPOINT_TAG ||
-    runtimeJson.endpoint_display_identity !== GLM_ENDPOINT_DISPLAY_IDENTITY ||
-    runtimeJson.expected_response_provider_identity !==
-      GLM_RESPONSE_PROVIDER_IDENTITY ||
-    runtimeJson.provider.only.length !== 1 ||
-    runtimeJson.provider.only[0] !== GLM_PROVIDER_SLUG ||
-    runtimeJson.provider.order.length !== 1 ||
-    runtimeJson.provider.order[0] !== GLM_PROVIDER_SLUG
-  )
-    invalid.add("runtime_fireworks_identity_binding_invalid");
-  if (
-    runtimeJson.adapter_enabled !== false ||
-    runtimeJson.model_enabled !== false ||
-    runtimeJson.route_enabled !== false ||
-    runtimeJson.profile_enabled !== false ||
-    runtimeJson.budget_enabled !== false ||
-    runtimeJson.kill_switch_active !== true
-  )
-    invalid.add("runtime_fail_closed_controls_invalid");
-  if (invalid.size > 0)
-    return Object.freeze({
-      outcome: "invalid",
-      blockers: [...invalid].sort(),
-      artifact_hashes: Object.freeze(hashes),
-    });
-  return Object.freeze({
-    outcome: blockers.size > 0 ? "blocked" : "eligible",
-    blockers: Object.freeze([...blockers].sort()),
-    artifact_hashes: Object.freeze(hashes),
-  });
-}
-
 export async function evaluateGlmFirstRunPreflight(
   resolveSecret?: () => Promise<unknown>,
 ): Promise<
@@ -287,27 +81,18 @@ export async function evaluateGlmFirstRunPreflight(
     secret_requested: boolean;
   }>
 > {
-  const governance = evaluateGlmGovernanceArtifacts();
-  if (governance.outcome !== "eligible")
+  const projection = projectGlmFirstRunReadiness();
+  if (!projection.secret_resolution_allowed)
     return Object.freeze({
       outcome: "blocked",
-      reasons: governance.blockers,
-      secret_requested: false,
-    });
-  if (
-    runtimeJson.provider_catalog_slug !== GLM_PROVIDER_SLUG ||
-    runtimeJson.endpoint_tag !== GLM_ENDPOINT_TAG
-  )
-    return Object.freeze({
-      outcome: "blocked",
-      reasons: ["exact_provider_endpoint_slug_unproven"],
+      reasons: projection.reasons,
       secret_requested: false,
     });
   if (resolveSecret === undefined)
     return Object.freeze({
-      outcome: "blocked",
-      reasons: ["secret_resolver_missing"],
-      secret_requested: false,
+      outcome: projection.outcome,
+      reasons: projection.reasons,
+      secret_requested: projection.secret_requested,
     });
   await resolveSecret();
   return Object.freeze({
@@ -537,17 +322,3 @@ export function createGlmAdapterForAuthorizedGateway(
     validate_structured_output: validateGlmCommercialDocumentResponse,
   });
 }
-
-export const glmAccountEvidence = accountEvidenceJson;
-export const glmOperationContract = operationContractJson;
-export const glmGovernanceArtifacts = Object.freeze({
-  readiness_dossier: readinessDossierJson,
-  external_evidence_pack: evidencePackJson,
-  supervised_enablement_proposal: proposalJson,
-  first_run_runtime: runtimeJson,
-  activation_review: activationReviewJson,
-  capability_acceptance: capabilityAcceptanceJson,
-  pricing_policy: pricingPolicyJson,
-  zdr_review: zdrReviewJson,
-  operation_binding: operationContractJson,
-});

@@ -2,7 +2,9 @@ import assert from "node:assert/strict";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { describe, it } from "node:test";
 
-import { createApplicationEntrypoint } from "../../api/index.js";
+import productionEntrypoint, {
+  createApplicationEntrypoint,
+} from "../../api/index.js";
 import type { ApplicationIdentity } from "../../src/application/application-access.js";
 
 const TEST_ADMIN: ApplicationIdentity = {
@@ -172,5 +174,54 @@ describe("AI-134 application entrypoint identity boundary", () => {
       /max-age=63072000/,
     );
     assert.equal(preview.headers["Strict-Transport-Security"], undefined);
+  });
+
+  it("renders read-only routes through the actual entrypoint composition without external or secret boundaries", async () => {
+    assert.equal(typeof productionEntrypoint, "function");
+    const originalEnvironment = process.env;
+    const originalFetch = globalThis.fetch;
+    let sensitiveEnvironmentReads = 0;
+    let fetchCalls = 0;
+    process.env = new Proxy(originalEnvironment, {
+      get(target, property, receiver) {
+        if (
+          typeof property === "string" &&
+          /(?:openrouter|secret|token|password|credential|api[_-]?keys?|database_url|supabase)/i.test(
+            property,
+          )
+        )
+          sensitiveEnvironmentReads += 1;
+        return Reflect.get(target, property, receiver);
+      },
+    });
+    globalThis.fetch = (async () => {
+      fetchCalls += 1;
+      throw new Error("production entrypoint attempted an external request");
+    }) as typeof fetch;
+
+    try {
+      for (const path of [
+        "/operator",
+        "/operator/review",
+        "/operator/arca-review",
+        "/research/regulatory/ar-es-ecological-agrochemicals",
+      ]) {
+        const result = await request(environment("test"), path, {
+          testIdentity: TEST_ADMIN,
+        });
+        assert.equal(result.status, 200, path);
+      }
+      const classifier = await request(
+        environment("test"),
+        "/api/classifier/source/artifact--source--candidate",
+        { testIdentity: TEST_ADMIN },
+      );
+      assert.equal(classifier.status, 404);
+      assert.equal(fetchCalls, 0);
+      assert.equal(sensitiveEnvironmentReads, 0);
+    } finally {
+      globalThis.fetch = originalFetch;
+      process.env = originalEnvironment;
+    }
   });
 });

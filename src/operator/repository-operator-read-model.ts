@@ -7,10 +7,11 @@ import {
   GLM_MODEL_ID,
   GLM_PROFILE_ID,
   GLM_ROUTE_ID,
-  evaluateGlmFirstRunPreflight,
   evaluateGlmGovernanceArtifacts,
   glmGovernanceArtifacts,
-} from "../providers/openrouter-glm-supervised-pilot.js";
+  projectGlmFirstRunReadiness,
+  projectOpenRouterSandboxPreflight,
+} from "../providers/openrouter-supervised-pilot-projection.js";
 
 import {
   evaluateOpenRouterExternalEvidencePack,
@@ -37,10 +38,6 @@ import {
   type OpenRouterSandboxActivationReviewDependencies,
 } from "../providers/openrouter-sandbox-activation-review.js";
 import { evaluateOpenRouterSandboxGoldCase } from "../providers/openrouter-sandbox-gold-case.js";
-import {
-  evaluateOpenRouterSandboxPreflight,
-  type OpenRouterSandboxRuntimeConfig,
-} from "../providers/openrouter-sandbox-preflight.js";
 import {
   buildOperatorReadModel,
   type OperatorReadModel,
@@ -371,26 +368,12 @@ export async function loadRepositoryOperatorReadModel(
     if (bindings[key] !== expected)
       sourceErrors.push(`runtime_binding_mismatch:${key}`);
 
-  const preflightResult = await evaluateOpenRouterSandboxPreflight({
+  const preflightResult = projectOpenRouterSandboxPreflight({
     config: runtime,
     expected_bindings: expectedBindings,
-    kill_switch: {
-      evaluate: (reference) => ({
-        reference,
-        active:
-          isRecord(runtimeRecord.kill_switch) &&
-          runtimeRecord.kill_switch.active === true,
-      }),
-    },
-    budget: { available: () => false },
-    resolve_secret: false,
     now: evaluatedAt,
-    operator_id: "repository.operator-read-model",
-    invocation: "manual",
-    test_data_classification: "synthetic",
   });
 
-  const typedRuntime = runtime as OpenRouterSandboxRuntimeConfig;
   const typedModels = models as OpenRouterModelRegistryData;
   const typedRoutes = routes as OpenRouterRouteRegistryData;
   const typedProfiles = profileEntries.filter(isRecord);
@@ -398,7 +381,7 @@ export async function loadRepositoryOperatorReadModel(
     ? artifactHash("vlatam-ai-lab:openrouter-sandbox-runtime:v1", runtime)
     : null;
   const glmGovernance = evaluateGlmGovernanceArtifacts();
-  const glmPreflight = await evaluateGlmFirstRunPreflight();
+  const glmPreflight = projectGlmFirstRunReadiness();
   const glmProfile = typedProfiles.find(
     (profile) => profile.profile_id === GLM_PROFILE_ID,
   );
@@ -720,7 +703,7 @@ export async function loadRepositoryOperatorReadModel(
       gateway_invoked: false,
     },
     budget: {
-      status: typedRuntime?.budget_enabled === true ? "enabled" : "disabled",
+      status: runtimeRecord.budget_enabled === true ? "enabled" : "disabled",
       maximum_requests: Number.isSafeInteger(runtimeRecord.maximum_requests)
         ? (runtimeRecord.maximum_requests as number)
         : null,

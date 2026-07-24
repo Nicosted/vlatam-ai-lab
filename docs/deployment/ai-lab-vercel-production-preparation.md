@@ -38,6 +38,12 @@ value with a non-HTTPS origin fails closed. Preview and Production do not honor
 local role headers and resolve anonymous until a reviewed trusted identity
 resolver is implemented.
 
+The entrypoint composes only the read-only application server and operator
+projection. It does not import the classifier API server, provider transport,
+OpenRouter adapter, environment-secret provider, credential loaders, scheduler
+execution, or ARCA transport. Those remain execution-side modules and are not
+reachable from the planned deployment entrypoint.
+
 `AI_LAB_LOCAL_AUTH_ENABLED=true` is developer-only. It is valid only with
 `AI_LAB_RUNTIME_MODE=development_local`,
 `AI_LAB_DEPLOYMENT_ENV=development`, a loopback public origin, loopback request

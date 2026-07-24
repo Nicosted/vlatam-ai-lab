@@ -25,10 +25,11 @@ describe("operator read-model architecture boundary", () => {
       "evaluateOpenRouterReadinessDossier",
       "evaluateOpenRouterExternalEvidencePack",
       "evaluateOpenRouterSandboxEnablementProposal",
-      "evaluateOpenRouterSandboxPreflight",
+      "projectOpenRouterSandboxPreflight",
       "validateOpenRouterRegistry",
     ])
       assert.match(loader, new RegExp(evaluator));
+    assert.doesNotMatch(loader, /evaluateOpenRouterSandboxPreflight/);
   });
 
   it("keeps the ARCA console projection presentation-only", () => {
