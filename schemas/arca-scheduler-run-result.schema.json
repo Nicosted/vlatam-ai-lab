@@ -1,0 +1,142 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.vlatam.local/arca-scheduler-run-result.schema.json",
+  "title": "Governed ARCA scheduler run result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "result_id",
+    "result_sha256",
+    "run_id",
+    "request_id",
+    "completed_at",
+    "final_state",
+    "acquisition_outcome",
+    "export_outcome",
+    "observation_sha256",
+    "stop_reason",
+    "automatic_retry_eligible",
+    "acquisition_authority_created",
+    "export_authority_created",
+    "import_authorized",
+    "publication_authorized",
+    "deployment_authorized",
+    "database_write_authorized",
+    "production_reliance_authorized",
+    "downstream_scheduling_authorized",
+    "vlatam_global_access_authorized"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "result_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{0,127}$"
+    },
+    "result_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "run_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{0,127}$"
+    },
+    "request_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{0,127}$"
+    },
+    "completed_at": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{3}Z$"
+    },
+    "final_state": {
+      "enum": [
+        "scheduled",
+        "lease_acquired",
+        "configuration_verified",
+        "activation_verified",
+        "observation_started",
+        "acquisition_preflight_checked",
+        "acquisition_execution_started",
+        "acquisition_not_authorized",
+        "acquisition_verified",
+        "acquisition_blocked",
+        "acquisition_unknown",
+        "export_preflight_checked",
+        "export_execution_started",
+        "export_not_authorized",
+        "export_verified",
+        "export_blocked",
+        "observation_recorded",
+        "recovery_required",
+        "safe_abort_before_authority",
+        "authority_consumed_recovery",
+        "unknown_delivery_manual_review",
+        "lease_expired_recovery",
+        "completed"
+      ]
+    },
+    "acquisition_outcome": {
+      "enum": [
+        "not_authorized",
+        "positively_not_consumed",
+        "consumed_completed",
+        "consumed_recovery_required",
+        "unknown_delivery",
+        "divergent_evidence",
+        "malformed_evidence"
+      ]
+    },
+    "export_outcome": {
+      "enum": [
+        "not_authorized",
+        "positively_not_consumed",
+        "consumed_completed",
+        "consumed_recovery_required",
+        "unknown_delivery",
+        "divergent_evidence",
+        "malformed_evidence"
+      ]
+    },
+    "observation_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "stop_reason": {
+      "type": "string",
+      "minLength": 1
+    },
+    "automatic_retry_eligible": {
+      "const": false
+    },
+    "acquisition_authority_created": {
+      "const": false
+    },
+    "export_authority_created": {
+      "const": false
+    },
+    "import_authorized": {
+      "const": false
+    },
+    "publication_authorized": {
+      "const": false
+    },
+    "deployment_authorized": {
+      "const": false
+    },
+    "database_write_authorized": {
+      "const": false
+    },
+    "production_reliance_authorized": {
+      "const": false
+    },
+    "downstream_scheduling_authorized": {
+      "const": false
+    },
+    "vlatam_global_access_authorized": {
+      "const": false
+    }
+  }
+}

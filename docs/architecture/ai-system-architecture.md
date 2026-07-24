@@ -246,6 +246,18 @@ seed advisory cases.
   cannot publish missing package bytes without the exact journal-bound reviewed
   root configuration and a final reread of the exact hash/path-bound reviewed
   disabled export switch.
+- **AI-133 governed scheduler seam (2026-07-23):** eleven closed `1.0.0`
+  contracts separate inactive scheduler configuration, expiring human
+  activation, scheduled request, durable filesystem lease, run journal,
+  result, observation, recovery decision, immediate scheduler kill switch,
+  activation-scoped attempt ledger and semantic-slot acceptance. Observation
+  is local-only and caller claims cannot become authority. Execution can invoke
+  only the existing AI-131/AI-132 boundaries after exact request-bound
+  artifacts, trusted time, current switch bytes, activation, window, slot,
+  duration, lease and atomic caps pass. `execution_started` is
+  `authority_outcome_unknown` until authoritative evidence resolves it.
+  Recovery is read-only, unknown delivery is manual-review-only, missed slots
+  never catch up, and repository-current scheduling/execution remain blocked.
 - **Must not contain:** model SDK calls, vendor response objects, or any
   post-review content.
 - **Owner today:** `src/agents/source-monitor.ts`,

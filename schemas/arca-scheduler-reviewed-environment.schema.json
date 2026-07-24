@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.vlatam.local/arca-scheduler-reviewed-environment.schema.json",
+  "title": "Governed ARCA scheduler independently reviewed environment",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "environment_id",
+    "environment_sha256",
+    "repository_root",
+    "scheduler_configuration_path",
+    "scheduler_switch_path",
+    "ai_131_configuration_path",
+    "ai_131_switch_path",
+    "ai_132_configuration_path",
+    "ai_132_switch_path",
+    "scheduler_state_root",
+    "scheduler_observation_root",
+    "ai_130_root",
+    "ai_131_state_root",
+    "ai_131_acquisition_root",
+    "ai_131_candidate_root",
+    "ai_132_state_root",
+    "ai_132_export_root",
+    "ai_132_recovery_root"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "environment_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{0,127}$"
+    },
+    "environment_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "repository_root": {
+      "type": "string",
+      "minLength": 1
+    },
+    "scheduler_configuration_path": {
+      "type": "string",
+      "minLength": 1
+    },
+    "scheduler_switch_path": {
+      "type": "string",
+      "minLength": 1
+    },
+    "ai_131_configuration_path": {
+      "type": "string",
+      "minLength": 1
+    },
+    "ai_131_switch_path": {
+      "type": "string",
+      "minLength": 1
+    },
+    "ai_132_configuration_path": {
+      "type": "string",
+      "minLength": 1
+    },
+    "ai_132_switch_path": {
+      "type": "string",
+      "minLength": 1
+    },
+    "scheduler_state_root": {
+      "type": "string",
+      "minLength": 1
+    },
+    "scheduler_observation_root": {
+      "type": "string",
+      "minLength": 1
+    },
+    "ai_130_root": {
+      "type": "string",
+      "minLength": 1
+    },
+    "ai_131_state_root": {
+      "type": "string",
+      "minLength": 1
+    },
+    "ai_131_acquisition_root": {
+      "type": "string",
+      "minLength": 1
+    },
+    "ai_131_candidate_root": {
+      "type": "string",
+      "minLength": 1
+    },
+    "ai_132_state_root": {
+      "type": "string",
+      "minLength": 1
+    },
+    "ai_132_export_root": {
+      "type": "string",
+      "minLength": 1
+    },
+    "ai_132_recovery_root": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

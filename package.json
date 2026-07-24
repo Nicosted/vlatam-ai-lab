@@ -18,6 +18,7 @@
     "arca:durable-store": "tsx src/cli/durable-arca-review-store.ts",
     "arca:controlled-live-run": "tsx src/cli/controlled-live-arca-run.ts",
     "arca:governed-export": "tsx src/cli/governed-arca-export.ts",
+    "arca:governed-scheduler": "tsx src/cli/governed-arca-scheduler.ts",
     "crawler:packet": "tsx src/crawlers/generate-packet-from-arca.ts",
     "crawler:infoleg": "tsx src/crawlers/infoleg-crawler.ts",
     "crawler:vuce-extract": "tsx src/crawlers/vuce-extractor.ts",

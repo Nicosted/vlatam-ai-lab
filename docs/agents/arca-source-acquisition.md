@@ -339,3 +339,57 @@ reinterpret, enrich, classify, summarize or invoke an LLM. It is fixed to
 `vlatam-global` / `handoff_only` and states `not_imported`, `not_published`,
 `not_deployed`, `not_authorized` and no external network transfer. AI-132 does
 not implement a consumer, publisher, deployment, scheduler or production path.
+
+## AI-133 governed scheduler, locking and recovery boundary
+
+AI-133 adds a local, bounded orchestration seam around the existing AI-131 and
+AI-132 entry points. Scheduling authority remains distinct from acquisition
+and export authority. An execution iteration requires an active exact
+configuration, a separate unexpired human-reviewed activation, the disabled
+reviewed scheduler switch, an atomic durable lease, and the exact independent
+AI-131 or AI-132 artifacts required by those boundaries. The scheduler cannot
+create either authorization or disable any switch.
+
+`pnpm arca:governed-scheduler observe --input <json>` records local readiness,
+recovery and counter state without invoking either boundary or making a
+network call. Caller readiness is `unverified_reported_input` unless a
+read-only authoritative inspector supplies it. `run-once` rejects nested
+boundary objects and loads exact request-bound configuration, proposal,
+authorization, consumption, journal, result, evidence and switch identities,
+semantic hashes, byte hashes and paths. It has no retry loop and stops on
+unknown acquisition delivery.
+
+Before each authority-capable transition, the scheduler advances the exact
+lease heartbeat, obtains trusted UTC time, rereads the exact scheduler switch,
+revalidates configuration, activation, window, slot and maximum duration, then
+atomically reserves a separate AI-131 or AI-132 attempt. Reservations remain
+counted after crashes, consumption, failure or recovery. Durable semantic-slot
+acceptance rejects duplicates, historical replay and catch-up bursts.
+
+`recover` first requires an expired and stale heartbeat, then invokes the
+existing AI-131 read-only inspector and AI-132 read-only reconciliation. It
+never steals or blindly deletes a lease, publishes, regenerates authority,
+changes a switch, or converts uncertain delivery into a retryable failure.
+
+Execution-time preflight and boundary callbacks are also reconciled through
+those real inspectors. The scheduler records one of seven closed authoritative
+dispositions for each boundary. In the current acquisition-then-export
+workflow, AI-132 is invoked only after AI-131 is exactly
+`consumed_completed`, and the scheduler completes and releases its lease only
+after AI-132 is also exactly `consumed_completed`. Unknown delivery, visible
+consumption without exact durable completion, divergent/malformed evidence,
+blocked callbacks without positive non-consumption, and missing authenticated
+attempt-ledger evidence remain `recovery_required` and non-retryable.
+
+Recovery selects the compiled environment `repository-current-ai-133`; callers
+cannot choose repository, configuration, switch, state, observation,
+acquisition, candidate, export, or recovery roots. An empty attempt set is
+accepted only with the exact hash-valid ledger manifest and an empty
+manifest-bound reservation directory before any authority-capable journal
+phase.
+
+The repository-current configuration is inactive, permits zero daily
+execution attempts, and is protected by an active scheduler execution switch.
+Only a non-authorizing activation template is checked in. There is no daemon,
+cron, hosted schedule, launch agent, background process, active pilot, or
+catch-up behavior.

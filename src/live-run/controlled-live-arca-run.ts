@@ -1152,9 +1152,10 @@ export async function executeControlledLiveArcaRun(
     "consumptions",
     `${authorization.authorization_id}.json`,
   );
-  const consumption = {
+  const consumptionWithoutHash = {
     schema_version: "1.0.0",
     consumption_id: consumptionId,
+    consumption_sha256: "0".repeat(64),
     proposal_id: proposal.proposal_id,
     proposal_sha256: proposal.proposal_sha256,
     authorization_id: authorization.authorization_id,
@@ -1163,6 +1164,13 @@ export async function executeControlledLiveArcaRun(
     run_id: input.runId,
     attempt_id: journal.attempt_id,
     consumed_at: input.executionTimestamp,
+  };
+  const consumption = {
+    ...consumptionWithoutHash,
+    consumption_sha256: domainHash(
+      "vlatam-ai-lab/controlled-live-arca-consumption-record/v1",
+      without(consumptionWithoutHash, ["consumption_sha256"]),
+    ),
   };
   try {
     await writeExclusiveJson(consumptionPath, consumption);
