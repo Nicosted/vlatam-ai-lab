@@ -243,6 +243,20 @@ describe("handleClassifierRequest", () => {
     assert.equal(response.statusCode, 200);
   });
 
+  it("exposes a safe liveness endpoint without operational state", async () => {
+    const response = await request("/healthz", { apiKey: null });
+    assert.equal(response.statusCode, 200);
+    assert.deepEqual(response.body, {
+      status: "ok",
+      service: "vlatam-ai-lab",
+      operational_state_exposed: false,
+    });
+    assert.match(
+      response.headers["Content-Security-Policy"] ?? "",
+      /connect-src 'none'/,
+    );
+  });
+
   it("renders the regulatory research workspace page without requiring an API key", async () => {
     const response = await request(
       "/research/regulatory/ar-es-ecological-agrochemicals",

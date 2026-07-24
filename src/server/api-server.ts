@@ -16,7 +16,12 @@ import {
   ReviewBindingError,
   type ReviewPolicyExpectation,
 } from "../review/review-artifact-binding.js";
-import { handleOperatorConsoleRequest } from "../operator/operator-console-handler.js";
+import {
+  APPLICATION_SECURITY_HEADERS,
+  handleOperatorConsoleRequest,
+} from "../operator/operator-console-handler.js";
+import type { DeploymentEnvironment } from "../application/deployment-environment.js";
+import type { ApplicationIdentityResolver } from "../application/application-access.js";
 
 export interface ApiRequest {
   method: string;
@@ -42,6 +47,8 @@ export interface ApiServerOptions {
   operator_repository_root?: string;
   review_policy?: ReviewPolicyExpectation;
   clock?: () => Date;
+  deployment_environment?: DeploymentEnvironment;
+  resolve_application_identity?: ApplicationIdentityResolver;
 }
 
 interface RateLimitEntry {
@@ -71,6 +78,7 @@ function sendJson(
     "Content-Type": "application/json",
     "X-Content-Type-Options": "nosniff",
     "Cache-Control": "no-store",
+    ...APPLICATION_SECURITY_HEADERS,
     ...headers,
   });
   res.end(JSON.stringify(body));
@@ -182,9 +190,25 @@ export async function handleClassifierRequest(
   if (
     await handleOperatorConsoleRequest(req, res, {
       repository_root: options?.operator_repository_root ?? process.cwd(),
+      deployment_environment: options?.deployment_environment ?? "development",
+      ...(options?.resolve_application_identity
+        ? { resolve_identity: options.resolve_application_identity }
+        : {}),
     })
   )
     return;
+
+  // Liveness only: this exposes no scheduler, authority, dependency, or
+  // production-readiness state.
+  if (req.url === "/healthz" && req.method === "GET") {
+    sendJson(res, 200, {
+      status: "ok",
+      service: "vlatam-ai-lab",
+      operational_state_exposed: false,
+    });
+    return;
+  }
+
   const rateLimit = checkRateLimit(req.socket.remoteAddress ?? "unknown");
   if (!rateLimit.allowed) {
     sendJson(
@@ -196,7 +220,7 @@ export async function handleClassifierRequest(
     return;
   }
 
-  // Health check endpoint. Keep the response intentionally free of internal state.
+  // Compatibility health route. It remains public but rate-limited.
   if (req.url === "/health" && req.method === "GET") {
     sendJson(res, 200, {
       status: "healthy",

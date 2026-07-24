@@ -5,6 +5,11 @@ import { dirname, resolve } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 
+import type { ApplicationIdentity } from "../../src/application/application-access.js";
+import {
+  APPLICATION_ROUTES,
+  APPLICATION_SHELL_CSS,
+} from "../../src/application/application-shell.js";
 import {
   handleOperatorConsoleRequest,
   type OperatorConsoleOptions,
@@ -31,16 +36,34 @@ const load = () =>
   });
 
 const NAV_LABELS = [
-  "Resumen",
-  "Proveedores",
-  "Gobernanza",
-  "Bloqueos",
-  "Acciones requeridas",
-  "Revisión humana",
-  "Revisión ARCA",
-  "Ejecución",
-  "Auditoría",
+  "Overview",
+  "ARCA",
+  "Acquisitions",
+  "Exports",
+  "Recovery",
+  "Human Review",
+  "Approved Artifacts",
+  "Providers",
+  "Registry",
+  "Tournaments",
+  "AI LAB",
+  "OpenRouter",
+  "Vercel Eve",
+  "Cloudflare",
+  "Regulations",
+  "Sources",
+  "News",
+  "Evidence",
+  "Settings",
 ] as const;
+
+const ADMIN_IDENTITY: ApplicationIdentity = {
+  authenticated: true,
+  display_name: "Admin local",
+  subject: "local:admin",
+  role: "admin",
+  source: "local-development",
+};
 
 function response(): {
   res: ServerResponse;
@@ -80,22 +103,28 @@ async function request(
 }
 
 describe("read-only AI LAB Operator Console (Spanish UX)", () => {
-  it("renders every console route with Spanish navigation and no forms", async () => {
+  it("renders every console route inside the persistent protected shell", async () => {
     for (const path of OPERATOR_CONSOLE_PATHS) {
-      const result = await request(path);
+      const result = await request(path, "GET", {
+        resolve_identity: () => ADMIN_IDENTITY,
+      });
       assert.equal(result.handled, true);
       assert.equal(result.status, 200, path);
       assert.match(result.headers["Cache-Control"] ?? "", /no-store/);
       assert.match(result.body, /<html lang="es">/);
-      assert.match(result.body, /<main id="main">/);
-      assert.match(result.body, /aria-label="Consola del operador"/);
+      assert.match(result.body, /<main id="main"/);
+      assert.match(result.body, /aria-label="AI LAB"/);
       assert.match(result.body, /Saltar al contenido principal/);
-      assert.match(result.body, /focus-visible/);
+      assert.match(result.body, /data-sidebar-toggle/);
+      assert.match(result.body, /data-mobile-toggle/);
+      assert.match(result.body, /data-command-search/);
       assert.doesNotMatch(result.body, /<form\b/i);
-      assert.doesNotMatch(result.body, /<(button|input|textarea)\b/i);
+      assert.doesNotMatch(result.body, /<textarea\b/i);
       for (const label of NAV_LABELS)
         assert.match(result.body, new RegExp(label));
     }
+    assert.equal(APPLICATION_ROUTES.length, NAV_LABELS.length);
+    assert.match(APPLICATION_SHELL_CSS, /focus-visible/);
   });
 
   it("renders the exact repository OpenRouter blocked state in Spanish", async () => {
@@ -243,7 +272,8 @@ describe("read-only AI LAB Operator Console (Spanish UX)", () => {
     for (const pending of model.activation_review.pending_human_decisions)
       assert.match(html, new RegExp(pending));
     // The view is informational only: no approval, upload, or execution UI.
-    assert.doesNotMatch(html, /<(form|button|input|textarea|select)\b/i);
+    assert.doesNotMatch(html, /<(form|textarea)\b/i);
+    assert.doesNotMatch(html, /type=["']submit["']/i);
     assert.doesNotMatch(
       html,
       /Aprobar ahora|Registrar decisión|Ejecutar|Subir|Configurar secreto/,
@@ -255,11 +285,14 @@ describe("read-only AI LAB Operator Console (Spanish UX)", () => {
   it("Governance uses at most two columns and explains every group", async () => {
     const model = await load();
     const html = renderOperatorConsole(model, "/operator/governance");
-    assert.doesNotMatch(html, /repeat\(6,/);
-    assert.match(html, /\.grid2\{display:grid;grid-template-columns:1fr 1fr/);
+    assert.doesNotMatch(APPLICATION_SHELL_CSS, /repeat\(6,/);
     assert.match(
-      html,
-      /@media\(max-width:920px\)\{\.grid2\{grid-template-columns:1fr\}/,
+      APPLICATION_SHELL_CSS,
+      /\.grid2\{display:grid;grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/,
+    );
+    assert.match(
+      APPLICATION_SHELL_CSS,
+      /@media\(max-width:820px\)[\s\S]*\.grid2,.grid3\{grid-template-columns:1fr\}/,
     );
     for (const group of GOVERNANCE_GROUPS) {
       assert.match(html, new RegExp(group.title.replaceAll(",", ",")));
@@ -275,10 +308,10 @@ describe("read-only AI LAB Operator Console (Spanish UX)", () => {
     const all = [...OPERATOR_CONSOLE_PATHS]
       .map((path) => renderOperatorConsole(model, path))
       .join("\n");
-    assert.match(all, /\.code-block\{[^}]*overflow-x:auto/);
-    assert.match(all, /\.code-block\{[^}]*white-space:pre/);
-    assert.doesNotMatch(all, /break-all/);
-    assert.doesNotMatch(all, /overflow-wrap:anywhere/);
+    assert.match(APPLICATION_SHELL_CSS, /\.code-block\{[^}]*overflow-x:auto/);
+    assert.match(APPLICATION_SHELL_CSS, /\.code-block\{[^}]*white-space:pre/);
+    assert.doesNotMatch(APPLICATION_SHELL_CSS, /break-all/);
+    assert.doesNotMatch(APPLICATION_SHELL_CSS, /overflow-wrap:anywhere/);
     for (const blocker of model.blockers)
       assert.match(
         all,
@@ -329,7 +362,7 @@ describe("read-only AI LAB Operator Console (Spanish UX)", () => {
       rendered,
       model.required_human_actions.map((action) => action.action_code),
     );
-    assert.doesNotMatch(html, /<(form|button|input|select)\b/i);
+    assert.doesNotMatch(html, /<form\b|type=["']submit["']/i);
   });
 
   it("renders the execution chain with Spanish labels and honest distinctions", async () => {
@@ -408,8 +441,6 @@ describe("read-only AI LAB Operator Console (Spanish UX)", () => {
       .join("\n");
     for (const forbidden of [
       /<form\b/i,
-      /<button\b/i,
-      /<input\b/i,
       /type=["'](?:submit|password)["']/i,
       /authorization_token/i,
       /raw_document/i,
@@ -483,12 +514,12 @@ describe("read-only AI LAB Operator Console (Spanish UX)", () => {
     const model = await load();
     for (const path of OPERATOR_CONSOLE_PATHS) {
       const html = renderOperatorConsole(model, path);
-      assert.match(html, /<header>/);
-      assert.match(html, /<nav aria-label=/);
-      assert.match(html, /<main id="main">/);
+      assert.match(html, /<header\b/);
+      assert.match(html, /<nav\b[^>]*aria-label=/);
+      assert.match(html, /<main id="main"/);
       assert.match(html, /<h2>/);
-      assert.match(html, /class="skip"/);
-      assert.match(html, /Bloqueado|Operativo|Requiere atención/);
+      assert.match(html, /class="skip-link"/);
+      assert.match(html, /Sistema bloqueado/);
     }
   });
 });
