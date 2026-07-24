@@ -526,6 +526,7 @@ function renderSourceRequirementLabels(
 
 export function renderRegulatoryResearchWorkspaceHtml(
   workspace: RegulatoryResearchWorkspace = ARGENTINA_SPAIN_ECOLOGICAL_AGROCHEMICAL_WORKSPACE,
+  styleNonce?: string,
 ): string {
   const routeLane = `${workspace.origin_country.name} -> ${workspace.destination_country.name}`;
   const missingItems = missingEvidenceItems(workspace);
@@ -551,7 +552,7 @@ export function renderRegulatoryResearchWorkspaceHtml(
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>${escapeHtml(workspace.case_title)} | AI LAB</title>
-  <style>
+  <style${styleNonce ? ` nonce="${escapeHtml(styleNonce)}"` : ''}>
     :root {
       color-scheme: light;
       --bg: #f6f7f9;

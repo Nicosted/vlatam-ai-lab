@@ -7,7 +7,9 @@ application. The implementation starts from local commit
 `8593a03a737e91b8a9e7e2516f91988a4778f589`, whose subject is
 `AI-133: add governed ARCA scheduler locking and recovery (#128)`.
 
-The shell is server-rendered by the existing Node HTTP application. It does not
+The follow-up hardening review is pinned to
+`f8b68b2ef2f4aa499447c6dc5e38a76ac3bc2ece`. The shell is server-rendered by
+the existing Node HTTP application. It does not
 add a browser framework, authentication service, database, provider adapter, or
 runtime dependency. All rendering remains read-only.
 
@@ -108,8 +110,19 @@ only the common application frame and adds navigation to those views.
 | `admin`    | All routes, including read-only Settings        |
 
 An unauthenticated identity receives 401. A recognized identity without route
-visibility receives 403. Local development uses a small adapter and the
-`x-ai-lab-local-role` header for test/development context.
+visibility receives 403. Runtime identity selection is explicit:
+
+| Runtime mode        | Deployment environment | Identity behavior                                      |
+| ------------------- | ---------------------- | ------------------------------------------------------ |
+| `development_local` | `development`          | Local adapter only with explicit flag and loopback I/O |
+| `preview`           | `preview`              | Anonymous, fail closed                                 |
+| `production`        | `production`           | Anonymous, fail closed                                 |
+| `test`              | `development`          | Explicitly injected test resolver only                 |
+
+The local adapter requires `AI_LAB_LOCAL_AUTH_ENABLED=true`, a loopback
+`AI_LAB_PUBLIC_ORIGIN`, a loopback request `Host`, and a loopback socket remote
+address. Only then may `x-ai-lab-local-role` select a development role.
+Supplying a test resolver outside `test` mode fails the entrypoint closed.
 
 That adapter is not a production identity provider. The production Vercel
 entrypoint deliberately resolves to anonymous and therefore fails closed until
@@ -120,14 +133,39 @@ publication, database write, or integration.
 ## Security and availability
 
 - HTML and JSON are `no-store`.
-- CSP denies external connections with `connect-src 'none'`.
+- Every HTML status and route is sent by the shared secure HTML response
+  helper, including 200, 401, 403, 404, and 500 surfaces.
+- CSP denies external connections with `connect-src 'none'`, blocks framing,
+  forms, objects, and base-URI replacement, and uses a per-response nonce.
+- The regulatory workspace's required inline style receives that CSP nonce.
 - Styles and scripts are same-origin static assets.
 - Frames, object embedding, referrers, camera, microphone, geolocation,
   payments, and USB are denied.
-- Production responses add HSTS.
+- HSTS is emitted only when both the deployment environment is `production`
+  and the configured public origin is HTTPS.
 - `/healthz` reports liveness only and exposes no scheduler, dependency,
   authority, or readiness state.
 - `/health` remains as the compatibility health endpoint.
+
+## Mobile interaction and status semantics
+
+At widths up to 820px, the navigation is a modal-style drawer. A closed drawer
+is `inert` and `aria-hidden`; an open drawer traps Tab focus, locks document
+scroll, and closes through Escape, the close button, backdrop selection, or a
+route selection. Closing restores focus to the opener. The compact context bar
+keeps environment, blocked system state, identity/role, and the AI-131/132/133
+kill-switch boundary visible at 390×844.
+
+Status color is assigned only through the typed `statusToneFor` map:
+
+- `verified`: only reviewed `approved` and `verified` states;
+- `pending`: review, authorization, or evidence pending;
+- `blocked`: blocked, active kill-switch, invalid, critical, or rejected;
+- `neutral`: availability/health/configuration facts with no approval meaning;
+- `informational`: read-only or selected context.
+
+Unknown values default to neutral. Generic states such as healthy, enabled,
+available, complete, and true never receive the verified/green tone.
 
 ## Assumptions and limitations
 

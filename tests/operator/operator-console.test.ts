@@ -97,7 +97,11 @@ async function request(
   const handled = await handleOperatorConsoleRequest(
     { method, url: path } as IncomingMessage,
     capture.res,
-    { repository_root: root, ...options },
+    {
+      repository_root: root,
+      resolve_identity: () => ADMIN_IDENTITY,
+      ...options,
+    },
   );
   return { handled, ...capture.result() };
 }
@@ -333,7 +337,7 @@ describe("read-only AI LAB Operator Console (Spanish UX)", () => {
     assert.match(html, /Severidad: Media/);
     assert.doesNotMatch(
       html,
-      /<span class="badge status-unknown"><code>(high|medium)/,
+      /<span class="badge tone-neutral" data-status="unknown"><code>(high|medium)/,
     );
     assert.match(html, /Severidad|Categoría|Clase de resolución/);
     assert.match(html, /Mostrando 46 de 46 bloqueos/);

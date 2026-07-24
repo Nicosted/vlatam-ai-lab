@@ -27,12 +27,21 @@ log stream, or successful deployment.
 - Application overview: `GET /`
 - Required non-secret variables:
   - `AI_LAB_DEPLOYMENT_ENV=preview` for preview;
+  - `AI_LAB_RUNTIME_MODE=preview` for preview;
   - `AI_LAB_DEPLOYMENT_ENV=production` for production;
+  - `AI_LAB_RUNTIME_MODE=production` for production;
   - `AI_LAB_PUBLIC_ORIGIN` set to that environment's exact HTTPS origin.
 
-The entrypoint validates environment identity before serving requests. A
-production value with a non-HTTPS origin fails closed. Production identity also
-fails closed until a reviewed trusted identity resolver is implemented.
+The entrypoint validates deployment/runtime-mode agreement before serving
+requests. Missing, unknown, or inconsistent values fail closed. A production
+value with a non-HTTPS origin fails closed. Preview and Production do not honor
+local role headers and resolve anonymous until a reviewed trusted identity
+resolver is implemented.
+
+`AI_LAB_LOCAL_AUTH_ENABLED=true` is developer-only. It is valid only with
+`AI_LAB_RUNTIME_MODE=development_local`,
+`AI_LAB_DEPLOYMENT_ENV=development`, a loopback public origin, loopback request
+host, and loopback socket address. It must not be configured in Vercel.
 
 Do not add production credentials to repository files, browser bundles,
 preview logs, build output, or shell history.
@@ -47,7 +56,8 @@ These are human-run UI steps, not commands executed by AI-134:
 3. Keep the repository-root `vercel.json`.
 4. Use the locked package installation selected by the project and
    `pnpm run build:production` as the build command.
-5. Add only the two non-secret variables above to the correct environment.
+5. Add only the runtime/deployment/origin non-secret variables above to the
+   correct environment. Do not add the local-auth variable.
 6. Configure a reviewed production identity provider before enabling public
    production access. Do not reuse the local role adapter.
 7. Confirm preview and production have separate variables, access controls,
@@ -82,12 +92,18 @@ Each of these actions requires separate approval. AI-134 performs none of them.
 - [ ] Full tests, typecheck, architecture tests, ESLint, Prettier, and
       `git diff --check` pass.
 - [ ] Preview uses `AI_LAB_DEPLOYMENT_ENV=preview`.
+- [ ] Preview uses `AI_LAB_RUNTIME_MODE=preview`.
+- [ ] `AI_LAB_LOCAL_AUTH_ENABLED` is absent.
 - [ ] Preview origin is exact and HTTPS.
 - [ ] `/healthz` returns only the safe liveness contract.
 - [ ] `/`, `/operator/review`, and `/operator/arca-review` render inside the
       shell.
 - [ ] Anonymous and insufficient-role requests fail closed.
 - [ ] CSP and hardening headers are present.
+- [ ] HSTS is absent in non-production responses.
+- [ ] At 390×844 the closed drawer is inert, opening traps focus and locks
+      scroll, all close paths restore focus, and mobile operational context is
+      visible.
 - [ ] Browser rendering causes zero external network calls.
 - [ ] AI-131, AI-132, and AI-133 remain blocked.
 - [ ] No scheduler, export, import, publication, database, or integration path
@@ -99,13 +115,16 @@ Each of these actions requires separate approval. AI-134 performs none of them.
 - [ ] A production-grade trusted identity resolver was separately approved and
       replaced the fail-closed anonymous resolver.
 - [ ] Production uses `AI_LAB_DEPLOYMENT_ENV=production`.
+- [ ] Production uses `AI_LAB_RUNTIME_MODE=production`.
+- [ ] `AI_LAB_LOCAL_AUTH_ENABLED` is absent.
 - [ ] Production origin is exactly `https://lab.vlatamglobal.com`.
 - [ ] Project ownership, audit access, logs, alerts, and rollback owner are
       documented.
 - [ ] No secret is exposed to the browser or build log.
 - [ ] Domain change has separate human and DNS approval.
 - [ ] The exact last known-good deployment is recorded before promotion.
-- [ ] HSTS, CSP, no-store HTML, and liveness response are verified.
+- [ ] HSTS is present only on Production HTTPS; nonce CSP, no-store HTML, and
+      liveness response are verified.
 - [ ] Repository-current blocked state is unchanged.
 - [ ] Human approval explicitly states that deployment success creates no
       operational authority.

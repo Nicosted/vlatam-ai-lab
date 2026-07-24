@@ -1,5 +1,8 @@
 import type { IncomingMessage } from "node:http";
 
+import type { ApplicationRuntimeMode } from "./deployment-environment.js";
+import { isLoopbackHostname } from "./deployment-environment.js";
+
 export const APPLICATION_ROLES = [
   "viewer",
   "operator",
@@ -40,24 +43,55 @@ export const ANONYMOUS_IDENTITY: ApplicationIdentity = Object.freeze({
 const isRole = (value: string): value is ApplicationRole =>
   (APPLICATION_ROLES as readonly string[]).includes(value);
 
+const isLoopbackAddress = (address: string | undefined): boolean =>
+  address === "127.0.0.1" ||
+  address === "::1" ||
+  address === "::ffff:127.0.0.1" ||
+  (address?.startsWith("127.") ?? false);
+
+const requestHostIsLoopback = (request: IncomingMessage): boolean => {
+  const host = request.headers.host;
+  if (typeof host !== "string" || host.length === 0) return false;
+  try {
+    return isLoopbackHostname(new URL(`http://${host}`).hostname);
+  } catch {
+    return false;
+  }
+};
+
+export interface LocalDevelopmentIdentityOptions {
+  readonly runtime_mode: ApplicationRuntimeMode;
+  readonly enabled: boolean;
+}
+
 /**
- * Development-safe adapter. Production must replace this resolver with a
- * separately reviewed trusted-upstream identity boundary. A header value is
- * display context only and never creates operational authority.
+ * Explicit developer-only adapter. Callers cannot construct an authenticated
+ * identity unless mode, feature flag, remote address, and Host are all local.
  */
-export const resolveLocalApplicationIdentity: ApplicationIdentityResolver = (
-  request,
-) => {
-  const requestedRole = request.headers?.["x-ai-lab-local-role"];
-  if (typeof requestedRole === "string" && isRole(requestedRole)) {
+export function createLocalDevelopmentIdentityResolver(
+  options: LocalDevelopmentIdentityOptions,
+): ApplicationIdentityResolver {
+  return (request) => {
+    if (
+      options.runtime_mode !== "development_local" ||
+      !options.enabled ||
+      !isLoopbackAddress(request.socket.remoteAddress) ||
+      !requestHostIsLoopback(request)
+    )
+      return ANONYMOUS_IDENTITY;
+
+    const requestedRole = request.headers["x-ai-lab-local-role"];
+    const role =
+      typeof requestedRole === "string" && isRole(requestedRole)
+        ? requestedRole
+        : LOCAL_DEVELOPMENT_IDENTITY.role;
     return Object.freeze({
       ...LOCAL_DEVELOPMENT_IDENTITY,
-      display_name: `Operador local · ${requestedRole}`,
-      role: requestedRole,
+      display_name: `Operador local · ${role}`,
+      role,
     });
-  }
-  return LOCAL_DEVELOPMENT_IDENTITY;
-};
+  };
+}
 
 const ROLE_RANK: Readonly<Record<ApplicationRole, number>> = {
   viewer: 0,

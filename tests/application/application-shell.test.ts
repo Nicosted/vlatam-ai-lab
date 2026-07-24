@@ -11,6 +11,7 @@ import {
   APPLICATION_SHELL_ASSET_PATHS,
   APPLICATION_SHELL_CSS,
   APPLICATION_SHELL_JS,
+  statusToneFor,
 } from "../../src/application/application-shell.js";
 import { validateApplicationEnvironment } from "../../src/application/deployment-environment.js";
 import { REPOSITORY_CURRENT_BLOCKED_STATUS } from "../../src/application/repository-current-status.js";
@@ -221,10 +222,12 @@ describe("AI-134 production application shell", () => {
   it("validates preview and production environment identity fail-closed", () => {
     const preview = validateApplicationEnvironment({
       AI_LAB_DEPLOYMENT_ENV: "preview",
+      AI_LAB_RUNTIME_MODE: "preview",
       AI_LAB_PUBLIC_ORIGIN: "https://preview.example.test",
     });
     const production = validateApplicationEnvironment({
       AI_LAB_DEPLOYMENT_ENV: "production",
+      AI_LAB_RUNTIME_MODE: "production",
       AI_LAB_PUBLIC_ORIGIN: "http://lab.vlatamglobal.com",
     });
     assert.equal(preview.valid, true);
@@ -241,6 +244,7 @@ describe("AI-134 production application shell", () => {
     const result = await request("/operator", {
       resolve_identity: () => identity("viewer"),
       deployment_environment: "production",
+      https_context: true,
     });
     for (const [name, value] of Object.entries(APPLICATION_SECURITY_HEADERS))
       assert.equal(result.headers[name], value, name);
@@ -252,5 +256,71 @@ describe("AI-134 production application shell", () => {
       result.headers["Strict-Transport-Security"] ?? "",
       /max-age=63072000/,
     );
+  });
+
+  it("uses the shared secure HTML policy for success and error surfaces", async () => {
+    const surfaces = [
+      await request("/", { resolve_identity: () => identity("viewer") }),
+      await request("/operator/review", {
+        resolve_identity: () => identity("reviewer"),
+      }),
+      await request("/operator/arca-review", {
+        resolve_identity: () => identity("reviewer"),
+      }),
+      await request("/operator", {
+        resolve_identity: () => ANONYMOUS_IDENTITY,
+      }),
+      await request("/operator/settings", {
+        resolve_identity: () => identity("viewer"),
+      }),
+      await request("/operator/not-found", {
+        resolve_identity: () => identity("admin"),
+      }),
+    ];
+    assert.deepEqual(
+      surfaces.map((surface) => surface.status),
+      [200, 200, 200, 401, 403, 404],
+    );
+    for (const surface of surfaces) {
+      assert.equal(surface.headers["Content-Type"], "text/html; charset=utf-8");
+      for (const [name, value] of Object.entries(APPLICATION_SECURITY_HEADERS))
+        assert.equal(surface.headers[name], value, name);
+      assert.match(
+        surface.headers["Content-Security-Policy"] ?? "",
+        /default-src 'none'.*style-src 'self' 'nonce-[^']+'.*script-src 'self' 'nonce-[^']+'.*connect-src 'none'/,
+      );
+    }
+    assert.match(surfaces[5]!.body, /Vista no encontrada/);
+  });
+
+  it("omits HSTS outside Production HTTPS context", async () => {
+    const productionHttp = await request("/operator", {
+      resolve_identity: () => identity("viewer"),
+      deployment_environment: "production",
+      https_context: false,
+    });
+    const previewHttps = await request("/operator", {
+      resolve_identity: () => identity("viewer"),
+      deployment_environment: "preview",
+      https_context: true,
+    });
+    assert.equal(
+      productionHttp.headers["Strict-Transport-Security"],
+      undefined,
+    );
+    assert.equal(previewHttps.headers["Strict-Transport-Security"], undefined);
+  });
+
+  it("uses the explicit semantic status-tone map", () => {
+    for (const value of ["approved", "verified"])
+      assert.equal(statusToneFor(value), "verified", value);
+    for (const value of ["pending", "needs_review", "human_review"])
+      assert.equal(statusToneFor(value), "pending", value);
+    for (const value of ["blocked", "active", "critical", "rejected"])
+      assert.equal(statusToneFor(value), "blocked", value);
+    for (const value of ["healthy", "enabled", "available", "complete", "true"])
+      assert.equal(statusToneFor(value), "neutral", value);
+    assert.equal(statusToneFor("read_only"), "informational");
+    assert.equal(statusToneFor("unreviewed-new-value"), "neutral");
   });
 });

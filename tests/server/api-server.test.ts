@@ -34,6 +34,8 @@ interface RequestOptions {
   readonly ip?: string;
   readonly maximumReviewAgeSeconds?: number;
   readonly now?: string;
+  readonly deploymentEnvironment?: "development" | "preview" | "production";
+  readonly httpsContext?: boolean;
 }
 
 let testRoot = "";
@@ -174,6 +176,12 @@ async function request(
 
   await handleClassifierRequest(incomingRequest, response, {
     data_root: testRoot,
+    ...(options.deploymentEnvironment !== undefined && {
+      deployment_environment: options.deploymentEnvironment,
+    }),
+    ...(options.httpsContext !== undefined && {
+      https_context: options.httpsContext,
+    }),
     ...(options.maximumReviewAgeSeconds !== undefined && {
       review_policy: {
         policy_id: "classifier-human-review",
@@ -280,6 +288,40 @@ describe("handleClassifierRequest", () => {
     assert.match(response.rawBody, /Evidence Inventory/);
     assert.match(response.rawBody, /Jurisdiction Coverage/);
     assert.match(response.rawBody, /intake incomplete/);
+    const csp = response.headers["Content-Security-Policy"] ?? "";
+    const nonce = csp.match(/style-src 'self' 'nonce-([^']+)'/)?.[1];
+    assert.ok(nonce);
+    assert.match(csp, /script-src 'self' 'nonce-[^']+'/);
+    assert.match(csp, /connect-src 'none'/);
+    assert.match(response.rawBody, new RegExp(`<style nonce="${nonce}">`));
+    assert.equal(response.headers["Strict-Transport-Security"], undefined);
+  });
+
+  it("adds HSTS to regulatory HTML only in Production HTTPS context", async () => {
+    const production = await request(
+      "/research/regulatory/ar-es-ecological-agrochemicals",
+      {
+        apiKey: null,
+        deploymentEnvironment: "production",
+        httpsContext: true,
+      },
+    );
+    const productionHttp = await request(
+      "/research/regulatory/ar-es-ecological-agrochemicals",
+      {
+        apiKey: null,
+        deploymentEnvironment: "production",
+        httpsContext: false,
+      },
+    );
+    assert.match(
+      production.headers["Strict-Transport-Security"] ?? "",
+      /max-age=63072000/,
+    );
+    assert.equal(
+      productionHttp.headers["Strict-Transport-Security"],
+      undefined,
+    );
   });
 
   it("returns 401 when the classifier API key is missing", async () => {

@@ -9,6 +9,8 @@
 - Baseline subject:
   `AI-133: add governed ARCA scheduler locking and recovery (#128)`
 - Implementation branch: `feat/ai-134-ai-lab-production-shell`
+- Follow-up reviewed commit:
+  `f8b68b2ef2f4aa499447c6dc5e38a76ac3bc2ece`
 - Remote state was not refreshed or queried.
 
 ## Derived delta
@@ -25,6 +27,11 @@ AI-134 adds:
 - local UI, boundary, environment, health, and build tests; and
 - architecture and deployment documentation.
 
+The follow-up hardening delta adds explicit runtime modes and loopback-gated
+local identity, Preview/Production fail-closed entrypoint behavior, a shared
+nonce-based HTML response policy, production-HTTPS-only HSTS, an accessible
+mobile drawer, visible mobile boundary context, and a typed status-tone map.
+
 The existing `/operator/review` and `/operator/arca-review` content paths remain
 the original review renderers. No decision or authority logic was duplicated.
 
@@ -34,7 +41,9 @@ the original review renderers. No decision or authority logic was duplicated.
 - AI-131, AI-132, and AI-133 display state is the named fail-closed projection
   derived from checked-in configuration.
 - Cost, recovery, and news remain unavailable where no reviewed source exists.
-- The development role adapter is not production authentication.
+- The development role adapter is disabled unless the explicit local flag,
+  development-local mode, loopback origin, loopback Host, and loopback socket
+  address all agree.
 - The Vercel production entrypoint remains anonymous/fail-closed until a
   reviewed trusted identity resolver is added.
 - Vercel and DNS preparation is documentation/configuration only.
@@ -58,19 +67,30 @@ credential access, or `vlatam-global` access.
 
 ## Local validation
 
+Focused command:
+
+```text
+pnpm exec tsx --test tests/application/application-entrypoint.test.ts tests/application/application-shell.test.ts tests/application/application-shell-browser.test.ts tests/architecture/application-shell-boundary.test.ts tests/operator/arca-review-console.test.ts tests/operator/operator-console.test.ts tests/server/api-server.test.ts
+```
+
 Final local results:
 
 | Check                                                       | Result                               |
 | ----------------------------------------------------------- | ------------------------------------ |
-| Focused AI-134 UI, operator, server, and architecture tests | 65/65 passed                         |
-| Full repository suite                                       | 1,320/1,320 passed across 155 suites |
+| Check                                                       | Result                               |
+| ----------------------------------------------------------- | ---------------                      |
+| Check                                                       | Result                               |
+| ----------------------------------------------------------- | ------------------------------------ |
+| Focused AI-134 UI, operator, server, and architecture tests | 74/74 passed across 7 suites         |
+| Full repository suite                                       | 1,333/1,333 passed across 157 suites |
 | TypeScript typecheck                                        | passed                               |
 | Local production build (`build:production`)                 | passed                               |
 | Scoped ESLint                                               | passed                               |
 | Scoped Prettier                                             | passed                               |
 | `git diff --check`                                          | passed                               |
 
-The first full-suite run surfaced one architecture allowlist expectation:
-`src/application/` was a new read-only presentation layer that legitimately
-names OpenRouter. The allowlist was narrowed to that application directory, its
-boundary tests remained in place, and the full suite then passed.
+The transitive architecture test walks runtime imports from the browser-facing
+shell and renderer, ignores erased TypeScript type-only edges, rejects dynamic
+import bypasses, and denies scheduler, ARCA execution/transport, database,
+credential-loader, provider execution adapter, and `vlatam-global` runtime
+paths.

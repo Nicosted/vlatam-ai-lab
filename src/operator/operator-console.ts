@@ -31,6 +31,7 @@ import {
 import {
   APPLICATION_ROUTES,
   renderApplicationShell,
+  statusToneFor,
 } from "../application/application-shell.js";
 import { REPOSITORY_CURRENT_BLOCKED_STATUS } from "../application/repository-current-status.js";
 
@@ -79,10 +80,10 @@ const untranslated = (): string =>
 
 const badge = (value: unknown): string => {
   const presented = presentStatus(value);
-  const body = `<span class="badge status-${escapeHtml(presented.canonical)}">${escapeHtml(presented.label)}</span>`;
+  const body = `<span class="badge tone-${statusToneFor(presented.canonical)}" data-status="${escapeHtml(presented.canonical)}">${escapeHtml(presented.label)}</span>`;
   return presented.known
     ? body
-    : `<span class="badge status-unknown"><code>${escapeHtml(presented.canonical)}</code></span>${untranslated()}`;
+    : `<span class="badge tone-neutral" data-status="unknown"><code>${escapeHtml(presented.canonical)}</code></span>${untranslated()}`;
 };
 
 const severityBadge = (value: OperatorBlocker["severity"]): string => {
@@ -163,7 +164,7 @@ function overview(model: OperatorReadModel): string {
       "El kill switch permanece activo: cualquier intento de ejecución falla cerrado.",
     );
   const top = topBlockersBySeverity(model.blockers, 5);
-  return `<h2>Resumen</h2><p class="lead">Estado gobernado actual del laboratorio y del proveedor evaluado.</p>${blockedNotice(model)}<div class="grid-metrics">${metric("Estado gobernado", badge(s.overall_status))}${metric("Ejecución de modelos", executionAllowed ? badge("enabled") : `<span class="badge status-blocked">No permitida</span>`)}${metric("Proveedor evaluado", code(provider["provider_id"] ?? "ausente"))}${metric("Candidato actual", code(candidate?.model_id ?? "ausente"))}${metric("Bloqueos activos", text(s.active_blockers))}${metric("Acciones requeridas", text(model.required_human_actions.length))}${metric("Revisiones pendientes", text(s.pending_approvals))}${metric("Evaluación", text(s.last_evaluated_at))}${metric("Versión del modelo de lectura", text(s.read_model_contract_version))}${metric("Hash (abreviado)", code(shortHash(s.read_model_hash)))}</div><section class="card"><h3>Situación actual</h3><ul>${situacion.map((item) => `<li>${item}</li>`).join("")}</ul></section><section class="card"><h3>Bloqueos principales</h3><p class="quiet">Los cinco bloqueos de mayor prioridad (orden estable por severidad; el listado canónico completo está en Bloqueos).</p><ul>${top
+  return `<h2>Resumen</h2><p class="lead">Estado gobernado actual del laboratorio y del proveedor evaluado.</p>${blockedNotice(model)}<div class="grid-metrics">${metric("Estado gobernado", badge(s.overall_status))}${metric("Ejecución de modelos", executionAllowed ? badge("enabled") : `<span class="badge tone-blocked">No permitida</span>`)}${metric("Proveedor evaluado", code(provider["provider_id"] ?? "ausente"))}${metric("Candidato actual", code(candidate?.model_id ?? "ausente"))}${metric("Bloqueos activos", text(s.active_blockers))}${metric("Acciones requeridas", text(model.required_human_actions.length))}${metric("Revisiones pendientes", text(s.pending_approvals))}${metric("Evaluación", text(s.last_evaluated_at))}${metric("Versión del modelo de lectura", text(s.read_model_contract_version))}${metric("Hash (abreviado)", code(shortHash(s.read_model_hash)))}</div><section class="card"><h3>Situación actual</h3><ul>${situacion.map((item) => `<li>${item}</li>`).join("")}</ul></section><section class="card"><h3>Bloqueos principales</h3><p class="quiet">Los cinco bloqueos de mayor prioridad (orden estable por severidad; el listado canónico completo está en Bloqueos).</p><ul>${top
     .map((blocker) => {
       const summary = presentBlockerSummary(blocker);
       return `<li>${escapeHtml(summary.label)}${summary.known ? "" : untranslated()} ${severityBadge(blocker.severity)} ${code(blocker.blocker_code)}</li>`;
@@ -190,7 +191,7 @@ function repositoryCurrentOverviewPanels(model: OperatorReadModel): string {
   const state = REPOSITORY_CURRENT_BLOCKED_STATUS;
   const approvedArtifact = model.arca_approved_artifact.present;
   const recentEvidence = model.audit_references.slice(0, 4);
-  return `<div class="grid2"><section class="card"><span class="panel-kicker">System health</span><h3>Fronteras operativas</h3><ul class="status-list"><li><span>Scheduler</span>${badge(state.scheduler)}</li><li><span>AI-131 kill switch</span>${badge(state.ai_131_kill_switch)}</li><li><span>AI-132 kill switch</span>${badge(state.ai_132_kill_switch)}</li><li><span>AI-133 kill switch</span>${badge(state.ai_133_kill_switch)}</li><li><span>Activación</span><span class="badge status-blocked">Ninguna</span></li><li><span>Run de producción</span><span class="badge status-blocked">Ninguno</span></li></ul></section><section class="card"><span class="panel-kicker">Review queue</span><h3>Revisión y artefactos</h3><ul class="status-list"><li><span>Revisiones pendientes</span><strong>${text(model.system_summary.pending_approvals)}</strong></li><li><span>Approved Artifact ARCA</span>${approvedArtifact ? badge("approved") : badge("absent")}</li><li><span>Recovery required</span>${badge(state.recovery_required)}</li><li><span>Cost visibility</span>${badge(state.cost_visibility)}</li></ul><p class="quiet">Los valores no disponibles permanecen explícitos; la interfaz no infiere costos ni estados de recuperación.</p></section><section class="card"><span class="panel-kicker">Evidence</span><h3>Actividad reciente disponible</h3>${codeList("Referencias repository-current", recentEvidence)}<p class="quiet">Orden de referencias del modelo de lectura; no representa actividad productiva.</p></section><section class="card"><span class="panel-kicker">Runtime matrix</span><h3>Proveedores y runtimes</h3><ul class="status-list"><li><span>OpenRouter</span>${badge(model.providers[0]?.["execution_allowed"] === true ? "enabled" : "blocked")}</li><li><span>AI LAB scheduler</span>${badge(state.scheduler)}</li><li><span>Vercel Eve</span>${badge("evidence_incomplete")}</li><li><span>Cloudflare</span>${badge("evidence_incomplete")}</li></ul></section></div><section class="card"><span class="panel-kicker">Authority boundary</span><h3>Autoridades ausentes</h3>${dl(
+  return `<div class="grid2"><section class="card"><span class="panel-kicker">System health</span><h3>Fronteras operativas</h3><ul class="status-list"><li><span>Scheduler</span>${badge(state.scheduler)}</li><li><span>AI-131 kill switch</span>${badge(state.ai_131_kill_switch)}</li><li><span>AI-132 kill switch</span>${badge(state.ai_132_kill_switch)}</li><li><span>AI-133 kill switch</span>${badge(state.ai_133_kill_switch)}</li><li><span>Activación</span><span class="badge tone-blocked">Ninguna</span></li><li><span>Run de producción</span><span class="badge tone-blocked">Ninguno</span></li></ul></section><section class="card"><span class="panel-kicker">Review queue</span><h3>Revisión y artefactos</h3><ul class="status-list"><li><span>Revisiones pendientes</span><strong>${text(model.system_summary.pending_approvals)}</strong></li><li><span>Approved Artifact ARCA</span>${approvedArtifact ? badge("approved") : badge("absent")}</li><li><span>Recovery required</span>${badge(state.recovery_required)}</li><li><span>Cost visibility</span>${badge(state.cost_visibility)}</li></ul><p class="quiet">Los valores no disponibles permanecen explícitos; la interfaz no infiere costos ni estados de recuperación.</p></section><section class="card"><span class="panel-kicker">Evidence</span><h3>Actividad reciente disponible</h3>${codeList("Referencias repository-current", recentEvidence)}<p class="quiet">Orden de referencias del modelo de lectura; no representa actividad productiva.</p></section><section class="card"><span class="panel-kicker">Runtime matrix</span><h3>Proveedores y runtimes</h3><ul class="status-list"><li><span>OpenRouter</span>${badge(model.providers[0]?.["execution_allowed"] === true ? "enabled" : "blocked")}</li><li><span>AI LAB scheduler</span>${badge(state.scheduler)}</li><li><span>Vercel Eve</span>${badge("evidence_incomplete")}</li><li><span>Cloudflare</span>${badge("evidence_incomplete")}</li></ul></section></div><section class="card"><span class="panel-kicker">Authority boundary</span><h3>Autoridades ausentes</h3>${dl(
     [
       ["Publicación", yesNo(state.publication_authority)],
       ["Importación", yesNo(state.import_authority)],
@@ -630,7 +631,7 @@ function arcaReview(model: OperatorReadModel): string {
   )}</section><section class="card"><h3>Revisión humana</h3>${dl([
     [
       "Ciclo de vida",
-      `<span class="badge status-${escapeHtml(r.lifecycle)}">${escapeHtml(r.lifecycle_label)}</span> ${code(r.lifecycle)}`,
+      `<span class="badge tone-${statusToneFor(r.lifecycle)}" data-status="${escapeHtml(r.lifecycle)}">${escapeHtml(r.lifecycle_label)}</span> ${code(r.lifecycle)}`,
     ],
     [
       "Revisor",
@@ -670,7 +671,7 @@ function arcaReview(model: OperatorReadModel): string {
     [
       [
         "Resultado exacto",
-        `<span class="badge status-${escapeHtml(e.outcome)}">${escapeHtml(e.outcome_label)}</span> ${code(e.outcome)}`,
+        `<span class="badge tone-${statusToneFor(e.outcome)}" data-status="${escapeHtml(e.outcome)}">${escapeHtml(e.outcome_label)}</span> ${code(e.outcome)}`,
       ],
       ["Evaluado", text(e.evaluated_at)],
       ["ID de evaluación", code(e.evaluation_id)],
@@ -722,7 +723,7 @@ function governance(model: OperatorReadModel): string {
       const matching = grouped.get(group.title) ?? [];
       const statusBadge = matching.length
         ? badge("blocked")
-        : `<span class="badge status-none">Sin bloqueos registrados</span>`;
+        : `<span class="badge tone-neutral">Sin bloqueos registrados</span>`;
       const resolutions = [
         ...new Set(matching.flatMap((b) => b.resolvable_by)),
       ].map((kind) => presentResolution(kind).label);
@@ -834,9 +835,7 @@ function blockers(model: OperatorReadModel): string {
     RESOLUTION_LABELS,
   )}</select></label><label>Bloquea la ejecución<select data-filter="blocking"><option value="">Todos</option><option value="true">Sí</option><option value="false">No</option></select></label></div><p class="quiet" id="blocker-count" aria-live="polite">Mostrando ${total} de ${total} bloqueos</p><ol class="records">${model.blockers
     .map(record)
-    .join(
-      "",
-    )}</ol><script>(function(){var selects=document.querySelectorAll('[data-filter]');var items=document.querySelectorAll('[data-blocker]');var count=document.getElementById('blocker-count');function apply(){var active={};selects.forEach(function(s){if(s.value)active[s.dataset.filter]=s.value});var visible=0;items.forEach(function(item){var hide=Object.keys(active).some(function(key){return (item.dataset[key]||'').split(' ').indexOf(active[key])===-1});item.hidden=hide;if(!hide)visible+=1});if(count)count.textContent='Mostrando '+visible+' de '+items.length+' bloqueos'}selects.forEach(function(s){s.addEventListener('change',apply)})})()</script>`;
+    .join("")}</ol>`;
 }
 
 function actions(model: OperatorReadModel): string {
@@ -1143,7 +1142,7 @@ function audit(model: OperatorReadModel): string {
 function applicationPage(model: OperatorReadModel, pathname: string): string {
   const state = REPOSITORY_CURRENT_BLOCKED_STATUS;
   if (pathname === "/operator/operations/arca")
-    return `<h2>ARCA</h2><p class="lead">Superficie operativa de solo lectura para el flujo ARCA gobernado.</p>${blockedNotice(model)}<div class="grid3"><section class="card"><span class="panel-kicker">AI-131</span><h3>Acquisition boundary</h3><p><span class="badge status-blocked">Kill switch activo</span></p><p class="quiet">Ejecución live bloqueada por configuración repository-current.</p></section><section class="card"><span class="panel-kicker">AI-132</span><h3>Export boundary</h3><p><span class="badge status-blocked">Kill switch activo</span></p><p class="quiet">Exportación no autorizada.</p></section><section class="card"><span class="panel-kicker">AI-133</span><h3>Scheduler boundary</h3><p><span class="badge status-blocked">Inactivo</span></p><p class="quiet">Cero runs permitidos; ejecución bloqueada.</p></section></div><section class="card"><h3>Revisión disponible</h3><p><a href="/operator/arca-review">Abrir la revisión ARCA existente</a>. Esta vista conserva su proyección y lógica de gobernanza actuales.</p></section>`;
+    return `<h2>ARCA</h2><p class="lead">Superficie operativa de solo lectura para el flujo ARCA gobernado.</p>${blockedNotice(model)}<div class="grid3"><section class="card"><span class="panel-kicker">AI-131</span><h3>Acquisition boundary</h3><p><span class="badge tone-blocked">Kill switch activo</span></p><p class="quiet">Ejecución live bloqueada por configuración repository-current.</p></section><section class="card"><span class="panel-kicker">AI-132</span><h3>Export boundary</h3><p><span class="badge tone-blocked">Kill switch activo</span></p><p class="quiet">Exportación no autorizada.</p></section><section class="card"><span class="panel-kicker">AI-133</span><h3>Scheduler boundary</h3><p><span class="badge tone-blocked">Inactivo</span></p><p class="quiet">Cero runs permitidos; ejecución bloqueada.</p></section></div><section class="card"><h3>Revisión disponible</h3><p><a href="/operator/arca-review">Abrir la revisión ARCA existente</a>. Esta vista conserva su proyección y lógica de gobernanza actuales.</p></section>`;
   if (pathname === "/operator/operations/acquisitions")
     return readOnlyUnavailablePage(
       "Acquisitions",
@@ -1204,7 +1203,7 @@ function applicationPage(model: OperatorReadModel, pathname: string): string {
             .join("")}</ul>`
     }<p class="quiet">Write actions available: ${code(model.tournament.write_actions_available)}</p></section>`;
   if (pathname === "/operator/runtimes/ai-lab")
-    return `<h2>AI LAB runtime</h2><p class="lead">Estado local del control plane.</p><section class="card"><h3>Repository-current</h3><ul class="status-list"><li><span>Scheduler</span><span class="badge status-blocked">Inactivo</span></li><li><span>Activación</span><span class="badge status-blocked">Ninguna</span></li><li><span>Production run</span><span class="badge status-blocked">Ninguno</span></li><li><span>Deployment authority</span>${yesNo(state.deployment_authority)}</li></ul></section>`;
+    return `<h2>AI LAB runtime</h2><p class="lead">Estado local del control plane.</p><section class="card"><h3>Repository-current</h3><ul class="status-list"><li><span>Scheduler</span><span class="badge tone-blocked">Inactivo</span></li><li><span>Activación</span><span class="badge tone-blocked">Ninguna</span></li><li><span>Production run</span><span class="badge tone-blocked">Ninguno</span></li><li><span>Deployment authority</span>${yesNo(state.deployment_authority)}</li></ul></section>`;
   if (
     pathname === "/operator/runtimes/vercel-eve" ||
     pathname === "/operator/runtimes/cloudflare"
@@ -1227,7 +1226,7 @@ function applicationPage(model: OperatorReadModel, pathname: string): string {
             ["Activación prohibida", yesNo(runtime.activation_prohibited)],
             [
               "Kill switch",
-              `<span class="badge status-blocked">${text(runtime.kill_switch_state)}</span>`,
+              `<span class="badge tone-blocked">${text(runtime.kill_switch_state)}</span>`,
             ],
           ])
         : `<p>${badge("unavailable")} No existe una proyección de evidencia utilizable para esta vista.</p>`
