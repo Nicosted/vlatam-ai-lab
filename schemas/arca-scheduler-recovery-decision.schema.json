@@ -58,10 +58,11 @@
     "decision": {
       "enum": [
         "safe_abort_before_authority",
-        "authority_consumed_recovery",
-        "unknown_delivery_manual_review",
-        "lease_expired_recovery",
-        "malformed_evidence_fail_closed",
+        "blocked_before_ai_131",
+        "blocked_before_ai_132",
+        "recovery_required",
+        "divergent_evidence",
+        "malformed_evidence",
         "active_lease_not_stale",
         "completed_after_recovery"
       ]

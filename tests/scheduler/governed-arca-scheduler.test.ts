@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import {
+  copyFile,
   mkdtemp,
   mkdir,
   readFile,
@@ -17,8 +18,15 @@ import test from "node:test";
 
 import {
   assertDurableRecoveryBundle,
+  createGovernedSchedulerAuthoritativeInspectors,
   observeGovernedSchedulerBundle,
 } from "../../src/cli/governed-arca-scheduler.js";
+import {
+  createRealAi131BoundaryFixture,
+  createRealAi132BoundaryFixture,
+  type RealAi131BoundaryFixture,
+  type RealAi132BoundaryFixture,
+} from "../helpers/real-arca-boundaries.js";
 import {
   MAXIMUM_ACTIVATION_MILLISECONDS,
   acceptSchedulerSlot,
@@ -442,6 +450,70 @@ function observation(value: Fixture) {
   };
 }
 
+function withRealInspectorJournals(
+  value: Fixture,
+  ai131: RealAi131BoundaryFixture,
+  ai132: RealAi132BoundaryFixture,
+  ai132JournalId: string,
+): Fixture {
+  const unsignedRequest = {
+    ...value.request,
+    request_sha256: "0".repeat(64),
+    ai_131: {
+      ...value.request.ai_131,
+      authoritative_journal: {
+        ...value.request.ai_131.authoritative_journal,
+        path: join(
+          ai131.configuration.run_state.path,
+          "journals",
+          `${ai131.runId}.json`,
+        ),
+        identity: ai131.runId,
+      },
+    },
+    ai_132: {
+      ...value.request.ai_132,
+      authoritative_journal: {
+        ...value.request.ai_132.authoritative_journal,
+        path: join(
+          ai132.configuration.export_state_root.path,
+          "completed-journals",
+          `${ai132JournalId}.json`,
+        ),
+        identity: ai132JournalId,
+      },
+    },
+  };
+  return {
+    ...value,
+    request: {
+      ...unsignedRequest,
+      request_sha256: computeScheduledRunRequestSha256(unsignedRequest),
+    },
+  };
+}
+
+function realInspectors(
+  value: Fixture,
+  ai131: RealAi131BoundaryFixture,
+  ai132: RealAi132BoundaryFixture,
+) {
+  return createGovernedSchedulerAuthoritativeInspectors({
+    request: value.request,
+    ai131Configuration: ai131.configuration as unknown as Record<
+      string,
+      unknown
+    >,
+    ai132Configuration: ai132.configuration as unknown as Record<
+      string,
+      unknown
+    >,
+    ai132Switch: ai132.killSwitch as unknown as Record<string, unknown>,
+    ai131RunId: ai131.runId,
+    ai132SwitchPath: ai132.killSwitchPath,
+  });
+}
+
 function authoritativeRuntimeInspectors(
   value: Fixture,
   ai131Final: AuthoritativeBoundaryDisposition = "consumed_completed",
@@ -521,6 +593,31 @@ function recoveryJournal(
     | "acquisition_execution_started"
     | "export_execution_started",
 ): SchedulerRunJournal {
+  const entries: SchedulerRunJournal["entries"] =
+    state === "export_execution_started"
+      ? [
+          {
+            sequence: 0,
+            state: "acquisition_execution_started",
+            timestamp: NOW,
+            evidence_sha256: HASH,
+          },
+          {
+            sequence: 1,
+            state: "export_execution_started",
+            timestamp: NOW,
+            evidence_sha256: HASH,
+          },
+        ]
+      : [
+          {
+            sequence: 0,
+            state,
+            timestamp: NOW,
+            evidence_sha256:
+              state === "lease_acquired" ? lease.lease_sha256 : HASH,
+          },
+        ];
   const unsigned: SchedulerRunJournal = {
     schema_version: "1.0.0",
     journal_id: "scheduler-journal",
@@ -531,14 +628,7 @@ function recoveryJournal(
     configuration_sha256: value.configuration.configuration_sha256,
     activation_sha256: value.activation.activation_sha256,
     lease_sha256: lease.lease_sha256,
-    entries: [
-      {
-        sequence: 0,
-        state,
-        timestamp: NOW,
-        evidence_sha256: state === "lease_acquired" ? lease.lease_sha256 : HASH,
-      },
-    ],
+    entries,
     ai_131_evidence: value.request.ai_131,
     ai_132_evidence: value.request.ai_132,
     authority_outcome:
@@ -606,7 +696,10 @@ async function durableRecoveryFixture(
   await writeFile(requestPath, canonicalBytes(value.request));
   await writeFile(journalPath, canonicalBytes(journal));
   if (state === "acquisition_execution_started") await reserve(value, "ai_131");
-  if (state === "export_execution_started") await reserve(value, "ai_132");
+  if (state === "export_execution_started") {
+    await reserve(value, "ai_131");
+    await reserve(value, "ai_132");
+  }
   const configurationPath = join(value.root, "scheduler-configuration.json");
   await writeFile(configurationPath, canonicalBytes(value.configuration));
   const environmentUnsigned = {
@@ -779,7 +872,7 @@ test("execution_started with missing evidence never safe-aborts", async () => {
     timestamp: LATER,
     attemptReservations: [await reserve(value, "ai_131")],
   });
-  assert.equal(decision["decision"], "lease_expired_recovery");
+  assert.equal(decision["decision"], "malformed_evidence");
 });
 
 test("durable recovery loads exact scheduler lease journal request slot and ledger", async () => {
@@ -817,6 +910,39 @@ test("durable recovery rejects caller-supplied or alternate journal paths", asyn
     ),
     /invalid_scheduler_recovery_input/,
   );
+});
+
+test("recovery rejects same-byte configuration and switch copies at alternate paths", async () => {
+  const durable = await durableRecoveryFixture();
+  const environment = durable.registry[durable.input.environment_id]!;
+  const cases = [
+    ["scheduler_configuration_path", environment.scheduler_configuration_path],
+    ["scheduler_switch_path", environment.scheduler_switch_path],
+    ["ai_131_configuration_path", environment.ai_131_configuration_path],
+    ["ai_131_switch_path", environment.ai_131_switch_path],
+    ["ai_132_configuration_path", environment.ai_132_configuration_path],
+    ["ai_132_switch_path", environment.ai_132_switch_path],
+  ] as const;
+  for (const [field, source] of cases) {
+    const alternate = join(durable.value.root, "alternate", `${field}.json`);
+    await mkdir(dirname(alternate), { recursive: true });
+    await copyFile(source, alternate);
+    assert.equal(
+      await readFile(alternate, "utf8"),
+      await readFile(source, "utf8"),
+    );
+    await assert.rejects(
+      loadDurableSchedulerRecoveryEvidence(
+        {
+          ...durable.input,
+          [field]: alternate,
+        } as unknown as SchedulerDurableRecoveryInput,
+        durable.registry,
+      ),
+      /invalid_scheduler_recovery_input/,
+      field,
+    );
+  }
 });
 
 test("durable recovery rejects a valid self-hashed journal outside reviewed root", async () => {
@@ -870,7 +996,7 @@ test("exact durable pre-authority evidence permits safe abort", async () => {
   assert.equal(decision["decision"], "safe_abort_before_authority");
 });
 
-test("exact authoritative non-consumption permits safe abort", async () => {
+test("exact authoritative non-consumption after AI-131 start is explicitly blocked", async () => {
   const value = await fixture();
   const lease = await expiredLease(value);
   const decision = await inspectSchedulerRecovery({
@@ -884,7 +1010,7 @@ test("exact authoritative non-consumption permits safe abort", async () => {
       evidence: value.request.ai_131.expected_consumption,
     }),
   });
-  assert.equal(decision["decision"], "safe_abort_before_authority");
+  assert.equal(decision["decision"], "blocked_before_ai_131");
 });
 
 test("divergent consumption fails closed", async () => {
@@ -901,7 +1027,7 @@ test("divergent consumption fails closed", async () => {
       evidence: value.request.ai_131.expected_consumption,
     }),
   });
-  assert.equal(decision["decision"], "malformed_evidence_fail_closed");
+  assert.equal(decision["decision"], "divergent_evidence");
 });
 
 test("exact AI-131 unknown delivery blocks AI-132", async () => {
@@ -1787,9 +1913,10 @@ for (const [name, state, inspector] of [
       lease,
       journal: recoveryJournal(value, lease, state),
       timestamp: LATER,
-      attemptReservations: [
-        await reserve(value, inspector === "ai131" ? "ai_131" : "ai_132"),
-      ],
+      attemptReservations:
+        inspector === "ai131"
+          ? [await reserve(value, "ai_131")]
+          : [await reserve(value, "ai_131"), await reserve(value, "ai_132")],
       ...(inspector === "ai131"
         ? {
             inspectAi131: async () => ({
@@ -1798,13 +1925,17 @@ for (const [name, state, inspector] of [
             }),
           }
         : {
+            inspectAi131: async () => ({
+              status: "consumed_completed" as const,
+              evidence: value.request.ai_131.expected_consumption,
+            }),
             inspectAi132: async () => ({
               status: "unknown_delivery" as const,
               evidence: value.request.ai_132.expected_consumption,
             }),
           }),
     });
-    assert.equal(decision["decision"], "unknown_delivery_manual_review");
+    assert.equal(decision["decision"], "recovery_required");
   });
 
 test("repeated recovery is idempotent", async () => {
@@ -1827,7 +1958,7 @@ test("repeated recovery is idempotent", async () => {
   );
 });
 
-test("exact completion after crash recovery", async () => {
+test("AI-131-only completion is blocked before AI-132", async () => {
   const value = await fixture();
   const lease = await expiredLease(value);
   const decision = await inspectSchedulerRecovery({
@@ -1841,7 +1972,250 @@ test("exact completion after crash recovery", async () => {
       evidence: value.request.ai_131.expected_consumption,
     }),
   });
-  assert.equal(decision["decision"], "completed_after_recovery");
+  assert.equal(decision["decision"], "blocked_before_ai_132");
+});
+
+test("production-composed real inspectors require dual-boundary completion", async () => {
+  const value = await fixture();
+  const ai131 = await createRealAi131BoundaryFixture("real-dual-ai-131");
+  const ai132 = await createRealAi132BoundaryFixture();
+  try {
+    assert.equal((await ai131.execute()).outcome, "completed");
+    assert.equal((await ai132.execute()).outcome, "completed");
+    const bound = withRealInspectorJournals(
+      value,
+      ai131,
+      ai132,
+      await ai132.journalId(),
+    );
+    const lease = await expiredLease(bound);
+    const inspectors = realInspectors(bound, ai131, ai132);
+    const decision = await inspectSchedulerRecovery({
+      configuration: bound.configuration,
+      lease,
+      journal: recoveryJournal(bound, lease, "export_execution_started"),
+      timestamp: LATER,
+      attemptReservations: [
+        await reserve(bound, "ai_131"),
+        await reserve(bound, "ai_132"),
+      ],
+      inspectAi131: () => inspectors.inspectAi131(LATER),
+      inspectAi132: () => inspectors.inspectAi132(LATER),
+    });
+    assert.equal(decision["decision"], "completed_after_recovery");
+  } finally {
+    await Promise.all([ai131.cleanup(), ai132.cleanup()]);
+  }
+});
+
+test("production-composed real AI-131 completion without AI-132 is partial", async () => {
+  const value = await fixture();
+  const ai131 = await createRealAi131BoundaryFixture("real-partial-ai-131");
+  const ai132 = await createRealAi132BoundaryFixture();
+  try {
+    assert.equal((await ai131.execute()).outcome, "completed");
+    const absentAi132Journal = `arca-export-journal--${"a".repeat(64)}`;
+    const bound = withRealInspectorJournals(
+      value,
+      ai131,
+      ai132,
+      absentAi132Journal,
+    );
+    const lease = await expiredLease(bound);
+    let ai132Inspections = 0;
+    const inspectors = realInspectors(bound, ai131, ai132);
+    const decision = await inspectSchedulerRecovery({
+      configuration: bound.configuration,
+      lease,
+      journal: recoveryJournal(bound, lease, "acquisition_execution_started"),
+      timestamp: LATER,
+      attemptReservations: [await reserve(bound, "ai_131")],
+      inspectAi131: () => inspectors.inspectAi131(LATER),
+      inspectAi132: async () => {
+        ai132Inspections += 1;
+        return inspectors.inspectAi132(LATER);
+      },
+    });
+    assert.equal(decision["decision"], "blocked_before_ai_132");
+    assert.equal(ai132Inspections, 0);
+  } finally {
+    await Promise.all([ai131.cleanup(), ai132.cleanup()]);
+  }
+});
+
+test("production-composed real AI-132 recovery evidence requires recovery", async () => {
+  const value = await fixture();
+  const ai131 = await createRealAi131BoundaryFixture(
+    "real-ai-132-recovery-ai-131",
+  );
+  const ai132 = await createRealAi132BoundaryFixture();
+  try {
+    assert.equal((await ai131.execute()).outcome, "completed");
+    await assert.rejects(
+      ai132.execute({ interruptAfterConsumptionBeforeJournalUpdate: true }),
+      /consumption_visible_before_journal_update/,
+    );
+    const bound = withRealInspectorJournals(
+      value,
+      ai131,
+      ai132,
+      await ai132.journalId(),
+    );
+    const lease = await expiredLease(bound);
+    const inspectors = realInspectors(bound, ai131, ai132);
+    const decision = await inspectSchedulerRecovery({
+      configuration: bound.configuration,
+      lease,
+      journal: recoveryJournal(bound, lease, "export_execution_started"),
+      timestamp: LATER,
+      attemptReservations: [
+        await reserve(bound, "ai_131"),
+        await reserve(bound, "ai_132"),
+      ],
+      inspectAi131: () => inspectors.inspectAi131(LATER),
+      inspectAi132: () => inspectors.inspectAi132(LATER),
+    });
+    assert.equal(decision["decision"], "recovery_required");
+  } finally {
+    await Promise.all([ai131.cleanup(), ai132.cleanup()]);
+  }
+});
+
+test("production-composed real AI-131 consumed recovery never inspects AI-132", async () => {
+  const value = await fixture();
+  const ai131 = await createRealAi131BoundaryFixture(
+    "real-ai-131-consumed-recovery",
+  );
+  const ai132 = await createRealAi132BoundaryFixture();
+  try {
+    await assert.rejects(
+      ai131.execute({ interruptAfterLifecycle: "acquisition_succeeded" }),
+      /interrupted_after:acquisition_succeeded/,
+    );
+    const bound = withRealInspectorJournals(
+      value,
+      ai131,
+      ai132,
+      `arca-export-journal--${"b".repeat(64)}`,
+    );
+    const lease = await expiredLease(bound);
+    const inspectors = realInspectors(bound, ai131, ai132);
+    let ai132Inspections = 0;
+    const decision = await inspectSchedulerRecovery({
+      configuration: bound.configuration,
+      lease,
+      journal: recoveryJournal(bound, lease, "acquisition_execution_started"),
+      timestamp: LATER,
+      attemptReservations: [await reserve(bound, "ai_131")],
+      inspectAi131: () => inspectors.inspectAi131(LATER),
+      inspectAi132: async () => {
+        ai132Inspections += 1;
+        return inspectors.inspectAi132(LATER);
+      },
+    });
+    assert.equal(decision["decision"], "recovery_required");
+    assert.equal(ai132Inspections, 0);
+  } finally {
+    await Promise.all([ai131.cleanup(), ai132.cleanup()]);
+  }
+});
+
+test("real AI-131 inspector resolves callback exception after durable completion", async () => {
+  const value = await fixture();
+  const ai131 = await createRealAi131BoundaryFixture(
+    "real-ai-131-exception-completed",
+  );
+  const ai132 = await createRealAi132BoundaryFixture();
+  try {
+    await assert.rejects(async () => {
+      assert.equal((await ai131.execute()).outcome, "completed");
+      throw new Error("callback_lost_after_durable_completion");
+    }, /callback_lost_after_durable_completion/);
+    const bound = withRealInspectorJournals(
+      value,
+      ai131,
+      ai132,
+      `arca-export-journal--${"c".repeat(64)}`,
+    );
+    const inspection = await realInspectors(bound, ai131, ai132).inspectAi131(
+      LATER,
+    );
+    assert.equal(inspection.status, "consumed_completed");
+  } finally {
+    await Promise.all([ai131.cleanup(), ai132.cleanup()]);
+  }
+});
+
+test("real AI-132 inspector resolves callback exception as recovery-required", async () => {
+  const value = await fixture();
+  const ai131 = await createRealAi131BoundaryFixture(
+    "real-ai-132-exception-ai-131",
+  );
+  const ai132 = await createRealAi132BoundaryFixture();
+  try {
+    await assert.rejects(
+      ai132.execute({ interruptAfterConsumptionBeforeJournalUpdate: true }),
+      /consumption_visible_before_journal_update/,
+    );
+    const bound = withRealInspectorJournals(
+      value,
+      ai131,
+      ai132,
+      await ai132.journalId(),
+    );
+    const inspection = await realInspectors(bound, ai131, ai132).inspectAi132(
+      LATER,
+    );
+    assert.equal(inspection.status, "consumed_recovery_required");
+  } finally {
+    await Promise.all([ai131.cleanup(), ai132.cleanup()]);
+  }
+});
+
+test("repeated real AI-132 unresolved recovery is idempotent and read-only", async () => {
+  const value = await fixture();
+  const ai131 = await createRealAi131BoundaryFixture(
+    "real-ai-132-idempotent-ai-131",
+  );
+  const ai132 = await createRealAi132BoundaryFixture();
+  try {
+    assert.equal((await ai131.execute()).outcome, "completed");
+    await assert.rejects(
+      ai132.execute({ interruptAfterConsumptionBeforeJournalUpdate: true }),
+      /consumption_visible_before_journal_update/,
+    );
+    const journalId = await ai132.journalId();
+    const bound = withRealInspectorJournals(value, ai131, ai132, journalId);
+    const lease = await expiredLease(bound);
+    const journal = recoveryJournal(bound, lease, "export_execution_started");
+    const reservations = [
+      await reserve(bound, "ai_131"),
+      await reserve(bound, "ai_132"),
+    ];
+    const inspectors = realInspectors(bound, ai131, ai132);
+    const journalPath = join(
+      ai132.configuration.export_state_root.path,
+      "journals",
+      `${journalId}.json`,
+    );
+    const before = await readFile(journalPath, "utf8");
+    const input = {
+      configuration: bound.configuration,
+      lease,
+      journal,
+      timestamp: LATER,
+      attemptReservations: reservations,
+      inspectAi131: () => inspectors.inspectAi131(LATER),
+      inspectAi132: () => inspectors.inspectAi132(LATER),
+    };
+    assert.deepEqual(
+      await inspectSchedulerRecovery(input),
+      await inspectSchedulerRecovery(input),
+    );
+    assert.equal(await readFile(journalPath, "utf8"), before);
+  } finally {
+    await Promise.all([ai131.cleanup(), ai132.cleanup()]);
+  }
 });
 
 test("activation-wide counters differ correctly from daily counters", async () => {
@@ -2224,7 +2598,7 @@ for (const scenario of [
       attemptLedgerManifest: loaded.attemptLedgerManifest,
       attemptReservations: loaded.reservations,
     });
-    assert.equal(decision["decision"], "malformed_evidence_fail_closed");
+    assert.equal(decision["decision"], "malformed_evidence");
   });
 
 test("configuration and activation remain exact, bounded and repository-current blocked", async () => {

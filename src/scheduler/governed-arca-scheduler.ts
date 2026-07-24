@@ -630,10 +630,11 @@ export const SCHEDULER_RECOVERY_DECISION_SCHEMA = {
     decision: {
       enum: [
         "safe_abort_before_authority",
-        "authority_consumed_recovery",
-        "unknown_delivery_manual_review",
-        "lease_expired_recovery",
-        "malformed_evidence_fail_closed",
+        "blocked_before_ai_131",
+        "blocked_before_ai_132",
+        "recovery_required",
+        "divergent_evidence",
+        "malformed_evidence",
         "active_lease_not_stale",
         "completed_after_recovery",
       ],
@@ -2164,12 +2165,13 @@ export async function inspectSchedulerRecovery(input: {
 }): Promise<Record<string, unknown>> {
   let decision:
     | "safe_abort_before_authority"
-    | "authority_consumed_recovery"
-    | "unknown_delivery_manual_review"
-    | "lease_expired_recovery"
-    | "malformed_evidence_fail_closed"
+    | "blocked_before_ai_131"
+    | "blocked_before_ai_132"
+    | "recovery_required"
+    | "divergent_evidence"
+    | "malformed_evidence"
     | "active_lease_not_stale"
-    | "completed_after_recovery" = "lease_expired_recovery";
+    | "completed_after_recovery" = "recovery_required";
   let journalSha256: string | null = null;
   const reasons: string[] = [];
   let durableManifest = input.attemptLedgerManifest;
@@ -2203,7 +2205,7 @@ export async function inspectSchedulerRecovery(input: {
       computeSchedulerLeaseSha256,
     )
   ) {
-    decision = "malformed_evidence_fail_closed";
+    decision = "malformed_evidence";
     reasons.push("scheduler_or_lease_missing_malformed_or_substituted");
   } else if (
     input.lease.scheduler_configuration_sha256 !==
@@ -2217,7 +2219,7 @@ export async function inspectSchedulerRecovery(input: {
     decision = "active_lease_not_stale";
     reasons.push("active_heartbeating_lease_is_not_recoverable");
   } else if (input.journal === null) {
-    decision = "lease_expired_recovery";
+    decision = "recovery_required";
     reasons.push("expired_lease_without_run_journal_requires_review");
   } else if (
     !exactHashValid(
@@ -2227,7 +2229,7 @@ export async function inspectSchedulerRecovery(input: {
       computeSchedulerJournalSha256,
     )
   ) {
-    decision = "malformed_evidence_fail_closed";
+    decision = "malformed_evidence";
     reasons.push("journal_missing_malformed_or_divergent");
   } else {
     const journal = input.journal as SchedulerRunJournal;
@@ -2258,7 +2260,7 @@ export async function inspectSchedulerRecovery(input: {
       !bindingMatches(journal.ai_131_evidence, input.configuration.ai_131) ||
       !bindingMatches(journal.ai_132_evidence, input.configuration.ai_132)
     ) {
-      decision = "malformed_evidence_fail_closed";
+      decision = "divergent_evidence";
       reasons.push("scheduler_journal_binding_substituted_or_divergent");
     }
     const ai131Started = journal.entries.some(
@@ -2280,10 +2282,10 @@ export async function inspectSchedulerRecovery(input: {
         input.configuration.configuration_sha256 ||
       manifest.activation_sha256 !== input.lease.activation_sha256
     ) {
-      decision = "malformed_evidence_fail_closed";
+      decision = "malformed_evidence";
       reasons.push("attempt_ledger_manifest_missing_or_divergent");
     } else if (!reservations) {
-      decision = "malformed_evidence_fail_closed";
+      decision = "malformed_evidence";
       reasons.push("attempt_ledger_evidence_missing");
     } else if (
       manifest.reservations.length !== reservations.length ||
@@ -2296,7 +2298,7 @@ export async function inspectSchedulerRecovery(input: {
           ),
       )
     ) {
-      decision = "malformed_evidence_fail_closed";
+      decision = "divergent_evidence";
       reasons.push("attempt_ledger_inventory_divergent");
     } else if (
       reservations.some(
@@ -2305,7 +2307,7 @@ export async function inspectSchedulerRecovery(input: {
           record.request_sha256 !== journal.request_sha256,
       )
     ) {
-      decision = "malformed_evidence_fail_closed";
+      decision = "divergent_evidence";
       reasons.push("attempt_ledger_evidence_divergent");
     } else if (
       (ai131Started &&
@@ -2313,22 +2315,27 @@ export async function inspectSchedulerRecovery(input: {
       (ai132Started &&
         !reservations.some((record) => record.boundary_type === "ai_132"))
     ) {
-      decision = "malformed_evidence_fail_closed";
+      decision = "divergent_evidence";
       reasons.push("execution_started_without_attempt_reservation");
     } else if (
       input.recoveryResultPresent &&
       !journal.entries.some((entry) => entry.state === "recovery_required")
     ) {
-      decision = "malformed_evidence_fail_closed";
+      decision = "divergent_evidence";
       reasons.push("unresolved_recovery_record_visible");
     }
-    const inspections: AuthoritativeRecoveryInspection[] = [];
+    let ai131Inspection: AuthoritativeRecoveryInspection | null = null;
+    let ai132Inspection: AuthoritativeRecoveryInspection | null = null;
     try {
       if (reasons.length) throw new Error(reasons[0]);
+      if (ai132Started && !ai131Started)
+        throw new Error("ai_132_started_without_ai_131_execution");
       if (ai131Started) {
         if (!input.inspectAi131)
           throw new Error("ai_131_authoritative_inspector_missing");
         const inspection = await input.inspectAi131();
+        if (!AUTHORITATIVE_BOUNDARY_DISPOSITIONS.includes(inspection.status))
+          throw new Error("ai_131_authoritative_inspector_malformed");
         if (
           inspection.evidence !== null &&
           canonicalizeSchedulerJson(inspection.evidence) !==
@@ -2337,12 +2344,14 @@ export async function inspectSchedulerRecovery(input: {
             )
         )
           throw new Error("ai_131_inspection_evidence_substituted");
-        inspections.push(inspection);
+        ai131Inspection = inspection;
       }
       if (ai132Started) {
         if (!input.inspectAi132)
           throw new Error("ai_132_authoritative_inspector_missing");
         const inspection = await input.inspectAi132();
+        if (!AUTHORITATIVE_BOUNDARY_DISPOSITIONS.includes(inspection.status))
+          throw new Error("ai_132_authoritative_inspector_malformed");
         if (
           inspection.evidence !== null &&
           canonicalizeSchedulerJson(inspection.evidence) !==
@@ -2351,69 +2360,90 @@ export async function inspectSchedulerRecovery(input: {
             )
         )
           throw new Error("ai_132_inspection_evidence_substituted");
-        inspections.push(inspection);
+        ai132Inspection = inspection;
       }
     } catch (error: unknown) {
-      if (decision !== "malformed_evidence_fail_closed") {
-        decision = "lease_expired_recovery";
+      if (
+        decision !== "malformed_evidence" &&
+        decision !== "divergent_evidence"
+      ) {
+        decision =
+          error instanceof Error &&
+          error.message === "ai_132_started_without_ai_131_execution"
+            ? "divergent_evidence"
+            : "malformed_evidence";
         reasons.push(
           error instanceof Error
             ? error.message
             : "authoritative_recovery_inspection_failed",
         );
       }
-      inspections.length = 0;
+      ai131Inspection = null;
+      ai132Inspection = null;
     }
     if (reasons.length) {
       // The inspector failure above has precedence over scheduler booleans.
     } else if (
-      inspections.some(
-        (inspection) =>
-          inspection.status === "divergent_evidence" ||
-          inspection.status === "malformed_evidence",
-      )
+      ai131Inspection?.status === "malformed_evidence" ||
+      ai132Inspection?.status === "malformed_evidence"
     ) {
-      decision = "malformed_evidence_fail_closed";
+      decision = "malformed_evidence";
       reasons.push("authoritative_boundary_evidence_divergent");
     } else if (
-      inspections.some((inspection) => inspection.status === "unknown_delivery")
+      ai131Inspection?.status === "divergent_evidence" ||
+      ai132Inspection?.status === "divergent_evidence"
     ) {
-      decision = "unknown_delivery_manual_review";
-      reasons.push("unknown_transport_delivery_is_never_automatically_retried");
+      decision = "divergent_evidence";
+      reasons.push("authoritative_boundary_evidence_divergent");
     } else if (
-      inspections.some(
-        (inspection) => inspection.status === "consumed_recovery_required",
-      )
+      ai131Inspection?.status === "unknown_delivery" ||
+      ai132Inspection?.status === "unknown_delivery" ||
+      ai131Inspection?.status === "consumed_recovery_required" ||
+      ai132Inspection?.status === "consumed_recovery_required"
     ) {
-      decision = "authority_consumed_recovery";
+      decision = "recovery_required";
       reasons.push(
-        "exact_visible_consumption_requires_boundary_reconciliation",
+        "unknown_or_incomplete_boundary_consumption_requires_recovery",
       );
     } else if (
-      inspections.length > 0 &&
-      inspections.every(
-        (inspection) => inspection.status === "consumed_completed",
-      )
+      ai131Started &&
+      ai132Started &&
+      ai131Inspection?.status === "consumed_completed" &&
+      ai132Inspection?.status === "consumed_completed"
     ) {
       decision = "completed_after_recovery";
-      reasons.push("exact_durable_boundary_completion_visible");
+      reasons.push("exact_dual_boundary_completion_visible");
     } else if (
-      (!ai131Started &&
-        !ai132Started &&
-        reservations?.length === 0 &&
-        !input.schedulerResultPresent &&
-        !input.recoveryResultPresent) ||
-      (inspections.length > 0 &&
-        inspections.every(
-          (inspection) =>
-            inspection.status === "positively_not_consumed" ||
-            inspection.status === "not_authorized",
-        ))
+      ai131Started &&
+      ai131Inspection?.status === "consumed_completed" &&
+      !ai132Started
+    ) {
+      decision = "blocked_before_ai_132";
+      reasons.push("ai_131_completed_ai_132_not_started");
+    } else if (
+      ai131Started &&
+      (ai131Inspection?.status === "not_authorized" ||
+        ai131Inspection?.status === "positively_not_consumed")
+    ) {
+      decision = "blocked_before_ai_131";
+      reasons.push("ai_131_authority_not_consumed");
+    } else if (
+      ai132Started &&
+      ai132Inspection?.status !== "consumed_completed"
+    ) {
+      decision = "recovery_required";
+      reasons.push("ai_132_started_without_exact_completion");
+    } else if (
+      !ai131Started &&
+      !ai132Started &&
+      reservations?.length === 0 &&
+      !input.schedulerResultPresent &&
+      !input.recoveryResultPresent
     ) {
       decision = "safe_abort_before_authority";
       reasons.push("exact_authoritative_non_consumption_positively_proven");
     } else {
-      decision = "lease_expired_recovery";
+      decision = "recovery_required";
       reasons.push("authority_outcome_unresolved_recovery_required");
     }
   }

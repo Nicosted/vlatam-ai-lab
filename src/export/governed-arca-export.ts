@@ -1816,9 +1816,22 @@ export async function inspectGovernedArcaExportRecovery(
     ]);
   }
   const journalPath = join(stateRoot, "journals", `${input.journalId}.json`);
+  const completedJournalPath = join(
+    stateRoot,
+    "completed-journals",
+    `${input.journalId}.json`,
+  );
   let journal: ArcaExportJournal;
   try {
-    const bytes = await readExactVisibleBytes(journalPath);
+    const [activeBytes, completedBytes] = await Promise.all([
+      readExactVisibleBytes(journalPath),
+      readExactVisibleBytes(completedJournalPath),
+    ]);
+    if (activeBytes !== null && completedBytes !== null)
+      return result(timestamp, "recovery_required", [
+        "inspection_duplicate_journal_visibility",
+      ]);
+    const bytes = activeBytes ?? completedBytes;
     if (bytes === null) throw new Error("missing");
     journal = JSON.parse(bytes) as ArcaExportJournal;
   } catch {

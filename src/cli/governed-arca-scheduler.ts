@@ -31,6 +31,7 @@ import {
   type SchedulerDurableRecoveryInput,
   type SchedulerKillSwitch,
   type SchedulerObservationInput,
+  type AuthoritativeRecoveryInspection,
 } from "../scheduler/governed-arca-scheduler.js";
 
 const COMMANDS = new Set(["observe", "run-once", "recover", "pilot-summary"]);
@@ -95,6 +96,117 @@ function objectAt(
   if (!nested || typeof nested !== "object" || Array.isArray(nested))
     throw new Error(`missing_or_invalid_object:${key}`);
   return nested as Record<string, unknown>;
+}
+
+export function createGovernedSchedulerAuthoritativeInspectors(input: {
+  readonly request: ScheduledRunRequest;
+  readonly ai131Configuration: Record<string, unknown>;
+  readonly ai132Configuration: Record<string, unknown>;
+  readonly ai132Switch: Record<string, unknown>;
+  readonly ai131RunId: string;
+  readonly ai132SwitchPath?: string;
+}): {
+  readonly inspectAi131: (
+    trustedTimestamp: string,
+  ) => Promise<AuthoritativeRecoveryInspection>;
+  readonly inspectAi132: (
+    trustedTimestamp: string,
+  ) => Promise<AuthoritativeRecoveryInspection>;
+} {
+  const ai131StateRoot = String(
+    (
+      input.ai131Configuration["run_state"] as
+        | Record<string, unknown>
+        | undefined
+    )?.["path"] ?? "",
+  );
+  const ai132StateRoot = String(
+    (
+      input.ai132Configuration["export_state_root"] as
+        | Record<string, unknown>
+        | undefined
+    )?.["path"] ?? "",
+  );
+  if (
+    resolve(join(ai131StateRoot, "journals", `${input.ai131RunId}.json`)) !==
+    resolve(input.request.ai_131.authoritative_journal.path)
+  )
+    throw new Error("ai_131_recovery_journal_path_substituted");
+  if (
+    resolve(
+      join(
+        ai132StateRoot,
+        "completed-journals",
+        `${input.request.ai_132.authoritative_journal.identity}.json`,
+      ),
+    ) !== resolve(input.request.ai_132.authoritative_journal.path)
+  )
+    throw new Error("ai_132_recovery_journal_path_substituted");
+  return {
+    inspectAi131: async (trustedTimestamp) => {
+      const result = await inspectControlledLiveRunRecovery(
+        ai131StateRoot,
+        input.ai131RunId,
+        trustedTimestamp,
+      );
+      const detail = result.details.join(":");
+      return {
+        status:
+          result.outcome === "completed"
+            ? "consumed_completed"
+            : result.outcome === "network_call_not_performed" &&
+                detail.includes("safe_to_abort")
+              ? "positively_not_consumed"
+              : detail.includes("not_authorized")
+                ? "not_authorized"
+                : detail.includes("delivery_unknown")
+                  ? "unknown_delivery"
+                  : detail.includes("hash_invalid") ||
+                      detail.includes("divergent") ||
+                      detail.includes("substituted")
+                    ? "divergent_evidence"
+                    : detail.includes("malformed")
+                      ? "malformed_evidence"
+                      : "consumed_recovery_required",
+        evidence:
+          result.authorization_consumed === true
+            ? input.request.ai_131.expected_consumption
+            : null,
+        reason: detail || result.outcome,
+      };
+    },
+    inspectAi132: async (trustedTimestamp) => {
+      const result = await inspectGovernedArcaExportRecovery({
+        configuration: input.ai132Configuration,
+        journalId: input.request.ai_132.authoritative_journal.identity,
+        killSwitch: input.ai132Switch,
+        killSwitchPath:
+          input.ai132SwitchPath ?? input.request.ai_132.kill_switch.path,
+        recoveryTimestamp: trustedTimestamp,
+      });
+      const detail = result.details.join(":");
+      return {
+        status:
+          result.outcome === "completed"
+            ? "consumed_completed"
+            : detail.includes("non_consumption_proven")
+              ? "positively_not_consumed"
+              : detail.includes("not_authorized")
+                ? "not_authorized"
+                : detail.includes("divergent") || detail.includes("substituted")
+                  ? "divergent_evidence"
+                  : detail.includes("malformed")
+                    ? "malformed_evidence"
+                    : result.authorization_consumed
+                      ? "consumed_recovery_required"
+                      : "unknown_delivery",
+        evidence: result.authorization_consumed
+          ? input.request.ai_132.expected_consumption
+          : null,
+        reason: detail || result.outcome,
+      };
+    },
+  };
 }
 
 export async function observeGovernedSchedulerBundle(
@@ -322,7 +434,7 @@ export async function runGovernedSchedulerBundleOnce(
   assertPath(
     join(
       ai132StateRoot,
-      "journals",
+      "completed-journals",
       `${request.ai_132.authoritative_journal.identity}.json`,
     ),
     request.ai_132.authoritative_journal.path,
@@ -367,68 +479,14 @@ export async function runGovernedSchedulerBundleOnce(
     createHash("sha256")
       .update(`${canonicalizeSchedulerJson(value)}\n`)
       .digest("hex");
-  const inspectAi131 = async (trustedTimestamp: string) => {
-    const result = await inspectControlledLiveRunRecovery(
-      ai131StateRoot,
-      boundaryRunId,
-      trustedTimestamp,
-    );
-    const detail = result.details.join(":");
-    return {
-      status:
-        result.outcome === "completed"
-          ? ("consumed_completed" as const)
-          : result.outcome === "network_call_not_performed" &&
-              detail.includes("safe_to_abort")
-            ? ("positively_not_consumed" as const)
-            : detail.includes("not_authorized")
-              ? ("not_authorized" as const)
-              : detail.includes("delivery_unknown")
-                ? ("unknown_delivery" as const)
-                : detail.includes("hash_invalid") ||
-                    detail.includes("divergent") ||
-                    detail.includes("substituted")
-                  ? ("divergent_evidence" as const)
-                  : detail.includes("malformed")
-                    ? ("malformed_evidence" as const)
-                    : ("consumed_recovery_required" as const),
-      evidence:
-        result.authorization_consumed === true
-          ? request.ai_131.expected_consumption
-          : null,
-      reason: detail || result.outcome,
-    };
-  };
-  const inspectAi132 = async (trustedTimestamp: string) => {
-    const result = await inspectGovernedArcaExportRecovery({
-      configuration: ai132Configuration,
-      journalId: request.ai_132.authoritative_journal.identity,
-      killSwitch: ai132Switch,
-      killSwitchPath: request.ai_132.kill_switch.path,
-      recoveryTimestamp: trustedTimestamp,
+  const { inspectAi131, inspectAi132 } =
+    createGovernedSchedulerAuthoritativeInspectors({
+      request,
+      ai131Configuration,
+      ai132Configuration,
+      ai132Switch,
+      ai131RunId: boundaryRunId,
     });
-    const detail = result.details.join(":");
-    return {
-      status:
-        result.outcome === "completed"
-          ? ("consumed_completed" as const)
-          : detail.includes("non_consumption_proven")
-            ? ("positively_not_consumed" as const)
-            : detail.includes("not_authorized")
-              ? ("not_authorized" as const)
-              : detail.includes("divergent") || detail.includes("substituted")
-                ? ("divergent_evidence" as const)
-                : detail.includes("malformed")
-                  ? ("malformed_evidence" as const)
-                  : result.authorization_consumed
-                    ? ("consumed_recovery_required" as const)
-                    : ("unknown_delivery" as const),
-      evidence: result.authorization_consumed
-        ? request.ai_132.expected_consumption
-        : null,
-      reason: detail || result.outcome,
-    };
-  };
   return runGovernedArcaSchedulerOnce({
     configuration,
     reviewedEnvironment: environment,
@@ -566,6 +624,21 @@ async function main(): Promise<void> {
           sha256Field: "configuration_sha256",
         },
       );
+      const { inspectAi131, inspectAi132 } =
+        createGovernedSchedulerAuthoritativeInspectors({
+          request,
+          ai131Configuration,
+          ai132Configuration,
+          ai132Switch: await loadExactRequestBoundArtifact(
+            request.ai_132.kill_switch,
+            dirname(request.ai_132.kill_switch.path),
+            {
+              identityField: "kill_switch_id",
+              sha256Field: "kill_switch_sha256",
+            },
+          ),
+          ai131RunId: request.ai_131.authoritative_journal.identity,
+        });
       output = await inspectSchedulerRecovery({
         configuration,
         lease: durable.lease,
@@ -575,108 +648,8 @@ async function main(): Promise<void> {
         attemptReservations: durable.reservations,
         schedulerResultPresent: durable.resultPresent,
         recoveryResultPresent: durable.recoveryResultPresent,
-        inspectAi131: async () => {
-          const stateRoot = String(
-            (
-              ai131Configuration["run_state"] as
-                | Record<string, unknown>
-                | undefined
-            )?.["path"] ?? "",
-          );
-          if (
-            resolve(
-              join(
-                stateRoot,
-                "journals",
-                `${request.ai_131.authoritative_journal.identity}.json`,
-              ),
-            ) !== resolve(request.ai_131.authoritative_journal.path)
-          )
-            throw new Error("ai_131_recovery_journal_path_substituted");
-          const result = await inspectControlledLiveRunRecovery(
-            stateRoot,
-            request.ai_131.authoritative_journal.identity,
-            recoveryInput.timestamp,
-          );
-          const detail = result.details.join(":");
-          return {
-            status:
-              result.outcome === "completed"
-                ? "consumed_completed"
-                : result.outcome === "network_call_not_performed" &&
-                    detail.includes("safe_to_abort")
-                  ? "positively_not_consumed"
-                  : detail.includes("not_authorized")
-                    ? "not_authorized"
-                    : detail.includes("delivery_unknown")
-                      ? "unknown_delivery"
-                      : detail.includes("hash_invalid")
-                        ? "divergent_evidence"
-                        : detail.includes("malformed")
-                          ? "malformed_evidence"
-                          : "consumed_recovery_required",
-            evidence:
-              result.authorization_consumed === true
-                ? request.ai_131.expected_consumption
-                : null,
-            reason: detail || result.outcome,
-          };
-        },
-        inspectAi132: async () => {
-          const exportStateRoot = String(
-            (
-              ai132Configuration["export_state_root"] as
-                | Record<string, unknown>
-                | undefined
-            )?.["path"] ?? "",
-          );
-          if (
-            resolve(
-              join(
-                exportStateRoot,
-                "journals",
-                `${request.ai_132.authoritative_journal.identity}.json`,
-              ),
-            ) !== resolve(request.ai_132.authoritative_journal.path)
-          )
-            throw new Error("ai_132_recovery_journal_path_substituted");
-          const result = await inspectGovernedArcaExportRecovery({
-            configuration: ai132Configuration,
-            journalId: request.ai_132.authoritative_journal.identity,
-            killSwitch: await loadExactRequestBoundArtifact(
-              request.ai_132.kill_switch,
-              dirname(request.ai_132.kill_switch.path),
-              {
-                identityField: "kill_switch_id",
-                sha256Field: "kill_switch_sha256",
-              },
-            ),
-            killSwitchPath: request.ai_132.kill_switch.path,
-            recoveryTimestamp: recoveryInput.timestamp,
-          });
-          const detail = result.details.join(":");
-          return {
-            status:
-              result.outcome === "completed"
-                ? "consumed_completed"
-                : detail.includes("non_consumption_proven")
-                  ? "positively_not_consumed"
-                  : detail.includes("not_authorized")
-                    ? "not_authorized"
-                    : detail.includes("divergent") ||
-                        detail.includes("substituted")
-                      ? "divergent_evidence"
-                      : detail.includes("malformed")
-                        ? "malformed_evidence"
-                        : result.authorization_consumed
-                          ? "consumed_recovery_required"
-                          : "unknown_delivery",
-            evidence: result.authorization_consumed
-              ? request.ai_132.expected_consumption
-              : null,
-            reason: detail || result.outcome,
-          };
-        },
+        inspectAi131: () => inspectAi131(recoveryInput.timestamp),
+        inspectAi132: () => inspectAi132(recoveryInput.timestamp),
       });
     } else
       output = await generateSchedulerPilotSummary({
