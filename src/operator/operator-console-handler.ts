@@ -68,7 +68,11 @@ const statusPage = (status: 401 | 403 | 404): string => {
       : status === 403
         ? "Vista no disponible para este rol"
         : "Vista no encontrada";
-  return `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>AI LAB — ${heading}</title></head><body><main><h1>${heading}</h1><p>La frontera de aplicación falló cerrada. El rol de interfaz no concede autoridad operativa.</p></main></body></html>`;
+  const message =
+    status === 401
+      ? "No fue posible verificar una identidad autorizada para AI LAB."
+      : "La frontera de aplicación falló cerrada. El rol de interfaz no concede autoridad operativa.";
+  return `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>AI LAB — ${heading}</title></head><body><main><h1>${heading}</h1><p>${message}</p></main></body></html>`;
 };
 
 export async function handleOperatorConsoleRequest(
@@ -117,9 +121,14 @@ export async function handleOperatorConsoleRequest(
     });
     return true;
   }
-  const identity = (options.resolve_identity ?? (() => ANONYMOUS_IDENTITY))(
-    req,
-  );
+  let identity = ANONYMOUS_IDENTITY;
+  try {
+    identity = await (
+      options.resolve_identity ?? (async () => ANONYMOUS_IDENTITY)
+    )(req);
+  } catch {
+    identity = ANONYMOUS_IDENTITY;
+  }
   if (!identity.authenticated) {
     sendSecureHtmlResponse(res, 401, () => statusPage(401), {
       deployment_environment: deploymentEnvironment,

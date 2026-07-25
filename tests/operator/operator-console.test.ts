@@ -99,7 +99,7 @@ async function request(
     capture.res,
     {
       repository_root: root,
-      resolve_identity: () => ADMIN_IDENTITY,
+      resolve_identity: async () => ADMIN_IDENTITY,
       ...options,
     },
   );
@@ -110,7 +110,7 @@ describe("read-only AI LAB Operator Console (Spanish UX)", () => {
   it("renders every console route inside the persistent protected shell", async () => {
     for (const path of OPERATOR_CONSOLE_PATHS) {
       const result = await request(path, "GET", {
-        resolve_identity: () => ADMIN_IDENTITY,
+        resolve_identity: async () => ADMIN_IDENTITY,
       });
       assert.equal(result.handled, true);
       assert.equal(result.status, 200, path);

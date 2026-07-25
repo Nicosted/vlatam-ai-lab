@@ -5,6 +5,10 @@ import {
   createLocalDevelopmentIdentityResolver,
   type ApplicationIdentityResolver,
 } from "../src/application/application-access.js";
+import {
+  createCloudflareAccessIdentityResolver,
+  type CloudflareAccessIdentityResolverOptions,
+} from "../src/application/cloudflare-access-identity.js";
 import { validateApplicationEnvironment } from "../src/application/deployment-environment.js";
 import { handleApplicationRequest } from "../src/server/application-server.js";
 
@@ -14,6 +18,8 @@ export interface ApplicationEntrypointOptions {
   readonly environment?: EnvironmentSource;
   readonly repository_root?: string;
   readonly test_identity_resolver?: ApplicationIdentityResolver;
+  readonly cloudflare_access_jwks?: CloudflareAccessIdentityResolverOptions["jwks"];
+  readonly cloudflare_access_clock?: CloudflareAccessIdentityResolverOptions["clock"];
 }
 
 const processEnvironment: EnvironmentSource = () => ({
@@ -21,6 +27,12 @@ const processEnvironment: EnvironmentSource = () => ({
   AI_LAB_RUNTIME_MODE: process.env["AI_LAB_RUNTIME_MODE"],
   AI_LAB_PUBLIC_ORIGIN: process.env["AI_LAB_PUBLIC_ORIGIN"],
   AI_LAB_LOCAL_AUTH_ENABLED: process.env["AI_LAB_LOCAL_AUTH_ENABLED"],
+  AI_LAB_IDENTITY_PROVIDER: process.env["AI_LAB_IDENTITY_PROVIDER"],
+  AI_LAB_CLOUDFLARE_ACCESS_ISSUER:
+    process.env["AI_LAB_CLOUDFLARE_ACCESS_ISSUER"],
+  AI_LAB_CLOUDFLARE_ACCESS_AUDIENCE:
+    process.env["AI_LAB_CLOUDFLARE_ACCESS_AUDIENCE"],
+  AI_LAB_IDENTITY_ROLE_BINDINGS: process.env["AI_LAB_IDENTITY_ROLE_BINDINGS"],
 });
 
 const failClosed = (response: ServerResponse): void => {
@@ -58,16 +70,33 @@ export function createApplicationEntrypoint(
       return;
     }
 
-    const resolveIdentity =
-      environment.runtime_mode === "development_local"
-        ? createLocalDevelopmentIdentityResolver({
-            runtime_mode: environment.runtime_mode,
-            enabled: environment.local_auth_enabled,
-          })
-        : environment.runtime_mode === "test" &&
-            options.test_identity_resolver !== undefined
-          ? options.test_identity_resolver
-          : () => ANONYMOUS_IDENTITY;
+    let resolveIdentity: ApplicationIdentityResolver;
+    if (environment.runtime_mode === "development_local")
+      resolveIdentity = createLocalDevelopmentIdentityResolver({
+        runtime_mode: environment.runtime_mode,
+        enabled: environment.local_auth_enabled,
+      });
+    else if (
+      environment.runtime_mode === "test" &&
+      options.test_identity_resolver !== undefined
+    )
+      resolveIdentity = options.test_identity_resolver;
+    else if (
+      (environment.runtime_mode === "preview" ||
+        environment.runtime_mode === "production") &&
+      environment.identity_provider === "cloudflare_access" &&
+      environment.cloudflare_access !== null
+    )
+      resolveIdentity = createCloudflareAccessIdentityResolver({
+        configuration: environment.cloudflare_access,
+        ...(options.cloudflare_access_jwks
+          ? { jwks: options.cloudflare_access_jwks }
+          : {}),
+        ...(options.cloudflare_access_clock
+          ? { clock: options.cloudflare_access_clock }
+          : {}),
+      });
+    else resolveIdentity = async () => ANONYMOUS_IDENTITY;
 
     await handleApplicationRequest(request, response, {
       operator_repository_root: options.repository_root ?? process.cwd(),
