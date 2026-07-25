@@ -65,10 +65,26 @@ These are human-run UI steps, not commands executed by AI-134:
 
 1. Create an independent Vercel project named `vlatam-ai-lab` from the reviewed
    repository and branch.
-2. Select the generic/Other framework preset.
-3. Keep the repository-root `vercel.json`.
-4. Use the locked package installation selected by the project and
-   `pnpm run build:production` as the build command.
+2. Use these project settings:
+
+   | Setting                    | Value                |
+   | -------------------------- | -------------------- |
+   | Framework Preset           | `Other`              |
+   | Root Directory             | Repository root      |
+   | Build Command override     | Disabled / automatic |
+   | Output Directory override  | Disabled             |
+   | Install Command override   | Disabled             |
+   | Vercel Function entrypoint | `api/index.ts`       |
+
+   `pnpm run build:production` remains the local and CI validation command. It
+   is not the Vercel project Build Command. Vercel must build the
+   `api/index.ts` Function automatically without expecting a static output
+   directory. Do not create a `public` directory merely to satisfy the build.
+
+3. Keep the repository-root `vercel.json`, including its function
+   configuration, rewrite, and security headers.
+4. Let Vercel use the repository's locked package-manager configuration
+   automatically.
 5. Add only the runtime/deployment/origin non-secret variables above to the
    correct environment. Do not add the local-auth variable.
 6. Configure a reviewed production identity provider before enabling public
