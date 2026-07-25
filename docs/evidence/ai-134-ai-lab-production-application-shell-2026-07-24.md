@@ -103,7 +103,7 @@ credential access, or `vlatam-global` access.
 Focused command:
 
 ```text
-pnpm exec tsx --test tests/application/application-entrypoint.test.ts tests/application/application-shell.test.ts tests/application/application-shell-browser.test.ts tests/architecture/application-shell-boundary.test.ts tests/operator/arca-review-console.test.ts tests/operator/operator-console.test.ts tests/server/api-server.test.ts
+pnpm exec tsx --test tests/application/application-entrypoint.test.ts tests/application/application-shell.test.ts tests/application/application-shell-browser.test.ts tests/architecture/application-shell-boundary.test.ts tests/operator/arca-review-console.test.ts tests/operator/operator-console.test.ts tests/operator/operator-read-model.test.ts tests/server/api-server.test.ts
 ```
 
 Final local results:
