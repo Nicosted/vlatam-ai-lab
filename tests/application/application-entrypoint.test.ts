@@ -33,6 +33,19 @@ const environment = (
       ? "http://127.0.0.1:3000"
       : `https://${runtimeMode}.example.test`,
   AI_LAB_LOCAL_AUTH_ENABLED: localAuthEnabled ? "true" : "false",
+  ...(runtimeMode === "preview" || runtimeMode === "production"
+    ? {
+        AI_LAB_IDENTITY_PROVIDER: "cloudflare_access",
+        AI_LAB_CLOUDFLARE_ACCESS_ISSUER: "https://team.cloudflareaccess.com",
+        AI_LAB_CLOUDFLARE_ACCESS_AUDIENCE: "test-audience",
+        AI_LAB_IDENTITY_ROLE_BINDINGS: JSON.stringify({
+          admin: ["admin@example.com"],
+          reviewer: [],
+          operator: [],
+          viewer: [],
+        }),
+      }
+    : {}),
 });
 
 async function request(
@@ -63,7 +76,7 @@ async function request(
     environment: () => input,
     repository_root: process.cwd(),
     ...(requestOptions.testIdentity
-      ? { test_identity_resolver: () => requestOptions.testIdentity! }
+      ? { test_identity_resolver: async () => requestOptions.testIdentity! }
       : {}),
   });
   await handler(

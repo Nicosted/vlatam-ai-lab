@@ -141,8 +141,8 @@ visibility receives 403. Runtime identity selection is explicit:
 | Runtime mode        | Deployment environment | Identity behavior                                      |
 | ------------------- | ---------------------- | ------------------------------------------------------ |
 | `development_local` | `development`          | Local adapter only with explicit flag and loopback I/O |
-| `preview`           | `preview`              | Anonymous, fail closed                                 |
-| `production`        | `production`           | Anonymous, fail closed                                 |
+| `preview`           | `preview`              | Verified Cloudflare Access or anonymous/fail closed    |
+| `production`        | `production`           | Verified Cloudflare Access or anonymous/fail closed    |
 | `test`              | `development`          | Explicitly injected test resolver only                 |
 
 The local adapter requires `AI_LAB_LOCAL_AUTH_ENABLED=true`, a loopback
@@ -151,10 +151,73 @@ address. Only then may `x-ai-lab-local-role` select a development role.
 Supplying a test resolver outside `test` mode fails the entrypoint closed.
 
 That adapter is not a production identity provider. The production Vercel
-entrypoint deliberately resolves to anonymous and therefore fails closed until
-a separately reviewed trusted identity resolver replaces it. No role in this
-UI can authorize a scheduler, acquisition, export, provider call, deployment,
-publication, database write, or integration.
+entrypoint uses the separately governed Cloudflare Access adapter described
+below. No role in this UI can authorize a scheduler, acquisition, export,
+provider call, deployment, publication, database write, or integration.
+
+## AI-135 verified Cloudflare Access identity
+
+The Preview and Production identity flow is:
+
+`Cloudflare Access` → signed `Cf-Access-Jwt-Assertion` → AI LAB cryptographic
+verification → explicit email-to-role mapping → existing route authorization →
+observation/review shell only.
+
+The adapter reads only `cf-access-jwt-assertion`. It does not trust
+`Cf-Access-Authenticated-User-Email`, forwarded email/user headers, role
+headers, JWT role claims, or a decoded-but-unverified payload. It verifies the
+compact JWT signature with `jose`, permits only `RS256`, requires the exact
+configured issuer and audience, requires expiration, enforces expiration and
+`not-before`, and requires a valid email claim. Any missing, duplicated,
+array-valued, empty, malformed, expired, future, unknown, unallowlisted, or
+unverifiable identity resolves to `ANONYMOUS_IDENTITY`.
+
+The validated issuer must be an absolute HTTPS origin with no credentials,
+path beyond `/`, query, or fragment. AI LAB derives the only JWKS URL as:
+
+```text
+<issuer>/cdn-cgi/access/certs
+```
+
+No arbitrary JWKS URL environment variable exists. The remote JWK set is
+module-cached and uses the library's bounded remote-fetch timeout and cache
+behavior. Verification failures, JWKS failures, and unexpected resolver errors
+are not returned to the browser and never cause an elevated fallback.
+
+Preview and Production require all four variables:
+
+| Variable                            | Contract                                          |
+| ----------------------------------- | ------------------------------------------------- |
+| `AI_LAB_IDENTITY_PROVIDER`          | Exact value `cloudflare_access`                   |
+| `AI_LAB_CLOUDFLARE_ACCESS_ISSUER`   | Absolute HTTPS origin                             |
+| `AI_LAB_CLOUDFLARE_ACCESS_AUDIENCE` | Non-empty Access application AUD tag              |
+| `AI_LAB_IDENTITY_ROLE_BINDINGS`     | Strict JSON mapping of the four existing UI roles |
+
+The strict role-binding shape is:
+
+```json
+{
+  "admin": ["user@example.com"],
+  "reviewer": [],
+  "operator": [],
+  "viewer": []
+}
+```
+
+Only `admin`, `reviewer`, `operator`, and `viewer` are accepted. Every value
+must be an array of valid email strings. Emails are trimmed and normalized to
+lowercase. Unknown keys, missing role keys, non-array values, invalid emails,
+and duplicate normalized emails within or across roles reject the entire
+environment. An explicit empty allowlist is valid configuration but can
+authenticate nobody. Unknown verified users never default to `viewer`.
+
+This role is UI presentation context only. The identity module cannot import
+provider adapters, credential resolvers, scheduler code, ARCA execution code,
+database clients, or `vlatam-global` runtime code. Existing route
+`allowed_roles` remain unchanged, and an `admin` can view only those existing
+read-only routes. No identity can invoke OpenRouter, activate the scheduler,
+acquire or publish ARCA data, bypass review, mutate a database, activate an
+Approved Artifact, deploy, or access `vlatam-global`.
 
 ## Security and availability
 
@@ -195,7 +258,9 @@ available, complete, and true never receive the verified/green tone.
 
 ## Assumptions and limitations
 
-- No production identity provider is configured in this repository.
+- Cloudflare Access verification is implemented, but Team domain, AUD tag,
+  allowlist values, Access policy, and Vercel variables remain human-managed
+  platform configuration.
 - Counts shown on existing views come only from the existing read model.
 - No cost source, recovery read model, news source, production activity stream,
   or deployment authority is available.

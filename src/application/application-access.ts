@@ -22,7 +22,7 @@ export interface ApplicationIdentity {
 
 export type ApplicationIdentityResolver = (
   request: IncomingMessage,
-) => ApplicationIdentity;
+) => Promise<ApplicationIdentity>;
 
 export const LOCAL_DEVELOPMENT_IDENTITY: ApplicationIdentity = Object.freeze({
   authenticated: true,
@@ -71,7 +71,7 @@ export interface LocalDevelopmentIdentityOptions {
 export function createLocalDevelopmentIdentityResolver(
   options: LocalDevelopmentIdentityOptions,
 ): ApplicationIdentityResolver {
-  return (request) => {
+  return async (request) => {
     if (
       options.runtime_mode !== "development_local" ||
       !options.enabled ||

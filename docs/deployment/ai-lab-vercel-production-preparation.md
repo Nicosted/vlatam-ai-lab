@@ -32,13 +32,45 @@ log stream, or successful deployment.
   - `AI_LAB_RUNTIME_MODE=preview` for preview;
   - `AI_LAB_DEPLOYMENT_ENV=production` for production;
   - `AI_LAB_RUNTIME_MODE=production` for production;
-  - `AI_LAB_PUBLIC_ORIGIN` set to that environment's exact HTTPS origin.
+  - `AI_LAB_PUBLIC_ORIGIN` set to that environment's exact HTTPS origin;
+  - `AI_LAB_IDENTITY_PROVIDER=cloudflare_access`;
+  - `AI_LAB_CLOUDFLARE_ACCESS_ISSUER` set to the exact Team HTTPS origin;
+  - `AI_LAB_CLOUDFLARE_ACCESS_AUDIENCE` set to the Access application AUD tag;
+  - `AI_LAB_IDENTITY_ROLE_BINDINGS` set to the reviewed strict JSON allowlist.
 
 The entrypoint validates deployment/runtime-mode agreement before serving
 requests. Missing, unknown, or inconsistent values fail closed. A production
 value with a non-HTTPS origin fails closed. Preview and Production do not honor
-local role headers and resolve anonymous until a reviewed trusted identity
-resolver is implemented.
+local role headers. They require valid Cloudflare Access configuration and
+independently verify the signed `Cf-Access-Jwt-Assertion`. Missing
+configuration or an unsupported provider fails environment validation closed;
+a missing or invalid assertion renders the minimal Spanish identity failure.
+
+The exact identity flow is:
+
+`Cloudflare Access` → signed `Cf-Access-Jwt-Assertion` → AI LAB signature,
+issuer, audience, and lifetime verification → explicit normalized
+email-to-role mapping → unchanged route authorization → read-only shell.
+
+AI LAB derives `<issuer>/cdn-cgi/access/certs`; do not configure a separate
+JWKS URL. Plain Cloudflare email headers, forwarded user headers, local role
+headers, and JWT role claims grant no identity.
+
+Use this exact role-binding shape, replacing only the reviewed email values:
+
+```json
+{
+  "admin": ["user@example.com"],
+  "reviewer": [],
+  "operator": [],
+  "viewer": []
+}
+```
+
+Unknown or missing role keys, non-array values, invalid emails, and duplicate
+normalized emails reject the configuration. Never paste the mapping, Team
+domain, AUD tag, JWT, or an environment dump into browser-visible output or
+logs.
 
 The entrypoint composes only the read-only application server and operator
 projection. It does not import the classifier API server, provider transport,
@@ -97,10 +129,11 @@ These are human-run UI steps, not commands executed by AI-134:
    `ENABLE_EXPERIMENTAL_COREPACK=1`. This is required for Vercel to honor the
    exact `packageManager` pin instead of selecting pnpm from the project's
    creation date. Keep the Install Command override disabled.
-6. Add only the runtime/deployment/origin non-secret variables above to the
-   correct environment. Do not add the local-auth variable.
-7. Configure a reviewed production identity provider before enabling public
-   production access. Do not reuse the local role adapter.
+6. Add only the runtime/deployment/origin and four Cloudflare identity
+   variables above to the correct environment. Do not add the local-auth
+   variable.
+7. Configure the reviewed Cloudflare Access application and allow policy before
+   enabling public production access. Do not reuse the local role adapter.
 8. Confirm preview and production have separate variables, access controls,
    logs, release history, and rollback ownership.
 9. Do not connect databases, AI providers, schedulers, deployment hooks, or
@@ -139,7 +172,41 @@ must validate the observed certificate and routing status while confirming
 that the Logistics and Payments records remain unchanged. Keep the previous AI
 LAB production deployment available until the post-release checklist passes.
 
-These are human review steps. AI-134 performs no deployment or DNS action.
+These are human review steps. AI-135 performs no deployment or DNS action.
+
+## Manual Cloudflare Access setup
+
+These steps are for a human Cloudflare/Vercel administrator after the reviewed
+code and Vercel variables are ready. This repository task performs none of
+them:
+
+1. Create a Cloudflare Zero Trust account if one is not already present.
+2. Create a Self-hosted Access application for `lab.vlatamglobal.com`.
+3. Add an Allow policy for the initial administrator email only.
+4. Copy the Team domain and configure its exact HTTPS origin as
+   `AI_LAB_CLOUDFLARE_ACCESS_ISSUER`.
+5. Copy the Application Audience (AUD) tag and configure it as
+   `AI_LAB_CLOUDFLARE_ACCESS_AUDIENCE`.
+6. Keep the existing CNAME target unchanged.
+7. Change `lab` from DNS only to Proxied only after the reviewed code and all
+   Vercel variables are ready.
+8. Test in a private browser window.
+9. Confirm unauthorized users are blocked by Cloudflare.
+10. Confirm the authorized administrator reaches the existing AI LAB shell.
+11. Confirm a direct request without a valid signed assertion still fails
+    closed with `Identidad requerida`.
+
+The Vercel administrator must configure exactly:
+
+```text
+AI_LAB_IDENTITY_PROVIDER=cloudflare_access
+AI_LAB_CLOUDFLARE_ACCESS_ISSUER=https://<team>.cloudflareaccess.com
+AI_LAB_CLOUDFLARE_ACCESS_AUDIENCE=<application-aud-tag>
+AI_LAB_IDENTITY_ROLE_BINDINGS={"admin":["user@example.com"],"reviewer":[],"operator":[],"viewer":[]}
+```
+
+These values are platform configuration. Do not commit real mappings or copy
+them into evidence artifacts.
 
 ## Preview checklist
 
@@ -151,6 +218,8 @@ These are human review steps. AI-134 performs no deployment or DNS action.
 - [ ] Preview uses `AI_LAB_RUNTIME_MODE=preview`.
 - [ ] `AI_LAB_LOCAL_AUTH_ENABLED` is absent.
 - [ ] Preview origin is exact and HTTPS.
+- [ ] All four Cloudflare identity variables pass strict validation.
+- [ ] Only reviewed allowlisted emails can reach the shell.
 - [ ] `/healthz` returns only the safe liveness contract.
 - [ ] `/`, `/operator/review`, and `/operator/arca-review` render inside the
       shell.
@@ -170,12 +239,17 @@ These are human review steps. AI-134 performs no deployment or DNS action.
 ## Production checklist
 
 - [ ] Preview evidence was independently reviewed.
-- [ ] A production-grade trusted identity resolver was separately approved and
-      replaced the fail-closed anonymous resolver.
+- [ ] The Cloudflare Access identity adapter and exact configuration were
+      separately reviewed.
 - [ ] Production uses `AI_LAB_DEPLOYMENT_ENV=production`.
 - [ ] Production uses `AI_LAB_RUNTIME_MODE=production`.
 - [ ] `AI_LAB_LOCAL_AUTH_ENABLED` is absent.
 - [ ] Production origin is exactly `https://lab.vlatamglobal.com`.
+- [ ] `AI_LAB_IDENTITY_PROVIDER=cloudflare_access`.
+- [ ] Issuer and AUD exactly match the reviewed Access application.
+- [ ] The normalized role mapping contains only reviewed emails and no
+      duplicates.
+- [ ] Direct requests without a valid signed JWT still fail closed.
 - [ ] Project ownership, audit access, logs, alerts, and rollback owner are
       documented.
 - [ ] No secret is exposed to the browser or build log.
@@ -209,3 +283,8 @@ These are human review steps. AI-134 performs no deployment or DNS action.
 
 Rollback restores application presentation only. It cannot restore or create
 operational authority.
+
+If Cloudflare Access routing causes an outage, a separately authorized DNS
+administrator may return `lab` to DNS only while keeping the CNAME target
+unchanged. AI LAB will remain fail closed without a valid Cloudflare Access
+JWT. Never enable local authentication in Preview or Production as a rollback.

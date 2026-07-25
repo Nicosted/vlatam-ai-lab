@@ -118,7 +118,7 @@ describe("AI-134 production application shell", () => {
     }) as typeof fetch;
     try {
       const result = await request("/operator", {
-        resolve_identity: () => identity("admin"),
+        resolve_identity: async () => identity("admin"),
       });
       assert.equal(result.status, 200);
       assert.match(result.body, /class="sidebar"/);
@@ -142,7 +142,7 @@ describe("AI-134 production application shell", () => {
 
   it("maps the application root to the read-only overview", async () => {
     const result = await request("/", {
-      resolve_identity: () => identity("viewer"),
+      resolve_identity: async () => identity("viewer"),
     });
     assert.equal(result.handled, true);
     assert.equal(result.status, 200);
@@ -165,13 +165,13 @@ describe("AI-134 production application shell", () => {
 
   it("fails closed for anonymous identities and protects admin-only settings", async () => {
     const anonymous = await request("/operator", {
-      resolve_identity: () => ANONYMOUS_IDENTITY,
+      resolve_identity: async () => ANONYMOUS_IDENTITY,
     });
     const viewer = await request("/operator/settings", {
-      resolve_identity: () => identity("viewer"),
+      resolve_identity: async () => identity("viewer"),
     });
     const admin = await request("/operator/settings", {
-      resolve_identity: () => identity("admin"),
+      resolve_identity: async () => identity("admin"),
     });
     assert.equal(anonymous.status, 401);
     assert.equal(viewer.status, 403);
@@ -183,10 +183,10 @@ describe("AI-134 production application shell", () => {
 
   it("limits role visibility without treating UI roles as authority", async () => {
     const viewer = await request("/operator", {
-      resolve_identity: () => identity("viewer"),
+      resolve_identity: async () => identity("viewer"),
     });
     const reviewer = await request("/operator", {
-      resolve_identity: () => identity("reviewer"),
+      resolve_identity: async () => identity("reviewer"),
     });
     assert.doesNotMatch(viewer.body, /href="\/operator\/settings"/);
     assert.doesNotMatch(viewer.body, /href="\/operator\/operations\/arca"/);
@@ -224,6 +224,11 @@ describe("AI-134 production application shell", () => {
       AI_LAB_DEPLOYMENT_ENV: "preview",
       AI_LAB_RUNTIME_MODE: "preview",
       AI_LAB_PUBLIC_ORIGIN: "https://preview.example.test",
+      AI_LAB_IDENTITY_PROVIDER: "cloudflare_access",
+      AI_LAB_CLOUDFLARE_ACCESS_ISSUER: "https://team.cloudflareaccess.com",
+      AI_LAB_CLOUDFLARE_ACCESS_AUDIENCE: "test-audience",
+      AI_LAB_IDENTITY_ROLE_BINDINGS:
+        '{"admin":[],"reviewer":[],"operator":[],"viewer":[]}',
     });
     const production = validateApplicationEnvironment({
       AI_LAB_DEPLOYMENT_ENV: "production",
@@ -242,7 +247,7 @@ describe("AI-134 production application shell", () => {
 
   it("applies secure response headers", async () => {
     const result = await request("/operator", {
-      resolve_identity: () => identity("viewer"),
+      resolve_identity: async () => identity("viewer"),
       deployment_environment: "production",
       https_context: true,
     });
@@ -260,21 +265,21 @@ describe("AI-134 production application shell", () => {
 
   it("uses the shared secure HTML policy for success and error surfaces", async () => {
     const surfaces = [
-      await request("/", { resolve_identity: () => identity("viewer") }),
+      await request("/", { resolve_identity: async () => identity("viewer") }),
       await request("/operator/review", {
-        resolve_identity: () => identity("reviewer"),
+        resolve_identity: async () => identity("reviewer"),
       }),
       await request("/operator/arca-review", {
-        resolve_identity: () => identity("reviewer"),
+        resolve_identity: async () => identity("reviewer"),
       }),
       await request("/operator", {
-        resolve_identity: () => ANONYMOUS_IDENTITY,
+        resolve_identity: async () => ANONYMOUS_IDENTITY,
       }),
       await request("/operator/settings", {
-        resolve_identity: () => identity("viewer"),
+        resolve_identity: async () => identity("viewer"),
       }),
       await request("/operator/not-found", {
-        resolve_identity: () => identity("admin"),
+        resolve_identity: async () => identity("admin"),
       }),
     ];
     assert.deepEqual(
@@ -295,12 +300,12 @@ describe("AI-134 production application shell", () => {
 
   it("omits HSTS outside Production HTTPS context", async () => {
     const productionHttp = await request("/operator", {
-      resolve_identity: () => identity("viewer"),
+      resolve_identity: async () => identity("viewer"),
       deployment_environment: "production",
       https_context: false,
     });
     const previewHttps = await request("/operator", {
-      resolve_identity: () => identity("viewer"),
+      resolve_identity: async () => identity("viewer"),
       deployment_environment: "preview",
       https_context: true,
     });
