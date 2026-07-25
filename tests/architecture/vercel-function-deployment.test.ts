@@ -6,18 +6,18 @@ interface VercelConfiguration {
   readonly buildCommand?: string;
   readonly framework?: string | null;
   readonly outputDirectory?: string;
+  readonly builds?: readonly {
+    readonly src: string;
+    readonly use: string;
+  }[];
+  readonly routes?: readonly {
+    readonly src: string;
+    readonly dest: string;
+    readonly headers?: Readonly<Record<string, string>>;
+  }[];
   readonly functions?: Readonly<Record<string, unknown>>;
-  readonly rewrites?: readonly {
-    readonly source: string;
-    readonly destination: string;
-  }[];
-  readonly headers?: readonly {
-    readonly source: string;
-    readonly headers: readonly {
-      readonly key: string;
-      readonly value: string;
-    }[];
-  }[];
+  readonly rewrites?: unknown;
+  readonly headers?: unknown;
 }
 
 interface PackageConfiguration {
@@ -33,39 +33,54 @@ const packageConfiguration = readJson<PackageConfiguration>("package.json");
 describe("Vercel Function deployment configuration", () => {
   it("uses the Other framework preset without a static output directory", () => {
     assert.equal(vercel.framework, null);
+    assert.equal(vercel.buildCommand, undefined);
     assert.equal(vercel.outputDirectory, undefined);
     assert.equal(existsSync("public"), false);
   });
 
-  it("keeps api/index.ts as the configured function entrypoint", () => {
-    assert.deepEqual(vercel.functions?.["api/index.ts"], {
-      maxDuration: 10,
-      memory: 512,
-    });
+  it("builds only api/index.ts as a Node Vercel Function", () => {
+    assert.deepEqual(vercel.builds, [
+      {
+        src: "api/index.ts",
+        use: "@vercel/node",
+      },
+    ]);
     assert.equal(existsSync("api/index.ts"), true);
+    assert.doesNotMatch(JSON.stringify(vercel.builds), /static/i);
   });
 
-  it("leaves Vercel build automation enabled while preserving local validation", () => {
-    assert.equal(vercel.buildCommand, undefined);
+  it("preserves the local and CI production build command", () => {
     assert.equal(
       packageConfiguration.scripts?.["build:production"],
       "pnpm run build && tsc -p tsconfig.vercel.json",
     );
   });
 
-  it("preserves the catch-all route and required security headers", () => {
-    assert.deepEqual(vercel.rewrites, [
-      {
-        source: "/(.*)",
-        destination: "/api",
-      },
-    ]);
-
-    const configuredHeaders = Object.fromEntries(
-      vercel.headers
-        ?.find(({ source }) => source === "/(.*)")
-        ?.headers.map(({ key, value }) => [key, value]) ?? [],
+  it("routes every required application path to api/index.ts", () => {
+    const applicationRoute = vercel.routes?.find(
+      ({ dest }) => dest === "/api/index.ts",
     );
+    assert.ok(applicationRoute);
+    const routePattern = new RegExp(`^${applicationRoute.src}$`);
+    for (const path of [
+      "/",
+      "/healthz",
+      "/operator/review",
+      "/operator/arca-review",
+      "/arbitrary-application-path",
+    ]) {
+      assert.equal(
+        routePattern.test(path),
+        true,
+        `${path} must reach function`,
+      );
+    }
+  });
+
+  it("preserves the required security headers on the application route", () => {
+    const configuredHeaders = vercel.routes?.find(
+      ({ dest }) => dest === "/api/index.ts",
+    )?.headers;
     assert.deepEqual(configuredHeaders, {
       "X-Content-Type-Options": "nosniff",
       "X-Frame-Options": "DENY",
@@ -73,5 +88,21 @@ describe("Vercel Function deployment configuration", () => {
       "Permissions-Policy":
         "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
     });
+  });
+
+  it("does not expose source directories or mix Vercel configuration styles", () => {
+    assert.equal(vercel.functions, undefined);
+    assert.equal(vercel.rewrites, undefined);
+    assert.equal(vercel.headers, undefined);
+    assert.equal(vercel.builds?.length, 1);
+    assert.equal(vercel.routes?.length, 1);
+    assert.deepEqual(
+      vercel.builds?.map(({ src }) => src),
+      ["api/index.ts"],
+    );
+    assert.doesNotMatch(
+      JSON.stringify(vercel),
+      /@vercel\/static|static-build|"dest":"\/(?:public|dist|src)(?:\/|")/,
+    );
   });
 });
