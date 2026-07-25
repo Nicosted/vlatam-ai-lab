@@ -2,7 +2,10 @@
 
 ## Purpose and operator
 
-The console gives an internal AI LAB operator a clear, audit-safe view of the governed repository state. It is diagnostic only. A blocked result is a valid governance outcome, not an application failure.
+The console gives an internal AI LAB operator a clear, audit-safe view of the
+governed repository state. AI-134 is an observation and human-review shell
+only. It is diagnostic and does not calculate final execution readiness. A
+blocked result is a valid governance outcome, not an application failure.
 
 ## Read-only rendering architecture
 
@@ -10,7 +13,13 @@ The existing Node HTTP server performs server-side rendering. For each `GET /ope
 
 This reuses the repository's existing HTTP and server-rendered HTML conventions. Rejected alternatives were a separate SPA or frontend framework (new application and dependency surface), a static snapshot (staler than per-request loading), and a JSON API (unnecessary public serialization surface for this phase).
 
-The console never reads or interprets provider registries, readiness dossiers, evidence packs, proposals, runtime configuration, authorization records, or adapters. Only the repository loader owns that work. Domain, gateway, and adapter modules do not import console code.
+The console never reads or interprets provider registries, readiness dossiers,
+evidence packs, proposals, runtime configuration, authorization records, or
+adapters. Only the repository loader owns the read-only projection. That
+projection reports configuration/review evidence, known blockers, and pending
+operational verification; it does not invoke or duplicate execution preflight.
+Execution-readiness evaluation belongs to a future operational PR. Domain,
+gateway, and adapter modules do not import console code.
 
 ## Spanish operator language and translation boundary
 
@@ -30,7 +39,7 @@ read-model values and recalculates no governance decision.
 
 The dedicated ARCA vocabulary and bounded human-text projection live beside
 it in the pure `arca-review-console-view-model.ts` builder. That builder
-consumes only Operator Read Model `1.7.0`; it preserves canonical outcomes and
+consumes only Operator Read Model `1.8.0`; it preserves canonical outcomes and
 hashes and performs no AI-127 evaluation or AI-128 validation/building.
 
 Unknown machine values fail honest: they remain visible in canonical form,
@@ -54,9 +63,10 @@ clipboard JavaScript is used.
   provider/candidate, blocker/action/review counts, top-five blockers by
   stable severity, next steps from the existing required actions, next
   governed milestone, and the deterministic snapshot identity
-- `/operator/providers` — Proveedores: summary card first, then grouped
-  technical state (Evidencia y preparación, Configuración de sandbox,
-  Seguridad, Ejecución) and a "Ver detalle gobernado" link
+- `/operator/providers` — Proveedores: summary card first, then separate
+  provider visibility, evidence availability, evaluation, operational
+  verification, execution, and authority states plus a "Ver detalle
+  gobernado" link
 - `/operator/providers/openrouter` — governed OpenRouter detail in eight
   sections: Estado actual, Identidad del candidato, Evidencia y preparación,
   Seguridad y privacidad, Configuración de ejecución, Presupuesto sandbox,
@@ -134,6 +144,11 @@ imagery, and no chart.
 ## Deliberate control boundary
 
 The console has no execution, approval, assignment, workflow, kill-switch, secret, configuration, upload, persistence, or provider controls. It cannot issue or consume authorization, invoke the gateway or harness, or call an adapter. This separation prevents a diagnostic surface from becoming policy or execution authority.
+
+Provider/model visibility and static configuration never imply operational
+authority or execution eligibility. Repository-current OpenRouter is
+`available_for_evaluation`, with operational verification pending, execution
+blocked, and authority not granted. Preview and Production remain fail closed.
 
 Authentication is intentionally deferred because this is a local/internal read-only phase. The console must not be publicly deployed until a separately reviewed authentication and deployment design exists.
 

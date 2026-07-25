@@ -235,7 +235,7 @@ deployment, and `vlatam-global` authority disabled.
 
 AI-129 exposes the repository-governed candidate → review → evaluation →
 Approved Artifact flow at `/operator/arca-review`. A pure presentation view
-model consumes Operator Read Model `1.7.0`; it does not call the AI-127
+model consumes Operator Read Model `1.8.0`; it does not call the AI-127
 evaluator or the AI-128 builder. Canonical outcomes, reason codes, bindings,
 IDs, and full hashes remain available while Spanish labels and shortened
 hashes form the primary operator view.

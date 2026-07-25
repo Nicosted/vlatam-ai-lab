@@ -24,6 +24,18 @@ import type {
   OperatorRequiredAction,
 } from "./operator-read-model.js";
 import { buildArcaReviewConsoleViewModel } from "./arca-review-console-view-model.js";
+import {
+  LOCAL_DEVELOPMENT_IDENTITY,
+  type ApplicationIdentity,
+} from "../application/application-access.js";
+import {
+  APPLICATION_ROUTES,
+  renderApplicationShell,
+  statusToneFor,
+} from "../application/application-shell.js";
+import { REPOSITORY_CURRENT_BLOCKED_STATUS } from "../application/repository-current-status.js";
+
+type ShellEnvironment = "development" | "preview" | "production";
 
 const ROUTES = [
   ["Resumen", "/operator"],
@@ -68,10 +80,10 @@ const untranslated = (): string =>
 
 const badge = (value: unknown): string => {
   const presented = presentStatus(value);
-  const body = `<span class="badge status-${escapeHtml(presented.canonical)}">${escapeHtml(presented.label)}</span>`;
+  const body = `<span class="badge tone-${statusToneFor(presented.canonical)}" data-status="${escapeHtml(presented.canonical)}">${escapeHtml(presented.label)}</span>`;
   return presented.known
     ? body
-    : `<span class="badge status-unknown"><code>${escapeHtml(presented.canonical)}</code></span>${untranslated()}`;
+    : `<span class="badge tone-neutral" data-status="unknown"><code>${escapeHtml(presented.canonical)}</code></span>${untranslated()}`;
 };
 
 const severityBadge = (value: OperatorBlocker["severity"]): string => {
@@ -104,15 +116,21 @@ function shell(
   model: OperatorReadModel,
   pathname: string,
   content: string,
+  identity: ApplicationIdentity,
+  deploymentEnvironment: ShellEnvironment,
 ): string {
-  const summary = model.system_summary;
-  const pageTitle =
-    pathname === "/operator/arca-review"
-      ? "Revisión ARCA — Consola del operador"
-      : "AI LAB — Consola del operador";
-  return `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${pageTitle}</title><style>
-  :root{color-scheme:light;--ink:#18201f;--muted:#5d6a67;--line:#d8dfdc;--panel:#fff;--bg:#f4f6f5;--blocked:#9a2f2f;--pending:#765b00;--ok:#176b45;--focus:#005fcc}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 system-ui,-apple-system,sans-serif}a{color:inherit}.skip{position:absolute;left:-999px}.skip:focus{left:1rem;top:1rem;background:#fff;padding:.7rem;z-index:2}header{background:#172321;color:#fff;padding:1rem 1.5rem}.top{display:flex;gap:1rem;align-items:center;justify-content:space-between;flex-wrap:wrap}.top h1{font-size:1.15rem;margin:0}.meta{display:flex;gap:.75rem;flex-wrap:wrap;color:#d7e0dd;font-size:.84rem;align-items:center}.meta code{color:#d7e0dd}nav{background:#fff;border-bottom:1px solid var(--line);padding:.55rem 1.5rem;display:flex;gap:.25rem;overflow:auto}nav a{padding:.45rem .65rem;text-decoration:none;border-radius:.25rem;white-space:nowrap}nav a[aria-current=page]{background:#e5ece9;font-weight:700}a:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid var(--focus);outline-offset:2px}main{max-width:1080px;margin:auto;padding:1.25rem}h2{font-size:1.4rem;margin:.2rem 0 .4rem}.lead{margin:0 0 1rem;color:var(--muted)}h3{font-size:1.05rem;margin:0 0 .7rem}h4{font-size:.9rem;margin:0 0 .45rem;color:var(--muted)}.notice{border-left:5px solid var(--blocked);background:#fff;padding:1rem;margin-bottom:1rem}.grid-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.8rem;margin-bottom:1rem}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:.9rem}.card{background:var(--panel);border:1px solid var(--line);border-radius:.35rem;padding:1rem;margin-bottom:1rem;min-width:0}.grid2>.card{margin-bottom:0}.metric{background:var(--panel);border:1px solid var(--line);border-radius:.35rem;padding:.8rem;min-width:0}.metric span{display:block;color:var(--muted);font-size:.8rem}.metric strong{font-size:1.15rem;overflow-wrap:break-word}.badge{display:inline-block;border:1px solid currentColor;border-radius:999px;padding:.12rem .55rem;font-size:.78rem;font-weight:700}.status-blocked,.status-invalid_state,.status-disabled,.status-rejected,.status-absent,.status-missing,.status-unavailable{color:var(--blocked);background:#fff0f0}.status-pending,.status-not_configured,.status-not_attempted,.status-no_policy_issued,.status-not_invoked,.status-authorization_pending,.status-not_started,.status-unknown,.status-evidence_incomplete,.status-none{color:var(--pending);background:#fff9dc}.status-healthy,.status-enabled,.status-valid,.status-approved,.status-available,.status-complete,.status-active,.status-true{color:var(--ok);background:#edf9f2}.status-false{color:var(--blocked);background:#fff0f0}.severity-critical,.severity-high{color:var(--blocked);background:#fff0f0}.severity-medium{color:var(--pending);background:#fff9dc}.severity-low{color:var(--muted);background:#f0f3f2}.untranslated{color:var(--muted);font-size:.78rem}dl{display:grid;grid-template-columns:minmax(150px,1fr) 2fr;gap:.4rem 1rem;margin:0}dt{color:var(--muted)}dd{margin:0;min-width:0;overflow-wrap:break-word}code{font:12px/1.5 ui-monospace,SFMono-Regular,monospace;overflow-wrap:break-word}.code-block{display:block;margin:.4rem 0 0;padding:.55rem .75rem;background:#f0f3f2;border:1px solid var(--line);border-radius:.25rem;overflow-x:auto;white-space:pre;user-select:text}.code-block code{overflow-wrap:normal;white-space:pre}details.tech{margin-top:.5rem}details.tech summary{cursor:pointer;color:var(--muted);font-size:.84rem}.filters{display:flex;gap:.7rem;flex-wrap:wrap;margin-bottom:.6rem}.filters label{font-size:.8rem;color:var(--muted)}select{display:block;padding:.35rem;background:#fff;border:1px solid #87928f}ol.records{list-style:none;margin:0;padding:0;counter-reset:record}ol.records>li{counter-increment:record}ol.records h3::before{content:counter(record) ". ";color:var(--muted)}.chain{display:grid;grid-template-columns:repeat(7,1fr);gap:.5rem;margin-bottom:1rem}.stage{background:#fff;border:1px solid var(--line);padding:.75rem;text-align:center;min-width:0}.stage p{font-size:.8rem;color:var(--muted);margin:.4rem 0 0}.stage:not(:last-child)::after{content:"→";float:right;margin-right:-1.15rem}.quiet{color:var(--muted)}.table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse}th,td{text-align:left;vertical-align:top;border-bottom:1px solid var(--line);padding:.55rem}th{color:var(--muted)}ul{padding-left:1.2rem}@media(max-width:920px){.grid2{grid-template-columns:1fr}.chain{grid-template-columns:1fr}.stage:not(:last-child)::after{content:"↓";float:none;display:block;margin:.6rem 0 -1rem}}@media(max-width:800px){main{padding:.8rem}header,nav{padding-left:.8rem;padding-right:.8rem}}@media(max-width:480px){dl{grid-template-columns:1fr}dd{margin-bottom:.4rem}.meta{display:block}}
-  </style></head><body><a class="skip" href="#main">Saltar al contenido principal</a><header><div class="top"><h1>AI LAB — Consola del operador</h1><div class="meta"><span>Estado global ${badge(summary.overall_status)}</span><span>Evaluado ${escapeHtml(summary.last_evaluated_at)}</span><span>Contrato ${escapeHtml(summary.read_model_contract_version)}</span><span>Hash ${code(shortHash(summary.read_model_hash))}</span></div></div></header><nav aria-label="Consola del operador">${ROUTES.map(([name, href]) => `<a href="${href}"${pathname === href || (href === "/operator/providers" && pathname.startsWith("/operator/providers/")) ? ' aria-current="page"' : ""}>${name}</a>`).join("")}</nav><main id="main">${content}</main></body></html>`;
+  return renderApplicationShell({
+    pathname,
+    identity,
+    deployment_environment: deploymentEnvironment,
+    evaluated_at: model.system_summary.last_evaluated_at,
+    read_model_hash: model.system_summary.read_model_hash,
+    overall_status: model.system_summary.overall_status,
+    content,
+    ...(pathname === "/operator/arca-review"
+      ? { title: "Revisión ARCA — Consola del operador" }
+      : {}),
+  });
 }
 
 const blockedNotice = (model: OperatorReadModel): string =>
@@ -146,7 +164,7 @@ function overview(model: OperatorReadModel): string {
       "El kill switch permanece activo: cualquier intento de ejecución falla cerrado.",
     );
   const top = topBlockersBySeverity(model.blockers, 5);
-  return `<h2>Resumen</h2><p class="lead">Estado gobernado actual del laboratorio y del proveedor evaluado.</p>${blockedNotice(model)}<div class="grid-metrics">${metric("Estado gobernado", badge(s.overall_status))}${metric("Ejecución de modelos", executionAllowed ? badge("enabled") : `<span class="badge status-blocked">No permitida</span>`)}${metric("Proveedor evaluado", code(provider["provider_id"] ?? "ausente"))}${metric("Candidato actual", code(candidate?.model_id ?? "ausente"))}${metric("Bloqueos activos", text(s.active_blockers))}${metric("Acciones requeridas", text(model.required_human_actions.length))}${metric("Revisiones pendientes", text(s.pending_approvals))}${metric("Evaluación", text(s.last_evaluated_at))}${metric("Versión del modelo de lectura", text(s.read_model_contract_version))}${metric("Hash (abreviado)", code(shortHash(s.read_model_hash)))}</div><section class="card"><h3>Situación actual</h3><ul>${situacion.map((item) => `<li>${item}</li>`).join("")}</ul></section><section class="card"><h3>Bloqueos principales</h3><p class="quiet">Los cinco bloqueos de mayor prioridad (orden estable por severidad; el listado canónico completo está en Bloqueos).</p><ul>${top
+  return `<h2>Resumen</h2><p class="lead">Estado gobernado actual del laboratorio y del proveedor evaluado.</p>${blockedNotice(model)}<div class="grid-metrics">${metric("Estado gobernado", badge(s.overall_status))}${metric("Ejecución de modelos", executionAllowed ? badge("enabled") : `<span class="badge tone-blocked">No permitida</span>`)}${metric("Proveedor evaluado", code(provider["provider_id"] ?? "ausente"))}${metric("Candidato actual", code(candidate?.model_id ?? "ausente"))}${metric("Bloqueos activos", text(s.active_blockers))}${metric("Acciones requeridas", text(model.required_human_actions.length))}${metric("Revisiones pendientes", text(s.pending_approvals))}${metric("Evaluación", text(s.last_evaluated_at))}${metric("Versión del modelo de lectura", text(s.read_model_contract_version))}${metric("Hash (abreviado)", code(shortHash(s.read_model_hash)))}</div><section class="card"><h3>Situación actual</h3><ul>${situacion.map((item) => `<li>${item}</li>`).join("")}</ul></section><section class="card"><h3>Bloqueos principales</h3><p class="quiet">Los cinco bloqueos de mayor prioridad (orden estable por severidad; el listado canónico completo está en Bloqueos).</p><ul>${top
     .map((blocker) => {
       const summary = presentBlockerSummary(blocker);
       return `<li>${escapeHtml(summary.label)}${summary.known ? "" : untranslated()} ${severityBadge(blocker.severity)} ${code(blocker.blocker_code)}</li>`;
@@ -160,13 +178,31 @@ function overview(model: OperatorReadModel): string {
     })
     .join(
       "",
-    )}</ol><p><strong>Próximo hito gobernado:</strong> ${escapeHtml(NEXT_GOVERNED_MILESTONE)}</p></section><section class="card"><h3>Instantánea determinista</h3>${dl(
+    )}</ol><p><strong>Próximo hito gobernado:</strong> ${escapeHtml(NEXT_GOVERNED_MILESTONE)}</p></section>${repositoryCurrentOverviewPanels(model)}<section class="card"><h3>Instantánea determinista</h3>${dl(
     [
       [FIELD_LABELS["evaluated_at"]!, text(s.last_evaluated_at)],
       [FIELD_LABELS["contract_version"]!, text(s.read_model_contract_version)],
       [FIELD_LABELS["read_model_hash"]!, hashSummary(s.read_model_hash)],
     ],
   )}${disclosure("Hash completo del modelo de lectura", s.read_model_hash)}</section>`;
+}
+
+function repositoryCurrentOverviewPanels(model: OperatorReadModel): string {
+  const state = REPOSITORY_CURRENT_BLOCKED_STATUS;
+  const approvedArtifact = model.arca_approved_artifact.present;
+  const recentEvidence = model.audit_references.slice(0, 4);
+  return `<div class="grid2"><section class="card"><span class="panel-kicker">System health</span><h3>Fronteras operativas</h3><ul class="status-list"><li><span>Scheduler</span>${badge(state.scheduler)}</li><li><span>AI-131 kill switch</span>${badge(state.ai_131_kill_switch)}</li><li><span>AI-132 kill switch</span>${badge(state.ai_132_kill_switch)}</li><li><span>AI-133 kill switch</span>${badge(state.ai_133_kill_switch)}</li><li><span>Activación</span><span class="badge tone-blocked">Ninguna</span></li><li><span>Run de producción</span><span class="badge tone-blocked">Ninguno</span></li></ul></section><section class="card"><span class="panel-kicker">Review queue</span><h3>Revisión y artefactos</h3><ul class="status-list"><li><span>Revisiones pendientes</span><strong>${text(model.system_summary.pending_approvals)}</strong></li><li><span>Approved Artifact ARCA</span>${approvedArtifact ? badge("approved") : badge("absent")}</li><li><span>Recovery required</span>${badge(state.recovery_required)}</li><li><span>Cost visibility</span>${badge(state.cost_visibility)}</li></ul><p class="quiet">Los valores no disponibles permanecen explícitos; la interfaz no infiere costos ni estados de recuperación.</p></section><section class="card"><span class="panel-kicker">Evidence</span><h3>Actividad reciente disponible</h3>${codeList("Referencias repository-current", recentEvidence)}<p class="quiet">Orden de referencias del modelo de lectura; no representa actividad productiva.</p></section><section class="card"><span class="panel-kicker">Runtime matrix</span><h3>Proveedores y runtimes</h3><ul class="status-list"><li><span>OpenRouter</span>${badge(model.providers[0]?.["execution_allowed"] === true ? "enabled" : "blocked")}</li><li><span>AI LAB scheduler</span>${badge(state.scheduler)}</li><li><span>Vercel Eve</span>${badge("evidence_incomplete")}</li><li><span>Cloudflare</span>${badge("evidence_incomplete")}</li></ul></section></div><section class="card"><span class="panel-kicker">Authority boundary</span><h3>Autoridades ausentes</h3>${dl(
+    [
+      ["Publicación", yesNo(state.publication_authority)],
+      ["Importación", yesNo(state.import_authority)],
+      ["Deployment", yesNo(state.deployment_authority)],
+      [
+        "Escritura en base externa",
+        yesNo(state.external_database_write_authority),
+      ],
+      ["Acceso vlatam-global", yesNo(state.vlatam_global_access)],
+    ],
+  )}${codeList("Fuentes de la proyección bloqueada", state.evidence_paths)}</section>`;
 }
 
 function providers(model: OperatorReadModel): string {
@@ -191,9 +227,7 @@ function providers(model: OperatorReadModel): string {
       const executionAllowed = p["execution_allowed"] === true;
       const blockerCount =
         (p["reason_codes"] as readonly unknown[] | undefined)?.length ?? 0;
-      const explanation = executionAllowed
-        ? `${providerId} tiene la ejecución permitida por el estado gobernado del repositorio.`
-        : `${providerId} es el proveedor evaluado actualmente. La ejecución permanece deshabilitada mientras existan ${blockerCount} bloqueos gobernados sin resolver.`;
+      const explanation = `${providerId} está disponible para evaluación. Su visibilidad y la evidencia del repositorio no conceden autoridad ni habilitan la ejecución.`;
       const detailLink =
         providerId === "openrouter"
           ? `<p><a href="/operator/providers/openrouter">Ver detalle gobernado</a></p>`
@@ -205,24 +239,25 @@ function providers(model: OperatorReadModel): string {
             FIELD_LABELS["candidate_model"]!,
             candidate ? code(candidate.model_id) : badge("absent"),
           ],
-          [
-            "Estado del proveedor",
-            badge(executionAllowed ? "healthy" : "blocked"),
-          ],
-          [FIELD_LABELS["execution_allowed"]!, yesNo(executionAllowed)],
+          ["Estado del proveedor", badge(p["provider_visibility"])],
+          [FIELD_LABELS["execution_status"]!, badge(p["execution_status"])],
+          [FIELD_LABELS["authority_status"]!, badge(p["authority_status"])],
           [FIELD_LABELS["blocker_count"]!, text(blockerCount)],
         ],
-      )}<p>${escapeHtml(explanation)}</p><div class="grid2"><section class="card"><h4>Evidencia y preparación</h4>${dl(
+      )}<p>${escapeHtml(explanation)}</p><div class="grid2"><section class="card"><h4>Evidencia y evaluación</h4>${dl(
         [
-          [FIELD_LABELS["readiness_status"]!, badge(p["readiness_status"])],
           [
-            FIELD_LABELS["evidence_review"]!,
-            badge(model.evidence.review_status),
+            FIELD_LABELS["evidence_availability"]!,
+            badge(p["evidence_availability"]),
           ],
+          [FIELD_LABELS["evaluation_status"]!, badge(p["evaluation_status"])],
         ],
-      )}</section><section class="card"><h4>Configuración de sandbox</h4>${dl([
+      )}</section><section class="card"><h4>Verificación operativa</h4>${dl([
         [FIELD_LABELS["proposal_status"]!, badge(p["proposal_status"])],
-        [FIELD_LABELS["preflight_status"]!, badge(p["preflight_status"])],
+        [
+          FIELD_LABELS["operational_verification_status"]!,
+          badge(p["operational_verification_status"]),
+        ],
         [FIELD_LABELS["budget_status"]!, badge(p["budget_status"])],
       ])}</section><section class="card"><h4>Seguridad</h4>${dl([
         [FIELD_LABELS["secret_status"]!, badge(p["secret_status"])],
@@ -277,32 +312,44 @@ function openrouter(model: OperatorReadModel): string {
     reasons.push("El adaptador de transporte está deshabilitado.");
   if (model.kill_switch_state.status === "active")
     reasons.push("El kill switch permanece activo.");
-  return `<h2>OpenRouter — detalle gobernado</h2>${blockedNotice(model)}<section class="card"><h3>Estado actual</h3><p><strong>Ejecución permitida:</strong> ${yesNo(p["execution_allowed"])}. No existe ninguna llamada al proveedor, salida de modelo ni uso facturado.</p><ul>${reasons.map((reason) => `<li>${escapeHtml(reason)}</li>`).join("")}</ul>${dl(
+  return `<h2>OpenRouter — detalle gobernado</h2>${blockedNotice(model)}<section class="card"><h3>Estado actual</h3><p>La visibilidad del proveedor y la evidencia disponible permiten evaluación humana, pero no determinan preparación operativa ni conceden autoridad de ejecución. No existe ninguna llamada al proveedor, salida de modelo ni uso facturado.</p>${dl(
     [
-      [FIELD_LABELS["readiness_status"]!, badge(p["readiness_status"])],
-      [FIELD_LABELS["evidence_review"]!, badge(model.evidence.review_status)],
-      [FIELD_LABELS["proposal_status"]!, badge(p["proposal_status"])],
-      [FIELD_LABELS["preflight_status"]!, badge(p["preflight_status"])],
-      [FIELD_LABELS["approval_status"]!, badge(proposal?.approval_status)],
+      [FIELD_LABELS["provider_visibility"]!, badge(p["provider_visibility"])],
+      [
+        FIELD_LABELS["evidence_availability"]!,
+        badge(p["evidence_availability"]),
+      ],
+      [FIELD_LABELS["evaluation_status"]!, badge(p["evaluation_status"])],
+      [
+        FIELD_LABELS["operational_verification_status"]!,
+        badge(p["operational_verification_status"]),
+      ],
+      [FIELD_LABELS["execution_status"]!, badge(p["execution_status"])],
+      [FIELD_LABELS["authority_status"]!, badge(p["authority_status"])],
     ],
-  )}</section><section class="card"><h3>Identidad del candidato</h3>${dl([
-    [FIELD_LABELS["provider_id"]!, code(p["provider_id"] ?? "ausente")],
-    [FIELD_LABELS["candidate_model"]!, m ? code(m.model_id) : badge("absent")],
-    ["Ruta gobernada", r ? code(r.route_id) : badge("absent")],
+  )}<ul>${reasons.map((reason) => `<li>${escapeHtml(reason)}</li>`).join("")}</ul></section><section class="card"><h3>Identidad del candidato</h3>${dl(
     [
-      "Perfil de ejecución",
-      profile ? code(profile.profile_id) : badge("absent"),
+      [FIELD_LABELS["provider_id"]!, code(p["provider_id"] ?? "ausente")],
+      [
+        FIELD_LABELS["candidate_model"]!,
+        m ? code(m.model_id) : badge("absent"),
+      ],
+      ["Ruta gobernada", r ? code(r.route_id) : badge("absent")],
+      [
+        "Perfil de ejecución",
+        profile ? code(profile.profile_id) : badge("absent"),
+      ],
+      [
+        "Cadena del candidato",
+        code(
+          `${String(p["provider_id"] ?? "?")} → ${r?.route_id ?? "?"} → ${m?.model_id ?? "?"} → ${profile?.profile_id ?? "?"}`,
+        ),
+      ],
+      ["Versión del modelo (registro)", text(m?.version ?? "ausente")],
+      ["Versión de la ruta (registro)", text(r?.version ?? "ausente")],
+      ["Versión del perfil", text(profile?.version ?? "ausente")],
     ],
-    [
-      "Cadena del candidato",
-      code(
-        `${String(p["provider_id"] ?? "?")} → ${r?.route_id ?? "?"} → ${m?.model_id ?? "?"} → ${profile?.profile_id ?? "?"}`,
-      ),
-    ],
-    ["Versión del modelo (registro)", text(m?.version ?? "ausente")],
-    ["Versión de la ruta (registro)", text(r?.version ?? "ausente")],
-    ["Versión del perfil", text(profile?.version ?? "ausente")],
-  ])}</section><div class="grid2"><section class="card"><h3>Evidencia y preparación</h3>${dl(
+  )}</section><div class="grid2"><section class="card"><h3>Evidencia y preparación</h3>${dl(
     [
       ["Dossier de preparación", badge(v.dossier_outcome)],
       ["Versión del dossier", text(v.dossier_version ?? "ausente")],
@@ -595,7 +642,7 @@ function arcaReview(model: OperatorReadModel): string {
   )}</section><section class="card"><h3>Revisión humana</h3>${dl([
     [
       "Ciclo de vida",
-      `<span class="badge status-${escapeHtml(r.lifecycle)}">${escapeHtml(r.lifecycle_label)}</span> ${code(r.lifecycle)}`,
+      `<span class="badge tone-${statusToneFor(r.lifecycle)}" data-status="${escapeHtml(r.lifecycle)}">${escapeHtml(r.lifecycle_label)}</span> ${code(r.lifecycle)}`,
     ],
     [
       "Revisor",
@@ -635,7 +682,7 @@ function arcaReview(model: OperatorReadModel): string {
     [
       [
         "Resultado exacto",
-        `<span class="badge status-${escapeHtml(e.outcome)}">${escapeHtml(e.outcome_label)}</span> ${code(e.outcome)}`,
+        `<span class="badge tone-${statusToneFor(e.outcome)}" data-status="${escapeHtml(e.outcome)}">${escapeHtml(e.outcome_label)}</span> ${code(e.outcome)}`,
       ],
       ["Evaluado", text(e.evaluated_at)],
       ["ID de evaluación", code(e.evaluation_id)],
@@ -687,7 +734,7 @@ function governance(model: OperatorReadModel): string {
       const matching = grouped.get(group.title) ?? [];
       const statusBadge = matching.length
         ? badge("blocked")
-        : `<span class="badge status-none">Sin bloqueos registrados</span>`;
+        : `<span class="badge tone-neutral">Sin bloqueos registrados</span>`;
       const resolutions = [
         ...new Set(matching.flatMap((b) => b.resolvable_by)),
       ].map((kind) => presentResolution(kind).label);
@@ -799,9 +846,7 @@ function blockers(model: OperatorReadModel): string {
     RESOLUTION_LABELS,
   )}</select></label><label>Bloquea la ejecución<select data-filter="blocking"><option value="">Todos</option><option value="true">Sí</option><option value="false">No</option></select></label></div><p class="quiet" id="blocker-count" aria-live="polite">Mostrando ${total} de ${total} bloqueos</p><ol class="records">${model.blockers
     .map(record)
-    .join(
-      "",
-    )}</ol><script>(function(){var selects=document.querySelectorAll('[data-filter]');var items=document.querySelectorAll('[data-blocker]');var count=document.getElementById('blocker-count');function apply(){var active={};selects.forEach(function(s){if(s.value)active[s.dataset.filter]=s.value});var visible=0;items.forEach(function(item){var hide=Object.keys(active).some(function(key){return (item.dataset[key]||'').split(' ').indexOf(active[key])===-1});item.hidden=hide;if(!hide)visible+=1});if(count)count.textContent='Mostrando '+visible+' de '+items.length+' bloqueos'}selects.forEach(function(s){s.addEventListener('change',apply)})})()</script>`;
+    .join("")}</ol>`;
 }
 
 function actions(model: OperatorReadModel): string {
@@ -1105,14 +1150,158 @@ function audit(model: OperatorReadModel): string {
   )}</section>`;
 }
 
+function applicationPage(model: OperatorReadModel, pathname: string): string {
+  const state = REPOSITORY_CURRENT_BLOCKED_STATUS;
+  if (pathname === "/operator/operations/arca")
+    return `<h2>ARCA</h2><p class="lead">Superficie operativa de solo lectura para el flujo ARCA gobernado.</p>${blockedNotice(model)}<div class="grid3"><section class="card"><span class="panel-kicker">AI-131</span><h3>Acquisition boundary</h3><p><span class="badge tone-blocked">Kill switch activo</span></p><p class="quiet">Ejecución live bloqueada por configuración repository-current.</p></section><section class="card"><span class="panel-kicker">AI-132</span><h3>Export boundary</h3><p><span class="badge tone-blocked">Kill switch activo</span></p><p class="quiet">Exportación no autorizada.</p></section><section class="card"><span class="panel-kicker">AI-133</span><h3>Scheduler boundary</h3><p><span class="badge tone-blocked">Inactivo</span></p><p class="quiet">Cero runs permitidos; ejecución bloqueada.</p></section></div><section class="card"><h3>Revisión disponible</h3><p><a href="/operator/arca-review">Abrir la revisión ARCA existente</a>. Esta vista conserva su proyección y lógica de gobernanza actuales.</p></section>`;
+  if (pathname === "/operator/operations/acquisitions")
+    return readOnlyUnavailablePage(
+      "Acquisitions",
+      "Adquisiciones",
+      "AI-131 permanece bloqueado. No existe control de adquisición en esta aplicación.",
+      state.evidence_paths[0]!,
+    );
+  if (pathname === "/operator/operations/exports")
+    return readOnlyUnavailablePage(
+      "Exports",
+      "Exportaciones",
+      "AI-132 permanece bloqueado. No existe autoridad de exportación.",
+      state.evidence_paths[1]!,
+    );
+  if (pathname === "/operator/operations/recovery")
+    return readOnlyUnavailablePage(
+      "Recovery",
+      "Recuperación",
+      "El estado recovery-required no está disponible en un read model apto para esta vista.",
+      state.evidence_paths[3]!,
+    );
+  if (pathname === "/operator/approved-artifacts") {
+    const artifact = model.arca_approved_artifact;
+    return `<h2>Approved Artifacts</h2><p class="lead">Artefactos aprobados locales; aprobación no implica exportación, publicación ni uso productivo.</p><section class="card"><h3>Approved Artifact ARCA</h3>${dl(
+      [
+        ["Presencia", artifact.present ? badge("approved") : badge("absent")],
+        ["ID", code(artifact.approved_artifact_id ?? "ausente")],
+        ["Exportación", code(artifact.export_status)],
+        ["Publicación", code(artifact.publication_status)],
+        ["Uso productivo", code(artifact.production_reliance)],
+        ["vlatam-global", code(artifact.vlatam_global_consumption)],
+      ],
+    )}<p><a href="/operator/arca-review">Ver trazabilidad en Revisión ARCA</a></p></section>`;
+  }
+  if (pathname === "/operator/models/registry")
+    return `<h2>Registry</h2><p class="lead">Identidades registradas según el Operator Read Model.</p><div class="grid2"><section class="card"><h3>Modelos</h3><ul class="status-list">${model.models
+      .map(
+        (entry) =>
+          `<li><span>${code(entry.model_id)}</span>${badge(entry.enabled ? "enabled" : "disabled")}</li>`,
+      )
+      .join(
+        "",
+      )}</ul></section><section class="card"><h3>Rutas</h3><ul class="status-list">${model.routes
+      .map(
+        (entry) =>
+          `<li><span>${code(entry.route_id)}</span>${badge(entry.enabled ? "enabled" : "disabled")}</li>`,
+      )
+      .join("")}</ul></section></div>`;
+  if (pathname === "/operator/models/tournaments")
+    return `<h2>Tournaments</h2><p class="lead">Control plane neutral y sin acciones de escritura.</p><section class="card"><h3>Candidatos registrados</h3>${
+      model.tournament.registered_candidates.length === 0
+        ? `<p>${badge("unavailable")} No hay candidatos disponibles en la proyección.</p>`
+        : `<ul class="status-list">${model.tournament.registered_candidates
+            .map(
+              (candidate) =>
+                `<li><span>${code(candidate.candidate_id)}</span><span>${badge(candidate.lifecycle_status)} ${candidate.human_decision_required ? badge("pending") : ""}</span></li>`,
+            )
+            .join("")}</ul>`
+    }<p class="quiet">Write actions available: ${code(model.tournament.write_actions_available)}</p></section>`;
+  if (pathname === "/operator/runtimes/ai-lab")
+    return `<h2>AI LAB runtime</h2><p class="lead">Estado local del control plane.</p><section class="card"><h3>Repository-current</h3><ul class="status-list"><li><span>Scheduler</span><span class="badge tone-blocked">Inactivo</span></li><li><span>Activación</span><span class="badge tone-blocked">Ninguna</span></li><li><span>Production run</span><span class="badge tone-blocked">Ninguno</span></li><li><span>Deployment authority</span>${yesNo(state.deployment_authority)}</li></ul></section>`;
+  if (
+    pathname === "/operator/runtimes/vercel-eve" ||
+    pathname === "/operator/runtimes/cloudflare"
+  ) {
+    const candidateName = pathname.endsWith("vercel-eve")
+      ? "Vercel Eve"
+      : "Cloudflare";
+    const runtime = model.tournament.runtime_evidence.find((entry) =>
+      entry.candidate_id
+        .toLowerCase()
+        .includes(candidateName === "Vercel Eve" ? "eve" : "cloudflare"),
+    );
+    return `<h2>${candidateName}</h2><p class="lead">Evidencia de runtime, no activación.</p><section class="card"><h3>Estado de evidencia</h3>${
+      runtime
+        ? dl([
+            ["Candidate", code(runtime.candidate_id)],
+            ["Freshness", badge(runtime.evidence_freshness)],
+            ["Fuentes", text(runtime.source_count)],
+            ["Gaps sin resolver", text(runtime.unresolved_gaps)],
+            ["Activación prohibida", yesNo(runtime.activation_prohibited)],
+            [
+              "Kill switch",
+              `<span class="badge tone-blocked">${text(runtime.kill_switch_state)}</span>`,
+            ],
+          ])
+        : `<p>${badge("unavailable")} No existe una proyección de evidencia utilizable para esta vista.</p>`
+    }<p class="quiet">Esta página no configura, invoca ni promueve el runtime.</p></section>`;
+  }
+  if (pathname === "/operator/knowledge/regulations")
+    return readOnlyUnavailablePage(
+      "Regulations",
+      "Regulaciones",
+      "La navegación está preparada; no se proyecta un catálogo regulatorio agregado en este shell.",
+      "docs/advisory/regulatory-source-of-truth.md",
+    );
+  if (pathname === "/operator/knowledge/sources")
+    return readOnlyUnavailablePage(
+      "Sources",
+      "Fuentes",
+      "Las fuentes permanecen gobernadas por sus artefactos; no hay adquisición desde la UI.",
+      "docs/agents/arca-source-acquisition.md",
+    );
+  if (pathname === "/operator/knowledge/news")
+    return readOnlyUnavailablePage(
+      "News",
+      "Noticias",
+      "No existe una fuente repository-current para noticias. Estado explícitamente no disponible.",
+      "unavailable:no-reviewed-news-source",
+    );
+  if (pathname === "/operator/evidence")
+    return `<h2>Evidence</h2><p class="lead">Referencias auditables del Operator Read Model.</p><section class="card"><h3>Repository references</h3>${codeList("Rutas disponibles", model.audit_references)}</section><section class="card"><h3>Proyección AI-134</h3>${codeList("Fuentes de estado bloqueado", state.evidence_paths)}<p class="quiet">La presencia de evidencia no concede autoridad operativa.</p></section>`;
+  if (pathname === "/operator/settings")
+    return `<h2>Settings</h2><p class="lead">Configuración visible para administradores; sin mutaciones en esta iteración.</p><section class="card"><h3>Deployment preparation</h3>${dl(
+      [
+        ["Proyecto futuro", code("vlatam-ai-lab")],
+        ["Dominio futuro", code("lab.vlatamglobal.com")],
+        ["Estado", badge("not_configured")],
+        ["Autoridad de deployment", yesNo(state.deployment_authority)],
+      ],
+    )}<p class="quiet">Los cambios se realizan fuera de esta UI mediante un proceso humano revisado.</p></section>`;
+  return `<h2>Vista no disponible</h2><p class="lead">No existe una proyección registrada para esta ruta.</p>`;
+}
+
+function readOnlyUnavailablePage(
+  eyebrow: string,
+  title: string,
+  explanation: string,
+  provenance: string,
+): string {
+  return `<span class="eyebrow">${escapeHtml(eyebrow)}</span><h2>${escapeHtml(title)}</h2><p class="lead">${escapeHtml(explanation)}</p><section class="card"><h3>Estado repository-current</h3><p>${badge("unavailable")} Solo lectura; ninguna acción disponible.</p>${codeList("Provenance", [provenance])}</section>`;
+}
+
 export const OPERATOR_CONSOLE_PATHS = new Set([
   ...ROUTES.map(([, path]) => path),
+  ...APPLICATION_ROUTES.map((route) => route.path),
   "/operator/providers/openrouter",
 ]);
+
+export interface OperatorConsoleRenderOptions {
+  readonly identity?: ApplicationIdentity;
+  readonly deployment_environment?: ShellEnvironment;
+}
 
 export function renderOperatorConsole(
   model: OperatorReadModel,
   pathname: string,
+  options: OperatorConsoleRenderOptions = {},
 ): string {
   const content =
     pathname === "/operator"
@@ -1133,8 +1322,16 @@ export function renderOperatorConsole(
                     ? actions(model)
                     : pathname === "/operator/execution"
                       ? execution(model)
-                      : audit(model);
-  return shell(model, pathname, content);
+                      : pathname === "/operator/audit"
+                        ? audit(model)
+                        : applicationPage(model, pathname);
+  return shell(
+    model,
+    pathname,
+    content,
+    options.identity ?? LOCAL_DEVELOPMENT_IDENTITY,
+    options.deployment_environment ?? "development",
+  );
 }
 
 export function renderOperatorInvalidState(): string {

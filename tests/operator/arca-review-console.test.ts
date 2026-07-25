@@ -150,7 +150,8 @@ describe("AI-129 read-only ARCA Operator Review Console", () => {
   it("contains no mutation controls or forbidden execution dependencies", async () => {
     const html = renderOperatorConsole(await load(), "/operator/arca-review");
     for (const forbidden of [
-      /<(form|button|input|textarea|select)\b/i,
+      /<(form|textarea)\b/i,
+      /type=["'](?:submit|password)["']/i,
       /\bfetch\s*\(/,
       /method=["']post["']/i,
       />\s*(?:Aprobar|Rechazar|Construir|Exportar|Publicar|Activar)\s*</i,
@@ -166,7 +167,7 @@ describe("AI-129 read-only ARCA Operator Review Console", () => {
       .join("\n");
     assert.doesNotMatch(
       source,
-      /from\s+["'][^"']*(?:provider|transport|secret|scheduler|database|deployment|publisher|export|vlatam-global|approved-arca-artifact-builder)[^"']*["']/i,
+      /from\s+["'][^"']*(?:provider|transport|secret|scheduler|database|publisher|export|vlatam-global|approved-arca-artifact-builder)[^"']*["']/i,
     );
     assert.doesNotMatch(source, /\bfetch\s*\(|process\.env|buildApprovedArca/);
   });

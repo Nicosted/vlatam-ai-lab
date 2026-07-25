@@ -17,6 +17,12 @@ import {
   type ReviewPolicyExpectation,
 } from "../review/review-artifact-binding.js";
 import { handleOperatorConsoleRequest } from "../operator/operator-console-handler.js";
+import type { DeploymentEnvironment } from "../application/deployment-environment.js";
+import type { ApplicationIdentityResolver } from "../application/application-access.js";
+import {
+  APPLICATION_SECURITY_HEADERS,
+  sendSecureHtmlResponse,
+} from "./secure-html-response.js";
 
 export interface ApiRequest {
   method: string;
@@ -42,6 +48,9 @@ export interface ApiServerOptions {
   operator_repository_root?: string;
   review_policy?: ReviewPolicyExpectation;
   clock?: () => Date;
+  deployment_environment?: DeploymentEnvironment;
+  https_context?: boolean;
+  resolve_application_identity?: ApplicationIdentityResolver;
 }
 
 interface RateLimitEntry {
@@ -71,14 +80,12 @@ function sendJson(
     "Content-Type": "application/json",
     "X-Content-Type-Options": "nosniff",
     "Cache-Control": "no-store",
+    ...APPLICATION_SECURITY_HEADERS,
+    "Content-Security-Policy":
+      "default-src 'none'; connect-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; object-src 'none'",
     ...headers,
   });
   res.end(JSON.stringify(body));
-}
-
-function sendHtml(res: ServerResponse, statusCode: number, body: string): void {
-  res.writeHead(statusCode, { "Content-Type": "text/html; charset=utf-8" });
-  res.end(body);
 }
 
 function sendInternalError(res: ServerResponse, message: string): void {
@@ -182,9 +189,26 @@ export async function handleClassifierRequest(
   if (
     await handleOperatorConsoleRequest(req, res, {
       repository_root: options?.operator_repository_root ?? process.cwd(),
+      deployment_environment: options?.deployment_environment ?? "development",
+      https_context: options?.https_context ?? false,
+      ...(options?.resolve_application_identity
+        ? { resolve_identity: options.resolve_application_identity }
+        : {}),
     })
   )
     return;
+
+  // Liveness only: this exposes no scheduler, authority, dependency, or
+  // production-readiness state.
+  if (req.url === "/healthz" && req.method === "GET") {
+    sendJson(res, 200, {
+      status: "ok",
+      service: "vlatam-ai-lab",
+      operational_state_exposed: false,
+    });
+    return;
+  }
+
   const rateLimit = checkRateLimit(req.socket.remoteAddress ?? "unknown");
   if (!rateLimit.allowed) {
     sendJson(
@@ -196,7 +220,7 @@ export async function handleClassifierRequest(
     return;
   }
 
-  // Health check endpoint. Keep the response intentionally free of internal state.
+  // Compatibility health route. It remains public but rate-limited.
   if (req.url === "/health" && req.method === "GET") {
     sendJson(res, 200, {
       status: "healthy",
@@ -217,7 +241,16 @@ export async function handleClassifierRequest(
   const pathname = req.url?.split("?", 1)[0] ?? "";
 
   if (pathname === "/research/regulatory/ar-es-ecological-agrochemicals") {
-    sendHtml(res, 200, renderRegulatoryResearchWorkspaceHtml());
+    sendSecureHtmlResponse(
+      res,
+      200,
+      (nonce) => renderRegulatoryResearchWorkspaceHtml(undefined, nonce),
+      {
+        deployment_environment:
+          options?.deployment_environment ?? "development",
+        https_context: options?.https_context ?? false,
+      },
+    );
     return;
   }
 

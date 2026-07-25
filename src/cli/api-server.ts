@@ -1,5 +1,6 @@
 import { createServer } from 'node:http';
 
+import { createLocalDevelopmentIdentityResolver } from '../application/application-access.js';
 import { handleClassifierRequest } from '../server/api-server.js';
 
 function readPort(args: readonly string[]): number {
@@ -20,6 +21,10 @@ function readPort(args: readonly string[]): number {
 }
 
 const dataRoot = process.env['DATA_ROOT'] || process.cwd();
+const resolveLocalIdentity = createLocalDevelopmentIdentityResolver({
+  runtime_mode: 'development_local',
+  enabled: process.env['AI_LAB_LOCAL_AUTH_ENABLED'] === 'true',
+});
 
 let port: number;
 try {
@@ -32,7 +37,10 @@ try {
 const server = createServer((req, res) => {
   handleClassifierRequest(req, res, {
     data_root: dataRoot,
-    operator_repository_root: process.cwd()
+    operator_repository_root: process.cwd(),
+    deployment_environment: 'development',
+    https_context: false,
+    resolve_application_identity: resolveLocalIdentity
   }).catch(() => {
     console.error('Unhandled server error');
     if (!res.headersSent) {

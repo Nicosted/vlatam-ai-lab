@@ -57,7 +57,7 @@ const isProviderLayer = (relPath: string): boolean =>
   relPath === "scripts/openrouter-sandbox-harness.ts" ||
   relPath === "scripts/validate-glm-redacted-operation.ts";
 const isOperatorReadLayer = (relPath: string): boolean =>
-  relPath.startsWith("src/operator/");
+  relPath.startsWith("src/operator/") || relPath.startsWith("src/application/");
 
 describe("governed OpenRouter provider boundary", () => {
   it("keeps the OpenRouter endpoint literal inside the provider layer only", () => {

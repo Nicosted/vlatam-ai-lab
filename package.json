@@ -25,6 +25,7 @@
     "crawler:vuce-notes": "tsx src/crawlers/vuce-notes-parser.ts",
     "crawler:unified-packet": "tsx src/crawlers/generate-unified-packet.ts",
     "build": "tsc -p tsconfig.build.json",
+    "build:production": "pnpm run build && tsc -p tsconfig.vercel.json",
     "agents:snapshot-writer": "tsx src/cli/snapshot-writer.ts",
     "agents:source-monitor": "tsx src/cli/source-monitor.ts",
     "agents:delta-analyzer": "tsx src/cli/delta-analyzer.ts",
