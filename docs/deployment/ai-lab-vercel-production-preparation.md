@@ -21,6 +21,8 @@ log stream, or successful deployment.
 
 - Future project name: `vlatam-ai-lab`
 - Serverless entrypoint: `api/index.ts`
+- Explicit Vercel builder: `@vercel/node`
+- Required package manager: `pnpm@10.28.0`
 - Local production validation: `pnpm run build:production`
 - Routing and security preparation: `vercel.json`
 - Liveness: `GET /healthz`
@@ -77,42 +79,67 @@ These are human-run UI steps, not commands executed by AI-134:
    | Vercel Function entrypoint | `api/index.ts`       |
 
    `pnpm run build:production` remains the local and CI validation command. It
-   is not the Vercel project Build Command. Vercel must build the
-   `api/index.ts` Function automatically without expecting a static output
-   directory. Do not create a `public` directory merely to satisfy the build.
+   is not the Vercel project Build Command. The repository-level `builds`
+   configuration deploys only `api/index.ts` through `@vercel/node` and does
+   not expect a static output directory. No Output Directory or `public`
+   folder exists; do not create one merely to satisfy a build.
 
-3. Keep the repository-root `vercel.json`, including its function
-   configuration, rewrite, and security headers.
+3. Keep the repository-root `vercel.json`, including its explicit Node
+   Function build, catch-all route, and security headers. The legacy
+   `builds`/`routes` style must not be mixed with modern `functions`,
+   `rewrites`, or top-level `headers`.
 4. Let Vercel use the repository's locked package-manager configuration
-   automatically.
-5. Add only the runtime/deployment/origin non-secret variables above to the
+   automatically. `package.json` pins `pnpm@10.28.0`, and
+   `pnpm-workspace.yaml` declares the repository root as the single workspace
+   package. pnpm 9 is unsupported for this configuration.
+5. Enable Corepack in both Preview and Production build environments with the
+   non-secret project environment setting
+   `ENABLE_EXPERIMENTAL_COREPACK=1`. This is required for Vercel to honor the
+   exact `packageManager` pin instead of selecting pnpm from the project's
+   creation date. Keep the Install Command override disabled.
+6. Add only the runtime/deployment/origin non-secret variables above to the
    correct environment. Do not add the local-auth variable.
-6. Configure a reviewed production identity provider before enabling public
+7. Configure a reviewed production identity provider before enabling public
    production access. Do not reuse the local role adapter.
-7. Confirm preview and production have separate variables, access controls,
+8. Confirm preview and production have separate variables, access controls,
    logs, release history, and rollback ownership.
-8. Do not connect databases, AI providers, schedulers, deployment hooks, or
+9. Do not connect databases, AI providers, schedulers, deployment hooks, or
    `vlatam-global`.
 
-## Planned `lab.vlatamglobal.com` setup
+The package-manager pin changes dependency-installation selection only. The
+explicit `@vercel/node` build of `api/index.ts` remains the deployment model,
+with the same catch-all route and security headers.
+
+The explicit legacy builder style cannot safely retain the modern `functions`
+resource block. Consequently, `vercel.json` does not pin the former 10-second
+maximum duration or 512 MB memory values. The effective limits are the current
+Vercel project/runtime defaults shown for the project at deployment time; a
+human reviewer must record those exact displayed values before approval rather
+than assuming or inventing numeric defaults.
+
+## Deployment commit provenance
+
+Redeploying an existing Vercel deployment preserves that deployment's original
+source commit. It must not be used to validate a newer configuration. A new
+deployment used for configuration validation must reference the latest
+reviewed `main` commit, and the cloned full commit SHA must be recorded before
+interpreting the build result.
+
+## Existing `lab.vlatamglobal.com` domain configuration
 
 Do not modify DNS from this repository.
 
-After the independent Vercel project exists and a reviewed preview has passed:
+The Cloudflare CNAME for `lab.vlatamglobal.com` is already configured and
+verified by Vercel. It must not be changed for this deployment fix. There is no
+remaining DNS or domain-dashboard error to resolve.
 
-1. A human project administrator adds `lab.vlatamglobal.com` to the AI LAB
-   project.
-2. Record the exact DNS target displayed by the current Vercel project UI.
-   Do not guess or copy a target from another project.
-3. A human DNS administrator creates only the record requested for the `lab`
-   host in the authoritative `vlatamglobal.com` zone.
-4. Confirm that Logistics and Payments records are unchanged.
-5. After propagation, a human validates the domain in the Vercel UI and records
-   the observed certificate and routing status.
-6. Keep the previous AI LAB production deployment available until the
-   post-release checklist passes.
+The domain becomes active only after a successful production deployment that
+references the latest reviewed `main` commit. After that deployment, a human
+must validate the observed certificate and routing status while confirming
+that the Logistics and Payments records remain unchanged. Keep the previous AI
+LAB production deployment available until the post-release checklist passes.
 
-Each of these actions requires separate approval. AI-134 performs none of them.
+These are human review steps. AI-134 performs no deployment or DNS action.
 
 ## Preview checklist
 
@@ -152,7 +179,8 @@ Each of these actions requires separate approval. AI-134 performs none of them.
 - [ ] Project ownership, audit access, logs, alerts, and rollback owner are
       documented.
 - [ ] No secret is exposed to the browser or build log.
-- [ ] Domain change has separate human and DNS approval.
+- [ ] The existing domain record is unchanged and the successful production
+      deployment references the latest reviewed `main` commit.
 - [ ] The exact last known-good deployment is recorded before promotion.
 - [ ] HSTS is present only on Production HTTPS; nonce CSP, no-store HTML, and
       liveness response are verified.

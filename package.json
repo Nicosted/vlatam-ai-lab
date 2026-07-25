@@ -4,6 +4,7 @@
   "private": true,
   "description": "Experimental AI operations and regulatory intelligence lab for vLatamGlobal (production-isolated sandbox).",
   "type": "module",
+  "packageManager": "pnpm@10.28.0",
   "engines": {
     "node": ">=22.5"
   },
