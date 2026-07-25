@@ -1,6 +1,5 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "pnpm run build:production",
   "framework": null,
   "functions": {
     "api/index.ts": {
