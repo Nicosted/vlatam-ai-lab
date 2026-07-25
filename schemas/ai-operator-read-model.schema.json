@@ -33,7 +33,7 @@
     "tournament"
   ],
   "properties": {
-    "contract_version": { "const": "1.7.0" },
+    "contract_version": { "const": "1.8.0" },
     "system_summary": {
       "type": "object",
       "required": [
@@ -63,7 +63,7 @@
         "active_blockers": { "type": "integer", "minimum": 0 },
         "execution_authorized_count": { "type": "integer", "minimum": 0 },
         "last_evaluated_at": { "type": "string", "format": "date-time" },
-        "read_model_contract_version": { "const": "1.7.0" },
+        "read_model_contract_version": { "const": "1.8.0" },
         "read_model_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
       },
       "additionalProperties": false

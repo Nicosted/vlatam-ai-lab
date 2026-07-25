@@ -137,4 +137,11 @@ describe("AI-134 application architecture boundary", () => {
       );
     }
   });
+
+  it("keeps execution preflight outside the repository operator projection", () => {
+    const source = read("src/operator/repository-operator-read-model.ts");
+    assert.doesNotMatch(source, /projectOpenRouterSandboxPreflight/);
+    assert.match(source, /pending_operational_verification/);
+    assert.match(source, /operational_verification_pending/);
+  });
 });

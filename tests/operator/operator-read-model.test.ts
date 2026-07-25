@@ -80,10 +80,22 @@ describe("AI LAB operator read model", () => {
     assert.equal(result.system_summary.overall_status, "blocked");
     assert.equal(provider["provider_id"], "openrouter");
     assert.equal(provider["execution_allowed"], false);
+    assert.equal(provider["provider_visibility"], "available_for_evaluation");
+    assert.equal(provider["evidence_availability"], "available");
+    assert.equal(provider["evaluation_status"], "pending_human_review");
+    assert.equal(
+      provider["operational_verification_status"],
+      "pending_operational_verification",
+    );
+    assert.equal(provider["execution_status"], "execution_blocked");
+    assert.equal(provider["authority_status"], "authority_not_granted");
     assert.equal(provider["adapter_state"], "disabled");
     assert.equal(provider["readiness_status"], "blocked");
     assert.equal(provider["proposal_status"], "blocked");
-    assert.equal(provider["preflight_status"], "blocked");
+    assert.equal(
+      provider["preflight_status"],
+      "pending_operational_verification",
+    );
     assert.equal(provider["kill_switch_status"], "active");
     assert.equal(provider["secret_status"], "not_configured");
     assert.equal(result.models[0]?.model_id, "minimax/minimax-m2.7");
@@ -192,6 +204,31 @@ describe("AI LAB operator read model", () => {
           blocker.candidate_id === "z-ai/glm-5.2" &&
           blocker.blocker_code.includes("evidence_review_pending"),
       ),
+    );
+  });
+
+  it("never derives affirmative execution readiness from static configuration", async () => {
+    const runtime = load<Record<string, unknown>>(
+      "config/ai-openrouter-sandbox-runtime.json",
+    );
+    (runtime["adapter"] as Record<string, unknown>)["enabled"] = true;
+    (runtime["kill_switch"] as Record<string, unknown>)["active"] = false;
+    const result = await loadRepositoryOperatorReadModel({
+      ...baseOptions,
+      artifact_overrides: { runtime },
+    });
+    const provider = result.providers[0]!;
+    assert.equal(provider["execution_allowed"], false);
+    assert.equal(provider["execution_status"], "execution_blocked");
+    assert.equal(provider["authority_status"], "authority_not_granted");
+    assert.equal(
+      provider["operational_verification_status"],
+      "pending_operational_verification",
+    );
+    assert.equal(result.system_summary.execution_authorized_count, 0);
+    assert.doesNotMatch(
+      JSON.stringify(result),
+      /ready_for_manual_sandbox_call|ready to execute|ready for manual call|operationally ready|execution eligible/i,
     );
   });
 

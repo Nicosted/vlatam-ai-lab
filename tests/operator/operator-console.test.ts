@@ -138,8 +138,10 @@ describe("read-only AI LAB Operator Console (Spanish UX)", () => {
     assert.equal(model.required_human_actions.length, 6);
     for (const expected of [
       "minimax/minimax-m2.7",
-      "Ejecución permitida",
-      "Bloqueado",
+      "Disponible para evaluación",
+      "Pendiente de verificaciones operativas",
+      "Ejecución bloqueada",
+      "No concedida",
       "Deshabilitado",
       "Activo",
       "No configurado",
@@ -151,6 +153,10 @@ describe("read-only AI LAB Operator Console (Spanish UX)", () => {
       model.execution_profiles[0]!.hash!,
     ])
       assert.match(html, new RegExp(expected.replaceAll("/", "\\/")));
+    assert.doesNotMatch(
+      html,
+      /ready_for_manual_sandbox_call|Listo para ejecutar|Listo para una llamada manual|preparado operativamente|elegible para ejecución/i,
+    );
   });
 
   it("keeps canonical machine values unchanged while translating labels", async () => {
@@ -219,17 +225,31 @@ describe("read-only AI LAB Operator Console (Spanish UX)", () => {
     const html = renderOperatorConsole(model, "/operator/providers");
     assert.match(
       html,
-      /La ejecución permanece deshabilitada mientras existan 46 bloqueos gobernados sin resolver\./,
+      /Su visibilidad y la evidencia del repositorio no conceden autoridad ni habilitan la ejecución\./,
     );
     for (const group of [
-      "Evidencia y preparación",
-      "Configuración de sandbox",
+      "Evidencia y evaluación",
+      "Verificación operativa",
       "Seguridad",
       "Ejecución",
     ])
       assert.match(html, new RegExp(`<h4>${group}</h4>`));
     assert.match(html, /Ver detalle gobernado/);
     assert.match(html, /Modelo candidato/);
+  });
+
+  it("never presents execution readiness on any operator route", async () => {
+    const model = await load();
+    const html = [...OPERATOR_CONSOLE_PATHS]
+      .map((path) => renderOperatorConsole(model, path))
+      .join("\n");
+    assert.doesNotMatch(
+      html,
+      /ready_for_manual_sandbox_call|Listo para ejecutar|Listo para una llamada manual|preparado operativamente|elegible para ejecución/i,
+    );
+    assert.match(html, /Pendiente de verificaciones operativas/);
+    assert.match(html, /Ejecución bloqueada/);
+    assert.match(html, /No concedida/);
   });
 
   it("OpenRouter detail groups content into the required Spanish sections", async () => {

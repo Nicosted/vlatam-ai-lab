@@ -45,9 +45,30 @@ on the separate execution-side composition.
 The existing `/operator/review` and `/operator/arca-review` content paths remain
 the original review renderers. No decision or authority logic was duplicated.
 
+The product-simplification delta makes AI-134 explicitly an observation and
+human-review shell. The repository operator projection no longer invokes
+`projectOpenRouterSandboxPreflight` and cannot emit an affirmative
+execution-ready state. It reports configuration evidence, review evidence,
+known blockers, and `pending_operational_verification`; final execution
+readiness belongs to a future operational PR.
+
+OpenRouter now presents six separate facts:
+
+- provider: `available_for_evaluation`;
+- evidence: `available`;
+- evaluation: `pending_human_review`;
+- operational verification: `pending_operational_verification`;
+- execution: `execution_blocked`; and
+- authority: `authority_not_granted`.
+
+Provider/model visibility and checked-in configuration do not imply authority
+or execution eligibility.
+
 ## Assumptions and limitations
 
 - The existing `OperatorReadModel` is authoritative for its current fields.
+- The Operator Read Model is a read-only observation projection, not an
+  execution-preflight or final-readiness authority.
 - AI-131, AI-132, and AI-133 display state is the named fail-closed projection
   derived from checked-in configuration.
 - Cost, recovery, and news remain unavailable where no reviewed source exists.
@@ -56,6 +77,8 @@ the original review renderers. No decision or authority logic was duplicated.
   address all agree.
 - The Vercel production entrypoint remains anonymous/fail-closed until a
   reviewed trusted identity resolver is added.
+- Preview and Production remain fail closed for execution regardless of
+  provider/model visibility.
 - Vercel and DNS preparation is documentation/configuration only.
 
 ## Human review gate
@@ -87,8 +110,8 @@ Final local results:
 
 | Check                                                       | Result                               |
 | ----------------------------------------------------------- | ------------------------------------ |
-| Focused AI-134 UI, operator, server, and architecture tests | 75/75 passed across 7 suites         |
-| Full repository suite                                       | 1,334/1,334 passed across 157 suites |
+| Focused AI-134 UI, operator, server, and architecture tests | 86/86 passed across 8 suites         |
+| Full repository suite                                       | 1,337/1,337 passed across 157 suites |
 | TypeScript typecheck                                        | passed                               |
 | Local production build (`build:production`)                 | passed                               |
 | Scoped ESLint                                               | passed                               |

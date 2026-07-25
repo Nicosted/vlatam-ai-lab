@@ -44,6 +44,13 @@ OpenRouter adapter, environment-secret provider, credential loaders, scheduler
 execution, or ARCA transport. Those remain execution-side modules and are not
 reachable from the planned deployment entrypoint.
 
+AI-134 is an observation and human-review shell. Its provider/model visibility
+does not imply operational authority or execution eligibility, and its
+repository projection does not calculate final execution readiness. A future
+operational PR must separately define and review execution-readiness
+evaluation. Preview and Production remain fail closed even when static
+provider configuration or evidence is present.
+
 `AI_LAB_LOCAL_AUTH_ENABLED=true` is developer-only. It is valid only with
 `AI_LAB_RUNTIME_MODE=development_local`,
 `AI_LAB_DEPLOYMENT_ENV=development`, a loopback public origin, loopback request
@@ -112,6 +119,8 @@ Each of these actions requires separate approval. AI-134 performs none of them.
       visible.
 - [ ] Browser rendering causes zero external network calls.
 - [ ] AI-131, AI-132, and AI-133 remain blocked.
+- [ ] OpenRouter shows operational verification pending, execution blocked,
+      and authority not granted.
 - [ ] No scheduler, export, import, publication, database, or integration path
       is activated.
 
@@ -132,6 +141,8 @@ Each of these actions requires separate approval. AI-134 performs none of them.
 - [ ] HSTS is present only on Production HTTPS; nonce CSP, no-store HTML, and
       liveness response are verified.
 - [ ] Repository-current blocked state is unchanged.
+- [ ] No provider/model visibility or checked-in configuration is presented as
+      execution readiness.
 - [ ] Human approval explicitly states that deployment success creates no
       operational authority.
 

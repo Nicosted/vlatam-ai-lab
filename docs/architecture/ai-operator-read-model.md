@@ -1,11 +1,11 @@
 # AI LAB Operator Read Model
 
-Status: backend read model implemented (contract `1.7.0`); local read-only
+Status: backend read model implemented (contract `1.8.0`); local read-only
 console implemented; future internal API not implemented.
 
 ## Purpose
 
-The Operator Read Model contract `1.7.0` consolidates already-evaluated,
+The Operator Read Model contract `1.8.0` consolidates already-evaluated,
 repository-governed state into one concise, deterministic, audit-safe JSON
 representation. It feeds the local read-only Operator Console and a future
 internal read-only API. It cannot approve, authorize, configure, mutate,
@@ -13,7 +13,17 @@ consume, or execute anything.
 
 The dependency direction is:
 
-`registries + evidence + readiness + proposal + preflight + activation review + gold case + authorization + consumption + gateway metadata → pure builder → read-only console → future internal API`
+`registries + evidence + readiness + proposal + operational-verification projection + activation review + gold case + authorization + consumption + gateway metadata → pure builder → read-only console → future internal API`
+
+## Contract 1.8.0 additions (2026-07-25)
+
+Version `1.8.0` makes the AI-134 application an observation and human-review
+shell. OpenRouter separately exposes provider visibility, evidence
+availability, evaluation status, operational-verification status, execution
+status, and authority status. The repository projection no longer invokes
+execution preflight and cannot derive affirmative execution readiness from
+static configuration. Execution remains blocked and authority not granted;
+final execution-readiness evaluation belongs to a future operational PR.
 
 ## Contract 1.7.0 additions (2026-07-22)
 

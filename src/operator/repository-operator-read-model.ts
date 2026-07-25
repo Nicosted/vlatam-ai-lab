@@ -10,7 +10,6 @@ import {
   evaluateGlmGovernanceArtifacts,
   glmGovernanceArtifacts,
   projectGlmFirstRunReadiness,
-  projectOpenRouterSandboxPreflight,
 } from "../providers/openrouter-supervised-pilot-projection.js";
 
 import {
@@ -368,11 +367,14 @@ export async function loadRepositoryOperatorReadModel(
     if (bindings[key] !== expected)
       sourceErrors.push(`runtime_binding_mismatch:${key}`);
 
-  const preflightResult = projectOpenRouterSandboxPreflight({
-    config: runtime,
-    expected_bindings: expectedBindings,
-    now: evaluatedAt,
-  });
+  const operationalVerification = {
+    outcome: "pending_operational_verification",
+    reasons: ["operational_verification_pending"],
+    configuration_id:
+      typeof runtimeRecord.configuration_id === "string"
+        ? runtimeRecord.configuration_id
+        : null,
+  } as const;
 
   const typedModels = models as OpenRouterModelRegistryData;
   const typedRoutes = routes as OpenRouterRouteRegistryData;
@@ -392,7 +394,6 @@ export async function loadRepositoryOperatorReadModel(
       readinessResult.outcome !== "invalid_dossier" &&
       evidenceResult.outcome !== "invalid_pack" &&
       proposalResult.outcome !== "invalid_proposal" &&
-      preflightResult.outcome !== "invalid_configuration" &&
       activationResult.outcome !== "invalid_review" &&
       goldCaseResult.outcome !== "invalid_gold_case" &&
       glmGovernance.outcome !== "invalid",
@@ -517,12 +518,12 @@ export async function loadRepositoryOperatorReadModel(
           : "pending",
     },
     preflight: {
-      outcome: preflightResult.outcome,
-      reason_codes: preflightResult.reasons,
-      source_artifact_id: preflightResult.configuration_id ?? null,
+      outcome: operationalVerification.outcome,
+      reason_codes: operationalVerification.reasons,
+      source_artifact_id: operationalVerification.configuration_id,
       source_artifact_hash: runtimeHash,
       runtime_config_id:
-        preflightResult.configuration_id ??
+        operationalVerification.configuration_id ??
         (typeof runtimeRecord.configuration_id === "string"
           ? runtimeRecord.configuration_id
           : null),

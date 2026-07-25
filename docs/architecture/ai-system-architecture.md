@@ -208,7 +208,7 @@ seed advisory cases.
   production reliance, database, network, scheduler, deployment, and
   `vlatam-global` authority remain false.
 - **AI-129 operator-understanding seam (2026-07-22):** Operator Read Model
-  `1.7.0` feeds one pure ARCA console view model and the GET-only
+  `1.8.0` feeds one pure ARCA console view model and the GET-only
   `/operator/arca-review` route. The Spanish UI exposes candidate provenance,
   human-review state, exact AI-127 evaluation and local Approved Artifact
   status without adding any mutation, builder, export, publication, scheduler,
@@ -468,7 +468,7 @@ and `vlatam-global` consumption.
 
 The AI-129 presentation seam is:
 
-`repository-governed Operator Read Model 1.7.0 → pure ARCA console view model → read-only Spanish route → human operator understanding`
+`repository-governed Operator Read Model 1.8.0 → pure ARCA console view model → read-only Spanish route → human operator understanding`
 
 The route preserves canonical enums, IDs, bindings and full hashes, translates
 only presentation labels, and bounds/escapes human-authored statements and

@@ -227,9 +227,7 @@ function providers(model: OperatorReadModel): string {
       const executionAllowed = p["execution_allowed"] === true;
       const blockerCount =
         (p["reason_codes"] as readonly unknown[] | undefined)?.length ?? 0;
-      const explanation = executionAllowed
-        ? `${providerId} tiene la ejecución permitida por el estado gobernado del repositorio.`
-        : `${providerId} es el proveedor evaluado actualmente. La ejecución permanece deshabilitada mientras existan ${blockerCount} bloqueos gobernados sin resolver.`;
+      const explanation = `${providerId} está disponible para evaluación. Su visibilidad y la evidencia del repositorio no conceden autoridad ni habilitan la ejecución.`;
       const detailLink =
         providerId === "openrouter"
           ? `<p><a href="/operator/providers/openrouter">Ver detalle gobernado</a></p>`
@@ -241,24 +239,25 @@ function providers(model: OperatorReadModel): string {
             FIELD_LABELS["candidate_model"]!,
             candidate ? code(candidate.model_id) : badge("absent"),
           ],
-          [
-            "Estado del proveedor",
-            badge(executionAllowed ? "healthy" : "blocked"),
-          ],
-          [FIELD_LABELS["execution_allowed"]!, yesNo(executionAllowed)],
+          ["Estado del proveedor", badge(p["provider_visibility"])],
+          [FIELD_LABELS["execution_status"]!, badge(p["execution_status"])],
+          [FIELD_LABELS["authority_status"]!, badge(p["authority_status"])],
           [FIELD_LABELS["blocker_count"]!, text(blockerCount)],
         ],
-      )}<p>${escapeHtml(explanation)}</p><div class="grid2"><section class="card"><h4>Evidencia y preparación</h4>${dl(
+      )}<p>${escapeHtml(explanation)}</p><div class="grid2"><section class="card"><h4>Evidencia y evaluación</h4>${dl(
         [
-          [FIELD_LABELS["readiness_status"]!, badge(p["readiness_status"])],
           [
-            FIELD_LABELS["evidence_review"]!,
-            badge(model.evidence.review_status),
+            FIELD_LABELS["evidence_availability"]!,
+            badge(p["evidence_availability"]),
           ],
+          [FIELD_LABELS["evaluation_status"]!, badge(p["evaluation_status"])],
         ],
-      )}</section><section class="card"><h4>Configuración de sandbox</h4>${dl([
+      )}</section><section class="card"><h4>Verificación operativa</h4>${dl([
         [FIELD_LABELS["proposal_status"]!, badge(p["proposal_status"])],
-        [FIELD_LABELS["preflight_status"]!, badge(p["preflight_status"])],
+        [
+          FIELD_LABELS["operational_verification_status"]!,
+          badge(p["operational_verification_status"]),
+        ],
         [FIELD_LABELS["budget_status"]!, badge(p["budget_status"])],
       ])}</section><section class="card"><h4>Seguridad</h4>${dl([
         [FIELD_LABELS["secret_status"]!, badge(p["secret_status"])],
@@ -313,32 +312,44 @@ function openrouter(model: OperatorReadModel): string {
     reasons.push("El adaptador de transporte está deshabilitado.");
   if (model.kill_switch_state.status === "active")
     reasons.push("El kill switch permanece activo.");
-  return `<h2>OpenRouter — detalle gobernado</h2>${blockedNotice(model)}<section class="card"><h3>Estado actual</h3><p><strong>Ejecución permitida:</strong> ${yesNo(p["execution_allowed"])}. No existe ninguna llamada al proveedor, salida de modelo ni uso facturado.</p><ul>${reasons.map((reason) => `<li>${escapeHtml(reason)}</li>`).join("")}</ul>${dl(
+  return `<h2>OpenRouter — detalle gobernado</h2>${blockedNotice(model)}<section class="card"><h3>Estado actual</h3><p>La visibilidad del proveedor y la evidencia disponible permiten evaluación humana, pero no determinan preparación operativa ni conceden autoridad de ejecución. No existe ninguna llamada al proveedor, salida de modelo ni uso facturado.</p>${dl(
     [
-      [FIELD_LABELS["readiness_status"]!, badge(p["readiness_status"])],
-      [FIELD_LABELS["evidence_review"]!, badge(model.evidence.review_status)],
-      [FIELD_LABELS["proposal_status"]!, badge(p["proposal_status"])],
-      [FIELD_LABELS["preflight_status"]!, badge(p["preflight_status"])],
-      [FIELD_LABELS["approval_status"]!, badge(proposal?.approval_status)],
+      [FIELD_LABELS["provider_visibility"]!, badge(p["provider_visibility"])],
+      [
+        FIELD_LABELS["evidence_availability"]!,
+        badge(p["evidence_availability"]),
+      ],
+      [FIELD_LABELS["evaluation_status"]!, badge(p["evaluation_status"])],
+      [
+        FIELD_LABELS["operational_verification_status"]!,
+        badge(p["operational_verification_status"]),
+      ],
+      [FIELD_LABELS["execution_status"]!, badge(p["execution_status"])],
+      [FIELD_LABELS["authority_status"]!, badge(p["authority_status"])],
     ],
-  )}</section><section class="card"><h3>Identidad del candidato</h3>${dl([
-    [FIELD_LABELS["provider_id"]!, code(p["provider_id"] ?? "ausente")],
-    [FIELD_LABELS["candidate_model"]!, m ? code(m.model_id) : badge("absent")],
-    ["Ruta gobernada", r ? code(r.route_id) : badge("absent")],
+  )}<ul>${reasons.map((reason) => `<li>${escapeHtml(reason)}</li>`).join("")}</ul></section><section class="card"><h3>Identidad del candidato</h3>${dl(
     [
-      "Perfil de ejecución",
-      profile ? code(profile.profile_id) : badge("absent"),
+      [FIELD_LABELS["provider_id"]!, code(p["provider_id"] ?? "ausente")],
+      [
+        FIELD_LABELS["candidate_model"]!,
+        m ? code(m.model_id) : badge("absent"),
+      ],
+      ["Ruta gobernada", r ? code(r.route_id) : badge("absent")],
+      [
+        "Perfil de ejecución",
+        profile ? code(profile.profile_id) : badge("absent"),
+      ],
+      [
+        "Cadena del candidato",
+        code(
+          `${String(p["provider_id"] ?? "?")} → ${r?.route_id ?? "?"} → ${m?.model_id ?? "?"} → ${profile?.profile_id ?? "?"}`,
+        ),
+      ],
+      ["Versión del modelo (registro)", text(m?.version ?? "ausente")],
+      ["Versión de la ruta (registro)", text(r?.version ?? "ausente")],
+      ["Versión del perfil", text(profile?.version ?? "ausente")],
     ],
-    [
-      "Cadena del candidato",
-      code(
-        `${String(p["provider_id"] ?? "?")} → ${r?.route_id ?? "?"} → ${m?.model_id ?? "?"} → ${profile?.profile_id ?? "?"}`,
-      ),
-    ],
-    ["Versión del modelo (registro)", text(m?.version ?? "ausente")],
-    ["Versión de la ruta (registro)", text(r?.version ?? "ausente")],
-    ["Versión del perfil", text(profile?.version ?? "ausente")],
-  ])}</section><div class="grid2"><section class="card"><h3>Evidencia y preparación</h3>${dl(
+  )}</section><div class="grid2"><section class="card"><h3>Evidencia y preparación</h3>${dl(
     [
       ["Dossier de preparación", badge(v.dossier_outcome)],
       ["Versión del dossier", text(v.dossier_version ?? "ausente")],

@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import { canonicalizeOpenRouterRegistryJson } from "../providers/openrouter-registry.js";
 import type { TournamentOperatorReadModel } from "../tournament/index.js";
 
-export const OPERATOR_READ_MODEL_CONTRACT_VERSION = "1.7.0" as const;
+export const OPERATOR_READ_MODEL_CONTRACT_VERSION = "1.8.0" as const;
 export const OPERATOR_READ_MODEL_HASH_DOMAIN =
   "vlatam-ai-lab:operator-read-model:v1" as const;
 
@@ -607,10 +607,7 @@ export function buildOperatorReadModel(
     throw new Error("operator_read_model_invalid_evaluated_at");
   const blockers = blockersFrom(input);
   const actions = actionsFrom(blockers);
-  const executionAllowed =
-    input.source_valid &&
-    blockers.length === 0 &&
-    input.preflight.outcome === "ready_for_manual_sandbox_call";
+  const executionAllowed = false;
   const invalid =
     !input.source_valid ||
     [
@@ -621,13 +618,7 @@ export function buildOperatorReadModel(
       input.activation_review.outcome,
       input.gold_case.outcome,
     ].some((outcome) => outcome.startsWith("invalid"));
-  const overall: OperatorOverallStatus = invalid
-    ? "invalid_state"
-    : blockers.length > 0 || !executionAllowed
-      ? "blocked"
-      : actions.length > 0
-        ? "attention_required"
-        : "healthy";
+  const overall: OperatorOverallStatus = invalid ? "invalid_state" : "blocked";
   const providerReasons = blockers.map((blocker) => blocker.blocker_code);
   const minimaxCandidate: OperatorGovernedCandidate = {
     candidate_id: input.models[0]?.model_id ?? "minimax-candidate-missing",
@@ -697,6 +688,18 @@ export function buildOperatorReadModel(
         execution_profiles: input.execution_profiles.map(
           (profile) => profile.profile_id,
         ),
+        provider_visibility: "available_for_evaluation",
+        evidence_availability:
+          input.evidence.source_artifact_id === null
+            ? "unavailable"
+            : "available",
+        evaluation_status:
+          input.evidence.review_status === "pending"
+            ? "pending_human_review"
+            : input.evidence.review_status,
+        operational_verification_status: "pending_operational_verification",
+        execution_status: "execution_blocked",
+        authority_status: "authority_not_granted",
         readiness_status: input.readiness.outcome,
         proposal_status: input.proposal.outcome,
         preflight_status: input.preflight.outcome,
