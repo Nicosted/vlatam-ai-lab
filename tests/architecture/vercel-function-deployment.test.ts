@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 
+import { OPERATOR_READ_MODEL_ASSET_PATHS } from "../../src/operator/operator-read-model-assets.js";
+
 interface VercelConfiguration {
   readonly buildCommand?: string;
   readonly framework?: string | null;
@@ -9,6 +11,9 @@ interface VercelConfiguration {
   readonly builds?: readonly {
     readonly src: string;
     readonly use: string;
+    readonly config?: {
+      readonly includeFiles?: string | readonly string[];
+    };
   }[];
   readonly routes?: readonly {
     readonly src: string;
@@ -39,12 +44,13 @@ describe("Vercel Function deployment configuration", () => {
   });
 
   it("builds only api/index.ts as a Node Vercel Function", () => {
-    assert.deepEqual(vercel.builds, [
-      {
-        src: "api/index.ts",
-        use: "@vercel/node",
-      },
-    ]);
+    assert.equal(vercel.builds?.length, 1);
+    assert.equal(vercel.builds?.[0]?.src, "api/index.ts");
+    assert.equal(vercel.builds?.[0]?.use, "@vercel/node");
+    assert.deepEqual(
+      [...(vercel.builds?.[0]?.config?.includeFiles ?? [])].sort(),
+      [...OPERATOR_READ_MODEL_ASSET_PATHS].sort(),
+    );
     assert.equal(existsSync("api/index.ts"), true);
     assert.doesNotMatch(JSON.stringify(vercel.builds), /static/i);
   });

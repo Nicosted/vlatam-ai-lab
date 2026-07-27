@@ -43,6 +43,10 @@ import {
   type OperatorReadModelInput,
 } from "./operator-read-model.js";
 import {
+  OPERATOR_READ_MODEL_ARTIFACTS,
+  type OperatorReadModelArtifactKey,
+} from "./operator-read-model-assets.js";
+import {
   buildTournamentOperatorReadModel,
   evaluateRuntimeEvidencePack,
   validateRuntimeCandidate,
@@ -54,37 +58,12 @@ import { evaluateGovernedArcaCandidateReview } from "../review/governed-arca-can
 export const REPOSITORY_OPERATOR_EVALUATED_AT =
   "2026-07-15T12:00:00.000Z" as const;
 
-const REPOSITORY_ARTIFACTS = {
-  models: "config/ai-openrouter-model-registry.json",
-  routes: "config/ai-openrouter-route-registry.json",
-  adapter: "config/ai-openrouter-adapter.json",
-  profiles: "config/ai-execution-profiles.json",
-  dossier: "config/ai-openrouter-readiness-dossier.json",
-  evidence: "config/ai-openrouter-external-evidence-pack.json",
-  proposal: "config/ai-openrouter-sandbox-enablement-proposal.json",
-  approval: "config/ai-openrouter-sandbox-configuration-approval.json",
-  runtime: "config/ai-openrouter-sandbox-runtime.json",
-  activation_review: "config/ai-openrouter-sandbox-activation-review.json",
-  gold_case: "config/ai-openrouter-sandbox-gold-case.json",
-  fixture:
-    "data/fixtures/providers/openrouter-normative-claim-synthetic-v1.json",
-  pricing: "config/ai-pricing.json",
-  zdr: "config/ai-zdr-evidence.json",
-  tournament_native: "config/ai-tournament-runtime-native.json",
-  tournament_eve: "config/ai-tournament-runtime-eve.json",
-  tournament_cloudflare: "config/ai-tournament-runtime-cloudflare.json",
-  runtime_evidence_eve: "config/ai-runtime-evidence-eve.json",
-  runtime_evidence_cloudflare: "config/ai-runtime-evidence-cloudflare.json",
-  glm_conformance: "config/ai-122-glm-fireworks-conformance-result.json",
-  arca_review_fixture: "data/fixtures/arca/ai-127-pending-review.json",
-} as const;
-
-type ArtifactKey = keyof typeof REPOSITORY_ARTIFACTS;
-
 export interface RepositoryOperatorReadModelOptions {
   readonly repository_root: string;
   readonly evaluated_at: string;
-  readonly artifact_overrides?: Readonly<Partial<Record<ArtifactKey, unknown>>>;
+  readonly artifact_overrides?: Readonly<
+    Partial<Record<OperatorReadModelArtifactKey, unknown>>
+  >;
   readonly test_totals?: { readonly tests: number; readonly suites: number };
 }
 
@@ -96,7 +75,7 @@ const nullableString = (value: unknown): string | null =>
 
 function safeRead(
   root: string,
-  key: ArtifactKey,
+  key: OperatorReadModelArtifactKey,
   overrides: RepositoryOperatorReadModelOptions["artifact_overrides"],
 ): { value: unknown; error: string | null } {
   if (overrides && key in overrides)
@@ -104,7 +83,7 @@ function safeRead(
   try {
     return {
       value: JSON.parse(
-        readFileSync(resolve(root, REPOSITORY_ARTIFACTS[key]), "utf8"),
+        readFileSync(resolve(root, OPERATOR_READ_MODEL_ARTIFACTS[key]), "utf8"),
       ) as unknown,
       error: null,
     };
@@ -129,11 +108,18 @@ export async function loadRepositoryOperatorReadModel(
     throw new Error("repository_operator_invalid_evaluated_at");
 
   const loaded = Object.fromEntries(
-    (Object.keys(REPOSITORY_ARTIFACTS) as ArtifactKey[]).map((key) => [
+    (
+      Object.keys(
+        OPERATOR_READ_MODEL_ARTIFACTS,
+      ) as OperatorReadModelArtifactKey[]
+    ).map((key) => [
       key,
       safeRead(options.repository_root, key, options.artifact_overrides),
     ]),
-  ) as Record<ArtifactKey, { value: unknown; error: string | null }>;
+  ) as Record<
+    OperatorReadModelArtifactKey,
+    { value: unknown; error: string | null }
+  >;
   const sourceErrors = Object.values(loaded).flatMap((entry) =>
     entry.error ? [entry.error] : [],
   );
@@ -726,7 +712,7 @@ export async function loadRepositoryOperatorReadModel(
       test_totals: options.test_totals ?? null,
     },
     audit_references: [
-      ...Object.values(REPOSITORY_ARTIFACTS),
+      ...Object.values(OPERATOR_READ_MODEL_ARTIFACTS),
       "config/ai-openrouter-glm-readiness-dossier.json",
       "config/ai-openrouter-glm-external-evidence-pack.json",
       "config/ai-openrouter-glm-supervised-enablement-proposal.json",

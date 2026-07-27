@@ -38,6 +38,35 @@ log stream, or successful deployment.
   - `AI_LAB_CLOUDFLARE_ACCESS_AUDIENCE` set to the Access application AUD tag;
   - `AI_LAB_IDENTITY_ROLE_BINDINGS` set to the reviewed strict JSON allowlist.
 
+### Immutable Operator Read Model function assets
+
+The Node Function has one explicit immutable asset contract:
+`OPERATOR_READ_MODEL_ARTIFACTS` in
+`src/operator/operator-read-model-assets.ts`. It contains exactly 21
+repository-relative JSON files covering the OpenRouter registries, execution
+profiles, readiness/evidence/proposal/review/runtime/gold-case artifacts,
+synthetic first-run fixture, pricing, ZDR evidence, tournament candidates,
+runtime evidence, GLM conformance result, and the ARCA pending-review fixture.
+
+The `api/index.ts` legacy `@vercel/node` build lists those exact files under
+`builds[].config.includeFiles`. A packaging architecture test compares the
+builder list directly with the canonical runtime manifest and rejects omitted,
+additional, wildcard, `.git`, environment, credential, report, documentation,
+or unrelated test paths.
+
+Included files retain their repository-relative paths beneath the packaged
+function root. The production entrypoint derives that root from its known
+`api/index.*` module location; it does not assume the process working directory
+is a repository checkout. There is no upward discovery, `.git` dependency,
+environment-selected root, or fallback state. A missing or malformed included
+file retains the existing `missing_or_malformed_artifact` classification,
+`source_valid=false`, `overall_status=invalid_state`, and safe HTTP 500 page.
+
+These assets form an immutable repository-current snapshot for the deployed
+observation shell. They are not a live activity stream or production
+operational data source. Durable storage for changing production state remains
+a separate future governed project and is not introduced by AI-136.
+
 The entrypoint validates deployment/runtime-mode agreement before serving
 requests. Missing, unknown, or inconsistent values fail closed. A production
 value with a non-HTTPS origin fails closed. Preview and Production do not honor
@@ -267,8 +296,9 @@ them into evidence artifacts.
 ## Rollback
 
 1. Stop promotion and record the observed failure without changing governance
-   artifacts.
-2. Use the Vercel project release history to select the reviewed exact
+   artifacts, Cloudflare Access, DNS, or environment variables.
+2. Revert the AI-136 packaging PR or use the Vercel project release history to
+   select the reviewed exact
    last-known-good AI LAB deployment.
 3. Reassign production traffic to that deployment using the platform's
    reviewed rollback action.
@@ -282,7 +312,8 @@ them into evidence artifacts.
    `vlatam-global` boundaries blocked throughout.
 
 Rollback restores application presentation only. It cannot restore or create
-operational authority.
+operational authority. If the immutable asset snapshot is incomplete, preserve
+the fail-closed response rather than serving partial or fabricated state.
 
 If Cloudflare Access routing causes an outage, a separately authorized DNS
 administrator may return `lab` to DNS only while keeping the CNAME target

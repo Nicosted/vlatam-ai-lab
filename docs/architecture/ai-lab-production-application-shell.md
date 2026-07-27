@@ -100,6 +100,50 @@ only the common application frame and adds navigation to those views.
   reliance, and `vlatam-global` consumption.
 - Rendering performs no filesystem writes and makes no network request.
 
+## Immutable Operator Read Model deployment snapshot
+
+AI-136 defines the checked-in Operator Read Model inputs as one immutable
+deployment snapshot. The canonical contract is
+`OPERATOR_READ_MODEL_ARTIFACTS` in
+`src/operator/operator-read-model-assets.ts`; runtime loading, packaging tests,
+and the Vercel configuration must remain exactly aligned with that manifest.
+The 21 repository-relative JSON inputs are:
+
+1. `config/ai-openrouter-model-registry.json`
+2. `config/ai-openrouter-route-registry.json`
+3. `config/ai-openrouter-adapter.json`
+4. `config/ai-execution-profiles.json`
+5. `config/ai-openrouter-readiness-dossier.json`
+6. `config/ai-openrouter-external-evidence-pack.json`
+7. `config/ai-openrouter-sandbox-enablement-proposal.json`
+8. `config/ai-openrouter-sandbox-configuration-approval.json`
+9. `config/ai-openrouter-sandbox-runtime.json`
+10. `config/ai-openrouter-sandbox-activation-review.json`
+11. `config/ai-openrouter-sandbox-gold-case.json`
+12. `data/fixtures/providers/openrouter-normative-claim-synthetic-v1.json`
+13. `config/ai-pricing.json`
+14. `config/ai-zdr-evidence.json`
+15. `config/ai-tournament-runtime-native.json`
+16. `config/ai-tournament-runtime-eve.json`
+17. `config/ai-tournament-runtime-cloudflare.json`
+18. `config/ai-runtime-evidence-eve.json`
+19. `config/ai-runtime-evidence-cloudflare.json`
+20. `config/ai-122-glm-fireworks-conformance-result.json`
+21. `data/fixtures/arca/ai-127-pending-review.json`
+
+The Vercel Node Function includes these exact files through its legacy builder
+configuration. The production entrypoint resolves their root from the known
+packaged `api/index.*` module location. It does not depend on `process.cwd()`,
+walk parent directories, discover a repository, inspect `.git`, or accept an
+environment-controlled asset path. Tests and local tools may still supply an
+explicit `repository_root`.
+
+The snapshot is repository-current observation evidence fixed at deployment
+time. It is not live production operational state and cannot imply current
+provider, scheduler, ARCA, database, deployment, or execution readiness. A
+future durable production read source requires a separate governed schema,
+integrity/freshness contract, implementation, and review.
+
 ## Production dependency boundary
 
 The deployable composition has this read-only path:

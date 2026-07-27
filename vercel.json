@@ -4,7 +4,32 @@
   "builds": [
     {
       "src": "api/index.ts",
-      "use": "@vercel/node"
+      "use": "@vercel/node",
+      "config": {
+        "includeFiles": [
+          "config/ai-openrouter-model-registry.json",
+          "config/ai-openrouter-route-registry.json",
+          "config/ai-openrouter-adapter.json",
+          "config/ai-execution-profiles.json",
+          "config/ai-openrouter-readiness-dossier.json",
+          "config/ai-openrouter-external-evidence-pack.json",
+          "config/ai-openrouter-sandbox-enablement-proposal.json",
+          "config/ai-openrouter-sandbox-configuration-approval.json",
+          "config/ai-openrouter-sandbox-runtime.json",
+          "config/ai-openrouter-sandbox-activation-review.json",
+          "config/ai-openrouter-sandbox-gold-case.json",
+          "data/fixtures/providers/openrouter-normative-claim-synthetic-v1.json",
+          "config/ai-pricing.json",
+          "config/ai-zdr-evidence.json",
+          "config/ai-tournament-runtime-native.json",
+          "config/ai-tournament-runtime-eve.json",
+          "config/ai-tournament-runtime-cloudflare.json",
+          "config/ai-runtime-evidence-eve.json",
+          "config/ai-runtime-evidence-cloudflare.json",
+          "config/ai-122-glm-fireworks-conformance-result.json",
+          "data/fixtures/arca/ai-127-pending-review.json"
+        ]
+      }
     }
   ],
   "routes": [
