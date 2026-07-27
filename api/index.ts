@@ -10,6 +10,7 @@ import {
   type CloudflareAccessIdentityResolverOptions,
 } from "../src/application/cloudflare-access-identity.js";
 import { validateApplicationEnvironment } from "../src/application/deployment-environment.js";
+import { resolvePackagedOperatorAssetRoot } from "../src/operator/operator-read-model-assets.js";
 import { handleApplicationRequest } from "../src/server/application-server.js";
 
 type EnvironmentSource = () => Readonly<Record<string, string | undefined>>;
@@ -34,6 +35,10 @@ const processEnvironment: EnvironmentSource = () => ({
     process.env["AI_LAB_CLOUDFLARE_ACCESS_AUDIENCE"],
   AI_LAB_IDENTITY_ROLE_BINDINGS: process.env["AI_LAB_IDENTITY_ROLE_BINDINGS"],
 });
+
+const PACKAGED_OPERATOR_ASSET_ROOT = resolvePackagedOperatorAssetRoot(
+  import.meta.url,
+);
 
 const failClosed = (response: ServerResponse): void => {
   response.writeHead(503, {
@@ -99,7 +104,8 @@ export function createApplicationEntrypoint(
     else resolveIdentity = async () => ANONYMOUS_IDENTITY;
 
     await handleApplicationRequest(request, response, {
-      operator_repository_root: options.repository_root ?? process.cwd(),
+      operator_repository_root:
+        options.repository_root ?? PACKAGED_OPERATOR_ASSET_ROOT,
       deployment_environment: environment.deployment_environment,
       https_context: new URL(environment.public_origin).protocol === "https:",
       resolve_application_identity: resolveIdentity,
