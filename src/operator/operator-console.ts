@@ -48,7 +48,7 @@ import { REPOSITORY_CURRENT_BLOCKED_STATUS } from "../application/repository-cur
 type ShellEnvironment = "development" | "preview" | "production";
 
 const NEXT_GOVERNED_MILESTONE =
-  "Activación controlada de sandbox (una sola llamada sintética), solo tras resolver los bloqueos gobernados y registrar las decisiones humanas de la revisión de activación." as const;
+  "Activación controlada del entorno aislado (una sola llamada sintética), solo tras resolver los bloqueos gobernados y registrar las decisiones humanas de la revisión de activación." as const;
 
 const NEXT_ACTION_LABELS: Readonly<Record<string, string>> = {
   repair_invalid_review_artifact:
@@ -58,7 +58,7 @@ const NEXT_ACTION_LABELS: Readonly<Record<string, string>> = {
   record_human_decisions:
     "Registrar las decisiones humanas pendientes (revisión de evidencia, aprobación, titularidades y aceptación del caso de referencia).",
   propose_activation_configuration_pr:
-    "Proponer un PR separado de configuración de activación (una sola llamada); la ejecución seguirá sin autorizarse en esta revisión.",
+    "Proponer una solicitud de cambios separada para configurar la activación (una sola llamada); la ejecución seguirá sin autorizarse en esta revisión.",
   renew_expired_review:
     "Renovar la revisión vencida con una nueva versión gobernada.",
   address_rejection_or_supersede:
@@ -81,7 +81,7 @@ const badge = (value: unknown): string => {
   const body = `<span class="badge tone-${statusToneFor(presented.canonical)}" data-status="${escapeHtml(presented.canonical)}">${escapeHtml(presented.label)}</span>`;
   return presented.known
     ? body
-    : `<span class="badge tone-neutral" data-status="unknown"><code>${escapeHtml(presented.canonical)}</code></span>${untranslated()}`;
+    : `${body}${untranslated()}${disclosure("Valor técnico canónico", presented.canonical)}`;
 };
 
 const severityBadge = (value: OperatorBlocker["severity"]): string => {
@@ -109,6 +109,13 @@ const codeList = (summaryLabel: string, values: readonly string[]): string =>
 
 const hashSummary = (value: string | null | undefined): string =>
   value ? code(shortHash(value)) : badge("absent");
+
+const modelDisplayName = (modelId: string): string =>
+  modelId.includes("minimax-m2.7")
+    ? "MiniMax M2.7"
+    : modelId.includes("glm-5.2")
+      ? "GLM-5.2"
+      : "Modelo registrado";
 
 function shell(
   model: OperatorReadModel,
@@ -203,12 +210,12 @@ function missionsLanding(model: OperatorReadModel): string {
   )}${area(
     "Adquisiciones",
     "/operator/operations/acquisitions",
-    "Kill switch activo",
+    "Interruptor de seguridad activo",
     "AI-131 permanece bloqueado; no hay adquisición desde esta interfaz.",
   )}${area(
     "Exportaciones",
     "/operator/operations/exports",
-    "Kill switch activo",
+    "Interruptor de seguridad activo",
     "AI-132 permanece bloqueado; no existe autoridad de exportación.",
   )}${area(
     "Recuperación",
@@ -257,6 +264,7 @@ function reviewsLanding(model: OperatorReadModel): string {
 
 function modelsLanding(model: OperatorReadModel): string {
   const provider = model.providers[0] ?? {};
+  const candidate = model.models[0];
   return `<h2>Modelos e integraciones</h2><p class="lead">Qué modelos, rutas y entornos están registrados, y si su ejecución está permitida.</p><div class="grid-metrics">${metric(
     "Proveedor evaluado",
     code(provider["provider_id"] ?? "ausente"),
@@ -268,6 +276,11 @@ function modelsLanding(model: OperatorReadModel): string {
   )}${metric("Modelos registrados", text(model.models.length))}${metric(
     "Rutas registradas",
     text(model.routes.length),
+  )}${metric(
+    "Modelo candidato",
+    candidate
+      ? `${text(modelDisplayName(candidate.model_id))}${disclosure("Identificador canónico del modelo", candidate.model_id)}`
+      : badge("absent"),
   )}</div><div class="grid2"><section class="card"><h3>Proveedores</h3><p class="quiet">Estado gobernado del proveedor evaluado y su evidencia.</p><p><a href="/operator/providers">Abrir proveedores →</a></p></section><section class="card"><h3>Registro</h3><p class="quiet">Identidades de modelos y rutas del modelo de lectura.</p><p><a href="/operator/models/registry">Abrir registro →</a></p></section><section class="card"><h3>Torneos</h3><p class="quiet">Candidatos registrados; sin acciones de escritura.</p><p><a href="/operator/models/tournaments">Abrir torneos →</a></p></section><section class="card"><h3>Entornos</h3><p class="quiet">AI LAB, Vercel Eve y Cloudflare: evidencia, no activación.</p><p><a href="/operator/runtimes/ai-lab">Abrir entornos →</a></p></section></div>`;
 }
 
@@ -294,13 +307,13 @@ function overview(model: OperatorReadModel): string {
     situacion.push("No se ha consumido ninguna autorización de ejecución.");
   if (model.kill_switch_state.status === "active")
     situacion.push(
-      "El kill switch permanece activo: cualquier intento de ejecución falla cerrado.",
+      "El interruptor de seguridad permanece activo: cualquier intento de ejecución falla de forma segura.",
     );
   const top = topBlockersBySeverity(model.blockers, 5);
   return `<h2>Estado del sistema</h2><p class="lead">Detalle técnico del estado gobernado del laboratorio y del proveedor evaluado.</p>${blockedNotice(model)}<div class="grid-metrics">${metric("Estado gobernado", badge(s.overall_status))}${metric("Ejecución de modelos", executionAllowed ? badge("enabled") : `<span class="badge tone-blocked">No permitida</span>`)}${metric("Proveedor evaluado", code(provider["provider_id"] ?? "ausente"))}${metric("Candidato actual", code(candidate?.model_id ?? "ausente"))}${metric("Bloqueos activos", text(s.active_blockers))}${metric("Acciones requeridas", text(model.required_human_actions.length))}${metric("Revisiones pendientes", text(s.pending_approvals))}${metric("Evaluación", text(s.last_evaluated_at))}${metric("Versión del modelo de lectura", text(s.read_model_contract_version))}${metric("Hash (abreviado)", code(shortHash(s.read_model_hash)))}</div><section class="card"><h3>Situación actual</h3><ul>${situacion.map((item) => `<li>${item}</li>`).join("")}</ul></section><section class="card"><h3>Bloqueos principales</h3><p class="quiet">Los cinco bloqueos de mayor prioridad (orden estable por severidad; el listado canónico completo está en Bloqueos).</p><ul>${top
     .map((blocker) => {
       const summary = presentBlockerSummary(blocker);
-      return `<li>${escapeHtml(summary.label)}${summary.known ? "" : untranslated()} ${severityBadge(blocker.severity)} ${code(blocker.blocker_code)}</li>`;
+      return `<li>${escapeHtml(summary.label)}${summary.known ? "" : untranslated()} ${severityBadge(blocker.severity)}${disclosure("Código canónico", blocker.blocker_code)}</li>`;
     })
     .join(
       "",
@@ -324,11 +337,11 @@ function repositoryCurrentOverviewPanels(model: OperatorReadModel): string {
   const state = REPOSITORY_CURRENT_BLOCKED_STATUS;
   const approvedArtifact = model.arca_approved_artifact.present;
   const recentEvidence = model.audit_references.slice(0, 4);
-  return `<div class="grid2"><section class="card"><span class="panel-kicker">Salud del sistema</span><h3>Fronteras operativas</h3><ul class="status-list"><li><span>Planificador</span>${badge(state.scheduler)}</li><li><span>AI-131 kill switch</span>${badge(state.ai_131_kill_switch)}</li><li><span>AI-132 kill switch</span>${badge(state.ai_132_kill_switch)}</li><li><span>AI-133 kill switch</span>${badge(state.ai_133_kill_switch)}</li><li><span>Activación</span><span class="badge tone-blocked">Ninguna</span></li><li><span>Ejecución en producción</span><span class="badge tone-blocked">Ninguno</span></li></ul></section><section class="card"><span class="panel-kicker">Cola de revisión</span><h3>Revisión y artefactos</h3><ul class="status-list"><li><span>Revisiones pendientes</span><strong>${text(model.system_summary.pending_approvals)}</strong></li><li><span>Artefacto aprobado ARCA</span>${approvedArtifact ? badge("approved") : badge("absent")}</li><li><span>Recuperación requerida</span>${badge(state.recovery_required)}</li><li><span>Visibilidad de costos</span>${badge(state.cost_visibility)}</li></ul><p class="quiet">Los valores no disponibles permanecen explícitos; la interfaz no infiere costos ni estados de recuperación.</p></section><section class="card"><span class="panel-kicker">Evidencia</span><h3>Actividad reciente disponible</h3>${codeList("Referencias repository-current", recentEvidence)}<p class="quiet">Orden de referencias del modelo de lectura; no representa actividad productiva.</p></section><section class="card"><span class="panel-kicker">Entornos</span><h3>Proveedores y entornos</h3><ul class="status-list"><li><span>OpenRouter</span>${badge(model.providers[0]?.["execution_allowed"] === true ? "enabled" : "blocked")}</li><li><span>Planificador AI LAB</span>${badge(state.scheduler)}</li><li><span>Vercel Eve</span>${badge("evidence_incomplete")}</li><li><span>Cloudflare</span>${badge("evidence_incomplete")}</li></ul></section></div><section class="card"><span class="panel-kicker">Frontera de autoridad</span><h3>Autoridades ausentes</h3>${dl(
+  return `<div class="grid2"><section class="card"><span class="panel-kicker">Salud del sistema</span><h3>Fronteras operativas</h3><ul class="status-list"><li><span>Planificador</span>${badge(state.scheduler)}</li><li><span>Interruptor de seguridad AI-131</span>${badge(state.ai_131_kill_switch)}</li><li><span>Interruptor de seguridad AI-132</span>${badge(state.ai_132_kill_switch)}</li><li><span>Interruptor de seguridad AI-133</span>${badge(state.ai_133_kill_switch)}</li><li><span>Activación</span><span class="badge tone-blocked">Ninguna</span></li><li><span>Ejecución en producción</span><span class="badge tone-blocked">Ninguno</span></li></ul></section><section class="card"><span class="panel-kicker">Cola de revisión</span><h3>Revisión y artefactos</h3><ul class="status-list"><li><span>Revisiones pendientes</span><strong>${text(model.system_summary.pending_approvals)}</strong></li><li><span>Artefacto aprobado ARCA</span>${approvedArtifact ? badge("approved") : badge("absent")}</li><li><span>Recuperación requerida</span>${badge(state.recovery_required)}</li><li><span>Visibilidad de costos</span>${badge(state.cost_visibility)}</li></ul><p class="quiet">Los valores no disponibles permanecen explícitos; la interfaz no infiere costos ni estados de recuperación.</p></section><section class="card"><span class="panel-kicker">Evidencia</span><h3>Actividad reciente disponible</h3>${codeList("Referencias del estado actual del repositorio", recentEvidence)}<p class="quiet">Orden de referencias del modelo de lectura; no representa actividad productiva.</p></section><section class="card"><span class="panel-kicker">Entornos</span><h3>Proveedores y entornos</h3><ul class="status-list"><li><span>OpenRouter</span>${badge(model.providers[0]?.["execution_allowed"] === true ? "enabled" : "blocked")}</li><li><span>Planificador AI LAB</span>${badge(state.scheduler)}</li><li><span>Vercel Eve</span>${badge("evidence_incomplete")}</li><li><span>Cloudflare</span>${badge("evidence_incomplete")}</li></ul></section></div><section class="card"><span class="panel-kicker">Frontera de autoridad</span><h3>Autoridades ausentes</h3>${dl(
     [
       ["Publicación", yesNo(state.publication_authority)],
       ["Importación", yesNo(state.import_authority)],
-      ["Deployment", yesNo(state.deployment_authority)],
+      ["Despliegue", yesNo(state.deployment_authority)],
       [
         "Escritura en base externa",
         yesNo(state.external_database_write_authority),
@@ -339,7 +352,7 @@ function repositoryCurrentOverviewPanels(model: OperatorReadModel): string {
 }
 
 function providers(model: OperatorReadModel): string {
-  return `<h2>Proveedores</h2><p class="lead">Cada tarjeta se genera desde el Operator Read Model; la consola no interpreta artefactos del proveedor.</p>${model.providers
+  return `<h2>Proveedores</h2><p class="lead">Cada tarjeta se genera desde el modelo de lectura del operador; la consola no interpreta artefactos del proveedor.</p>${model.providers
     .map((p) => {
       const registeredModels =
         (p["registered_models"] as readonly string[] | undefined) ?? [];
@@ -357,15 +370,17 @@ function providers(model: OperatorReadModel): string {
         registeredProfiles.includes(item.profile_id),
       );
       const providerId = String(p["provider_id"] ?? "unknown");
+      const providerName =
+        providerId === "openrouter" ? "OpenRouter" : providerId;
       const executionAllowed = p["execution_allowed"] === true;
       const blockerCount =
         (p["reason_codes"] as readonly unknown[] | undefined)?.length ?? 0;
-      const explanation = `${providerId} está disponible para evaluación. Su visibilidad y la evidencia del repositorio no conceden autoridad ni habilitan la ejecución.`;
+      const explanation = `${providerName} está disponible para evaluación. Su visibilidad y la evidencia del repositorio no conceden autoridad ni habilitan la ejecución.`;
       const detailLink =
         providerId === "openrouter"
           ? `<p><a href="/operator/providers/openrouter">Ver detalle gobernado</a></p>`
           : "";
-      return `<article class="card"><h3>${escapeHtml(p["display_name"] || providerId)} ${badge(executionAllowed ? "healthy" : "blocked")}</h3>${dl(
+      return `<article class="card"><h3>${escapeHtml(p["display_name"] || providerName)} ${badge(executionAllowed ? "healthy" : "blocked")}</h3>${dl(
         [
           [FIELD_LABELS["provider_id"]!, code(providerId)],
           [
@@ -437,14 +452,14 @@ function openrouter(model: OperatorReadModel): string {
     reasons.push("La evidencia externa está pendiente de revisión humana.");
   if (proposal?.approval_status === "pending")
     reasons.push(
-      "La aprobación humana de la propuesta de sandbox está pendiente.",
+      "La aprobación humana de la propuesta de entorno aislado está pendiente.",
     );
   if (model.authorization.exact_policy_hash === null)
     reasons.push("No existe una política exacta de ejecución.");
   if (model.gateway_adapter_state.adapter_status === "disabled")
     reasons.push("El adaptador de transporte está deshabilitado.");
   if (model.kill_switch_state.status === "active")
-    reasons.push("El kill switch permanece activo.");
+    reasons.push("El interruptor de seguridad permanece activo.");
   return `<h2>OpenRouter — detalle gobernado</h2>${blockedNotice(model)}<section class="card"><h3>Estado actual</h3><p>La visibilidad del proveedor y la evidencia disponible permiten evaluación humana, pero no determinan preparación operativa ni conceden autoridad de ejecución. No existe ninguna llamada al proveedor, salida de modelo ni uso facturado.</p>${dl(
     [
       [FIELD_LABELS["provider_visibility"]!, badge(p["provider_visibility"])],
@@ -542,26 +557,31 @@ function openrouter(model: OperatorReadModel): string {
       ],
       [FIELD_LABELS["consumption_status"]!, badge(model.consumption.status)],
     ],
-  )}</section><section class="card"><h3>Presupuesto sandbox</h3>${dl([
-    [FIELD_LABELS["budget_status"]!, badge(model.budget_state.status)],
+  )}</section><section class="card"><h3>Presupuesto del entorno aislado</h3>${dl(
     [
-      FIELD_LABELS["maximum_requests"]!,
-      text(model.budget_state.maximum_requests ?? "ausente"),
+      [FIELD_LABELS["budget_status"]!, badge(model.budget_state.status)],
+      [
+        FIELD_LABELS["maximum_requests"]!,
+        text(model.budget_state.maximum_requests ?? "ausente"),
+      ],
+      [
+        FIELD_LABELS["maximum_total_spend_usd"]!,
+        text(model.budget_state.maximum_total_spend_usd ?? "ausente"),
+      ],
+      [
+        "Caso sintético (solo metadatos)",
+        `Registrado${disclosure("Identificador canónico del caso", "openrouter.manual-sandbox.synthetic.v1")}`,
+      ],
     ],
-    [
-      FIELD_LABELS["maximum_total_spend_usd"]!,
-      text(model.budget_state.maximum_total_spend_usd ?? "ausente"),
-    ],
-    [
-      "Fixture sintético (solo metadatos)",
-      code("openrouter.manual-sandbox.synthetic.v1"),
-    ],
-  ])}</section></div><section class="card"><h3>Artefactos y hashes</h3><p class="quiet">Hashes abreviados; el valor completo está disponible en cada detalle técnico.</p>${dl(
+  )}</section></div><section class="card"><h3>Artefactos y hashes</h3><p class="quiet">Hashes abreviados; el valor completo está disponible en cada detalle técnico.</p>${dl(
     [
       ["Dossier de preparación", hashSummary(v.dossier_hash)],
       ["Paquete de evidencia externa", hashSummary(v.evidence_pack_hash)],
-      ["Propuesta de sandbox", hashSummary(v.proposal_hash)],
-      ["Configuración de runtime", hashSummary(v.runtime_config_hash)],
+      ["Propuesta de entorno aislado", hashSummary(v.proposal_hash)],
+      [
+        "Configuración del entorno de ejecución",
+        hashSummary(v.runtime_config_hash),
+      ],
       ["Registro del modelo", hashSummary(m?.hash ?? null)],
       ["Registro de ruta", hashSummary(r?.hash ?? null)],
       ["Perfil de ejecución", hashSummary(profile?.hash ?? null)],
@@ -613,17 +633,33 @@ function review(model: OperatorReadModel): string {
     label: string,
     status: string,
   ): readonly [string, string] => [label, badge(status)];
-  return `<h2>Revisión humana</h2><p class="lead">Estado de la revisión humana de activación del sandbox. La consola solo muestra decisiones registradas en artefactos gobernados; no ofrece controles de aprobación, mutación ni ejecución.</p>${blockedNotice(model)}<section class="card"><h3>Estado de la revisión de activación</h3>${dl(
+  const boundArtifactLabels: Readonly<Record<string, string>> = {
+    readiness_dossier: "Dossier de preparación",
+    external_evidence_pack: "Paquete de evidencia externa",
+    sandbox_proposal: "Propuesta de entorno aislado",
+    runtime_configuration: "Configuración del entorno de ejecución",
+    execution_profile: "Perfil de ejecución",
+    model_registry_entry: "Registro del modelo",
+    route_record: "Registro de ruta",
+    pricing_policy: "Política de precios",
+    privacy_zdr_evidence: "Evidencia de privacidad y ZDR",
+    gold_case: "Caso de referencia",
+    first_run_fixture: "Caso de primera ejecución",
+  };
+  return `<h2>Revisión humana</h2><p class="lead">Estado de la revisión humana de activación del entorno aislado. La consola solo muestra decisiones registradas en artefactos gobernados; no ofrece controles de aprobación, mutación ni ejecución.</p>${blockedNotice(model)}<section class="card"><h3>Estado de la revisión de activación</h3>${dl(
     [
       [FIELD_LABELS["review_status"]!, badge(r.outcome)],
       ["Ciclo de vida", badge(r.lifecycle)],
-      [FIELD_LABELS["review_scope"]!, code(r.scope)],
+      [
+        FIELD_LABELS["review_scope"]!,
+        text("Una activación de entorno aislado con un caso sintético"),
+      ],
       [FIELD_LABELS["review_expiry"]!, text(r.expires_at ?? "ausente")],
       ["Decisiones humanas pendientes", text(r.pending_human_decisions.length)],
       [FIELD_LABELS["version"]!, text(r.version ?? "ausente")],
       ["Hash de la revisión (abreviado)", hashSummary(r.source_artifact_hash)],
     ],
-  )}<p><strong>Alcance:</strong> la única aprobación representable es exactamente una activación de sandbox con un caso de referencia sintético (${code("one_synthetic_gold_case_sandbox_activation")}). Ninguna aprobación de proveedor, producción, recurrencia, autonomía ni datos de clientes es posible en este contrato.</p>${disclosure("Hash completo de la revisión", r.source_artifact_hash)}</section><section class="card"><h3>Identidad del candidato</h3>${dl(
+  )}<p><strong>Alcance:</strong> la única aprobación representable es exactamente una activación de entorno aislado con un caso de referencia sintético. Ninguna aprobación de proveedor, producción, recurrencia, autonomía ni datos de clientes es posible en este contrato.</p>${disclosure("Código canónico del alcance", "one_synthetic_gold_case_sandbox_activation")}${disclosure("Hash completo de la revisión", r.source_artifact_hash)}</section><section class="card"><h3>Identidad del candidato</h3>${dl(
     [
       [FIELD_LABELS["provider_id"]!, code(p["provider_id"] ?? "ausente")],
       [
@@ -651,7 +687,7 @@ function review(model: OperatorReadModel): string {
         r.incident_owner_status,
       ),
     ],
-  )}<p class="quiet">Independencia exigida: la revisión de evidencia y la aprobación de activación deben provenir de personas distintas; ninguna puede ser el sistema; las titularidades de kill switch e incidentes no pueden recaer en la persona aprobadora (pueden coincidir entre sí).</p>${codeList(
+  )}<p class="quiet">Independencia exigida: la revisión de evidencia y la aprobación de activación deben provenir de personas distintas; ninguna puede ser el sistema; las titularidades del interruptor de seguridad y de incidentes no pueden recaer en la persona aprobadora (pueden coincidir entre sí).</p>${codeList(
     "Decisiones pendientes (códigos canónicos)",
     [...r.pending_human_decisions],
   )}</section><section class="card"><h3>Límites de la primera ejecución</h3>${dl(
@@ -701,11 +737,11 @@ function review(model: OperatorReadModel): string {
   )}<p class="quiet">El caso es completamente sintético: sin datos de clientes, personales, productivos ni regulados. No se ha ejecutado ninguna campaña ni existe resultado alguno; el estado preparado nunca representa una llamada al proveedor.</p>${disclosure(
     "Hash completo del caso de referencia",
     g.source_artifact_hash,
-  )}</section><section class="card"><h3>Artefactos vinculados</h3><p class="quiet">Hashes abreviados; cada binding exacto queda verificado por el evaluador determinista y falla cerrado ante cualquier desvío.</p>${dl(
+  )}</section><section class="card"><h3>Artefactos vinculados</h3><p class="quiet">Hashes abreviados; cada vinculación exacta queda verificada por el evaluador determinista y falla de forma segura ante cualquier desvío.</p>${dl(
     r.bound_artifacts.map(
       (artifact) =>
         [
-          artifact.name,
+          boundArtifactLabels[artifact.name] ?? "Artefacto gobernado",
           artifact.hash
             ? `${hashSummary(artifact.hash)} <span class="quiet">(v${escapeHtml(artifact.version ?? "—")})</span>`
             : badge(artifact.status ?? "absent"),
@@ -720,11 +756,11 @@ function review(model: OperatorReadModel): string {
   )}</section><section class="card"><h3>Bloqueos de la revisión</h3><p class="quiet">Bloqueos generados por los evaluadores de la revisión de activación y del caso de referencia; el listado canónico completo está en Bloqueos.</p><ul>${reviewBlockers
     .map((blocker) => {
       const summary = presentBlockerSummary(blocker);
-      return `<li>${escapeHtml(summary.label)}${summary.known ? "" : untranslated()} ${code(blocker.blocker_code)}</li>`;
+      return `<li>${escapeHtml(summary.label)}${summary.known ? "" : untranslated()}${disclosure("Código canónico", blocker.blocker_code)}</li>`;
     })
     .join(
       "",
-    )}</ul></section><section class="card"><h3>Próxima acción gobernada</h3><p>${nextAction ? escapeHtml(nextAction) : `${code(r.next_governed_action)}${untranslated()}`}</p><p class="quiet">Incluso una revisión elegible nunca autoriza ejecución, acceso a secretos ni habilitación de runtime: solo permite proponer un PR separado y revisado de configuración.</p></section>`;
+    )}</ul></section><section class="card"><h3>Próxima acción gobernada</h3><p>${nextAction ? escapeHtml(nextAction) : `Acción sin traducción disponible${untranslated()}${disclosure("Código canónico de la acción", r.next_governed_action)}`}</p><p class="quiet">Incluso una revisión elegible nunca autoriza ejecución, acceso a secretos ni habilitación del entorno de ejecución: solo permite proponer una solicitud de cambios separada y revisada de configuración.</p></section>`;
 }
 
 function arcaReview(model: OperatorReadModel): string {
@@ -757,25 +793,30 @@ function arcaReview(model: OperatorReadModel): string {
         .join("")}</tbody></table></div>`
     : `<p class="quiet">No hay hallazgos controlados registrados.</p>`;
 
-  return `<h2>Revisión ARCA</h2><p class="lead">Consola interna de solo lectura para comprender el flujo candidato → revisión → evaluación → Approved Artifact. No ejecuta ni modifica ninguna etapa.</p><section class="notice" aria-label="Origen y autoridad"><strong>Estado de origen</strong><ul>${view.source_labels.map((value) => `<li>${escapeHtml(value)}</li>`).join("")}</ul></section><section class="card"><h3>Resumen del candidato</h3>${dl(
+  return `<h2>Revisión ARCA</h2><p class="lead">Consola interna de solo lectura para comprender el flujo candidato → revisión → evaluación → artefacto aprobado. No ejecuta ni modifica ninguna etapa.</p><section class="notice" aria-label="Origen y autoridad"><strong>Estado de origen</strong><ul>${view.source_labels.map((value) => `<li>${escapeHtml(value)}</li>`).join("")}</ul>${codeList("Valores técnicos de origen", view.source_technical)}</section><section class="card"><h3>Resumen del candidato</h3>${dl(
     [
       ["ID del artefacto candidato", code(c.artifact_id ?? "ausente")],
       hashField("Hash del candidato", c.hash),
       ["ID de adquisición", code(c.acquisition_id ?? "ausente")],
       ["Fuente", text(c.source ?? "ausente")],
       ["Capturado", text(c.captured_at ?? "ausente")],
-      ["Parser", code(c.parser_identity ?? "ausente")],
+      ["Analizador", code(c.parser_identity ?? "ausente")],
       hashField("Hash de salida parseada", c.parsed_output_hash),
       ["Líneas arancelarias", text(c.tariff_line_count ?? "ausente")],
-      ["Validación fija", code(c.states.validation_status ?? "ausente")],
-      ["Revisión fija", code(c.states.review_state ?? "ausente")],
-      ["Aprobación fija", code(c.states.approval_status ?? "ausente")],
-      ["Publicación fija", code(c.states.publication_status ?? "ausente")],
+      ["Validación fija", badge(c.states.validation_status ?? "absent")],
+      ["Revisión fija", badge(c.states.review_state ?? "absent")],
+      ["Aprobación fija", badge(c.states.approval_status ?? "absent")],
+      ["Publicación fija", badge(c.states.publication_status ?? "absent")],
     ],
-  )}</section><section class="card"><h3>Revisión humana</h3>${dl([
+  )}${codeList("Estados canónicos del candidato", [
+    `validation_status: ${c.states.validation_status ?? "ausente"}`,
+    `review_state: ${c.states.review_state ?? "ausente"}`,
+    `approval_status: ${c.states.approval_status ?? "ausente"}`,
+    `publication_status: ${c.states.publication_status ?? "ausente"}`,
+  ])}</section><section class="card"><h3>Revisión humana</h3>${dl([
     [
       "Ciclo de vida",
-      `<span class="badge tone-${statusToneFor(r.lifecycle)}" data-status="${escapeHtml(r.lifecycle)}">${escapeHtml(r.lifecycle_label)}</span> ${code(r.lifecycle)}`,
+      `<span class="badge tone-${statusToneFor(r.lifecycle)}" data-status="${escapeHtml(r.lifecycle)}">${escapeHtml(r.lifecycle_label)}</span>`,
     ],
     [
       "Revisor",
@@ -800,7 +841,7 @@ function arcaReview(model: OperatorReadModel): string {
       code(r.separation_of_duties.acquisition_operator_identity ?? "ausente"),
     ],
     [
-      "Runtime del parser",
+      "Entorno de ejecución del analizador",
       code(r.separation_of_duties.parser_runtime_identity ?? "ausente"),
     ],
     [
@@ -815,13 +856,13 @@ function arcaReview(model: OperatorReadModel): string {
     [
       [
         "Resultado exacto",
-        `<span class="badge tone-${statusToneFor(e.outcome)}" data-status="${escapeHtml(e.outcome)}">${escapeHtml(e.outcome_label)}</span> ${code(e.outcome)}`,
+        `<span class="badge tone-${statusToneFor(e.outcome)}" data-status="${escapeHtml(e.outcome)}">${escapeHtml(e.outcome_label)}</span>`,
       ],
       ["Evaluado", text(e.evaluated_at)],
       ["ID de evaluación", code(e.evaluation_id)],
       hashField("Hash de evaluación", e.evaluation_hash),
       [
-        "Elegibilidad del builder",
+        "Elegibilidad del constructor",
         e.eligible_for_approved_artifact_building
           ? "Elegible únicamente para construir el artefacto aprobado"
           : "No elegible para construir el artefacto aprobado",
@@ -832,32 +873,32 @@ function arcaReview(model: OperatorReadModel): string {
       ([kind, id, hashValue]) =>
         `<tr><th scope="row">${kind}</th><td>${code(id ?? "ausente")}</td><td>${hashValue ? `${code(shortHash(hashValue))}${disclosure(`Hash completo de ${kind.toLowerCase()}`, hashValue)}` : "ausente"}</td></tr>`,
     )
-    .join(
-      "",
-    )}</tbody></table></div><h4>No autoridades explícitas</h4><ul>${e.non_authorities.map((value) => `<li>${escapeHtml(value)}</li>`).join("")}</ul></section><section class="card"><h3>Approved Artifact</h3>${dl(
+    .join("")}</tbody></table></div>${codeList(
+    "Estados canónicos de revisión y evaluación",
+    [`review_lifecycle: ${r.lifecycle}`, `evaluation_outcome: ${e.outcome}`],
+  )}<h4>No autoridades explícitas</h4><ul>${e.non_authorities.map((value) => `<li>${escapeHtml(value)}</li>`).join("")}</ul></section><section class="card"><h3>Artefacto aprobado</h3>${dl(
     [
       [
         "Presencia",
         a.present
           ? "Artefacto aprobado local — Presente"
-          : "Ausente — no existe un Approved Artifact",
+          : "Ausente — no existe un artefacto aprobado",
       ],
       ["ID", code(a.approved_artifact_id ?? "ausente")],
-      hashField("Hash del Approved Artifact", a.artifact_hash),
-      ["Builder", code(a.builder_identity ?? "ausente")],
+      hashField("Hash del artefacto aprobado", a.artifact_hash),
+      ["Constructor", code(a.builder_identity ?? "ausente")],
       ["Construido", text(a.build_timestamp ?? "ausente")],
-      ["Exportación", `No exportado ${code(a.export_status)}`],
-      ["Publicación", `No publicado ${code(a.publication_status)}`],
-      [
-        "Uso en producción",
-        `Uso en producción no autorizado ${code(a.production_reliance)}`,
-      ],
-      [
-        "Consumo por vlatam-global",
-        `No autorizado ${code(a.vlatam_global_consumption)}`,
-      ],
+      ["Exportación", badge(a.export_status)],
+      ["Publicación", badge(a.publication_status)],
+      ["Uso en producción", badge(a.production_reliance)],
+      ["Consumo por vlatam-global", badge(a.vlatam_global_consumption)],
     ],
-  )}</section><section class="card"><h3>Qué significa este estado</h3><ul><li><strong>“Aprobado” no significa exportado.</strong></li><li><strong>“Approved Artifact” no significa autorizado para producción.</strong></li><li>La exportación y el uso en producción requieren compuertas posteriores e independientes.</li><li>El estado actual del repositorio puede ser sintético y estar pendiente; las etiquetas de origen anteriores indican exactamente cuál es el caso.</li></ul></section>`;
+  )}${codeList("Estados canónicos del artefacto aprobado", [
+    `export_status: ${a.export_status}`,
+    `publication_status: ${a.publication_status}`,
+    `production_reliance: ${a.production_reliance}`,
+    `vlatam_global_consumption: ${a.vlatam_global_consumption}`,
+  ])}</section><section class="card"><h3>Qué significa este estado</h3><ul><li><strong>“Aprobado” no significa exportado.</strong></li><li><strong>“Artefacto aprobado” no significa autorizado para producción.</strong></li><li>La exportación y el uso en producción requieren compuertas posteriores e independientes.</li><li>El estado actual del repositorio puede ser sintético y estar pendiente; las etiquetas de origen anteriores indican exactamente cuál es el caso.</li></ul></section>`;
 }
 
 function governance(model: OperatorReadModel): string {
@@ -956,7 +997,7 @@ function blockers(model: OperatorReadModel): string {
         ],
         [
           FIELD_LABELS["source_evaluator"]!,
-          `${text(presentEvaluator(blocker.source_evaluator).label)} (${code(blocker.source_evaluator)})`,
+          `${text(presentEvaluator(blocker.source_evaluator).label)}${disclosure("Evaluador canónico", blocker.source_evaluator)}`,
         ],
       ],
     )}${codeList("Detalle técnico canónico", [
@@ -973,7 +1014,7 @@ function blockers(model: OperatorReadModel): string {
     BLOCKER_CATEGORY_LABELS,
   )}</select></label><label>Proveedor<select data-filter="provider"><option value="">Todos</option>${filterOptions(
     model.blockers.map((b) => b.provider_id ?? "none"),
-    {},
+    { openrouter: "OpenRouter", none: "Ninguno" },
   )}</select></label><label>Clase de resolución<select data-filter="resolution"><option value="">Todas</option>${filterOptions(
     model.blockers.flatMap((b) => b.resolvable_by),
     RESOLUTION_LABELS,
@@ -996,7 +1037,7 @@ function actions(model: OperatorReadModel): string {
       [
         [
           FIELD_LABELS["owner_role"]!,
-          `${text(presentOwnerRole(action.owner_role).label)} (${code(action.owner_role)})`,
+          `${text(presentOwnerRole(action.owner_role).label)}${disclosure("Rol canónico", action.owner_role)}`,
         ],
         ["Por qué es requerida", text(why)],
         [
@@ -1006,12 +1047,14 @@ function actions(model: OperatorReadModel): string {
         [
           FIELD_LABELS["prerequisites"]!,
           action.prerequisite_actions.length
-            ? text(action.prerequisite_actions.join(", "))
+            ? `${text(`${action.prerequisite_actions.length} registradas`)}${codeList("Requisitos previos canónicos", action.prerequisite_actions)}`
             : "Ninguno",
         ],
         [
           FIELD_LABELS["required_artifact"]!,
-          action.required_artifact ? code(action.required_artifact) : "—",
+          action.required_artifact
+            ? `Registrado${disclosure("Artefacto canónico requerido", action.required_artifact)}`
+            : "—",
         ],
         [
           FIELD_LABELS["execution_impact"]!,
@@ -1086,8 +1129,8 @@ function execution(model: OperatorReadModel): string {
         ? "complete"
         : "not_invoked",
       explanation: model.gateway_adapter_state.gateway_invoked
-        ? "El gateway registró una invocación."
-        : "El gateway no ha sido invocado.",
+        ? "La puerta de enlace registró una invocación."
+        : "La puerta de enlace no ha sido invocada.",
     },
     {
       canonical: "adapter",
@@ -1123,10 +1166,10 @@ function execution(model: OperatorReadModel): string {
     model.gateway_adapter_state.transport_invoked === false
   )
     facts.push("No existe uso facturado.");
-  return `<h2>Ejecución</h2><p class="lead">Frontera de ejecución gobernada. Cadena canónica: ${code("Registro → Resolución → Autorización → Política exacta → Consumo atómico → Gateway → Adaptador")}.</p><div class="chain" aria-label="Cadena de ejecución gobernada">${stages
+  return `<h2>Ejecución</h2><p class="lead">Frontera de ejecución gobernada. Cadena gobernada: Registro → Resolución → Autorización → Política exacta → Consumo atómico → Puerta de enlace → Adaptador.</p><div class="chain" aria-label="Cadena de ejecución gobernada">${stages
     .map(
       (stage) =>
-        `<div class="stage"><strong>${escapeHtml(EXECUTION_STAGE_LABELS[stage.canonical])}</strong><br><code>${escapeHtml(stage.canonical).replaceAll("_", "_<wbr>")}</code><br>${badge(stage.status)}<p>${escapeHtml(stage.explanation)}</p></div>`,
+        `<div class="stage"><strong>${escapeHtml(EXECUTION_STAGE_LABELS[stage.canonical])}</strong><br>${badge(stage.status)}<p>${escapeHtml(stage.explanation)}</p>${disclosure("Valor técnico", stage.canonical)}</div>`,
     )
     .join(
       "",
@@ -1206,8 +1249,8 @@ function audit(model: OperatorReadModel): string {
       path: pathFor("external-evidence-pack"),
     }),
     artifact({
-      name: "Propuesta de sandbox",
-      purpose: "Propuesta gobernada de habilitación de sandbox.",
+      name: "Propuesta de entorno aislado",
+      purpose: "Propuesta gobernada de habilitación del entorno aislado.",
       id: v.proposal_id,
       version: model.sandbox_proposals[0]?.version ?? null,
       status: v.proposal_outcome,
@@ -1215,8 +1258,9 @@ function audit(model: OperatorReadModel): string {
       path: pathFor("sandbox-enablement-proposal"),
     }),
     artifact({
-      name: "Configuración de runtime",
-      purpose: "Configuración exacta del runtime sandbox (metadatos).",
+      name: "Configuración del entorno de ejecución",
+      purpose:
+        "Configuración exacta del entorno de ejecución aislado (metadatos).",
       id: v.runtime_config_id,
       version: v.runtime_config_version,
       status: v.preflight_outcome,
@@ -1252,7 +1296,7 @@ function audit(model: OperatorReadModel): string {
     }),
     artifact({
       name: "Revisión humana de activación",
-      purpose: "Contrato gobernado de revisión humana del sandbox.",
+      purpose: "Contrato gobernado de revisión humana del entorno aislado.",
       id: v.activation_review_id,
       version: model.activation_review.version,
       status: v.activation_review_outcome,
@@ -1286,7 +1330,7 @@ function audit(model: OperatorReadModel): string {
 function applicationPage(model: OperatorReadModel, pathname: string): string {
   const state = REPOSITORY_CURRENT_BLOCKED_STATUS;
   if (pathname === "/operator/operations/arca")
-    return `<h2>ARCA</h2><p class="lead">Superficie operativa de solo lectura para el flujo ARCA gobernado.</p>${blockedNotice(model)}<div class="grid3"><section class="card"><span class="panel-kicker">AI-131</span><h3>Frontera de adquisición</h3><p><span class="badge tone-blocked">Kill switch activo</span></p><p class="quiet">Ejecución live bloqueada por configuración repository-current.</p></section><section class="card"><span class="panel-kicker">AI-132</span><h3>Frontera de exportación</h3><p><span class="badge tone-blocked">Kill switch activo</span></p><p class="quiet">Exportación no autorizada.</p></section><section class="card"><span class="panel-kicker">AI-133</span><h3>Frontera del planificador</h3><p><span class="badge tone-blocked">Inactivo</span></p><p class="quiet">Cero runs permitidos; ejecución bloqueada.</p></section></div><section class="card"><h3>Revisión disponible</h3><p><a href="/operator/arca-review">Abrir la revisión ARCA existente</a>. Esta vista conserva su proyección y lógica de gobernanza actuales.</p></section>`;
+    return `<h2>ARCA</h2><p class="lead">Superficie operativa de solo lectura para el flujo ARCA gobernado.</p>${blockedNotice(model)}<div class="grid3"><section class="card"><span class="panel-kicker">AI-131</span><h3>Frontera de adquisición</h3><p><span class="badge tone-blocked">Interruptor de seguridad activo</span></p><p class="quiet">Ejecución real bloqueada por la configuración del estado actual del repositorio.</p></section><section class="card"><span class="panel-kicker">AI-132</span><h3>Frontera de exportación</h3><p><span class="badge tone-blocked">Interruptor de seguridad activo</span></p><p class="quiet">Exportación no autorizada.</p></section><section class="card"><span class="panel-kicker">AI-133</span><h3>Frontera del planificador</h3><p><span class="badge tone-blocked">Inactivo</span></p><p class="quiet">Cero ejecuciones permitidas; ejecución bloqueada.</p></section></div><section class="card"><h3>Revisión disponible</h3><p><a href="/operator/arca-review">Abrir la revisión ARCA existente</a>. Esta vista conserva su proyección y lógica de gobernanza actuales.</p></section>`;
   if (pathname === "/operator/operations/acquisitions")
     return readOnlyUnavailablePage(
       "Adquisiciones",
@@ -1302,7 +1346,7 @@ function applicationPage(model: OperatorReadModel, pathname: string): string {
   if (pathname === "/operator/operations/recovery")
     return readOnlyUnavailablePage(
       "Recuperación",
-      "El estado recovery-required no está disponible en un read model apto para esta vista.",
+      "El estado de recuperación requerida no está disponible en un modelo de lectura apto para esta vista.",
       state.evidence_paths[3]!,
     );
   if (pathname === "/operator/approved-artifacts") {
@@ -1311,15 +1355,20 @@ function applicationPage(model: OperatorReadModel, pathname: string): string {
       [
         ["Presencia", artifact.present ? badge("approved") : badge("absent")],
         ["ID", code(artifact.approved_artifact_id ?? "ausente")],
-        ["Exportación", code(artifact.export_status)],
-        ["Publicación", code(artifact.publication_status)],
-        ["Uso productivo", code(artifact.production_reliance)],
-        ["vlatam-global", code(artifact.vlatam_global_consumption)],
+        ["Exportación", badge(artifact.export_status)],
+        ["Publicación", badge(artifact.publication_status)],
+        ["Uso productivo", badge(artifact.production_reliance)],
+        ["vlatam-global", badge(artifact.vlatam_global_consumption)],
       ],
-    )}<p><a href="/operator/arca-review">Ver trazabilidad en Revisión ARCA</a></p></section>`;
+    )}${codeList("Estados canónicos del artefacto", [
+      `export_status: ${artifact.export_status}`,
+      `publication_status: ${artifact.publication_status}`,
+      `production_reliance: ${artifact.production_reliance}`,
+      `vlatam_global_consumption: ${artifact.vlatam_global_consumption}`,
+    ])}<p><a href="/operator/arca-review">Ver trazabilidad en Revisión ARCA</a></p></section>`;
   }
   if (pathname === "/operator/models/registry")
-    return `<h2>Registro</h2><p class="lead">Identidades registradas según el Operator Read Model.</p><div class="grid2"><section class="card"><h3>Modelos</h3><ul class="status-list">${model.models
+    return `<h2>Registro</h2><p class="lead">Identidades registradas según el modelo de lectura del operador.</p><div class="grid2"><section class="card"><h3>Modelos</h3><ul class="status-list">${model.models
       .map(
         (entry) =>
           `<li><span>${code(entry.model_id)}</span>${badge(entry.enabled ? "enabled" : "disabled")}</li>`,
@@ -1333,7 +1382,7 @@ function applicationPage(model: OperatorReadModel, pathname: string): string {
       )
       .join("")}</ul></section></div>`;
   if (pathname === "/operator/models/tournaments")
-    return `<h2>Torneos</h2><p class="lead">Control plane neutral y sin acciones de escritura.</p><section class="card"><h3>Candidatos registrados</h3>${
+    return `<h2>Torneos</h2><p class="lead">Plano de control neutral y sin acciones de escritura.</p><section class="card"><h3>Candidatos registrados</h3>${
       model.tournament.registered_candidates.length === 0
         ? `<p>${badge("unavailable")} No hay candidatos disponibles en la proyección.</p>`
         : `<ul class="status-list">${model.tournament.registered_candidates
@@ -1342,9 +1391,9 @@ function applicationPage(model: OperatorReadModel, pathname: string): string {
                 `<li><span>${code(candidate.candidate_id)}</span><span>${badge(candidate.lifecycle_status)} ${candidate.human_decision_required ? badge("pending") : ""}</span></li>`,
             )
             .join("")}</ul>`
-    }<p class="quiet">Write actions available: ${code(model.tournament.write_actions_available)}</p></section>`;
+    }<p class="quiet">Acciones de escritura disponibles: ${model.tournament.write_actions_available ? "Sí" : "No"}</p>${disclosure("Valor técnico de acciones de escritura", model.tournament.write_actions_available)}</section>`;
   if (pathname === "/operator/runtimes/ai-lab")
-    return `<h2>Entornos</h2><p class="lead">Estado local del laboratorio y evidencia de los entornos evaluados.</p><section class="card"><h3>AI LAB</h3><ul class="status-list"><li><span>Planificador</span><span class="badge tone-blocked">Inactivo</span></li><li><span>Activación</span><span class="badge tone-blocked">Ninguna</span></li><li><span>Ejecución en producción</span><span class="badge tone-blocked">Ninguna</span></li><li><span>Autoridad de despliegue</span>${yesNo(state.deployment_authority)}</li></ul></section><div class="grid3"><section class="card"><h3>OpenRouter</h3><p class="quiet">Estado gobernado del proveedor evaluado.</p><p><a href="/operator/providers/openrouter">Ver detalle →</a></p></section><section class="card"><h3>Vercel Eve</h3><p class="quiet">Evidencia de runtime, no activación.</p><p><a href="/operator/runtimes/vercel-eve">Ver detalle →</a></p></section><section class="card"><h3>Cloudflare</h3><p class="quiet">Evidencia de runtime, no activación.</p><p><a href="/operator/runtimes/cloudflare">Ver detalle →</a></p></section></div>`;
+    return `<h2>Entornos</h2><p class="lead">Estado local del laboratorio y evidencia de los entornos evaluados.</p><section class="card"><h3>AI LAB</h3><ul class="status-list"><li><span>Planificador</span><span class="badge tone-blocked">Inactivo</span></li><li><span>Activación</span><span class="badge tone-blocked">Ninguna</span></li><li><span>Ejecución en producción</span><span class="badge tone-blocked">Ninguna</span></li><li><span>Autoridad de despliegue</span>${yesNo(state.deployment_authority)}</li></ul></section><div class="grid3"><section class="card"><h3>OpenRouter</h3><p class="quiet">Estado gobernado del proveedor evaluado.</p><p><a href="/operator/providers/openrouter">Ver detalle →</a></p></section><section class="card"><h3>Vercel Eve</h3><p class="quiet">Evidencia del entorno de ejecución, no activación.</p><p><a href="/operator/runtimes/vercel-eve">Ver detalle →</a></p></section><section class="card"><h3>Cloudflare</h3><p class="quiet">Evidencia del entorno de ejecución, no activación.</p><p><a href="/operator/runtimes/cloudflare">Ver detalle →</a></p></section></div>`;
   if (
     pathname === "/operator/runtimes/vercel-eve" ||
     pathname === "/operator/runtimes/cloudflare"
@@ -1357,51 +1406,48 @@ function applicationPage(model: OperatorReadModel, pathname: string): string {
         .toLowerCase()
         .includes(candidateName === "Vercel Eve" ? "eve" : "cloudflare"),
     );
-    return `<h2>${candidateName}</h2><p class="lead">Evidencia de runtime, no activación.</p><section class="card"><h3>Estado de evidencia</h3>${
+    return `<h2>${candidateName}</h2><p class="lead">Evidencia del entorno de ejecución, no activación.</p><section class="card"><h3>Estado de evidencia</h3>${
       runtime
         ? dl([
-            ["Candidate", code(runtime.candidate_id)],
-            ["Freshness", badge(runtime.evidence_freshness)],
+            ["Candidato", code(runtime.candidate_id)],
+            ["Vigencia", badge(runtime.evidence_freshness)],
             ["Fuentes", text(runtime.source_count)],
-            ["Gaps sin resolver", text(runtime.unresolved_gaps)],
+            ["Brechas sin resolver", text(runtime.unresolved_gaps)],
             ["Activación prohibida", yesNo(runtime.activation_prohibited)],
-            [
-              "Kill switch",
-              `<span class="badge tone-blocked">${text(runtime.kill_switch_state)}</span>`,
-            ],
+            ["Interruptor de seguridad", badge(runtime.kill_switch_state)],
           ])
         : `<p>${badge("unavailable")} No existe una proyección de evidencia utilizable para esta vista.</p>`
-    }<p class="quiet">Esta página no configura, invoca ni promueve el runtime.</p></section>`;
+    }<p class="quiet">Esta página no configura, invoca ni promueve el entorno de ejecución.</p></section>`;
   }
   if (pathname === "/operator/knowledge/regulations")
     return readOnlyUnavailablePage(
       "Regulaciones",
-      "La navegación está preparada; no se proyecta un catálogo regulatorio agregado en este shell.",
+      "La navegación está preparada; no se proyecta un catálogo regulatorio agregado en esta interfaz.",
       "docs/advisory/regulatory-source-of-truth.md",
     );
   if (pathname === "/operator/knowledge/sources")
     return readOnlyUnavailablePage(
       "Fuentes",
-      "Las fuentes permanecen gobernadas por sus artefactos; no hay adquisición desde la UI.",
+      "Las fuentes permanecen gobernadas por sus artefactos; no hay adquisición desde la interfaz.",
       "docs/agents/arca-source-acquisition.md",
     );
   if (pathname === "/operator/knowledge/news")
     return readOnlyUnavailablePage(
       "Noticias",
-      "No existe una fuente repository-current para noticias. Estado explícitamente no disponible.",
+      "No existe una fuente del estado actual del repositorio para noticias. Estado explícitamente no disponible.",
       "unavailable:no-reviewed-news-source",
     );
   if (pathname === "/operator/evidence")
-    return `<h2>Evidencia</h2><p class="lead">Referencias auditables del Operator Read Model.</p><section class="card"><h3>Referencias del repositorio</h3>${codeList("Rutas disponibles", model.audit_references)}</section><section class="card"><h3>Proyección AI-134</h3>${codeList("Fuentes de estado bloqueado", state.evidence_paths)}<p class="quiet">La presencia de evidencia no concede autoridad operativa.</p></section>`;
+    return `<h2>Evidencia</h2><p class="lead">Referencias auditables del modelo de lectura del operador.</p><section class="card"><h3>Referencias del repositorio</h3>${codeList("Rutas disponibles", model.audit_references)}</section><section class="card"><h3>Proyección AI-134</h3>${codeList("Fuentes de estado bloqueado", state.evidence_paths)}<p class="quiet">La presencia de evidencia no concede autoridad operativa.</p></section>`;
   if (pathname === "/operator/settings")
     return `<h2>Configuración</h2><p class="lead">Configuración visible para administradores; sin mutaciones en esta iteración.</p><section class="card"><h3>Preparación de despliegue</h3>${dl(
       [
         ["Proyecto futuro", code("vlatam-ai-lab")],
         ["Dominio futuro", code("lab.vlatamglobal.com")],
         ["Estado", badge("not_configured")],
-        ["Autoridad de deployment", yesNo(state.deployment_authority)],
+        ["Autoridad de despliegue", yesNo(state.deployment_authority)],
       ],
-    )}<p class="quiet">Los cambios se realizan fuera de esta UI mediante un proceso humano revisado.</p></section>`;
+    )}<p class="quiet">Los cambios se realizan fuera de esta interfaz mediante un proceso humano revisado.</p></section>`;
   return `<h2>Vista no disponible</h2><p class="lead">No existe una proyección registrada para esta ruta.</p>`;
 }
 
@@ -1461,5 +1507,5 @@ export function renderOperatorConsole(
 }
 
 export function renderOperatorInvalidState(): string {
-  return `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Consola del operador — Estado inválido</title></head><body><main><h1>Estado del repositorio inválido</h1><p>El Operator Read Model falló cerrado (fail-closed). Revise la validación del repositorio localmente; no se intentó ninguna ejecución.</p></main></body></html>`;
+  return `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Consola del operador — Estado inválido</title></head><body><main><h1>Estado del repositorio inválido</h1><p>El modelo de lectura del operador falló de forma segura. Revise la validación del repositorio localmente; no se intentó ninguna ejecución.</p></main></body></html>`;
 }

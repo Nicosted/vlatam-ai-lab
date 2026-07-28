@@ -184,7 +184,7 @@ describe("read-only AI LAB Operator Console (Spanish UX)", () => {
       html,
       /No se ha consumido ninguna autorización de ejecución\./,
     );
-    assert.match(html, /kill switch permanece activo/);
+    assert.match(html, /interruptor de seguridad permanece activo/);
     assert.match(html, /Bloqueos activos<\/span><strong>46/);
     assert.match(html, /Acciones requeridas<\/span><strong>6/);
     assert.match(html, /Revisiones pendientes<\/span><strong>8/);
@@ -248,7 +248,7 @@ describe("read-only AI LAB Operator Console (Spanish UX)", () => {
       "Evidencia y preparación",
       "Seguridad y privacidad",
       "Configuración de ejecución",
-      "Presupuesto sandbox",
+      "Presupuesto del entorno aislado",
       "Artefactos y hashes",
       "Próximas acciones",
     ])
@@ -339,7 +339,7 @@ describe("read-only AI LAB Operator Console (Spanish UX)", () => {
       html,
       /Las fuentes de precios del proveedor son contradictorias\./,
     );
-    assert.match(html, /ZDR \(Zero Data Retention\) sin verificar\./);
+    assert.match(html, /Retención cero de datos \(ZDR\) sin verificar\./);
     assert.match(html, /Severidad: Alta/);
     assert.match(html, /Severidad: Media/);
     assert.doesNotMatch(
@@ -385,7 +385,7 @@ describe("read-only AI LAB Operator Console (Spanish UX)", () => {
       "Autorización",
       "Política exacta",
       "Consumo atómico",
-      "Gateway",
+      "Puerta de enlace",
       "Adaptador",
     ])
       assert.match(html, new RegExp(`<strong>${stage}</strong>`));
@@ -423,8 +423,8 @@ describe("read-only AI LAB Operator Console (Spanish UX)", () => {
     for (const name of [
       "Dossier de preparación",
       "Paquete de evidencia externa",
-      "Propuesta de sandbox",
-      "Configuración de runtime",
+      "Propuesta de entorno aislado",
+      "Configuración del entorno de ejecución",
       "Registro del modelo",
       "Registro de ruta",
       "Perfil de ejecución",

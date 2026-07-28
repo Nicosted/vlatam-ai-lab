@@ -72,7 +72,7 @@ describe("mission center projection", () => {
       [
         "Estado general",
         "Ejecución de modelos",
-        "Kill switches",
+        "Interruptores de seguridad",
         "Planificador",
         "Actividad en producción",
       ],
@@ -82,7 +82,7 @@ describe("mission center projection", () => {
       "No permitida",
     );
     for (const item of buildMissionBoard(model).items)
-      assert.doesNotMatch(item.title, /kill switch/i);
+      assert.doesNotMatch(item.title, /interruptor de seguridad/i);
   });
 
   it("renders an accessible read-only board with a single selected panel", async () => {
@@ -104,7 +104,7 @@ describe("mission center projection", () => {
       1,
     );
     assert.match(html, /Ningún elemento seleccionado/);
-    assert.match(html, /Todavía nada terminado/);
+    assert.match(html, /Todavía nada completado/);
     assert.doesNotMatch(
       html,
       /<form\b|<textarea\b|<input\b(?![^>]*type="search")/i,

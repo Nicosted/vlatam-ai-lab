@@ -71,6 +71,16 @@ export const STATUS_LABELS: Readonly<Record<string, string>> = {
   prepared_not_executed: "Preparado, no ejecutado",
   accepted: "Aceptado",
   synthetic: "Sintético",
+  human_review_required: "Requiere revisión humana",
+  not_approved: "No aprobado",
+  not_publishable: "No publicable",
+  not_exported: "No exportado",
+  not_published: "No publicado",
+  not_authorized: "No autorizado",
+  present: "Presente",
+  sandbox_only: "Solo entorno aislado",
+  discovered: "Descubierto",
+  current: "Vigente",
 };
 
 export const SEVERITY_LABELS: Readonly<Record<string, string>> = {
@@ -86,7 +96,7 @@ export const BLOCKER_CATEGORY_LABELS: Readonly<Record<string, string>> = {
   legal: "Legal",
   security_privacy: "Seguridad y privacidad",
   evidence: "Evidencia",
-  runtime: "Configuración de ejecución",
+  runtime: "Configuración del entorno de ejecución",
 };
 
 export const RESOLUTION_LABELS: Readonly<Record<string, string>> = {
@@ -95,7 +105,7 @@ export const RESOLUTION_LABELS: Readonly<Record<string, string>> = {
   legal_review: "Revisión legal",
   security_review: "Revisión de seguridad",
   human_approval: "Aprobación humana",
-  runtime_configuration: "Configuración de runtime",
+  runtime_configuration: "Configuración del entorno de ejecución",
   external_account_configuration: "Configuración de cuenta externa",
 };
 
@@ -105,7 +115,7 @@ export const OWNER_ROLE_LABELS: Readonly<Record<string, string>> = {
   legal_reviewer: "Revisión legal (rol revisor)",
   security_reviewer: "Revisión de seguridad (rol revisor)",
   independent_human_approver: "Aprobación humana independiente",
-  runtime_operator: "Operación de runtime",
+  runtime_operator: "Operación del entorno de ejecución",
   provider_account_owner: "Titularidad de la cuenta del proveedor",
 };
 
@@ -114,8 +124,8 @@ export const EVALUATOR_LABELS: Readonly<Record<string, string>> = {
   registry_validation: "Validación de registros",
   readiness_dossier: "Dossier de preparación",
   external_evidence_pack: "Paquete de evidencia externa",
-  sandbox_proposal: "Propuesta de sandbox",
-  sandbox_preflight: "Preflight de sandbox",
+  sandbox_proposal: "Propuesta de entorno aislado",
+  sandbox_preflight: "Verificación previa del entorno aislado",
   sandbox_activation_review: "Revisión humana de activación",
   sandbox_gold_case: "Caso de referencia sintético",
 };
@@ -126,7 +136,7 @@ export const EXECUTION_STAGE_LABELS: Readonly<Record<string, string>> = {
   authorization: "Autorización",
   exact_policy: "Política exacta",
   atomic_consumption: "Consumo atómico",
-  gateway: "Gateway",
+  gateway: "Puerta de enlace",
   adapter: "Adaptador",
 };
 
@@ -145,12 +155,12 @@ export const FIELD_LABELS: Readonly<Record<string, string>> = {
   operational_verification_status: "Verificación operativa",
   execution_status: "Ejecución",
   authority_status: "Autoridad",
-  readiness_status: "Preparación (readiness)",
+  readiness_status: "Preparación",
   evidence_review: "Revisión de evidencia",
-  proposal_status: "Propuesta de sandbox",
-  preflight_status: "Preflight de runtime",
+  proposal_status: "Propuesta de entorno aislado",
+  preflight_status: "Verificación previa del entorno de ejecución",
   secret_status: "Secreto del proveedor",
-  kill_switch_status: "Kill switch",
+  kill_switch_status: "Interruptor de seguridad",
   budget_status: "Presupuesto",
   execution_allowed: "Ejecución permitida",
   blocker_count: "Bloqueos",
@@ -185,7 +195,7 @@ export const FIELD_LABELS: Readonly<Record<string, string>> = {
   review_expiry: "Vencimiento de la revisión",
   evidence_reviewer_state: "Revisión de evidencia (decisión humana)",
   activation_approver_state: "Aprobación de activación (decisión humana)",
-  kill_switch_owner_state: "Titularidad del kill switch",
+  kill_switch_owner_state: "Titularidad del interruptor de seguridad",
   incident_owner_state: "Titularidad de incidentes",
   allowed_first_run_data: "Datos permitidos para la primera ejecución",
   gold_case_readiness: "Preparación del caso de referencia",
@@ -193,7 +203,7 @@ export const FIELD_LABELS: Readonly<Record<string, string>> = {
   next_governed_action: "Próxima acción gobernada",
   timeout_ms: "Tiempo máximo (ms)",
   automatic_retries: "Reintentos automáticos",
-  fallback_enabled: "Fallback habilitado",
+  fallback_enabled: "Alternativa habilitada",
   maximum_input_tokens: "Tokens de entrada máximos",
   maximum_output_tokens: "Tokens de salida máximos",
 };
@@ -204,11 +214,11 @@ export const REASON_CODE_SUMMARIES: Readonly<Record<string, string>> = {
   "openrouter.external.pricing.v1:conflicting":
     "La evidencia externa de precios es contradictoria.",
   provider_routing_variability_explicit:
-    "El proveedor declara variabilidad explícita del enrutamiento upstream.",
+    "El proveedor declara variabilidad explícita del enrutamiento subyacente.",
   "unresolved_mandatory_risk:benchmark-missing":
-    "Falta el benchmark obligatorio del candidato.",
+    "Falta la prueba comparativa obligatoria del candidato.",
   "unresolved_mandatory_risk:exact-route-unproven":
-    "La ruta upstream exacta no está probada.",
+    "La ruta subyacente exacta no está probada.",
   "unresolved_mandatory_risk:json-schema-unverified":
     "La salida estructurada (JSON Schema) no está verificada.",
   "unresolved_mandatory_risk:pricing-conflicting":
@@ -218,16 +228,16 @@ export const REASON_CODE_SUMMARIES: Readonly<Record<string, string>> = {
   "unresolved_mandatory_risk:profile-and-approval-absent":
     "Faltan el perfil aprobado y la aprobación humana.",
   "unresolved_mandatory_risk:zdr-unverified":
-    "ZDR (Zero Data Retention) sin verificar.",
+    "Retención cero de datos (ZDR) sin verificar.",
   variable_pricing_without_bounded_policy:
     "Existen precios variables sin una política de límites aprobada.",
   readiness_or_routing_blocked:
     "La preparación o el enrutamiento permanecen bloqueados.",
   benchmark_or_gold_case_missing:
-    "Faltan benchmarks o casos de referencia (gold cases).",
+    "Faltan pruebas comparativas o casos de referencia.",
   evidence_unverified: "La evidencia externa no está verificada.",
   exact_upstream_routing_unresolved:
-    "El enrutamiento upstream exacto no está resuelto.",
+    "El enrutamiento subyacente exacto no está resuelto.",
   human_approval_missing: "Falta la aprobación humana independiente.",
   legal_review_pending: "La revisión legal está pendiente.",
   mandatory_evidence_not_reviewable:
@@ -245,10 +255,10 @@ export const REASON_CODE_SUMMARIES: Readonly<Record<string, string>> = {
   privacy_zdr_evidence_unresolved:
     "No existe evidencia revisada de privacidad y ZDR para el candidato.",
   sandbox_proposal_blocked:
-    "La propuesta de sandbox permanece bloqueada por la gobernanza.",
-  sandbox_proposal_invalid: "La propuesta de sandbox es inválida.",
+    "La propuesta de entorno aislado permanece bloqueada por la gobernanza.",
+  sandbox_proposal_invalid: "La propuesta de entorno aislado es inválida.",
   sandbox_proposal_approval_pending:
-    "La aprobación humana de la propuesta de sandbox está pendiente.",
+    "La aprobación humana de la propuesta de entorno aislado está pendiente.",
   evidence_review_pending:
     "La decisión humana de revisión de evidencia está pendiente.",
   activation_approval_pending:
@@ -256,9 +266,9 @@ export const REASON_CODE_SUMMARIES: Readonly<Record<string, string>> = {
   gold_case_acceptance_pending:
     "La aceptación humana del caso de referencia sintético está pendiente.",
   exact_routing_limitation_unacknowledged:
-    "La limitación de la ruta upstream exacta no fue reconocida por una persona revisora.",
+    "La limitación de la ruta subyacente exacta no fue reconocida por una persona revisora.",
   kill_switch_owner_unassigned:
-    "La titularidad del kill switch no está asignada a una persona.",
+    "La titularidad del interruptor de seguridad no está asignada a una persona.",
   incident_owner_unassigned:
     "La titularidad de incidentes no está asignada a una persona.",
   review_superseded: "La revisión fue sustituida por una revisión posterior.",
@@ -267,7 +277,7 @@ export const REASON_CODE_SUMMARIES: Readonly<Record<string, string>> = {
   gold_case_invalid: "El caso de referencia sintético es inválido.",
   gold_case_rejected: "El caso de referencia sintético fue rechazado.",
   kill_switch_not_active:
-    "El kill switch no está activo; el estado falla cerrado.",
+    "El interruptor de seguridad no está activo; el estado falla de forma segura.",
   secret_plan_undefined_or_repository_based:
     "El plan de manejo del secreto es inexistente o basado en el repositorio.",
   first_run_data_not_synthetic:
@@ -282,7 +292,7 @@ export const REASON_CODE_SUMMARIES: Readonly<Record<string, string>> = {
     "El límite de gasto excede el techo de la propuesta revisada.",
   timeout_ceiling_invalid: "El límite de tiempo de espera es inválido.",
   retry_policy_weakened: "La política de reintentos fue debilitada.",
-  fallback_policy_weakened: "La política de fallback fue debilitada.",
+  fallback_policy_weakened: "La política de alternativa fue debilitada.",
   adapter_enabled_before_eligibility:
     "El adaptador está habilitado antes de la elegibilidad.",
   model_enabled_before_eligibility:
@@ -308,7 +318,7 @@ const present = (
   const label = table[canonical];
   return label !== undefined
     ? { canonical, label, known: true }
-    : { canonical, label: canonical, known: false };
+    : { canonical, label: "Valor técnico sin traducción", known: false };
 };
 
 export const presentStatus = (value: unknown): PresentedValue =>
@@ -351,7 +361,7 @@ export function presentReasonCode(reasonCode: string): PresentedValue {
     return {
       canonical: reasonCode,
       label:
-        "Un enlace (binding) de la configuración de runtime no coincide con el artefacto gobernado.",
+        "Una vinculación de la configuración del entorno de ejecución no coincide con el artefacto gobernado.",
       known: true,
     };
   if (reasonCode.startsWith("registry:"))
@@ -360,7 +370,11 @@ export function presentReasonCode(reasonCode: string): PresentedValue {
       label: "La validación del registro gobernado reportó un error.",
       known: true,
     };
-  return { canonical: reasonCode, label: reasonCode, known: false };
+  return {
+    canonical: reasonCode,
+    label: "Código técnico sin traducción",
+    known: false,
+  };
 }
 
 export const presentBlockerSummary = (
@@ -385,7 +399,11 @@ export function presentRequiredActionTitle(
         known: true,
       };
   }
-  return { canonical: action.title, label: action.title, known: false };
+  return {
+    canonical: action.title,
+    label: "Acción gobernada sin traducción",
+    known: false,
+  };
 }
 
 const SHORT_HASH_LENGTH = 12;
@@ -453,13 +471,13 @@ export const GOVERNANCE_GROUPS: readonly GovernanceGroupDefinition[] = [
     description:
       "Consistencia de las fuentes de precios y existencia de una política de gasto acotada.",
     why_it_matters:
-      "Precios contradictorios o sin límites impiden un presupuesto sandbox verificable.",
+      "Precios contradictorios o sin límites impiden un presupuesto verificable para el entorno aislado.",
     match: /pricing/,
   },
   {
     title: "Enrutamiento del proveedor",
     description:
-      "Determinismo de la ruta upstream exacta declarada por el proveedor.",
+      "Determinismo de la ruta subyacente exacta declarada por el proveedor.",
     why_it_matters:
       "Una ruta variable impide fijar la política exacta que la ejecución gobernada exige.",
     match: /rout/,
@@ -481,9 +499,9 @@ export const GOVERNANCE_GROUPS: readonly GovernanceGroupDefinition[] = [
     match: /json-schema|structured_output|structured-output/,
   },
   {
-    title: "Benchmarks y casos de referencia",
+    title: "Pruebas comparativas y casos de referencia",
     description:
-      "Existencia de benchmarks reproducibles y casos de referencia (gold cases) revisados.",
+      "Existencia de pruebas comparativas reproducibles y casos de referencia revisados.",
     why_it_matters:
       "Sin métricas de calidad revisadas no hay base objetiva para habilitar al candidato.",
     match: /benchmark|gold/,
@@ -491,7 +509,7 @@ export const GOVERNANCE_GROUPS: readonly GovernanceGroupDefinition[] = [
   {
     title: "Revisión legal y de seguridad",
     description:
-      "Estado de las revisiones legal y de seguridad requeridas por la propuesta de sandbox.",
+      "Estado de las revisiones legal y de seguridad requeridas por la propuesta de entorno aislado.",
     why_it_matters:
       "Ambas revisiones son obligatorias y no se infieren: deben registrarse explícitamente.",
     match: /legal|security/,
@@ -507,9 +525,9 @@ export const GOVERNANCE_GROUPS: readonly GovernanceGroupDefinition[] = [
   {
     title: "Configuración de ejecución",
     description:
-      "Configuración de runtime, bindings exactos y preflight del sandbox gobernado.",
+      "Configuración del entorno de ejecución, vinculaciones exactas y verificación previa del entorno aislado gobernado.",
     why_it_matters:
-      "La ejecución exige una configuración exacta verificada; cualquier desvío falla cerrado.",
+      "La ejecución exige una configuración exacta verificada; cualquier desvío falla de forma segura.",
     match: null,
   },
 ];

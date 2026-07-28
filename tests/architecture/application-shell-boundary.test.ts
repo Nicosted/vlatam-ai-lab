@@ -107,7 +107,10 @@ describe("AI-134 application architecture boundary", () => {
     const entry = read("api/index.ts");
     const config = read("vercel.json");
     assert.match(entry, /validateApplicationEnvironment/);
-    assert.match(entry, /environment validation failed closed/);
+    assert.match(
+      entry,
+      /validación del entorno de AI LAB falló de forma segura/,
+    );
     assert.doesNotMatch(entry, /scheduler|governed-arca-export|vlatam-global/);
     assert.match(config, /"api\/index\.ts"/);
     assert.doesNotMatch(config, /domains|alias|dns|deployHook/);

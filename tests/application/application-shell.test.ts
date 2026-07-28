@@ -196,12 +196,12 @@ describe("AI-134 production application shell", () => {
       assert.match(result.body, /<details class="provenance">/);
       assert.match(
         result.body,
-        /Kill switches: <strong>AI-131\/132\/133 activos/,
+        /Interruptores de seguridad: <strong>AI-131\/132\/133 activos/,
       );
       assert.match(result.body, /Ejecución de modelos: <strong>No permitida/);
-      assert.match(state.body, /AI-131 kill switch/);
-      assert.match(state.body, /AI-132 kill switch/);
-      assert.match(state.body, /AI-133 kill switch/);
+      assert.match(state.body, /Interruptor de seguridad AI-131/);
+      assert.match(state.body, /Interruptor de seguridad AI-132/);
+      assert.match(state.body, /Interruptor de seguridad AI-133/);
       assert.match(state.body, /Ejecución en producción/);
       assert.match(state.body, /Acceso vlatam-global/);
       assert.match(state.body, /Visibilidad de costos/);
@@ -225,7 +225,7 @@ describe("AI-134 production application shell", () => {
       });
       assert.match(result.body, /Sin autoridad operativa/, path);
       assert.match(result.body, /Interfaz de lectura/, path);
-      assert.match(result.body, /UI ≠ autoridad/, path);
+      assert.match(result.body, /INTERFAZ ≠ AUTORIDAD/, path);
       assert.match(result.body, /Sistema bloqueado/, path);
     }
     // The blocked boundary reads as status, not as an application failure.

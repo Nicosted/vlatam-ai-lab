@@ -450,10 +450,29 @@ function breadcrumb(pathname: string): string {
 
 const environmentLabel = (environment: DeploymentEnvironment): string =>
   environment === "production"
-    ? "PRODUCTION"
+    ? "PRODUCCIÓN"
     : environment === "preview"
-      ? "PREVIEW"
+      ? "VISTA PREVIA"
       : "LOCAL";
+
+const roleLabel = (role: ApplicationRole): string =>
+  (
+    ({
+      viewer: "LECTOR",
+      operator: "OPERADOR",
+      reviewer: "REVISOR",
+      admin: "ADMIN",
+    }) as const
+  )[role];
+
+const governedStatusLabel = (status: string): string =>
+  (
+    ({
+      blocked: "Bloqueado",
+      healthy: "Operativo",
+      invalid_state: "Estado inválido",
+    }) as const
+  )[status as "blocked" | "healthy" | "invalid_state"] ?? "Estado desconocido";
 
 export interface ApplicationShellOptions {
   readonly pathname: string;
@@ -496,7 +515,7 @@ export function renderApplicationShell(
       <nav class="side-nav" aria-label="AI LAB">${navigation(options.identity, options.pathname)}</nav>
       <div class="boundary-note">
         <span class="signal signal-red" aria-hidden="true"></span>
-        <div><strong>Sin autoridad operativa</strong><span>Interfaz de lectura</span></div>
+        <div><strong>Sin autoridad operativa</strong><span>Interfaz de lectura · Ejecución no permitida</span></div>
       </div>
     </aside>
     <div class="shell-main">
@@ -514,23 +533,23 @@ export function renderApplicationShell(
           <span class="system-status"><span class="signal signal-red" aria-hidden="true"></span>Sistema bloqueado</span>
           <div class="identity">
             <span class="avatar" aria-hidden="true">${escapeHtml(options.identity.display_name.slice(0, 2).toUpperCase())}</span>
-            <span><strong>${escapeHtml(options.identity.display_name)}</strong><small>${escapeHtml(options.identity.role)} · contexto UI</small></span>
+            <span><strong>${escapeHtml(options.identity.display_name)}</strong><small>${roleLabel(options.identity.role)} · CONTEXTO DE INTERFAZ</small></span>
           </div>
         </div>
       </header>
       <div class="context-bar">
         ${breadcrumb(options.pathname)}
-        <details class="provenance"><summary>Procedencia de los datos</summary><dl><dt>Evaluado</dt><dd>${escapeHtml(options.evaluated_at)}</dd><dt>Hash del modelo de lectura</dt><dd><code>${escapeHtml(options.read_model_hash)}</code></dd></dl></details>
+        <details class="provenance"><summary>Procedencia de los datos</summary><dl><dt>Evaluado</dt><dd>${escapeHtml(options.evaluated_at)}</dd><dt>Hash del modelo de lectura</dt><dd><code>${escapeHtml(options.read_model_hash)}</code></dd><dt>Estado canónico</dt><dd><code>${escapeHtml(options.overall_status)}</code></dd></dl></details>
         <div class="mobile-context" aria-label="Contexto operativo">
           <span class="environment-badge">${environmentLabel(options.deployment_environment)}</span>
           <span class="system-status"><span class="signal signal-red" aria-hidden="true"></span>Sistema bloqueado</span>
-          <span class="mobile-identity">${escapeHtml(options.identity.display_name)} · ${escapeHtml(options.identity.role)}</span>
-          <span class="mobile-boundary">AI-131/132/133 kill switches activos · solo lectura</span>
+          <span class="mobile-identity">${escapeHtml(options.identity.display_name)} · ${roleLabel(options.identity.role)}</span>
+          <span class="mobile-boundary">Interruptores de seguridad AI-131/132/133 activos · solo lectura</span>
         </div>
       </div>
       ${sectionTabs(options.identity, options.pathname)}
       <main id="main" tabindex="-1">${options.content}</main>
-      <footer class="shell-footer"><span>AI LAB · repository-current</span><span>Estado: ${escapeHtml(options.overall_status)}</span><span>UI ≠ autoridad</span></footer>
+      <footer class="shell-footer"><span>AI LAB · estado actual del repositorio</span><span>Estado gobernado: ${governedStatusLabel(options.overall_status)}</span><span>INTERFAZ ≠ AUTORIDAD</span></footer>
     </div>
     <button class="mobile-scrim" type="button" data-mobile-scrim aria-label="Cerrar navegación"></button>
   </div>

@@ -47,7 +47,7 @@ export const MISSION_COLUMN_EMPTY_TITLES: Readonly<
 > = {
   en_curso: "Nada en curso",
   necesita_atencion: "Nada requiere atención",
-  listo: "Todavía nada terminado",
+  listo: "Todavía nada completado",
 };
 
 export interface MissionItem {
@@ -112,13 +112,14 @@ function actionMissions(model: OperatorReadModel): readonly MissionItem[] {
         ["Estado", status.label],
         [
           "Artefacto requerido",
-          action.required_artifact ?? "Ninguno registrado",
+          action.required_artifact ? "Registrado" : "Ninguno registrado",
         ],
         ["Bloqueos vinculados", String(linked)],
         ["Requisitos previos", String(action.prerequisite_actions.length)],
       ],
       technical: [
         action.action_code,
+        ...(action.required_artifact ? [action.required_artifact] : []),
         ...action.source_blocker_codes,
         ...action.prerequisite_actions,
       ],
@@ -263,7 +264,7 @@ export function missionStateChips(
           : "No permitida",
     },
     {
-      label: "Kill switches",
+      label: "Interruptores de seguridad",
       value:
         state.ai_131_kill_switch === "active" &&
         state.ai_132_kill_switch === "active" &&

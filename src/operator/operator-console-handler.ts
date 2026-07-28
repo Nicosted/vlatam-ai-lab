@@ -111,7 +111,7 @@ export async function handleOperatorConsoleRequest(
       "Cache-Control": "no-store",
       ...assetSecurityHeaders(deploymentEnvironment, httpsContext),
     });
-    res.end("Method Not Allowed");
+    res.end("Método no permitido");
     return true;
   }
   if (!OPERATOR_CONSOLE_PATHS.has(pathname)) {
