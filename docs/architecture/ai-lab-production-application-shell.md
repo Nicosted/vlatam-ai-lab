@@ -18,9 +18,12 @@ runtime dependency. All rendering remains read-only.
 1. **Operational truth before decoration.** Blocked, unavailable, pending, and
    absent are distinct visible states.
 2. **Provenance is persistent.** Every page carries the read-model evaluation
-   timestamp and abbreviated hash.
+   timestamp and full hash inside the context-bar "Procedencia de los datos"
+   disclosure — always present, one interaction away, never leading the page.
 3. **Compact, not cryptic.** Dense panels use readable spacing, semantic
    headings, keyboard focus, and text labels in addition to color.
+   Copy is Spanish and operational; canonical machine values stay available
+   behind progressive disclosure instead of leading the page.
 4. **One application frame.** Navigation, environment, identity context,
    breadcrumbs, system state, and non-authority language persist across routes.
 5. **Fail closed.** Missing identity, invalid repository state, unavailable
@@ -50,33 +53,63 @@ suppressed by `prefers-reduced-motion`. At 820px and below, the sidebar becomes
 an off-canvas mobile navigation. At 540px and below, metrics and metadata stack
 into a single readable column.
 
-## Information architecture and route map
+## Information architecture: six sections and a section tab row
 
-| Group      | Label              | Route                               | Roles shown               |
-| ---------- | ------------------ | ----------------------------------- | ------------------------- |
-| —          | Overview           | `/` and `/operator`                 | all                       |
-| Operations | ARCA               | `/operator/operations/arca`         | operator, reviewer, admin |
-| Operations | Acquisitions       | `/operator/operations/acquisitions` | operator, reviewer, admin |
-| Operations | Exports            | `/operator/operations/exports`      | operator, reviewer, admin |
-| Operations | Recovery           | `/operator/operations/recovery`     | operator, reviewer, admin |
-| Reviews    | Human Review       | `/operator/review`                  | operator, reviewer, admin |
-| Reviews    | Approved Artifacts | `/operator/approved-artifacts`      | operator, reviewer, admin |
-| Models     | Providers          | `/operator/providers`               | all                       |
-| Models     | Registry           | `/operator/models/registry`         | all                       |
-| Models     | Tournaments        | `/operator/models/tournaments`      | all                       |
-| Runtimes   | AI LAB             | `/operator/runtimes/ai-lab`         | all                       |
-| Runtimes   | OpenRouter         | `/operator/providers/openrouter`    | all                       |
-| Runtimes   | Vercel Eve         | `/operator/runtimes/vercel-eve`     | all                       |
-| Runtimes   | Cloudflare         | `/operator/runtimes/cloudflare`     | all                       |
-| Knowledge  | Regulations        | `/operator/knowledge/regulations`   | all                       |
-| Knowledge  | Sources            | `/operator/knowledge/sources`       | all                       |
-| Knowledge  | News               | `/operator/knowledge/news`          | all                       |
-| —          | Evidence           | `/operator/evidence`                | all                       |
-| —          | Settings           | `/operator/settings`                | admin                     |
+AI-137 replaces the nineteen-item grouped sidebar with six primary sections.
+The sidebar lists only sections (`APPLICATION_SECTIONS`); every concrete route
+(`APPLICATION_ROUTES`) belongs to exactly one section and is reached from the
+workspace tab row rendered by the shell. Both lists are role-filtered with the
+same `roleCanView` rules that authorize the request, so a hidden tab is also a
+403 route. All previous URLs remain valid; none was removed.
 
-The legacy `/operator/arca-review`, `/operator/governance`,
-`/operator/blockers`, `/operator/actions`, `/operator/execution`, and
-`/operator/audit` routes remain available. They use the same persistent shell.
+| Section                 | Section path           | Roles shown               | Tabs (route order)                                                                                                                                                                                   |
+| ----------------------- | ---------------------- | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Inicio                  | `/` and `/operator`    | all                       | Panel `/operator`, Estado del sistema `/operator/estado`, Bloqueos `/operator/blockers`, Acciones requeridas `/operator/actions`                                                                     |
+| Centro de misiones      | `/operator/misiones`   | operator, reviewer, admin | Áreas operativas `/operator/misiones`, ARCA `/operator/operations/arca`, Adquisiciones `…/acquisitions`, Exportaciones `…/exports`, Recuperación `…/recovery`                                        |
+| Revisiones              | `/operator/revisiones` | operator, reviewer, admin | Pendientes `/operator/revisiones`, Revisión humana `/operator/review`, Revisión ARCA `/operator/arca-review`, Artefactos aprobados `/operator/approved-artifacts`, Gobernanza `/operator/governance` |
+| Evidencia               | `/operator/evidence`   | all                       | Referencias `/operator/evidence`, Auditoría `/operator/audit`, Ejecución `/operator/execution`, Regulaciones, Fuentes, Noticias (`/operator/knowledge/*`)                                            |
+| Modelos e integraciones | `/operator/modelos`    | all                       | Resumen `/operator/modelos`, Proveedores `/operator/providers`, Registro `/operator/models/registry`, Torneos `/operator/models/tournaments`, Entornos `/operator/runtimes/ai-lab`                   |
+| Configuración           | `/operator/settings`   | admin                     | General `/operator/settings`                                                                                                                                                                         |
+
+`/operator/providers/openrouter`, `/operator/runtimes/vercel-eve`, and
+`/operator/runtimes/cloudflare` belong to Modelos e integraciones with
+`in_tabs: false`; they are reached from the Entornos page (progressive
+disclosure of runtime detail).
+
+`/operator/governance` and `/operator/arca-review` were previously unregistered
+and therefore unfiltered. They are now registered under Revisiones and require
+`operator`, `reviewer`, or `admin`. This tightens visibility; it grants nothing.
+
+## Mission center home
+
+`/operator` renders the mission center instead of the former technical
+overview, which moved unchanged to `/operator/estado`. The board is a pure
+presentation projection of the existing read model built by
+`src/operator/mission-center.ts`:
+
+| Column            | Contents                                                                                           |
+| ----------------- | -------------------------------------------------------------------------------------------------- |
+| En curso          | Required human actions with `pending`/`not_started`, plus the review queue and artifact cards      |
+| Necesita atención | Required human actions with `blocked`, plus one aggregated active-blocker card                     |
+| Listo             | Required human actions with `complete`, plus review/artifact cards once they are empty or approved |
+
+Card order is deterministic: required human actions in read-model order, then
+the blocker, review, and artifact cards. Selection is a client-side toggle
+between pre-rendered panels; the first `Necesita atención` item is selected
+server-side so the contextual panel is meaningful without JavaScript.
+
+An empty column states, in Spanish, what would appear there
+(`MISSION_COLUMN_EMPTY_TITLES` plus `MISSION_COLUMN_HINTS`); a populated column
+shows only its cards. The contextual panel always renders: when no card is
+selected — including when a search filters the selected card away — it shows a
+persistent placeholder with the same read-only boundary wording.
+
+Governed boundary facts (overall status, model execution permission,
+AI-131/132/133 kill switches, scheduler, production activity) render as a state
+strip above the board, never as board cards: a blocked boundary is a safe
+governed state, not a task waiting for an owner. The projection recomputes no
+governance decision, derives no new status, and adds no action control — every
+card links to the existing governed view.
 
 ## Existing review route integration
 
@@ -172,12 +205,12 @@ runtime code.
 
 ## Role model and protected boundary
 
-| Role       | UI visibility                                   |
-| ---------- | ----------------------------------------------- |
-| `viewer`   | Overview, models, runtimes, knowledge, evidence |
-| `operator` | Viewer routes plus operations and reviews       |
-| `reviewer` | Operator-visible read-only review context       |
-| `admin`    | All routes, including read-only Settings        |
+| Role       | UI visibility                                          |
+| ---------- | ------------------------------------------------------ |
+| `viewer`   | Inicio, Evidencia, Modelos e integraciones             |
+| `operator` | Viewer sections plus Centro de misiones and Revisiones |
+| `reviewer` | Operator-visible read-only review context              |
+| `admin`    | All sections, including read-only Configuración        |
 
 An unauthenticated identity receives 401. A recognized identity without route
 visibility receives 403. Runtime identity selection is explicit:
@@ -288,6 +321,13 @@ scroll, and closes through Escape, the close button, backdrop selection, or a
 route selection. Closing restores focus to the opener. The compact context bar
 keeps environment, blocked system state, identity/role, and the AI-131/132/133
 kill-switch boundary visible at 390×844.
+
+Blocked governed state is styled as a calm status indicator, never as an
+application error: the context indicator, the sidebar authority note, and the
+`.notice` panel use muted surfaces with a single small signal dot. Their
+wording is unchanged — "Sistema bloqueado", "Sin autoridad operativa",
+"Interfaz de lectura", "UI ≠ autoridad", and "Ejecución de modelos: No
+permitida" all remain visible.
 
 Status color is assigned only through the typed `statusToneFor` map:
 

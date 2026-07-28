@@ -11,6 +11,7 @@ import {
   presentEvaluator,
   presentExecutionImpact,
   presentOwnerRole,
+  presentReasonCode,
   presentResolution,
   presentRequiredActionTitle,
   presentSeverity,
@@ -25,6 +26,15 @@ import type {
 } from "./operator-read-model.js";
 import { buildArcaReviewConsoleViewModel } from "./arca-review-console-view-model.js";
 import {
+  buildMissionBoard,
+  missionStateChips,
+  MISSION_COLUMNS,
+  MISSION_COLUMN_EMPTY_TITLES,
+  MISSION_COLUMN_HINTS,
+  MISSION_COLUMN_LABELS,
+  type MissionItem,
+} from "./mission-center.js";
+import {
   LOCAL_DEVELOPMENT_IDENTITY,
   type ApplicationIdentity,
 } from "../application/application-access.js";
@@ -36,18 +46,6 @@ import {
 import { REPOSITORY_CURRENT_BLOCKED_STATUS } from "../application/repository-current-status.js";
 
 type ShellEnvironment = "development" | "preview" | "production";
-
-const ROUTES = [
-  ["Resumen", "/operator"],
-  ["Proveedores", "/operator/providers"],
-  ["Gobernanza", "/operator/governance"],
-  ["Bloqueos", "/operator/blockers"],
-  ["Acciones requeridas", "/operator/actions"],
-  ["Revisión humana", "/operator/review"],
-  ["Revisión ARCA", "/operator/arca-review"],
-  ["Ejecución", "/operator/execution"],
-  ["Auditoría", "/operator/audit"],
-] as const;
 
 const NEXT_GOVERNED_MILESTONE =
   "Activación controlada de sandbox (una sola llamada sintética), solo tras resolver los bloqueos gobernados y registrar las decisiones humanas de la revisión de activación." as const;
@@ -138,6 +136,141 @@ const blockedNotice = (model: OperatorReadModel): string =>
     ? ""
     : `<div class="notice"><strong>Bloqueado es un estado gobernado y seguro, no una falla de la aplicación.</strong><br>La consola muestra la decisión del repositorio tal como fue evaluada y no ofrece controles de ejecución ni de aprobación.</div>`;
 
+const missionCard = (item: MissionItem, selected: boolean): string =>
+  `<button class="mission-card" type="button" data-mission-card data-mission="${escapeHtml(item.id)}" data-column="${escapeHtml(item.column)}" aria-pressed="${selected ? "true" : "false"}" aria-controls="mission-panel-${escapeHtml(item.id)}"><span class="mission-card-title">${escapeHtml(item.title)}</span><span class="mission-card-summary">${escapeHtml(item.summary)}</span><span class="mission-card-meta"><span class="badge tone-${item.status_tone}">${escapeHtml(item.status_label)}</span>${item.owner_label ? `<span class="quiet">${escapeHtml(item.owner_label)}</span>` : ""}</span></button>`;
+
+const missionPanel = (item: MissionItem, selected: boolean): string =>
+  `<section class="mission-panel" id="mission-panel-${escapeHtml(item.id)}" data-mission-panel="${escapeHtml(item.id)}"${selected ? "" : " hidden"}><h3>${escapeHtml(item.title)}</h3><p class="quiet">${escapeHtml(item.summary)}</p><p><span class="badge tone-${item.status_tone}">${escapeHtml(item.status_label)}</span></p>${dl(
+    item.facts.map(([key, value]) => [key, text(value)] as const),
+  )}${item.technical.length > 0 ? codeList("Valores técnicos", item.technical) : ""}${
+    item.detail_path
+      ? `<p class="panel-actions"><a href="${item.detail_path}">${escapeHtml(item.detail_label)} →</a></p>`
+      : ""
+  }<p class="quiet">Esta interfaz solo describe el estado gobernado; no ejecuta ni aprueba nada.</p></section>`;
+
+/**
+ * Three-column read-only board plus the contextual panel. The column meaning
+ * is shown only when a column is empty, so a populated board stays quiet.
+ */
+function missionBoard(model: OperatorReadModel): string {
+  const board = buildMissionBoard(model);
+  const columns = MISSION_COLUMNS.map((column) => {
+    const items = board.items.filter((item) => item.column === column);
+    const body =
+      items.length === 0
+        ? `<p class="board-empty" data-column-empty="${column}"><strong>${escapeHtml(MISSION_COLUMN_EMPTY_TITLES[column])}</strong>${escapeHtml(MISSION_COLUMN_HINTS[column])}</p>`
+        : `${items
+            .map((item) => missionCard(item, item.id === board.selected_id))
+            .join(
+              "",
+            )}<p class="board-empty" data-column-empty="${column}" hidden><strong>Sin coincidencias</strong>Ningún elemento de esta columna coincide con la búsqueda.</p>`;
+    return `<section class="board-column" data-column="${column}" aria-label="${escapeHtml(MISSION_COLUMN_LABELS[column])}"><div class="board-column-head"><h3>${escapeHtml(MISSION_COLUMN_LABELS[column])}</h3><span class="column-count" data-column-count="${column}">${items.length}</span></div>${body}</section>`;
+  }).join("");
+  return `<div class="board-layout"><div class="board">${columns}</div><aside class="context-panel" aria-label="Detalle del elemento seleccionado"><p class="panel-kicker">Detalle</p><section class="mission-panel" data-mission-panel="" ${board.selected_id === null ? "" : "hidden"}><h3>Ningún elemento seleccionado</h3><p class="quiet">Seleccione una tarjeta del tablero para ver aquí su detalle, su responsable y su vista gobernada.</p><p class="quiet">Esta interfaz solo describe el estado gobernado; no ejecuta ni aprueba nada.</p></section>${board.items
+    .map((item) => missionPanel(item, item.id === board.selected_id))
+    .join("")}</aside></div>`;
+}
+
+function missionCenter(model: OperatorReadModel): string {
+  return `<h2>Panel operativo</h2><p class="lead">Qué está en curso, qué necesita una decisión humana y qué ya quedó resuelto. Seleccione un elemento para ver su detalle.</p><div class="state-strip">${missionStateChips(
+    model,
+  )
+    .map(
+      (chip) =>
+        `<span class="state-chip">${escapeHtml(chip.label)}: <strong>${escapeHtml(chip.value)}</strong></span>`,
+    )
+    .join(
+      "",
+    )}</div>${missionBoard(model)}<section class="card"><h3>Próximo hito gobernado</h3><p>${escapeHtml(NEXT_GOVERNED_MILESTONE)}</p><p class="quiet">Para el detalle técnico completo, abra <a href="/operator/estado">Estado del sistema</a>.</p></section>`;
+}
+
+function missionsLanding(model: OperatorReadModel): string {
+  const attention = buildMissionBoard(model).items.filter(
+    (item) => item.column === "necesita_atencion",
+  );
+  const area = (
+    title: string,
+    path: string,
+    stateLabel: string,
+    description: string,
+  ): string =>
+    `<section class="card"><h3>${escapeHtml(title)}</h3><p><span class="badge tone-blocked">${escapeHtml(stateLabel)}</span></p><p class="quiet">${escapeHtml(description)}</p><p><a href="${path}">Abrir ${escapeHtml(title)} →</a></p></section>`;
+  return `<h2>Centro de misiones</h2><p class="lead">Áreas operativas avanzadas y los elementos que hoy requieren una decisión humana.</p><div class="grid2">${area(
+    "ARCA",
+    "/operator/operations/arca",
+    "Ejecución bloqueada",
+    "Flujo ARCA gobernado en modo observación.",
+  )}${area(
+    "Adquisiciones",
+    "/operator/operations/acquisitions",
+    "Kill switch activo",
+    "AI-131 permanece bloqueado; no hay adquisición desde esta interfaz.",
+  )}${area(
+    "Exportaciones",
+    "/operator/operations/exports",
+    "Kill switch activo",
+    "AI-132 permanece bloqueado; no existe autoridad de exportación.",
+  )}${area(
+    "Recuperación",
+    "/operator/operations/recovery",
+    "Sin fuente disponible",
+    "No hay un modelo de lectura de recuperación utilizable.",
+  )}</div><section class="card"><h3>Necesita atención</h3>${
+    attention.length === 0
+      ? `<p class="quiet">No hay elementos detenidos en la proyección actual.</p>`
+      : `<ul class="status-list">${attention
+          .map(
+            (item) =>
+              `<li><span>${escapeHtml(item.title)}</span><span class="badge tone-${item.status_tone}">${escapeHtml(item.status_label)}</span></li>`,
+          )
+          .join("")}</ul>`
+  }<p class="quiet">El tablero completo está en <a href="/operator">Inicio</a>.</p></section>`;
+}
+
+function reviewsLanding(model: OperatorReadModel): string {
+  const review = model.activation_review;
+  return `<h2>Revisiones</h2><p class="lead">Decisiones humanas pendientes y artefactos ya aprobados. Ninguna decisión se toma desde esta interfaz.</p><div class="grid-metrics">${metric(
+    "Revisiones pendientes",
+    text(model.system_summary.pending_approvals),
+  )}${metric(
+    "Revisión de evidencia",
+    badge(review.evidence_review_status),
+  )}${metric(
+    "Aprobación de activación",
+    badge(review.activation_approval_status),
+  )}${metric(
+    "Artefacto aprobado ARCA",
+    model.arca_approved_artifact.present ? badge("approved") : badge("absent"),
+  )}</div><section class="card"><h3>Decisiones humanas pendientes</h3>${
+    review.pending_human_decisions.length === 0
+      ? `<p class="quiet">Ninguna decisión pendiente registrada.</p>`
+      : `<ul>${review.pending_human_decisions
+          .map((decision) => {
+            const presented = presentReasonCode(decision);
+            return `<li>${escapeHtml(presented.label)}${presented.known ? "" : untranslated()}</li>`;
+          })
+          .join("")}</ul>${codeList("Códigos canónicos", [
+          ...review.pending_human_decisions,
+        ])}`
+  }</section><div class="grid2"><section class="card"><h3>Revisión humana</h3><p class="quiet">Estado gobernado de la revisión de activación.</p><p><a href="/operator/review">Abrir revisión humana →</a></p></section><section class="card"><h3>Revisión ARCA</h3><p class="quiet">Trazabilidad del candidato ARCA y su decisión registrada.</p><p><a href="/operator/arca-review">Abrir revisión ARCA →</a></p></section></div>`;
+}
+
+function modelsLanding(model: OperatorReadModel): string {
+  const provider = model.providers[0] ?? {};
+  return `<h2>Modelos e integraciones</h2><p class="lead">Qué modelos, rutas y entornos están registrados, y si su ejecución está permitida.</p><div class="grid-metrics">${metric(
+    "Proveedor evaluado",
+    code(provider["provider_id"] ?? "ausente"),
+  )}${metric(
+    "Ejecución de modelos",
+    provider["execution_allowed"] === true
+      ? badge("enabled")
+      : `<span class="badge tone-blocked">No permitida</span>`,
+  )}${metric("Modelos registrados", text(model.models.length))}${metric(
+    "Rutas registradas",
+    text(model.routes.length),
+  )}</div><div class="grid2"><section class="card"><h3>Proveedores</h3><p class="quiet">Estado gobernado del proveedor evaluado y su evidencia.</p><p><a href="/operator/providers">Abrir proveedores →</a></p></section><section class="card"><h3>Registro</h3><p class="quiet">Identidades de modelos y rutas del modelo de lectura.</p><p><a href="/operator/models/registry">Abrir registro →</a></p></section><section class="card"><h3>Torneos</h3><p class="quiet">Candidatos registrados; sin acciones de escritura.</p><p><a href="/operator/models/tournaments">Abrir torneos →</a></p></section><section class="card"><h3>Entornos</h3><p class="quiet">AI LAB, Vercel Eve y Cloudflare: evidencia, no activación.</p><p><a href="/operator/runtimes/ai-lab">Abrir entornos →</a></p></section></div>`;
+}
+
 function overview(model: OperatorReadModel): string {
   const s = model.system_summary;
   const provider = model.providers[0] ?? {};
@@ -164,7 +297,7 @@ function overview(model: OperatorReadModel): string {
       "El kill switch permanece activo: cualquier intento de ejecución falla cerrado.",
     );
   const top = topBlockersBySeverity(model.blockers, 5);
-  return `<h2>Resumen</h2><p class="lead">Estado gobernado actual del laboratorio y del proveedor evaluado.</p>${blockedNotice(model)}<div class="grid-metrics">${metric("Estado gobernado", badge(s.overall_status))}${metric("Ejecución de modelos", executionAllowed ? badge("enabled") : `<span class="badge tone-blocked">No permitida</span>`)}${metric("Proveedor evaluado", code(provider["provider_id"] ?? "ausente"))}${metric("Candidato actual", code(candidate?.model_id ?? "ausente"))}${metric("Bloqueos activos", text(s.active_blockers))}${metric("Acciones requeridas", text(model.required_human_actions.length))}${metric("Revisiones pendientes", text(s.pending_approvals))}${metric("Evaluación", text(s.last_evaluated_at))}${metric("Versión del modelo de lectura", text(s.read_model_contract_version))}${metric("Hash (abreviado)", code(shortHash(s.read_model_hash)))}</div><section class="card"><h3>Situación actual</h3><ul>${situacion.map((item) => `<li>${item}</li>`).join("")}</ul></section><section class="card"><h3>Bloqueos principales</h3><p class="quiet">Los cinco bloqueos de mayor prioridad (orden estable por severidad; el listado canónico completo está en Bloqueos).</p><ul>${top
+  return `<h2>Estado del sistema</h2><p class="lead">Detalle técnico del estado gobernado del laboratorio y del proveedor evaluado.</p>${blockedNotice(model)}<div class="grid-metrics">${metric("Estado gobernado", badge(s.overall_status))}${metric("Ejecución de modelos", executionAllowed ? badge("enabled") : `<span class="badge tone-blocked">No permitida</span>`)}${metric("Proveedor evaluado", code(provider["provider_id"] ?? "ausente"))}${metric("Candidato actual", code(candidate?.model_id ?? "ausente"))}${metric("Bloqueos activos", text(s.active_blockers))}${metric("Acciones requeridas", text(model.required_human_actions.length))}${metric("Revisiones pendientes", text(s.pending_approvals))}${metric("Evaluación", text(s.last_evaluated_at))}${metric("Versión del modelo de lectura", text(s.read_model_contract_version))}${metric("Hash (abreviado)", code(shortHash(s.read_model_hash)))}</div><section class="card"><h3>Situación actual</h3><ul>${situacion.map((item) => `<li>${item}</li>`).join("")}</ul></section><section class="card"><h3>Bloqueos principales</h3><p class="quiet">Los cinco bloqueos de mayor prioridad (orden estable por severidad; el listado canónico completo está en Bloqueos).</p><ul>${top
     .map((blocker) => {
       const summary = presentBlockerSummary(blocker);
       return `<li>${escapeHtml(summary.label)}${summary.known ? "" : untranslated()} ${severityBadge(blocker.severity)} ${code(blocker.blocker_code)}</li>`;
@@ -191,7 +324,7 @@ function repositoryCurrentOverviewPanels(model: OperatorReadModel): string {
   const state = REPOSITORY_CURRENT_BLOCKED_STATUS;
   const approvedArtifact = model.arca_approved_artifact.present;
   const recentEvidence = model.audit_references.slice(0, 4);
-  return `<div class="grid2"><section class="card"><span class="panel-kicker">System health</span><h3>Fronteras operativas</h3><ul class="status-list"><li><span>Scheduler</span>${badge(state.scheduler)}</li><li><span>AI-131 kill switch</span>${badge(state.ai_131_kill_switch)}</li><li><span>AI-132 kill switch</span>${badge(state.ai_132_kill_switch)}</li><li><span>AI-133 kill switch</span>${badge(state.ai_133_kill_switch)}</li><li><span>Activación</span><span class="badge tone-blocked">Ninguna</span></li><li><span>Run de producción</span><span class="badge tone-blocked">Ninguno</span></li></ul></section><section class="card"><span class="panel-kicker">Review queue</span><h3>Revisión y artefactos</h3><ul class="status-list"><li><span>Revisiones pendientes</span><strong>${text(model.system_summary.pending_approvals)}</strong></li><li><span>Approved Artifact ARCA</span>${approvedArtifact ? badge("approved") : badge("absent")}</li><li><span>Recovery required</span>${badge(state.recovery_required)}</li><li><span>Cost visibility</span>${badge(state.cost_visibility)}</li></ul><p class="quiet">Los valores no disponibles permanecen explícitos; la interfaz no infiere costos ni estados de recuperación.</p></section><section class="card"><span class="panel-kicker">Evidence</span><h3>Actividad reciente disponible</h3>${codeList("Referencias repository-current", recentEvidence)}<p class="quiet">Orden de referencias del modelo de lectura; no representa actividad productiva.</p></section><section class="card"><span class="panel-kicker">Runtime matrix</span><h3>Proveedores y runtimes</h3><ul class="status-list"><li><span>OpenRouter</span>${badge(model.providers[0]?.["execution_allowed"] === true ? "enabled" : "blocked")}</li><li><span>AI LAB scheduler</span>${badge(state.scheduler)}</li><li><span>Vercel Eve</span>${badge("evidence_incomplete")}</li><li><span>Cloudflare</span>${badge("evidence_incomplete")}</li></ul></section></div><section class="card"><span class="panel-kicker">Authority boundary</span><h3>Autoridades ausentes</h3>${dl(
+  return `<div class="grid2"><section class="card"><span class="panel-kicker">Salud del sistema</span><h3>Fronteras operativas</h3><ul class="status-list"><li><span>Planificador</span>${badge(state.scheduler)}</li><li><span>AI-131 kill switch</span>${badge(state.ai_131_kill_switch)}</li><li><span>AI-132 kill switch</span>${badge(state.ai_132_kill_switch)}</li><li><span>AI-133 kill switch</span>${badge(state.ai_133_kill_switch)}</li><li><span>Activación</span><span class="badge tone-blocked">Ninguna</span></li><li><span>Ejecución en producción</span><span class="badge tone-blocked">Ninguno</span></li></ul></section><section class="card"><span class="panel-kicker">Cola de revisión</span><h3>Revisión y artefactos</h3><ul class="status-list"><li><span>Revisiones pendientes</span><strong>${text(model.system_summary.pending_approvals)}</strong></li><li><span>Artefacto aprobado ARCA</span>${approvedArtifact ? badge("approved") : badge("absent")}</li><li><span>Recuperación requerida</span>${badge(state.recovery_required)}</li><li><span>Visibilidad de costos</span>${badge(state.cost_visibility)}</li></ul><p class="quiet">Los valores no disponibles permanecen explícitos; la interfaz no infiere costos ni estados de recuperación.</p></section><section class="card"><span class="panel-kicker">Evidencia</span><h3>Actividad reciente disponible</h3>${codeList("Referencias repository-current", recentEvidence)}<p class="quiet">Orden de referencias del modelo de lectura; no representa actividad productiva.</p></section><section class="card"><span class="panel-kicker">Entornos</span><h3>Proveedores y entornos</h3><ul class="status-list"><li><span>OpenRouter</span>${badge(model.providers[0]?.["execution_allowed"] === true ? "enabled" : "blocked")}</li><li><span>Planificador AI LAB</span>${badge(state.scheduler)}</li><li><span>Vercel Eve</span>${badge("evidence_incomplete")}</li><li><span>Cloudflare</span>${badge("evidence_incomplete")}</li></ul></section></div><section class="card"><span class="panel-kicker">Frontera de autoridad</span><h3>Autoridades ausentes</h3>${dl(
     [
       ["Publicación", yesNo(state.publication_authority)],
       ["Importación", yesNo(state.import_authority)],
@@ -1153,31 +1286,28 @@ function audit(model: OperatorReadModel): string {
 function applicationPage(model: OperatorReadModel, pathname: string): string {
   const state = REPOSITORY_CURRENT_BLOCKED_STATUS;
   if (pathname === "/operator/operations/arca")
-    return `<h2>ARCA</h2><p class="lead">Superficie operativa de solo lectura para el flujo ARCA gobernado.</p>${blockedNotice(model)}<div class="grid3"><section class="card"><span class="panel-kicker">AI-131</span><h3>Acquisition boundary</h3><p><span class="badge tone-blocked">Kill switch activo</span></p><p class="quiet">Ejecución live bloqueada por configuración repository-current.</p></section><section class="card"><span class="panel-kicker">AI-132</span><h3>Export boundary</h3><p><span class="badge tone-blocked">Kill switch activo</span></p><p class="quiet">Exportación no autorizada.</p></section><section class="card"><span class="panel-kicker">AI-133</span><h3>Scheduler boundary</h3><p><span class="badge tone-blocked">Inactivo</span></p><p class="quiet">Cero runs permitidos; ejecución bloqueada.</p></section></div><section class="card"><h3>Revisión disponible</h3><p><a href="/operator/arca-review">Abrir la revisión ARCA existente</a>. Esta vista conserva su proyección y lógica de gobernanza actuales.</p></section>`;
+    return `<h2>ARCA</h2><p class="lead">Superficie operativa de solo lectura para el flujo ARCA gobernado.</p>${blockedNotice(model)}<div class="grid3"><section class="card"><span class="panel-kicker">AI-131</span><h3>Frontera de adquisición</h3><p><span class="badge tone-blocked">Kill switch activo</span></p><p class="quiet">Ejecución live bloqueada por configuración repository-current.</p></section><section class="card"><span class="panel-kicker">AI-132</span><h3>Frontera de exportación</h3><p><span class="badge tone-blocked">Kill switch activo</span></p><p class="quiet">Exportación no autorizada.</p></section><section class="card"><span class="panel-kicker">AI-133</span><h3>Frontera del planificador</h3><p><span class="badge tone-blocked">Inactivo</span></p><p class="quiet">Cero runs permitidos; ejecución bloqueada.</p></section></div><section class="card"><h3>Revisión disponible</h3><p><a href="/operator/arca-review">Abrir la revisión ARCA existente</a>. Esta vista conserva su proyección y lógica de gobernanza actuales.</p></section>`;
   if (pathname === "/operator/operations/acquisitions")
     return readOnlyUnavailablePage(
-      "Acquisitions",
       "Adquisiciones",
       "AI-131 permanece bloqueado. No existe control de adquisición en esta aplicación.",
       state.evidence_paths[0]!,
     );
   if (pathname === "/operator/operations/exports")
     return readOnlyUnavailablePage(
-      "Exports",
       "Exportaciones",
       "AI-132 permanece bloqueado. No existe autoridad de exportación.",
       state.evidence_paths[1]!,
     );
   if (pathname === "/operator/operations/recovery")
     return readOnlyUnavailablePage(
-      "Recovery",
       "Recuperación",
       "El estado recovery-required no está disponible en un read model apto para esta vista.",
       state.evidence_paths[3]!,
     );
   if (pathname === "/operator/approved-artifacts") {
     const artifact = model.arca_approved_artifact;
-    return `<h2>Approved Artifacts</h2><p class="lead">Artefactos aprobados locales; aprobación no implica exportación, publicación ni uso productivo.</p><section class="card"><h3>Approved Artifact ARCA</h3>${dl(
+    return `<h2>Artefactos aprobados</h2><p class="lead">Artefactos aprobados locales; aprobación no implica exportación, publicación ni uso productivo.</p><section class="card"><h3>Artefacto aprobado ARCA</h3>${dl(
       [
         ["Presencia", artifact.present ? badge("approved") : badge("absent")],
         ["ID", code(artifact.approved_artifact_id ?? "ausente")],
@@ -1189,7 +1319,7 @@ function applicationPage(model: OperatorReadModel, pathname: string): string {
     )}<p><a href="/operator/arca-review">Ver trazabilidad en Revisión ARCA</a></p></section>`;
   }
   if (pathname === "/operator/models/registry")
-    return `<h2>Registry</h2><p class="lead">Identidades registradas según el Operator Read Model.</p><div class="grid2"><section class="card"><h3>Modelos</h3><ul class="status-list">${model.models
+    return `<h2>Registro</h2><p class="lead">Identidades registradas según el Operator Read Model.</p><div class="grid2"><section class="card"><h3>Modelos</h3><ul class="status-list">${model.models
       .map(
         (entry) =>
           `<li><span>${code(entry.model_id)}</span>${badge(entry.enabled ? "enabled" : "disabled")}</li>`,
@@ -1203,7 +1333,7 @@ function applicationPage(model: OperatorReadModel, pathname: string): string {
       )
       .join("")}</ul></section></div>`;
   if (pathname === "/operator/models/tournaments")
-    return `<h2>Tournaments</h2><p class="lead">Control plane neutral y sin acciones de escritura.</p><section class="card"><h3>Candidatos registrados</h3>${
+    return `<h2>Torneos</h2><p class="lead">Control plane neutral y sin acciones de escritura.</p><section class="card"><h3>Candidatos registrados</h3>${
       model.tournament.registered_candidates.length === 0
         ? `<p>${badge("unavailable")} No hay candidatos disponibles en la proyección.</p>`
         : `<ul class="status-list">${model.tournament.registered_candidates
@@ -1214,7 +1344,7 @@ function applicationPage(model: OperatorReadModel, pathname: string): string {
             .join("")}</ul>`
     }<p class="quiet">Write actions available: ${code(model.tournament.write_actions_available)}</p></section>`;
   if (pathname === "/operator/runtimes/ai-lab")
-    return `<h2>AI LAB runtime</h2><p class="lead">Estado local del control plane.</p><section class="card"><h3>Repository-current</h3><ul class="status-list"><li><span>Scheduler</span><span class="badge tone-blocked">Inactivo</span></li><li><span>Activación</span><span class="badge tone-blocked">Ninguna</span></li><li><span>Production run</span><span class="badge tone-blocked">Ninguno</span></li><li><span>Deployment authority</span>${yesNo(state.deployment_authority)}</li></ul></section>`;
+    return `<h2>Entornos</h2><p class="lead">Estado local del laboratorio y evidencia de los entornos evaluados.</p><section class="card"><h3>AI LAB</h3><ul class="status-list"><li><span>Planificador</span><span class="badge tone-blocked">Inactivo</span></li><li><span>Activación</span><span class="badge tone-blocked">Ninguna</span></li><li><span>Ejecución en producción</span><span class="badge tone-blocked">Ninguna</span></li><li><span>Autoridad de despliegue</span>${yesNo(state.deployment_authority)}</li></ul></section><div class="grid3"><section class="card"><h3>OpenRouter</h3><p class="quiet">Estado gobernado del proveedor evaluado.</p><p><a href="/operator/providers/openrouter">Ver detalle →</a></p></section><section class="card"><h3>Vercel Eve</h3><p class="quiet">Evidencia de runtime, no activación.</p><p><a href="/operator/runtimes/vercel-eve">Ver detalle →</a></p></section><section class="card"><h3>Cloudflare</h3><p class="quiet">Evidencia de runtime, no activación.</p><p><a href="/operator/runtimes/cloudflare">Ver detalle →</a></p></section></div>`;
   if (
     pathname === "/operator/runtimes/vercel-eve" ||
     pathname === "/operator/runtimes/cloudflare"
@@ -1245,29 +1375,26 @@ function applicationPage(model: OperatorReadModel, pathname: string): string {
   }
   if (pathname === "/operator/knowledge/regulations")
     return readOnlyUnavailablePage(
-      "Regulations",
       "Regulaciones",
       "La navegación está preparada; no se proyecta un catálogo regulatorio agregado en este shell.",
       "docs/advisory/regulatory-source-of-truth.md",
     );
   if (pathname === "/operator/knowledge/sources")
     return readOnlyUnavailablePage(
-      "Sources",
       "Fuentes",
       "Las fuentes permanecen gobernadas por sus artefactos; no hay adquisición desde la UI.",
       "docs/agents/arca-source-acquisition.md",
     );
   if (pathname === "/operator/knowledge/news")
     return readOnlyUnavailablePage(
-      "News",
       "Noticias",
       "No existe una fuente repository-current para noticias. Estado explícitamente no disponible.",
       "unavailable:no-reviewed-news-source",
     );
   if (pathname === "/operator/evidence")
-    return `<h2>Evidence</h2><p class="lead">Referencias auditables del Operator Read Model.</p><section class="card"><h3>Repository references</h3>${codeList("Rutas disponibles", model.audit_references)}</section><section class="card"><h3>Proyección AI-134</h3>${codeList("Fuentes de estado bloqueado", state.evidence_paths)}<p class="quiet">La presencia de evidencia no concede autoridad operativa.</p></section>`;
+    return `<h2>Evidencia</h2><p class="lead">Referencias auditables del Operator Read Model.</p><section class="card"><h3>Referencias del repositorio</h3>${codeList("Rutas disponibles", model.audit_references)}</section><section class="card"><h3>Proyección AI-134</h3>${codeList("Fuentes de estado bloqueado", state.evidence_paths)}<p class="quiet">La presencia de evidencia no concede autoridad operativa.</p></section>`;
   if (pathname === "/operator/settings")
-    return `<h2>Settings</h2><p class="lead">Configuración visible para administradores; sin mutaciones en esta iteración.</p><section class="card"><h3>Deployment preparation</h3>${dl(
+    return `<h2>Configuración</h2><p class="lead">Configuración visible para administradores; sin mutaciones en esta iteración.</p><section class="card"><h3>Preparación de despliegue</h3>${dl(
       [
         ["Proyecto futuro", code("vlatam-ai-lab")],
         ["Dominio futuro", code("lab.vlatamglobal.com")],
@@ -1279,19 +1406,36 @@ function applicationPage(model: OperatorReadModel, pathname: string): string {
 }
 
 function readOnlyUnavailablePage(
-  eyebrow: string,
   title: string,
   explanation: string,
   provenance: string,
 ): string {
-  return `<span class="eyebrow">${escapeHtml(eyebrow)}</span><h2>${escapeHtml(title)}</h2><p class="lead">${escapeHtml(explanation)}</p><section class="card"><h3>Estado repository-current</h3><p>${badge("unavailable")} Solo lectura; ninguna acción disponible.</p>${codeList("Provenance", [provenance])}</section>`;
+  return `<h2>${escapeHtml(title)}</h2><p class="lead">${escapeHtml(explanation)}</p><section class="card"><h3>Estado actual del repositorio</h3><p>${badge("unavailable")} Solo lectura; ninguna acción disponible.</p>${codeList("Procedencia", [provenance])}</section>`;
 }
 
-export const OPERATOR_CONSOLE_PATHS = new Set([
-  ...ROUTES.map(([, path]) => path),
-  ...APPLICATION_ROUTES.map((route) => route.path),
-  "/operator/providers/openrouter",
-]);
+export const OPERATOR_CONSOLE_PATHS = new Set(
+  APPLICATION_ROUTES.map((route) => route.path),
+);
+
+/** Section landing pages and the existing governed views, by exact path. */
+const CONSOLE_PAGES: Readonly<
+  Record<string, (model: OperatorReadModel) => string>
+> = {
+  "/operator": missionCenter,
+  "/operator/estado": overview,
+  "/operator/misiones": missionsLanding,
+  "/operator/revisiones": reviewsLanding,
+  "/operator/modelos": modelsLanding,
+  "/operator/providers": providers,
+  "/operator/providers/openrouter": openrouter,
+  "/operator/review": review,
+  "/operator/arca-review": arcaReview,
+  "/operator/governance": governance,
+  "/operator/blockers": blockers,
+  "/operator/actions": actions,
+  "/operator/execution": execution,
+  "/operator/audit": audit,
+};
 
 export interface OperatorConsoleRenderOptions {
   readonly identity?: ApplicationIdentity;
@@ -1303,28 +1447,10 @@ export function renderOperatorConsole(
   pathname: string,
   options: OperatorConsoleRenderOptions = {},
 ): string {
-  const content =
-    pathname === "/operator"
-      ? overview(model)
-      : pathname === "/operator/providers"
-        ? providers(model)
-        : pathname === "/operator/providers/openrouter"
-          ? openrouter(model)
-          : pathname === "/operator/review"
-            ? review(model)
-            : pathname === "/operator/arca-review"
-              ? arcaReview(model)
-              : pathname === "/operator/governance"
-                ? governance(model)
-                : pathname === "/operator/blockers"
-                  ? blockers(model)
-                  : pathname === "/operator/actions"
-                    ? actions(model)
-                    : pathname === "/operator/execution"
-                      ? execution(model)
-                      : pathname === "/operator/audit"
-                        ? audit(model)
-                        : applicationPage(model, pathname);
+  const content = (
+    CONSOLE_PAGES[pathname] ??
+    ((current: OperatorReadModel) => applicationPage(current, pathname))
+  )(model);
   return shell(
     model,
     pathname,

@@ -8,6 +8,7 @@ import {
 } from "../../src/application/application-access.js";
 import {
   APPLICATION_ROUTES,
+  APPLICATION_SECTIONS,
   APPLICATION_SHELL_ASSET_PATHS,
   APPLICATION_SHELL_CSS,
   APPLICATION_SHELL_JS,
@@ -77,36 +78,97 @@ async function request(
 }
 
 describe("AI-134 production application shell", () => {
-  it("defines the complete grouped route map", () => {
+  it("exposes six primary sections and keeps every route reachable", () => {
     assert.deepEqual(
-      [...new Set(APPLICATION_ROUTES.map((route) => route.group))],
-      [null, "Operations", "Reviews", "Models", "Runtimes", "Knowledge"],
+      APPLICATION_SECTIONS.map((section) => section.label),
+      [
+        "Inicio",
+        "Centro de misiones",
+        "Revisiones",
+        "Evidencia",
+        "Modelos e integraciones",
+        "Configuración",
+      ],
     );
-    for (const expected of [
-      "Overview",
-      "ARCA",
-      "Acquisitions",
-      "Exports",
-      "Recovery",
-      "Human Review",
-      "Approved Artifacts",
-      "Providers",
-      "Registry",
-      "Tournaments",
-      "AI LAB",
-      "OpenRouter",
-      "Vercel Eve",
-      "Cloudflare",
-      "Regulations",
-      "Sources",
-      "News",
-      "Evidence",
-      "Settings",
+    for (const path of [
+      "/operator",
+      "/operator/estado",
+      "/operator/blockers",
+      "/operator/actions",
+      "/operator/misiones",
+      "/operator/operations/arca",
+      "/operator/operations/acquisitions",
+      "/operator/operations/exports",
+      "/operator/operations/recovery",
+      "/operator/revisiones",
+      "/operator/review",
+      "/operator/arca-review",
+      "/operator/approved-artifacts",
+      "/operator/governance",
+      "/operator/evidence",
+      "/operator/audit",
+      "/operator/execution",
+      "/operator/knowledge/regulations",
+      "/operator/knowledge/sources",
+      "/operator/knowledge/news",
+      "/operator/modelos",
+      "/operator/providers",
+      "/operator/models/registry",
+      "/operator/models/tournaments",
+      "/operator/runtimes/ai-lab",
+      "/operator/providers/openrouter",
+      "/operator/runtimes/vercel-eve",
+      "/operator/runtimes/cloudflare",
+      "/operator/settings",
     ])
       assert.ok(
-        APPLICATION_ROUTES.some((route) => route.label === expected),
-        expected,
+        APPLICATION_ROUTES.some((route) => route.path === path),
+        path,
       );
+    for (const route of APPLICATION_ROUTES)
+      assert.ok(
+        APPLICATION_SECTIONS.some((section) => section.id === route.section),
+        route.path,
+      );
+  });
+
+  it("keeps every registered route reachable from the rendered shell", async () => {
+    const rendered = await Promise.all(
+      APPLICATION_ROUTES.map(async (route) =>
+        request(route.path, {
+          resolve_identity: async () => identity("admin"),
+        }),
+      ),
+    );
+    const all = rendered.map((result) => result.body).join("\n");
+    for (const result of rendered) assert.equal(result.status, 200);
+    for (const route of APPLICATION_ROUTES)
+      assert.ok(
+        all.includes(`href="${route.path}"`),
+        `${route.path} is not linked from any page`,
+      );
+  });
+
+  it("keeps the sidebar short and moves detail routes into the section tab row", async () => {
+    const home = await request("/operator", {
+      resolve_identity: async () => identity("admin"),
+    });
+    const reviews = await request("/operator/revisiones", {
+      resolve_identity: async () => identity("admin"),
+    });
+    const navItems = [...home.body.matchAll(/class="nav-item"/g)];
+    assert.equal(navItems.length, APPLICATION_SECTIONS.length);
+    assert.doesNotMatch(
+      home.body,
+      /class="workspace-tab"[^>]*"\/operator\/rev/,
+    );
+    assert.match(
+      home.body,
+      /class="workspace-tab"[^>]*href="\/operator\/estado"/,
+    );
+    assert.match(reviews.body, /class="workspace-tabs"/);
+    assert.match(reviews.body, /href="\/operator\/review"/);
+    assert.match(reviews.body, /href="\/operator\/arca-review"/);
   });
 
   it("renders shell, navigation, provenance, identity, and truthful blocked state", async () => {
@@ -120,6 +182,9 @@ describe("AI-134 production application shell", () => {
       const result = await request("/operator", {
         resolve_identity: async () => identity("admin"),
       });
+      const state = await request("/operator/estado", {
+        resolve_identity: async () => identity("admin"),
+      });
       assert.equal(result.status, 200);
       assert.match(result.body, /class="sidebar"/);
       assert.match(result.body, /data-command-search/);
@@ -127,27 +192,60 @@ describe("AI-134 production application shell", () => {
       assert.match(result.body, /Sistema bloqueado/);
       assert.match(result.body, /Admin|Local admin/i);
       assert.match(result.body, /class="breadcrumbs"/);
-      assert.match(result.body, /PROVENANCE/);
-      assert.match(result.body, /AI-131 kill switch/);
-      assert.match(result.body, /AI-132 kill switch/);
-      assert.match(result.body, /AI-133 kill switch/);
-      assert.match(result.body, /Run de producción/);
-      assert.match(result.body, /Acceso vlatam-global/);
-      assert.match(result.body, /Cost visibility/);
+      assert.match(result.body, /Procedencia de los datos/);
+      assert.match(result.body, /<details class="provenance">/);
+      assert.match(
+        result.body,
+        /Kill switches: <strong>AI-131\/132\/133 activos/,
+      );
+      assert.match(result.body, /Ejecución de modelos: <strong>No permitida/);
+      assert.match(state.body, /AI-131 kill switch/);
+      assert.match(state.body, /AI-132 kill switch/);
+      assert.match(state.body, /AI-133 kill switch/);
+      assert.match(state.body, /Ejecución en producción/);
+      assert.match(state.body, /Acceso vlatam-global/);
+      assert.match(state.body, /Visibilidad de costos/);
       assert.equal(networkCalls, 0);
     } finally {
       globalThis.fetch = originalFetch;
     }
   });
 
-  it("maps the application root to the read-only overview", async () => {
+  it("states the read-only authority boundary calmly on every section root", async () => {
+    for (const path of [
+      "/operator",
+      "/operator/misiones",
+      "/operator/revisiones",
+      "/operator/evidence",
+      "/operator/modelos",
+      "/operator/settings",
+    ]) {
+      const result = await request(path, {
+        resolve_identity: async () => identity("admin"),
+      });
+      assert.match(result.body, /Sin autoridad operativa/, path);
+      assert.match(result.body, /Interfaz de lectura/, path);
+      assert.match(result.body, /UI ≠ autoridad/, path);
+      assert.match(result.body, /Sistema bloqueado/, path);
+    }
+    // The blocked boundary reads as status, not as an application failure.
+    assert.doesNotMatch(APPLICATION_SHELL_CSS, /\.notice\{[^}]*var\(--red\)/);
+    assert.doesNotMatch(APPLICATION_SHELL_CSS, /\.system-status\{[^}]*#efc9cc/);
+  });
+
+  it("maps the application root to the read-only mission center", async () => {
     const result = await request("/", {
       resolve_identity: async () => identity("viewer"),
     });
     assert.equal(result.handled, true);
     assert.equal(result.status, 200);
-    assert.match(result.body, /<h2>Resumen<\/h2>/);
+    assert.match(result.body, /<h2>Panel operativo<\/h2>/);
     assert.match(result.body, /href="\/operator" aria-current="page"/);
+    for (const column of ["En curso", "Necesita atención", "Listo"])
+      assert.match(result.body, new RegExp(column));
+    assert.match(result.body, /class="board-layout"/);
+    assert.match(result.body, /class="context-panel"/);
+    assert.doesNotMatch(result.body, /<form\b/i);
   });
 
   it("serves responsive shell assets without external dependencies", async () => {
@@ -178,7 +276,7 @@ describe("AI-134 production application shell", () => {
     assert.equal(admin.status, 200);
     assert.match(anonymous.body, /Identidad requerida/);
     assert.match(viewer.body, /rol/);
-    assert.match(admin.body, /Deployment preparation/);
+    assert.match(admin.body, /Preparación de despliegue/);
   });
 
   it("limits role visibility without treating UI roles as authority", async () => {
@@ -188,9 +286,18 @@ describe("AI-134 production application shell", () => {
     const reviewer = await request("/operator", {
       resolve_identity: async () => identity("reviewer"),
     });
+    const viewerOperations = await request("/operator/operations/arca", {
+      resolve_identity: async () => identity("viewer"),
+    });
+    const viewerReviews = await request("/operator/revisiones", {
+      resolve_identity: async () => identity("viewer"),
+    });
     assert.doesNotMatch(viewer.body, /href="\/operator\/settings"/);
+    assert.doesNotMatch(viewer.body, /href="\/operator\/misiones"/);
     assert.doesNotMatch(viewer.body, /href="\/operator\/operations\/arca"/);
-    assert.match(reviewer.body, /href="\/operator\/review"/);
+    assert.equal(viewerOperations.status, 403);
+    assert.equal(viewerReviews.status, 403);
+    assert.match(reviewer.body, /href="\/operator\/revisiones"/);
     assert.match(reviewer.body, /Sin autoridad operativa/);
   });
 

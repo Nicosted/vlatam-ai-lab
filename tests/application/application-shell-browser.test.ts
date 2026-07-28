@@ -250,7 +250,7 @@ describe("AI-134 mobile application drawer at 390x844", () => {
       evaluated_at: "2026-07-24T00:00:00.000Z",
       read_model_hash: "abcdef0123456789",
       overall_status: "blocked",
-      content: "<h2>Resumen</h2>",
+      content: "<h2>Centro de misiones</h2>",
     });
     assert.match(APPLICATION_SHELL_CSS, /@media\(max-width:820px\)/);
     assert.match(

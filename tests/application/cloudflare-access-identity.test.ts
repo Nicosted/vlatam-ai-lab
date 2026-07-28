@@ -329,7 +329,7 @@ describe("AI-135 production entrypoint integration", () => {
   it("lets a valid allowlisted admin view the existing shell", async () => {
     const result = await entrypointRequest("/operator/settings", await token());
     assert.equal(result.status, 200);
-    assert.match(result.body, /Deployment preparation/);
+    assert.match(result.body, /Preparación de despliegue/);
     assert.match(result.body, /admin@example\.com/);
   });
 
