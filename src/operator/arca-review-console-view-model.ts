@@ -32,6 +32,7 @@ export interface ArcaConsoleHash {
 
 export interface ArcaReviewConsoleViewModel {
   readonly source_labels: readonly string[];
+  readonly source_technical: readonly string[];
   readonly candidate: {
     readonly artifact_id: string | null;
     readonly hash: ArcaConsoleHash;
@@ -103,17 +104,24 @@ export function buildArcaReviewConsoleViewModel(
   const review = model.arca_candidate_review;
   const artifact = model.arca_approved_artifact;
   const sourceLabels: string[] = [review.source_context.projection_source];
-  if (review.source_context.synthetic_candidate)
-    sourceLabels.push("synthetic fixture");
-  sourceLabels.push(
-    `real human decision ${review.source_context.real_human_decision}`,
-  );
-  sourceLabels.push(
-    `Approved Artifact ${artifact.present ? "present" : "absent"}`,
+  sourceLabels.splice(
+    0,
+    sourceLabels.length,
+    `Origen de la proyección: ${review.source_context.projection_source === "repository-current" ? "estado actual del repositorio" : "artefacto gobernado"}`,
+    `Caso sintético: ${review.source_context.synthetic_candidate ? "Sí" : "No"}`,
+    `Decisión humana real: ${label(review.source_context.real_human_decision)}`,
+    `Artefacto aprobado: ${artifact.present ? "Presente" : "Ausente"}`,
   );
 
   return {
     source_labels: sourceLabels,
+    source_technical: [
+      `projection_source: ${review.source_context.projection_source}`,
+      `fixture_kind: ${review.source_context.fixture_kind}`,
+      `synthetic_candidate: ${review.source_context.synthetic_candidate}`,
+      `real_human_decision: ${review.source_context.real_human_decision}`,
+      `approved_artifact_present: ${artifact.present}`,
+    ],
     candidate: {
       artifact_id: review.candidate_artifact_id,
       hash: hash(review.candidate_sha256),
@@ -158,10 +166,10 @@ export function buildArcaReviewConsoleViewModel(
       eligible_for_approved_artifact_building:
         review.eligible_for_approved_artifact_building,
       non_authorities: [
-        "No crea un Approved Artifact",
+        "No crea un artefacto aprobado",
         "No autoriza exportación ni publicación",
         "No autoriza uso en producción",
-        "No autoriza escrituras de base de datos, red, scheduler o despliegue",
+        "No autoriza escrituras de base de datos, red, planificador o despliegue",
         "No autoriza consumo por vlatam-global ni ejecución",
       ],
     },

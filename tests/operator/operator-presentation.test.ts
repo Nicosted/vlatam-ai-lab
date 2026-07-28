@@ -51,11 +51,11 @@ describe("operator console Spanish presentation layer", () => {
     const unknown = presentStatus("mystery_future_state");
     assert.equal(unknown.known, false);
     assert.equal(unknown.canonical, "mystery_future_state");
-    assert.equal(unknown.label, "mystery_future_state");
+    assert.equal(unknown.label, "Valor técnico sin traducción");
     assert.equal(typeof UNTRANSLATED_MARKER, "string");
   });
 
-  it("summarizes known reason codes in Spanish and never paraphrases unknown ones", () => {
+  it("summarizes known reason codes in Spanish and hides unknown codes from the primary label", () => {
     const known = presentReasonCode("pricing:conflicting");
     assert.equal(known.known, true);
     assert.match(known.label, /contradictorias/);
@@ -64,7 +64,7 @@ describe("operator console Spanish presentation layer", () => {
     assert.match(prefixed.label, /ausente o malformado/);
     const unknown = presentReasonCode("entirely:new:reason");
     assert.equal(unknown.known, false);
-    assert.equal(unknown.label, "entirely:new:reason");
+    assert.equal(unknown.label, "Código técnico sin traducción");
   });
 
   it("derives blocker summaries from the reason portion of the canonical code", () => {
@@ -105,7 +105,7 @@ describe("operator console Spanish presentation layer", () => {
       title: "Resolve brand new kind blockers",
     });
     assert.equal(unknownAction.known, false);
-    assert.equal(unknownAction.label, "Resolve brand new kind blockers");
+    assert.equal(unknownAction.label, "Acción gobernada sin traducción");
   });
 
   it("abbreviates hashes without losing the canonical prefix", () => {
@@ -165,7 +165,9 @@ describe("operator console Spanish presentation layer", () => {
       [codes[2]],
     );
     assert.deepEqual(byTitle("Salida estructurada"), [codes[3]]);
-    assert.deepEqual(byTitle("Benchmarks y casos de referencia"), [codes[4]]);
+    assert.deepEqual(byTitle("Pruebas comparativas y casos de referencia"), [
+      codes[4],
+    ]);
     assert.deepEqual(byTitle("Revisión legal y de seguridad"), [codes[5]]);
     assert.deepEqual(byTitle("Aprobación humana"), [codes[6]]);
     assert.deepEqual(byTitle("Evidencia y preparación"), [codes[7]]);

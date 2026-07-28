@@ -44,21 +44,22 @@ describe("AI-129 read-only ARCA Operator Review Console", () => {
       "Resumen del candidato",
       "Revisión humana",
       "Evaluación",
-      "Approved Artifact",
+      "Artefacto aprobado",
       "Qué significa este estado",
     ])
       assert.match(html, new RegExp(`<h3>${heading}</h3>`));
     for (const label of [
-      "repository-current",
-      "synthetic fixture",
-      "real human decision absent",
-      "Approved Artifact absent",
+      "Origen de la proyección: estado actual del repositorio",
+      "Caso sintético: Sí",
+      "Decisión humana real: Ausente",
+      "Artefacto aprobado: Ausente",
       "Pendiente de revisión humana",
       "Ausente — no existe una decisión humana real",
-      "Ausente — no existe un Approved Artifact",
+      "Ausente — no existe un artefacto aprobado",
       "No exportado",
       "No publicado",
-      "Uso en producción no autorizado",
+      "Uso en producción",
+      "No autorizado",
     ])
       assert.match(html, new RegExp(label));
   });
@@ -110,13 +111,17 @@ describe("AI-129 read-only ARCA Operator Review Console", () => {
       },
     );
     const html = renderOperatorConsole(model, "/operator/arca-review");
-    assert.match(html, /Approved Artifact present/);
+    assert.match(html, /Artefacto aprobado: Presente/);
     assert.match(html, /Artefacto aprobado local — Presente/);
     assert.match(html, /human:synthetic-builder/);
     assert.match(html, /No exportado/);
     assert.match(html, /No publicado/);
-    assert.match(html, /Uso en producción no autorizado/);
-    assert.match(html, /Consumo por vlatam-global<\/dt><dd>No autorizado/);
+    assert.match(html, /Uso en producción/);
+    assert.match(html, /No autorizado/);
+    assert.match(
+      html,
+      /Consumo por vlatam-global<\/dt><dd>[\s\S]*No autorizado/,
+    );
   });
 
   it("shortens hashes, discloses full canonical values, and escapes bounded human text", async () => {

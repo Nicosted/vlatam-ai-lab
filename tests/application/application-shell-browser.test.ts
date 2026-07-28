@@ -262,9 +262,12 @@ describe("AI-134 mobile application drawer at 390x844", () => {
       /data-mobile-drawer aria-hidden="true" inert aria-label=/,
     );
     assert.match(html, /mobile-context/);
-    assert.match(html, /PREVIEW/);
+    assert.match(html, /VISTA PREVIA/);
     assert.match(html, /Sistema bloqueado/);
-    assert.match(html, /Operador móvil · operator/);
-    assert.match(html, /AI-131\/132\/133 kill switches activos · solo lectura/);
+    assert.match(html, /Operador móvil · OPERADOR/);
+    assert.match(
+      html,
+      /Interruptores de seguridad AI-131\/132\/133 activos · solo lectura/,
+    );
   });
 });

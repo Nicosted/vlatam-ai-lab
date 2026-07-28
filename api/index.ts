@@ -48,8 +48,8 @@ const failClosed = (response: ServerResponse): void => {
   });
   response.end(
     JSON.stringify({
-      error: "Service Unavailable",
-      message: "AI LAB environment validation failed closed",
+      error: "Servicio no disponible",
+      message: "La validación del entorno de AI LAB falló de forma segura",
     }),
   );
 };
