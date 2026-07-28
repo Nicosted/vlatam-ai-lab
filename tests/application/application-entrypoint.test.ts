@@ -161,7 +161,7 @@ describe("AI-134 application entrypoint identity boundary", () => {
     assert.equal(remoteHost.status, 401);
     assert.equal(remoteAddress.status, 401);
     assert.equal(enabled.status, 200);
-    assert.match(enabled.body, /Deployment preparation/);
+    assert.match(enabled.body, /Preparación de despliegue/);
   });
 
   it("isolates injected identities to explicit test mode", async () => {

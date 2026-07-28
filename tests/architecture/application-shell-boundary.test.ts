@@ -9,6 +9,7 @@ const UI_FILES = [
   "src/application/application-shell.ts",
   "src/application/repository-current-status.ts",
   "src/operator/operator-console.ts",
+  "src/operator/mission-center.ts",
 ] as const;
 
 const LOCAL_DEPENDENCY_PATTERNS = [

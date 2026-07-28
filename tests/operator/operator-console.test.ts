@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 
 import type { ApplicationIdentity } from "../../src/application/application-access.js";
 import {
-  APPLICATION_ROUTES,
+  APPLICATION_SECTIONS,
   APPLICATION_SHELL_CSS,
 } from "../../src/application/application-shell.js";
 import {
@@ -36,25 +36,12 @@ const load = () =>
   });
 
 const NAV_LABELS = [
-  "Overview",
-  "ARCA",
-  "Acquisitions",
-  "Exports",
-  "Recovery",
-  "Human Review",
-  "Approved Artifacts",
-  "Providers",
-  "Registry",
-  "Tournaments",
-  "AI LAB",
-  "OpenRouter",
-  "Vercel Eve",
-  "Cloudflare",
-  "Regulations",
-  "Sources",
-  "News",
-  "Evidence",
-  "Settings",
+  "Inicio",
+  "Centro de misiones",
+  "Revisiones",
+  "Evidencia",
+  "Modelos e integraciones",
+  "Configuración",
 ] as const;
 
 const ADMIN_IDENTITY: ApplicationIdentity = {
@@ -127,7 +114,7 @@ describe("read-only AI LAB Operator Console (Spanish UX)", () => {
       for (const label of NAV_LABELS)
         assert.match(result.body, new RegExp(label));
     }
-    assert.equal(APPLICATION_ROUTES.length, NAV_LABELS.length);
+    assert.equal(APPLICATION_SECTIONS.length, NAV_LABELS.length);
     assert.match(APPLICATION_SHELL_CSS, /focus-visible/);
   });
 
@@ -183,9 +170,9 @@ describe("read-only AI LAB Operator Console (Spanish UX)", () => {
       assert.match(all, new RegExp(canonical.replaceAll(/[./]/g, "\\$&")));
   });
 
-  it("Overview communicates blocked execution, top blockers, counts, and next steps", async () => {
+  it("Estado del sistema communicates blocked execution, top blockers, counts, and next steps", async () => {
     const model = await load();
-    const html = renderOperatorConsole(model, "/operator");
+    const html = renderOperatorConsole(model, "/operator/estado");
     assert.match(
       html,
       /Bloqueado es un estado gobernado y seguro, no una falla de la aplicación\./,
