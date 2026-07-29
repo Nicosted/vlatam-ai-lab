@@ -152,7 +152,7 @@ describe("AI LAB operator interface Spanish normalization", () => {
       assert.match(disclosures, new RegExp(canonical));
   });
 
-  it("keeps route paths and route permissions unchanged", () => {
+  it("preserves route permissions while registering the approved library route", () => {
     assert.deepEqual(routePermissions, [
       ["/operator", "viewer,operator,reviewer,admin"],
       ["/operator/estado", "viewer,operator,reviewer,admin"],
@@ -171,6 +171,7 @@ describe("AI LAB operator interface Spanish normalization", () => {
       ["/operator/evidence", "viewer,operator,reviewer,admin"],
       ["/operator/audit", "viewer,operator,reviewer,admin"],
       ["/operator/execution", "viewer,operator,reviewer,admin"],
+      ["/operator/arca-library", "viewer,operator,reviewer,admin"],
       ["/operator/knowledge/regulations", "viewer,operator,reviewer,admin"],
       ["/operator/knowledge/sources", "viewer,operator,reviewer,admin"],
       ["/operator/knowledge/news", "viewer,operator,reviewer,admin"],

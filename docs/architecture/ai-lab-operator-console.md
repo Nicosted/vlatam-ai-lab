@@ -39,7 +39,7 @@ read-model values and recalculates no governance decision.
 
 The dedicated ARCA vocabulary and bounded human-text projection live beside
 it in the pure `arca-review-console-view-model.ts` builder. That builder
-consumes only Operator Read Model `1.9.0`; it preserves canonical outcomes and
+consumes only Operator Read Model `1.10.0`; it preserves canonical outcomes and
 hashes and performs no AI-127 evaluation or AI-128 validation/building.
 
 Unknown machine values fail honest: they remain visible in canonical form,
@@ -92,6 +92,12 @@ clipboard JavaScript is used.
   `repository-current`, `synthetic fixture`, `real human decision absent`, and
   `Approved Artifact absent`. This route is GET-only and has no review,
   builder, export, publication, or activation controls
+- `/operator/arca-library` — Biblioteca normativa ARCA: exactly three
+  human-approved, published-read-only regulations with client-side search by
+  number, title, and topic; official sources, dates, annex counts,
+  relationships, reviewer/date, and exact artifact/decision hashes under
+  technical disclosure. It is GET-only and exposes no approval, publication,
+  rejection, scheduler, model, provider, or database control
 - `/operator/execution` — Ejecución: the governed chain
   `Registro → Resolución → Autorización → Política exacta → Consumo atómico → Gateway → Adaptador`
   with honest absent/blocked/disabled/not-attempted distinctions

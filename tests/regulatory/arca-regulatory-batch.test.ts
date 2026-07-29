@@ -291,20 +291,20 @@ describe("AI-137 first real governed ARCA regulatory batch", () => {
     });
   });
 
-  it("renders the three real pending items with sources, hashes, and annexes", async () => {
+  it("routes the three reviewed real items to the published read-only library", async () => {
     const model = await loadRepositoryOperatorReadModel({
       repository_root: root,
       evaluated_at: REPOSITORY_OPERATOR_EVALUATED_AT,
     });
-    const html = renderOperatorConsole(model, "/operator/arca-review");
+    const html = renderOperatorConsole(model, "/operator/arca-library");
     for (const number of ARCA_REGULATORY_TARGET_NUMBERS) {
       assert.match(html, new RegExp(`RG ${number}/2026`));
       assert.match(html, new RegExp(artifactByNumber(number).canonical_hash));
     }
-    assert.match(html, /Ver en Biblioteca ARCA/);
-    assert.match(html, /Ver en Boletín Oficial/);
-    assert.match(html, /Anexo III/);
-    assert.match(html, /Verificación entre fuentes/);
+    assert.match(html, /Biblioteca ARCA oficial/);
+    assert.match(html, /Boletín Oficial/);
+    assert.match(html, /Fecha de revisión/);
+    assert.match(html, /Divulgación técnica/);
     assert.match(html, /3 anexos completos/);
   });
 

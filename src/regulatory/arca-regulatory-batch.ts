@@ -192,8 +192,9 @@ export interface ArcaRegulatoryBatchProjection {
   readonly batch_id: typeof ARCA_REGULATORY_BATCH_ID;
   readonly artifacts: readonly ArcaRegulatoryArtifact[];
   readonly review_packages: readonly ArcaRegulatoryReviewPackage[];
-  readonly pending_count: 3;
-  readonly approved_count: 0;
+  readonly pending_count: number;
+  readonly approved_count: number;
+  readonly published_count: number;
   readonly scheduler_active: false;
   readonly runtime_arca_execution_available: false;
   readonly database_write_authorized: false;
@@ -576,6 +577,7 @@ export function loadArcaRegulatoryBatch(
     review_packages: structuredClone(reviewPackages),
     pending_count: 3,
     approved_count: 0,
+    published_count: 0,
     scheduler_active: false,
     runtime_arca_execution_available: false,
     database_write_authorized: false,

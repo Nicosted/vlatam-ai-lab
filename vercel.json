@@ -33,7 +33,15 @@
           "data/regulatory/arca/first-batch/rg-5838-2026.artifact.json",
           "data/regulatory/arca/first-batch/rg-5859-2026.review.json",
           "data/regulatory/arca/first-batch/rg-5845-2026.review.json",
-          "data/regulatory/arca/first-batch/rg-5838-2026.review.json"
+          "data/regulatory/arca/first-batch/rg-5838-2026.review.json",
+          "data/regulatory/arca/first-batch/rg-5859-2026.human-decision.json",
+          "data/regulatory/arca/first-batch/rg-5845-2026.human-decision.json",
+          "data/regulatory/arca/first-batch/rg-5838-2026.human-decision.json",
+          "data/regulatory/arca/first-batch/rg-5859-2026.publication.json",
+          "data/regulatory/arca/first-batch/rg-5845-2026.publication.json",
+          "data/regulatory/arca/first-batch/rg-5838-2026.publication.json",
+          "schemas/arca-human-review-decision.schema.json",
+          "schemas/arca-read-only-publication-record.schema.json"
         ]
       }
     }

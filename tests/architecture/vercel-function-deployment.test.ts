@@ -4,6 +4,7 @@ import { describe, it } from "node:test";
 
 import { OPERATOR_READ_MODEL_ASSET_PATHS } from "../../src/operator/operator-read-model-assets.js";
 import { ARCA_REGULATORY_BATCH_ASSET_PATHS } from "../../src/regulatory/arca-regulatory-batch.js";
+import { ARCA_READ_ONLY_LIBRARY_ASSET_PATHS } from "../../src/regulatory/arca-read-only-library.js";
 
 interface VercelConfiguration {
   readonly buildCommand?: string;
@@ -53,6 +54,7 @@ describe("Vercel Function deployment configuration", () => {
       [
         ...OPERATOR_READ_MODEL_ASSET_PATHS,
         ...ARCA_REGULATORY_BATCH_ASSET_PATHS,
+        ...ARCA_READ_ONLY_LIBRARY_ASSET_PATHS,
       ].sort(),
     );
     assert.equal(existsSync("api/index.ts"), true);

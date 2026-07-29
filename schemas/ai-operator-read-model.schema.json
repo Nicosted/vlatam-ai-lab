@@ -31,10 +31,11 @@
     "arca_candidate_review",
     "arca_approved_artifact",
     "arca_regulatory_batch",
+    "arca_read_only_library",
     "tournament"
   ],
   "properties": {
-    "contract_version": { "const": "1.9.0" },
+    "contract_version": { "const": "1.10.0" },
     "system_summary": {
       "type": "object",
       "required": [
@@ -64,7 +65,7 @@
         "active_blockers": { "type": "integer", "minimum": 0 },
         "execution_authorized_count": { "type": "integer", "minimum": 0 },
         "last_evaluated_at": { "type": "string", "format": "date-time" },
-        "read_model_contract_version": { "const": "1.9.0" },
+        "read_model_contract_version": { "const": "1.10.0" },
         "read_model_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
       },
       "additionalProperties": false
@@ -567,6 +568,7 @@
         "review_packages",
         "pending_count",
         "approved_count",
+        "published_count",
         "scheduler_active",
         "runtime_arca_execution_available",
         "database_write_authorized",
@@ -587,12 +589,62 @@
           "maxItems": 3,
           "items": { "type": "object" }
         },
-        "pending_count": { "const": 3 },
-        "approved_count": { "const": 0 },
+        "pending_count": { "const": 0 },
+        "approved_count": { "const": 3 },
+        "published_count": { "const": 3 },
         "scheduler_active": { "const": false },
         "runtime_arca_execution_available": { "const": false },
         "database_write_authorized": { "const": false },
         "publication_authorized": { "const": false },
+        "legal_interpretation_performed": { "const": false }
+      }
+    },
+    "arca_read_only_library": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": [
+        "library_id",
+        "items",
+        "human_decisions",
+        "publication_records",
+        "pending_real_regulations",
+        "approved_real_regulations",
+        "published_read_only_regulations",
+        "model_execution_permitted",
+        "runtime_arca_execution_available",
+        "scheduler_active",
+        "database_write_authorized",
+        "external_side_effects_performed",
+        "legal_interpretation_performed"
+      ],
+      "properties": {
+        "library_id": { "const": "ar-arca-read-only-library-2026" },
+        "items": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": { "type": "object" }
+        },
+        "human_decisions": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": { "type": "object" }
+        },
+        "publication_records": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": { "type": "object" }
+        },
+        "pending_real_regulations": { "const": 0 },
+        "approved_real_regulations": { "const": 3 },
+        "published_read_only_regulations": { "const": 3 },
+        "model_execution_permitted": { "const": false },
+        "runtime_arca_execution_available": { "const": false },
+        "scheduler_active": { "const": false },
+        "database_write_authorized": { "const": false },
+        "external_side_effects_performed": { "const": false },
         "legal_interpretation_performed": { "const": false }
       }
     },
