@@ -3,6 +3,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 
 import { OPERATOR_READ_MODEL_ASSET_PATHS } from "../../src/operator/operator-read-model-assets.js";
+import { ARCA_REGULATORY_BATCH_ASSET_PATHS } from "../../src/regulatory/arca-regulatory-batch.js";
 
 interface VercelConfiguration {
   readonly buildCommand?: string;
@@ -49,7 +50,10 @@ describe("Vercel Function deployment configuration", () => {
     assert.equal(vercel.builds?.[0]?.use, "@vercel/node");
     assert.deepEqual(
       [...(vercel.builds?.[0]?.config?.includeFiles ?? [])].sort(),
-      [...OPERATOR_READ_MODEL_ASSET_PATHS].sort(),
+      [
+        ...OPERATOR_READ_MODEL_ASSET_PATHS,
+        ...ARCA_REGULATORY_BATCH_ASSET_PATHS,
+      ].sort(),
     );
     assert.equal(existsSync("api/index.ts"), true);
     assert.doesNotMatch(JSON.stringify(vercel.builds), /static/i);

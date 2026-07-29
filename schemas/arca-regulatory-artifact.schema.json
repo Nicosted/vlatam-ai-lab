@@ -1,0 +1,230 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam.ai/schemas/arca-regulatory-artifact.schema.json",
+  "title": "Governed ARCA regulatory artifact",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "artifact_id",
+    "authority",
+    "jurisdiction",
+    "instrument_type",
+    "instrument_number",
+    "year",
+    "regulation_number",
+    "regulation_year",
+    "official_identifier",
+    "title",
+    "subject",
+    "topics",
+    "issue_date",
+    "publication_date",
+    "effective_date",
+    "effective_date_rule",
+    "effective_date_or_rule",
+    "status",
+    "current_status",
+    "official_source_urls",
+    "source_sha256s",
+    "source_hashes",
+    "official_text",
+    "annexes",
+    "supersedes_or_modifies",
+    "modifies",
+    "modified_by",
+    "repeals",
+    "repealed_by",
+    "supersedes",
+    "superseded_by",
+    "source_verification",
+    "acquired_at",
+    "acquisition_method",
+    "schema_version",
+    "canonicalization_version",
+    "canonical_hash",
+    "review_status",
+    "publication_status",
+    "interpretation_status",
+    "disclaimer",
+    "pending_human_review",
+    "not_published",
+    "not_interpreted",
+    "disclaimer_es"
+  ],
+  "properties": {
+    "artifact_id": { "type": "string", "minLength": 1 },
+    "authority": { "const": "ARCA" },
+    "jurisdiction": { "const": "Argentina" },
+    "instrument_type": { "const": "Resolución General" },
+    "instrument_number": { "enum": [5859, 5845, 5838] },
+    "year": { "const": 2026 },
+    "regulation_number": { "enum": [5859, 5845, 5838] },
+    "regulation_year": { "const": 2026 },
+    "official_identifier": { "type": "string", "minLength": 1 },
+    "title": { "type": "string", "minLength": 1 },
+    "subject": { "type": "string", "minLength": 1 },
+    "topics": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "issue_date": { "type": "string", "format": "date" },
+    "publication_date": { "type": "string", "format": "date" },
+    "effective_date": { "type": ["string", "null"], "format": "date" },
+    "effective_date_rule": { "type": "string", "minLength": 1 },
+    "effective_date_or_rule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["date", "rule"],
+      "properties": {
+        "date": { "type": ["string", "null"], "format": "date" },
+        "rule": { "type": "string", "minLength": 1 }
+      }
+    },
+    "status": { "const": "vigente" },
+    "current_status": { "const": "vigente" },
+    "official_source_urls": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": { "$ref": "#/$defs/source" }
+    },
+    "source_sha256s": { "$ref": "#/$defs/sourceHashes" },
+    "source_hashes": { "$ref": "#/$defs/sourceHashes" },
+    "official_text": { "type": "string", "minLength": 1 },
+    "annexes": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/annex" }
+    },
+    "supersedes_or_modifies": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["relationship", "instrument"],
+        "properties": {
+          "relationship": {
+            "enum": ["implements", "modifies", "abrogates"]
+          },
+          "instrument": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "modifies": { "$ref": "#/$defs/relationshipList" },
+    "modified_by": { "$ref": "#/$defs/relationshipList" },
+    "repeals": { "$ref": "#/$defs/relationshipList" },
+    "repealed_by": { "$ref": "#/$defs/relationshipList" },
+    "supersedes": { "$ref": "#/$defs/relationshipList" },
+    "superseded_by": { "$ref": "#/$defs/relationshipList" },
+    "source_verification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "compared_fields",
+        "annexes_complete",
+        "review_eligible"
+      ],
+      "properties": {
+        "status": { "const": "matched" },
+        "compared_fields": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string" }
+        },
+        "annexes_complete": { "const": true },
+        "review_eligible": { "const": true }
+      }
+    },
+    "acquired_at": { "type": "string", "format": "date-time" },
+    "acquisition_method": {
+      "const": "manual_official_source_capture"
+    },
+    "schema_version": { "const": "1.0.0" },
+    "canonicalization_version": { "const": "json-sorted-keys-v1" },
+    "canonical_hash": { "$ref": "#/$defs/hash" },
+    "review_status": { "const": "pending_human_review" },
+    "publication_status": { "const": "not_published" },
+    "interpretation_status": { "const": "not_interpreted" },
+    "disclaimer": { "type": "string", "minLength": 1 },
+    "pending_human_review": { "const": true },
+    "not_published": { "const": true },
+    "not_interpreted": { "const": true },
+    "disclaimer_es": { "type": "string", "minLength": 1 }
+  },
+  "$defs": {
+    "hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "sourceHashes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "arca_page_sha256",
+        "boletin_page_sha256",
+        "boletin_body_pdf_sha256",
+        "official_text_sha256",
+        "normalized_cross_source_text_sha256"
+      ],
+      "properties": {
+        "arca_page_sha256": { "$ref": "#/$defs/hash" },
+        "boletin_page_sha256": { "$ref": "#/$defs/hash" },
+        "boletin_body_pdf_sha256": { "$ref": "#/$defs/hash" },
+        "official_text_sha256": { "$ref": "#/$defs/hash" },
+        "normalized_cross_source_text_sha256": { "$ref": "#/$defs/hash" }
+      }
+    },
+    "relationshipList": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_id", "url", "retrieved_at", "media_type", "sha256"],
+      "properties": {
+        "source_id": {
+          "enum": ["arca_biblioteca", "boletin_oficial"]
+        },
+        "url": { "type": "string", "format": "uri" },
+        "retrieved_at": { "type": "string", "format": "date-time" },
+        "media_type": { "enum": ["text/html", "application/pdf"] },
+        "sha256": { "$ref": "#/$defs/hash" }
+      }
+    },
+    "annex": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "annex_id",
+        "label",
+        "document_number",
+        "arca_url",
+        "boletin_url",
+        "boletin_download_parameters",
+        "sha256",
+        "arca_sha256",
+        "boletin_sha256",
+        "source_match",
+        "page_count"
+      ],
+      "properties": {
+        "annex_id": { "type": "string", "minLength": 1 },
+        "label": { "type": "string", "minLength": 1 },
+        "document_number": { "type": "string", "minLength": 1 },
+        "arca_url": { "type": "string", "format": "uri" },
+        "boletin_url": { "type": "string", "format": "uri" },
+        "boletin_download_parameters": {
+          "type": "object",
+          "additionalProperties": { "type": "string" }
+        },
+        "sha256": { "$ref": "#/$defs/hash" },
+        "arca_sha256": { "$ref": "#/$defs/hash" },
+        "boletin_sha256": { "$ref": "#/$defs/hash" },
+        "source_match": { "const": true },
+        "page_count": { "type": "integer", "minimum": 1 }
+      }
+    }
+  }
+}

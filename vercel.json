@@ -27,7 +27,13 @@
           "config/ai-runtime-evidence-eve.json",
           "config/ai-runtime-evidence-cloudflare.json",
           "config/ai-122-glm-fireworks-conformance-result.json",
-          "data/fixtures/arca/ai-127-pending-review.json"
+          "data/fixtures/arca/ai-127-pending-review.json",
+          "data/regulatory/arca/first-batch/rg-5859-2026.artifact.json",
+          "data/regulatory/arca/first-batch/rg-5845-2026.artifact.json",
+          "data/regulatory/arca/first-batch/rg-5838-2026.artifact.json",
+          "data/regulatory/arca/first-batch/rg-5859-2026.review.json",
+          "data/regulatory/arca/first-batch/rg-5845-2026.review.json",
+          "data/regulatory/arca/first-batch/rg-5838-2026.review.json"
         ]
       }
     }

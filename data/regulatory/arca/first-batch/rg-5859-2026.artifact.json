@@ -1,0 +1,119 @@
+{
+  "artifact_id": "ar-arca-rg-5859-2026",
+  "authority": "ARCA",
+  "jurisdiction": "Argentina",
+  "instrument_type": "Resolución General",
+  "instrument_number": 5859,
+  "year": 2026,
+  "regulation_number": 5859,
+  "regulation_year": 2026,
+  "official_identifier": "Resolución General ARCA 5859/2026",
+  "title": "Resolución General ARCA N° 5859/2026",
+  "subject": "RESOG-2026-5859-E-ARCA-ARCA - Ventanilla Única de Comercio Exterior Argentino (VUCEA). Resolución Anticipada de Origen. Resolución N° 26/26 (SICyPyME). Su implementación.",
+  "topics": [
+    "Ventanilla Única de Comercio Exterior Argentino",
+    "resolución anticipada de origen",
+    "importación",
+    "Sistema Informático MALVINA"
+  ],
+  "issue_date": "2026-06-04",
+  "publication_date": "2026-06-05",
+  "effective_date": null,
+  "effective_date_rule": "Esta resolución general entrará en vigencia a los DIEZ (10) días hábiles contados a partir de su publicación en el Boletín Oficial.",
+  "effective_date_or_rule": {
+    "date": null,
+    "rule": "Esta resolución general entrará en vigencia a los DIEZ (10) días hábiles contados a partir de su publicación en el Boletín Oficial."
+  },
+  "status": "vigente",
+  "current_status": "vigente",
+  "official_source_urls": [
+    {
+      "source_id": "arca_biblioteca",
+      "url": "https://biblioteca.arca.gob.ar/search/query/norma.aspx?p=t%3aRAG%7cn%3a5859%7co%3a9%7ca%3a2026%7cf%3a04%2f06%2f2026",
+      "retrieved_at": "2026-07-28T23:46:44Z",
+      "media_type": "text/html",
+      "sha256": "ebef3a641bca0c27b330b6dc64162a6686b1473f68859b59591c36b08dfb33b9"
+    },
+    {
+      "source_id": "boletin_oficial",
+      "url": "https://www.boletinoficial.gob.ar/detalleAviso/primera/342833/20260605",
+      "retrieved_at": "2026-07-28T23:46:44Z",
+      "media_type": "text/html",
+      "sha256": "bc138c1a3bd9c59aebdaa49632b93c29050e33e975c0541ea77f876e9e30ef55"
+    }
+  ],
+  "source_sha256s": {
+    "arca_page_sha256": "ebef3a641bca0c27b330b6dc64162a6686b1473f68859b59591c36b08dfb33b9",
+    "boletin_page_sha256": "bc138c1a3bd9c59aebdaa49632b93c29050e33e975c0541ea77f876e9e30ef55",
+    "boletin_body_pdf_sha256": "64cc4033b0da847793fcd60453cef8b105b5c049b346e3aecb42dc484c4502a4",
+    "official_text_sha256": "5575f5d60b9e36eb0fb3f6a2925286f2b45ce7195e41f983c675d362ae205f5a",
+    "normalized_cross_source_text_sha256": "285626eed34f9aaff90188b3daf8550a587a6d3de5585723bb3c6055d0b37c4b"
+  },
+  "source_hashes": {
+    "arca_page_sha256": "ebef3a641bca0c27b330b6dc64162a6686b1473f68859b59591c36b08dfb33b9",
+    "boletin_page_sha256": "bc138c1a3bd9c59aebdaa49632b93c29050e33e975c0541ea77f876e9e30ef55",
+    "boletin_body_pdf_sha256": "64cc4033b0da847793fcd60453cef8b105b5c049b346e3aecb42dc484c4502a4",
+    "official_text_sha256": "5575f5d60b9e36eb0fb3f6a2925286f2b45ce7195e41f983c675d362ae205f5a",
+    "normalized_cross_source_text_sha256": "285626eed34f9aaff90188b3daf8550a587a6d3de5585723bb3c6055d0b37c4b"
+  },
+  "official_text": "Ciudad de Buenos Aires, 04/06/2026\nVISTO el Expediente Electrónico N° EX-2026-01238124- -ARCA-SGPRDIREPA#DGADUA y\nCONSIDERANDO:\nQue el inciso A. apartado 1. del artículo 120 quáter del Código Aduanero -Ley N° 22.415 y sus modificaciones- establece que los organismos comprendidos en los incisos a) y b) del artículo 8° de la Ley N° 24.156 y sus modificaciones, deberán tramitar los permisos, autorizaciones y demás informaciones inherentes a las operaciones aduaneras que dicten para regular el tráfico internacional de mercaderías, en cumplimiento de lo dispuesto por el artículo 11 y sus modificaciones, mediante la Ventanilla Única de Comercio Exterior Argentino (VUCEA) creada por el Decreto N° 1.079 del 6 de octubre de 2016.\nQue, mediante la Resolución N° 26 del 28 de abril de 2026 de la Secretaría de Industria, Comercio y de la Pequeña y Mediana Empresa, se aprobó el procedimiento aplicable para la emisión de resoluciones anticipadas en materia de origen de mercaderías para la importación, en los términos de lo dispuesto por el artículo 226 del Código Aduanero -Ley N° 22.415 y sus modificaciones-, y los acuerdos internacionales que las prevén.\nQue el artículo 21 de la citada resolución dispuso que la resolución anticipada de origen se remitirá a la Dirección General de Aduanas mediante el Régimen de Ventanilla Única de Comercio Exterior Argentino (VUCEA), en el marco del “Servicio de Recepción de LPCO” para la admisión de Licencias, Permisos, Certificados y Otros documentos y su validación automática en el Sistema Informático MALVINA (SIM), las que deberán ser declaradas al momento de la oficialización de las solicitudes de destinación definitiva de importación para consumo, conforme lo establezca la normativa complementaria correspondiente.\nQue, asimismo, también dispone que esta Agencia remitirá a la autoridad de aplicación y a la Unidad Ejecutora Especial temporaria “Régimen Nacional de Ventanilla Única de Comercio Exterior Argentino (VUCEA)”, la información correspondiente a las destinaciones vinculadas a la resolución anticipada de origen emitida, así como toda aquella información que la autoridad de aplicación estime corresponder.\nQue, en ese marco, a través del trabajo conjunto de la Unidad Ejecutora Especial Temporaria “Régimen Nacional de Ventanilla Única de Comercio Exterior Argentino (VUCEA)” y de las distintas áreas de este Organismo, se han desarrollado mecanismos informáticos y de intercambio de información que permiten la incorporación de la resolución anticipada de origen al Régimen Nacional de Ventanilla Única de Comercio Exterior Argentino (VUCEA).\nQue han tomado la intervención que les compete la Dirección de Legislación, las Subdirecciones Generales de Asuntos Jurídicos, Técnico Legal Aduanera, Control Aduanero y de Sistemas y Telecomunicaciones, y la Dirección General de Aduanas.\nQue la presente se dicta en ejercicio de las facultades conferidas por el artículo 7° del Decreto Nº 618 del 10 de julio de 1997, sus modificatorios y sus complementarios, por el Decreto N° 953 del 24 de octubre de 2024 y por el artículo 8° del Decreto N° 13 del 6 de enero de 2025 y su modificatorio.\nPor ello,\nEL DIRECTOR EJECUTIVO DE LA AGENCIA DE RECAUDACIÓN Y CONTROL ADUANERO\nRESUELVE:\nARTÍCULO 1°.- Incorporar al Régimen Nacional de Ventanilla Única de Comercio Exterior Argentino (VUCEA) la resolución anticipada de origen emitida en los términos de lo establecido en la Resolución N° 26 del 28 de abril de 2026 de la Secretaría de Industria, Comercio y de la Pequeña y Mediana Empresa.\nARTÍCULO 2°.- Las pautas procedimentales para la declaración de la resolución anticipada de origen aludida en el artículo 1°, se consignan en el Anexo (IF-2026-01712669-ARCA-SGDADVCOAD#SDGINS) que se aprueba y forma parte de la presente.\nAsimismo, deberán observarse las pautas contenidas en el “Manual de Usuario Externo” que estará disponible en el micrositio “VUCE - Ventanilla Única de Comercio Exterior” del sitio web de esta Agencia de Recaudación y Control Aduanero (https://www.arca.gob.ar).\nARTÍCULO 3°.- Facultar a la Subdirección General de Sistemas y Telecomunicaciones y a la Dirección General de Aduanas, a dictar las normas complementarias necesarias para la implementación de la presente, en el ámbito de sus respectivas competencias.\nARTÍCULO 4°.- Esta resolución general entrará en vigencia a los DIEZ (10) días hábiles contados a partir de su publicación en el Boletín Oficial.\nARTÍCULO 5°.- Comuníquese, dese a la DIRECCIÓN NACIONAL DEL REGISTRO OFICIAL para su publicación en el Boletín Oficial, difúndase en el Boletín de la Dirección General de Aduanas y archívese.\nAndres Edgardo Vazquez\nNOTA: El/los Anexo/s que integra/n este(a) Resolución General se publican en la edición web del BORA -www.boletinoficial.gob.ar-\ne. 05/06/2026 N° 38561/26 v. 05/06/2026",
+  "annexes": [
+    {
+      "annex_id": "ar-arca-rg-5859-2026-annex-1",
+      "label": "Anexo",
+      "document_number": "IF-2026-01712669-ARCA-SGDADVCOAD#SDGINS",
+      "arca_url": "https://biblioteca.arca.gob.ar/search/query/adjunto.aspx?p=t%3aRAG%7cn%3a5859%7co%3a9%7ca%3a2026%7cd%3aanexo_7672184_1.pdf",
+      "boletin_url": "https://www.boletinoficial.gob.ar/pdf/download_anexo",
+      "boletin_download_parameters": {
+        "seccion": "primera",
+        "nroAnexo": "1",
+        "idAnexo": "7672184",
+        "fechaPublicacion": "20260605"
+      },
+      "sha256": "11db92d6411019ceef41bb77f83673b35124700ab27e8fe4b6317ca2209980a6",
+      "arca_sha256": "11db92d6411019ceef41bb77f83673b35124700ab27e8fe4b6317ca2209980a6",
+      "boletin_sha256": "11db92d6411019ceef41bb77f83673b35124700ab27e8fe4b6317ca2209980a6",
+      "source_match": true,
+      "page_count": 1
+    }
+  ],
+  "supersedes_or_modifies": [
+    {
+      "relationship": "implements",
+      "instrument": "Resolución N° 26/2026 de la Secretaría de Industria, Comercio y de la Pequeña y Mediana Empresa"
+    }
+  ],
+  "modifies": [],
+  "modified_by": [],
+  "repeals": [],
+  "repealed_by": [],
+  "supersedes": [],
+  "superseded_by": [],
+  "source_verification": {
+    "status": "matched",
+    "compared_fields": [
+      "instrument_number",
+      "title",
+      "subject",
+      "issue_date",
+      "publication_date",
+      "official_text",
+      "annex_sha256"
+    ],
+    "annexes_complete": true,
+    "review_eligible": true
+  },
+  "acquired_at": "2026-07-28T23:46:44Z",
+  "acquisition_method": "manual_official_source_capture",
+  "schema_version": "1.0.0",
+  "canonicalization_version": "json-sorted-keys-v1",
+  "canonical_hash": "02415dfe469aab285ec99e50abeb3a78cc611e1ce7b8448c4f76405345ab9207",
+  "review_status": "pending_human_review",
+  "publication_status": "not_published",
+  "interpretation_status": "not_interpreted",
+  "disclaimer": "Este artefacto aporta información y evidencia regulatoria oficial; no constituye asesoramiento legal o aduanero vinculante.",
+  "pending_human_review": true,
+  "not_published": true,
+  "not_interpreted": true,
+  "disclaimer_es": "Documento preparado para revisión humana. No constituye asesoramiento legal, interpretación normativa, publicación ni autorización de uso en producción."
+}

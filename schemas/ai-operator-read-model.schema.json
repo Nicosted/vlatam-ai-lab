@@ -30,10 +30,11 @@
     "audit_references",
     "arca_candidate_review",
     "arca_approved_artifact",
+    "arca_regulatory_batch",
     "tournament"
   ],
   "properties": {
-    "contract_version": { "const": "1.8.0" },
+    "contract_version": { "const": "1.9.0" },
     "system_summary": {
       "type": "object",
       "required": [
@@ -63,7 +64,7 @@
         "active_blockers": { "type": "integer", "minimum": 0 },
         "execution_authorized_count": { "type": "integer", "minimum": 0 },
         "last_evaluated_at": { "type": "string", "format": "date-time" },
-        "read_model_contract_version": { "const": "1.8.0" },
+        "read_model_contract_version": { "const": "1.9.0" },
         "read_model_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
       },
       "additionalProperties": false
@@ -555,6 +556,44 @@
         "database_write_authorized": { "const": false },
         "network_call_authorized": { "const": false },
         "vlatam_global_access_authorized": { "const": false }
+      }
+    },
+    "arca_regulatory_batch": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": [
+        "batch_id",
+        "artifacts",
+        "review_packages",
+        "pending_count",
+        "approved_count",
+        "scheduler_active",
+        "runtime_arca_execution_available",
+        "database_write_authorized",
+        "publication_authorized",
+        "legal_interpretation_performed"
+      ],
+      "properties": {
+        "batch_id": { "const": "ar-arca-first-regulatory-batch-2026" },
+        "artifacts": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": { "type": "object" }
+        },
+        "review_packages": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": { "type": "object" }
+        },
+        "pending_count": { "const": 3 },
+        "approved_count": { "const": 0 },
+        "scheduler_active": { "const": false },
+        "runtime_arca_execution_available": { "const": false },
+        "database_write_authorized": { "const": false },
+        "publication_authorized": { "const": false },
+        "legal_interpretation_performed": { "const": false }
       }
     },
     "tournament": {

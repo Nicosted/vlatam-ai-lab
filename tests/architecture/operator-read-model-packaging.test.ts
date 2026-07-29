@@ -18,6 +18,10 @@ import {
   loadRepositoryOperatorReadModel,
   REPOSITORY_OPERATOR_EVALUATED_AT,
 } from "../../src/operator/repository-operator-read-model.js";
+import {
+  ARCA_REGULATORY_BATCH_ASSET_PATHS,
+  ARCA_REGULATORY_BATCH_ASSETS,
+} from "../../src/regulatory/arca-regulatory-batch.js";
 
 interface VercelConfiguration {
   readonly builds?: readonly {
@@ -68,6 +72,11 @@ function createPackagedLayout(
     OPERATOR_READ_MODEL_ARTIFACTS,
   ) as [OperatorReadModelArtifactKey, string][]) {
     if (omitted.has(key)) continue;
+    const target = resolve(packagedRoot, relativePath);
+    mkdirSync(dirname(target), { recursive: true });
+    cpSync(resolve(repositoryRoot, relativePath), target);
+  }
+  for (const relativePath of ARCA_REGULATORY_BATCH_ASSET_PATHS) {
     const target = resolve(packagedRoot, relativePath);
     mkdirSync(dirname(target), { recursive: true });
     cpSync(resolve(repositoryRoot, relativePath), target);
@@ -151,7 +160,10 @@ describe("AI-136 Operator Read Model function packaging", () => {
     assert.ok(Array.isArray(build?.config?.includeFiles));
     assert.deepEqual(
       [...(build?.config?.includeFiles ?? [])].sort(),
-      [...OPERATOR_READ_MODEL_ASSET_PATHS].sort(),
+      [
+        ...OPERATOR_READ_MODEL_ASSET_PATHS,
+        ...ARCA_REGULATORY_BATCH_ASSET_PATHS,
+      ].sort(),
     );
     assert.equal(vercel.functions, undefined);
     assert.equal(vercel.buildCommand, undefined);
@@ -160,6 +172,30 @@ describe("AI-136 Operator Read Model function packaging", () => {
       assert.doesNotMatch(
         included,
         /(?:^|\/)\.git(?:\/|$)|\.env|credential|secret|reports?\/|docs?\/|tests?\/|\*|(?:^|\/)\.\.(?:\/|$)/i,
+      );
+    }
+  });
+
+  it("packages exactly three real regulatory artifacts and their three review packages", () => {
+    assert.equal(Object.keys(ARCA_REGULATORY_BATCH_ASSETS).length, 6);
+    assert.equal(ARCA_REGULATORY_BATCH_ASSET_PATHS.length, 6);
+    assert.equal(
+      ARCA_REGULATORY_BATCH_ASSET_PATHS.filter((path) =>
+        path.endsWith(".artifact.json"),
+      ).length,
+      3,
+    );
+    assert.equal(
+      ARCA_REGULATORY_BATCH_ASSET_PATHS.filter((path) =>
+        path.endsWith(".review.json"),
+      ).length,
+      3,
+    );
+    for (const path of ARCA_REGULATORY_BATCH_ASSET_PATHS) {
+      assert.doesNotMatch(path, /\*|raw|temp|fixture|(?:^|\/)\.\.(?:\/|$)/i);
+      assert.equal(
+        readFileSync(resolve(repositoryRoot, path), "utf8").length > 0,
+        true,
       );
     }
   });

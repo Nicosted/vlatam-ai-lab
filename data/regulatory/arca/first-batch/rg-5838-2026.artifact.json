@@ -1,0 +1,163 @@
+{
+  "artifact_id": "ar-arca-rg-5838-2026",
+  "authority": "ARCA",
+  "jurisdiction": "Argentina",
+  "instrument_type": "Resolución General",
+  "instrument_number": 5838,
+  "year": 2026,
+  "regulation_number": 5838,
+  "regulation_year": 2026,
+  "official_identifier": "Resolución General ARCA 5838/2026",
+  "title": "Resolución General ARCA N° 5838/2026",
+  "subject": "RESOG-2026-5838-E-ARCA-ARCA - Normas generales y procedimiento para el registro de los artefactos navales y demás mercaderías destinadas a la investigación, explotación o exploración de los recursos naturales. Resolución N° 3.277/96 (ANA). Su sustitución.",
+  "topics": [
+    "artefactos navales",
+    "plataformas marinas",
+    "recursos naturales",
+    "Sistema Informático MALVINA",
+    "mercaderías"
+  ],
+  "issue_date": "2026-04-20",
+  "publication_date": "2026-04-22",
+  "effective_date": "2026-04-22",
+  "effective_date_rule": "La presente resolución general entrará en vigencia el día de su publicación en el Boletín Oficial y será de aplicación de acuerdo con el cronograma de implementación que se publicará en el micrositio “Régimen de Plataformas Marinas”.",
+  "effective_date_or_rule": {
+    "date": "2026-04-22",
+    "rule": "La presente resolución general entrará en vigencia el día de su publicación en el Boletín Oficial y será de aplicación de acuerdo con el cronograma de implementación que se publicará en el micrositio “Régimen de Plataformas Marinas”."
+  },
+  "status": "vigente",
+  "current_status": "vigente",
+  "official_source_urls": [
+    {
+      "source_id": "arca_biblioteca",
+      "url": "https://biblioteca.arca.gob.ar/search/query/norma.aspx?p=t%3aRAG%7cn%3a5838%7co%3a9%7ca%3a2026%7cf%3a20%2f04%2f2026",
+      "retrieved_at": "2026-07-28T23:46:44Z",
+      "media_type": "text/html",
+      "sha256": "8958f258a098173010f8cebfa845963d2f5bdd70aa75aa6d70476d0e38cc6ab7"
+    },
+    {
+      "source_id": "boletin_oficial",
+      "url": "https://www.boletinoficial.gob.ar/detalleAviso/primera/341040/20260422",
+      "retrieved_at": "2026-07-28T23:46:44Z",
+      "media_type": "text/html",
+      "sha256": "b631b88fb445b6a88d59168d1c0b4335c0384d16b9b08884720ea4a740ef189a"
+    }
+  ],
+  "source_sha256s": {
+    "arca_page_sha256": "8958f258a098173010f8cebfa845963d2f5bdd70aa75aa6d70476d0e38cc6ab7",
+    "boletin_page_sha256": "b631b88fb445b6a88d59168d1c0b4335c0384d16b9b08884720ea4a740ef189a",
+    "boletin_body_pdf_sha256": "a5a4268d7a68b880cac597464407c2fad1eedfbcff5c2ed0c217c671a78fba9d",
+    "official_text_sha256": "38a971d19b901e608f76a84e879baf576d1fc4dcdee4d88630d3e3778fcf6357",
+    "normalized_cross_source_text_sha256": "4567bb2af145dd8a7a845e18732a63c443119d63814aab7f3c988bade4ce0dcc"
+  },
+  "source_hashes": {
+    "arca_page_sha256": "8958f258a098173010f8cebfa845963d2f5bdd70aa75aa6d70476d0e38cc6ab7",
+    "boletin_page_sha256": "b631b88fb445b6a88d59168d1c0b4335c0384d16b9b08884720ea4a740ef189a",
+    "boletin_body_pdf_sha256": "a5a4268d7a68b880cac597464407c2fad1eedfbcff5c2ed0c217c671a78fba9d",
+    "official_text_sha256": "38a971d19b901e608f76a84e879baf576d1fc4dcdee4d88630d3e3778fcf6357",
+    "normalized_cross_source_text_sha256": "4567bb2af145dd8a7a845e18732a63c443119d63814aab7f3c988bade4ce0dcc"
+  },
+  "official_text": "Ciudad de Buenos Aires, 20/04/2026\nVISTO el Expediente Electrónico N° EX-2024-01826952- -AFIP-DITECN#SDGTLA y\nCONSIDERANDO:\nQue la Ley Nº 23.968 y sus modificaciones, fija las líneas de base de la República Argentina a partir de las cuales se miden sus espacios marítimos y define la extensión del mar territorial, de la zona contigua, de la zona económica exclusiva y de la plataforma continental sobre la cual ejerce soberanía la Nación Argentina.\nQue el artículo 3º del Código Aduanero -Ley N° 22.415 y sus modificaciones- dispone que no constituye territorio aduanero, ni general ni especial, el mar territorial argentino, los ríos internacionales, las áreas francas, los exclaves, así como sus correspondientes espacios aéreos, y el lecho o subsuelo submarinos nacionales; asimismo, establece que en estos ámbitos se aplican los regímenes aduaneros que para cada caso se contemplan en dicho plexo normativo.\nQue el Capítulo Noveno del Título I y el Capítulo Quinto del Título II de la Sección III del Código Aduanero, establecen las pautas a seguir para la recepción de la mercadería arribada en depósito provisorio de importación y para el almacenamiento de la mercadería a través de la destinación suspensiva de depósito de almacenamiento.\nQue los artículos 585 y siguientes del mencionado Código, indican el tratamiento a otorgar a la extracción/introducción de mercadería desde/hacia el mar territorial, la zona económica exclusiva argentina, el lecho y el subsuelo submarinos sometidos a la soberanía nacional y a su vez, en su artículo 588, indica que el Poder Ejecutivo Nacional podrá establecer en los referidos ámbitos la aplicación total o parcial del régimen general arancelario y de prohibiciones a la introducción de mercadería procedente del extranjero o de un área franca.\nQue el artículo 589 del citado Código Aduanero, establece que, a través de la reglamentación específica, se fijarán las formalidades y requisitos con arreglo a los cuales deberán efectuarse las operaciones previstas en los artículos mencionados.\nQue la Ley de Hidrocarburos Nº 17.319 y sus modificaciones establece que los yacimientos de hidrocarburos líquidos y gaseosos situados en el territorio de la República Argentina y en su plataforma continental pertenecen al patrimonio inalienable e imprescriptible del Estado Nacional o de los Estados provinciales, según el ámbito territorial en que se encuentren y que las actividades relativas a la explotación, procesamiento, transporte, almacenaje, industrialización y comercialización de los hidrocarburos estarán a cargo de empresas estatales, empresas privadas o mixtas, conforme a las disposiciones de esa ley y las reglamentaciones que dicte el Poder Ejecutivo. Asimismo, reglamenta que el permiso de exploración confiere el derecho exclusivo de ejecutar todas las tareas que requiera la búsqueda de hidrocarburos dentro del perímetro delimitado y durante los plazos fijados para cada licitación por la Autoridad de Aplicación.\nQue, por otra parte, la mencionada ley también dispone que la concesión de explotación confiere el derecho exclusivo de explotar los yacimientos de hidrocarburos que existan en las áreas comprendidas.\nQue la Resolución N° 3.277 (ANA) del 20 de septiembre de 1996, estableció las formalidades aduaneras que deben cumplir los artefactos navales y demás mercaderías que arriben con destino a la investigación, exploración y/o explotación de los recursos naturales en el mar territorial argentino, en la zona económica exclusiva y en el lecho o subsuelo submarino, sometidos a la soberanía nacional y a otras tareas que se realicen en ese ámbito o destinadas al mantenimiento de las condiciones para la navegación en los ríos internacionales.\nQue la Nota Externa Nº 15 (DGA) del 8 de julio de 2005 interpreta lo establecido por el Decreto Nº 679 del 23 de junio de 1999, en el sentido que las importaciones que resultan alcanzadas por el Impuesto al Valor Agregado se consideran introducciones a la plataforma continental y/o zona económica exclusiva a los efectos técnicos aduaneros.\nQue, por las características particulares de la operatoria descripta precedentemente, corresponde la creación de subregímenes específicos para registrar los movimientos de mercaderías en el Sistema Informático MALVINA (SIM) y la adecuación de sus plazos, como así también el dictado de pautas operativas que regulen el procedimiento de almacenamiento de las mercaderías que arriben con destino a investigación, exploración y explotación de los recursos naturales en el mar territorial argentino, en la zona económica exclusiva y en el lecho o subsuelo submarino, sometidos a la soberanía nacional; y asimismo, establecer las pautas para el tratamiento de aquellas mercaderías que encuadraren como desechos o desperdicios.\nQue, en virtud de lo expuesto y a los fines de actualizar la operatoria en cuestión, resulta oportuno abrogar la Resolución N° 3.277 (ANA) y la Nota Externa Nº 15/05 (DGA).\nQue han tomado la intervención que les compete la Dirección de Legislación, las Subdirecciones Generales de Asuntos Jurídicos, Técnico Legal Aduanera, Operaciones Aduaneras del Interior, Control Aduanero y Sistemas y Telecomunicaciones, y la Dirección General de Aduanas.\nQue la presente se dicta en ejercicio de las facultades conferidas por el artículo 7° del Decreto Nº 618 del 10 de julio de 1997, sus modificatorios y sus complementarios, por el Decreto N° 953 del 24 de octubre de 2024 y por el artículo 8° del Decreto N° 13 del 6 de enero de 2025 y su modificatorio.\nPor ello,\nEL DIRECTOR EJECUTIVO DE LA AGENCIA DE RECAUDACIÓN Y CONTROL ADUANERO\nRESUELVE:\nARTÍCULO 1°.- Establecer las normas generales y el procedimiento para el registro en el Sistema Informático MALVINA (SIM) de los artefactos navales y demás mercaderías destinadas a la investigación, explotación o exploración de los recursos naturales en el mar territorial argentino, en la zona económica exclusiva y en el lecho o subsuelo submarino sometidos a la soberanía nacional y a otras tareas que se realicen en ese ámbito, los cuales se consignan en el Anexo I (IF-2026-01041291-ARCA-SGDADVCOAD#SDGINS), que se aprueba y forma parte de la presente.\nARTÍCULO 2°.- Establecer los lineamientos operativos para las mercaderías que se almacenarán en territorio aduanero con el objeto de ser transportadas a las áreas destinadas a la exploración, explotación e investigación, conforme se consigna en el Anexo II (IF-2026-01041311-ARCA-SGDADVCOAD#SDGINS), que se aprueba y forma parte de la presente.\nARTÍCULO 3°.- Establecer las pautas para el tratamiento de aquellas mercaderías que encuadraren como desechos o desperdicios, conforme se consigna en el Anexo III (IF-2026-01041335-ARCA-SGDADVCOAD#SDGINS), que se aprueba y forma parte de la presente.\nARTÍCULO 4°.- Las mercaderías de origen extranjero ingresadas a la plataforma continental, se hallan exentas de los tributos aduaneros que la gravaren, salvo del Impuesto al Valor Agregado, conforme lo establecido por el Decreto Nº 692 del 11 de junio de 1998 y sus modificatorios.\nARTÍCULO 5°.- Facultar a la Dirección General de Aduanas a actualizar los subregímenes para la declaración de la mercadería involucrada en la presente resolución general y a dictar las normas complementarias necesarias para la implementación de la presente, en el ámbito de sus competencias.\nLo indicado precedentemente será publicado en el micrositio “Régimen de Plataformas Marinas” del sitio “web” de este Organismo (https://www.arca.gob.ar).\nARTÍCULO 6°.- La presente resolución general entrará en vigencia el día de su publicación en el Boletín Oficial y será de aplicación de acuerdo con el cronograma de implementación que se publicará en el micrositio “Régimen de Plataformas Marinas” del sitio “web” de esta Agencia de Recaudación y Control Aduanero (https://www.arca.gob.ar).\nARTÍCULO 7°.- Abrogar la Resolución N° 3.277 (ANA) del 20 de septiembre de 1996 y la Nota Externa Nº 15 (DGA) del 8 de julio de 2005, a partir de la fecha de entrada en vigencia de la presente.\nARTÍCULO 8°.- Comuníquese, dese a la DIRECCIÓN NACIONAL DEL REGISTRO OFICIAL para su publicación en el Boletín Oficial, difúndase en el Boletín de la Dirección General de Aduanas y archívese.\nAndres Edgardo Vazquez\nNOTA: El/los Anexo/s que integra/n este(a) Resolución General se publican en la edición web del BORA -www.boletinoficial.gob.ar-\ne. 22/04/2026 N° 24999/26 v. 22/04/2026",
+  "annexes": [
+    {
+      "annex_id": "ar-arca-rg-5838-2026-annex-1",
+      "label": "Anexo I",
+      "document_number": "IF-2026-01041291-ARCA-SGDADVCOAD#SDGINS",
+      "arca_url": "https://biblioteca.arca.gob.ar/search/query/adjunto.aspx?p=t%3aRAG%7cn%3a5838%7co%3a9%7ca%3a2026%7cd%3aanexo_7629292_1.pdf",
+      "boletin_url": "https://www.boletinoficial.gob.ar/pdf/download_anexo",
+      "boletin_download_parameters": {
+        "seccion": "primera",
+        "nroAnexo": "1",
+        "idAnexo": "7629292",
+        "fechaPublicacion": "20260422"
+      },
+      "sha256": "339692d686b2989f5d4ee8c4c5eb52f39ad21e03d204dee5b1938219d685b897",
+      "arca_sha256": "339692d686b2989f5d4ee8c4c5eb52f39ad21e03d204dee5b1938219d685b897",
+      "boletin_sha256": "339692d686b2989f5d4ee8c4c5eb52f39ad21e03d204dee5b1938219d685b897",
+      "source_match": true,
+      "page_count": 3
+    },
+    {
+      "annex_id": "ar-arca-rg-5838-2026-annex-2",
+      "label": "Anexo II",
+      "document_number": "IF-2026-01041311-ARCA-SGDADVCOAD#SDGINS",
+      "arca_url": "https://biblioteca.arca.gob.ar/search/query/adjunto.aspx?p=t%3aRAG%7cn%3a5838%7co%3a9%7ca%3a2026%7cd%3aanexo_7629292_2.pdf",
+      "boletin_url": "https://www.boletinoficial.gob.ar/pdf/download_anexo",
+      "boletin_download_parameters": {
+        "seccion": "primera",
+        "nroAnexo": "2",
+        "idAnexo": "7629292",
+        "fechaPublicacion": "20260422"
+      },
+      "sha256": "a2eb690f03a49bd41ce0caaa2bf4b68ddcab1d86328d59a9029225b85f28ab24",
+      "arca_sha256": "a2eb690f03a49bd41ce0caaa2bf4b68ddcab1d86328d59a9029225b85f28ab24",
+      "boletin_sha256": "a2eb690f03a49bd41ce0caaa2bf4b68ddcab1d86328d59a9029225b85f28ab24",
+      "source_match": true,
+      "page_count": 2
+    },
+    {
+      "annex_id": "ar-arca-rg-5838-2026-annex-3",
+      "label": "Anexo III",
+      "document_number": "IF-2026-01041335-ARCA-SGDADVCOAD#SDGINS",
+      "arca_url": "https://biblioteca.arca.gob.ar/search/query/adjunto.aspx?p=t%3aRAG%7cn%3a5838%7co%3a9%7ca%3a2026%7cd%3aanexo_7629292_3.pdf",
+      "boletin_url": "https://www.boletinoficial.gob.ar/pdf/download_anexo",
+      "boletin_download_parameters": {
+        "seccion": "primera",
+        "nroAnexo": "3",
+        "idAnexo": "7629292",
+        "fechaPublicacion": "20260422"
+      },
+      "sha256": "213185c9fb494d9313e6bc321156ac130ce8b138e5884fa6a39410178b99abc5",
+      "arca_sha256": "213185c9fb494d9313e6bc321156ac130ce8b138e5884fa6a39410178b99abc5",
+      "boletin_sha256": "213185c9fb494d9313e6bc321156ac130ce8b138e5884fa6a39410178b99abc5",
+      "source_match": true,
+      "page_count": 1
+    }
+  ],
+  "supersedes_or_modifies": [
+    {
+      "relationship": "abrogates",
+      "instrument": "Resolución N° 3.277/1996 (ANA)"
+    },
+    {
+      "relationship": "abrogates",
+      "instrument": "Nota Externa N° 15/2005 (DGA)"
+    }
+  ],
+  "modifies": [],
+  "modified_by": [],
+  "repeals": [
+    "Resolución N° 3.277/1996 (ANA)",
+    "Nota Externa N° 15/2005 (DGA)"
+  ],
+  "repealed_by": [],
+  "supersedes": [],
+  "superseded_by": [],
+  "source_verification": {
+    "status": "matched",
+    "compared_fields": [
+      "instrument_number",
+      "title",
+      "subject",
+      "issue_date",
+      "publication_date",
+      "official_text",
+      "annex_sha256"
+    ],
+    "annexes_complete": true,
+    "review_eligible": true
+  },
+  "acquired_at": "2026-07-28T23:46:44Z",
+  "acquisition_method": "manual_official_source_capture",
+  "schema_version": "1.0.0",
+  "canonicalization_version": "json-sorted-keys-v1",
+  "canonical_hash": "5ec079c8f36592c7b07adcd8ac050fc1c92fb75f8973c07bdfef7b6c20a7252b",
+  "review_status": "pending_human_review",
+  "publication_status": "not_published",
+  "interpretation_status": "not_interpreted",
+  "disclaimer": "Este artefacto aporta información y evidencia regulatoria oficial; no constituye asesoramiento legal o aduanero vinculante.",
+  "pending_human_review": true,
+  "not_published": true,
+  "not_interpreted": true,
+  "disclaimer_es": "Documento preparado para revisión humana. No constituye asesoramiento legal, interpretación normativa, publicación ni autorización de uso en producción."
+}

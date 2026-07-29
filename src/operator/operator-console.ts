@@ -765,6 +765,7 @@ function review(model: OperatorReadModel): string {
 
 function arcaReview(model: OperatorReadModel): string {
   const view = buildArcaReviewConsoleViewModel(model);
+  const batch = view.regulatory_batch;
   const c = view.candidate;
   const r = view.review;
   const e = view.evaluation;
@@ -792,8 +793,77 @@ function arcaReview(model: OperatorReadModel): string {
         )
         .join("")}</tbody></table></div>`
     : `<p class="quiet">No hay hallazgos controlados registrados.</p>`;
+  const regulatoryBatch =
+    batch === null
+      ? `<section class="notice"><strong>Lote regulatorio no disponible</strong><p>La carga falló de forma cerrada; ningún elemento es elegible para revisión.</p></section>`
+      : `<section class="card"><span class="panel-kicker">Primer lote regulatorio real</span><h3>Tres resoluciones pendientes de revisión humana</h3>${dl(
+          [
+            ["ID del lote", code(batch.batch_id)],
+            ["Pendientes", text(batch.pending_count)],
+            ["Aprobadas", text(batch.approved_count)],
+            ["Planificador activo", yesNo(batch.scheduler_active)],
+            [
+              "Ejecución ARCA disponible",
+              yesNo(batch.runtime_arca_execution_available),
+            ],
+            [
+              "Interpretación legal realizada",
+              yesNo(batch.legal_interpretation_performed),
+            ],
+          ],
+        )}<div class="grid3">${batch.artifacts
+          .map((artifact, index) => {
+            const reviewPackage = batch.review_packages[index];
+            const sourceLinks = artifact.official_source_urls
+              .map(
+                (source) =>
+                  `<li><a href="${escapeHtml(source.url)}" target="_blank" rel="noreferrer">${escapeHtml(source.source_id === "arca_biblioteca" ? "Biblioteca ARCA" : "Boletín Oficial")}</a> — ${code(shortHash(source.sha256))}${disclosure(`Hash completo de ${source.source_id}`, source.sha256)}</li>`,
+              )
+              .join("");
+            const annexes = artifact.annexes.length
+              ? `<ul>${artifact.annexes
+                  .map(
+                    (annex) =>
+                      `<li><strong>${escapeHtml(annex.label)}</strong> — ${code(annex.document_number)} — ${code(shortHash(annex.sha256))}${disclosure(`Hash completo de ${annex.label}`, annex.sha256)} — <a href="${escapeHtml(annex.arca_url)}" target="_blank" rel="noreferrer">ARCA</a> · <a href="${escapeHtml(annex.boletin_url)}" target="_blank" rel="noreferrer">BORA</a></li>`,
+                  )
+                  .join("")}</ul>`
+              : `<p class="quiet">La norma no publica anexos propios.</p>`;
+            return `<article class="card"><span class="badge tone-pending" data-status="pending_human_review">Pendiente de revisión humana</span><h4>${escapeHtml(artifact.title)}</h4><p>${escapeHtml(artifact.subject)}</p>${dl(
+              [
+                ["Autoridad", text(artifact.authority)],
+                ["Jurisdicción", text(artifact.jurisdiction)],
+                ["Fecha de emisión", text(artifact.issue_date)],
+                ["Fecha de publicación", text(artifact.publication_date)],
+                ["Estado actual", badge(artifact.current_status)],
+                [
+                  "Fecha o regla de vigencia",
+                  text(artifact.effective_date ?? artifact.effective_date_rule),
+                ],
+                [
+                  "Verificación de fuentes",
+                  badge(artifact.source_verification.status),
+                ],
+                [
+                  "Anexos completos",
+                  yesNo(artifact.source_verification.annexes_complete),
+                ],
+                ["Estado de revisión", badge(artifact.review_status)],
+                [
+                  "Hash canónico",
+                  `${code(shortHash(artifact.canonical_hash))}${disclosure("Hash canónico completo", artifact.canonical_hash)}`,
+                ],
+                [
+                  "Recomendación humana",
+                  text(reviewPackage?.recommendation ?? "aún no registrada"),
+                ],
+                ["Publicación", badge("not_published")],
+                ["Interpretación", text("No realizada")],
+              ],
+            )}<h5>Temas</h5><ul>${artifact.topics.map((topic) => `<li>${escapeHtml(topic)}</li>`).join("")}</ul><h5>Fuentes oficiales</h5><ul>${sourceLinks}</ul><h5>Anexos oficiales</h5>${annexes}<h5>Relaciones normativas registradas</h5><ul>${artifact.supersedes_or_modifies.map((relationship) => `<li>${code(relationship.relationship)} — ${escapeHtml(relationship.instrument)}</li>`).join("")}</ul><p class="quiet">${escapeHtml(artifact.disclaimer_es)}</p></article>`;
+          })
+          .join("")}</div></section>`;
 
-  return `<h2>Revisión ARCA</h2><p class="lead">Consola interna de solo lectura para comprender el flujo candidato → revisión → evaluación → artefacto aprobado. No ejecuta ni modifica ninguna etapa.</p><section class="notice" aria-label="Origen y autoridad"><strong>Estado de origen</strong><ul>${view.source_labels.map((value) => `<li>${escapeHtml(value)}</li>`).join("")}</ul>${codeList("Valores técnicos de origen", view.source_technical)}</section><section class="card"><h3>Resumen del candidato</h3>${dl(
+  return `<h2>Revisión ARCA</h2><p class="lead">Consola interna de solo lectura para revisar el primer lote regulatorio real y conservar la trazabilidad del fixture arancelario de pruebas. No ejecuta ni modifica ninguna etapa.</p>${regulatoryBatch}<section class="notice" aria-label="Origen y autoridad"><strong>Fixture arancelario test-only</strong><ul>${view.source_labels.map((value) => `<li>${escapeHtml(value)}</li>`).join("")}</ul>${codeList("Valores técnicos de origen", view.source_technical)}</section><section class="card"><span class="panel-kicker">Fixture sintético test-only</span><h3>Resumen del candidato</h3>${dl(
     [
       ["ID del artefacto candidato", code(c.artifact_id ?? "ausente")],
       hashField("Hash del candidato", c.hash),
