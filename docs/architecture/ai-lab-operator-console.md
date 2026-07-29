@@ -39,7 +39,7 @@ read-model values and recalculates no governance decision.
 
 The dedicated ARCA vocabulary and bounded human-text projection live beside
 it in the pure `arca-review-console-view-model.ts` builder. That builder
-consumes only Operator Read Model `1.8.0`; it preserves canonical outcomes and
+consumes only Operator Read Model `1.9.0`; it preserves canonical outcomes and
 hashes and performs no AI-127 evaluation or AI-128 validation/building.
 
 Unknown machine values fail honest: they remain visible in canonical form,

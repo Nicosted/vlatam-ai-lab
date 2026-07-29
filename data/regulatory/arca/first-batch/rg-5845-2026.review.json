@@ -1,0 +1,90 @@
+{
+  "review_package_id": "ar-arca-rg-5845-2026-review",
+  "artifact_id": "ar-arca-rg-5845-2026",
+  "artifact_canonical_hash": "415ba2bf1c2071914c11d129fd7fb3d1393a18004aee11986225c6e6b4e058ba",
+  "instrument_number": 5845,
+  "year": 2026,
+  "regulation_number": 5845,
+  "regulation_year": 2026,
+  "official_source_summary": [
+    {
+      "source_id": "arca_biblioteca",
+      "url": "https://biblioteca.arca.gob.ar/search/query/norma.aspx?p=t%3aRAG%7cn%3a5845%7co%3a9%7ca%3a2026%7cf%3a12%2f05%2f2026",
+      "sha256": "9bbc1429c8ae6820a002fa0fa0a761d55fcdbfafaedb39f203073bd6e6ec0353"
+    },
+    {
+      "source_id": "boletin_oficial",
+      "url": "https://www.boletinoficial.gob.ar/detalleAviso/primera/341889/20260513",
+      "sha256": "448dac85a5ba2f4393f1ad00b4822148e252b825b8f5ae850df9539fc71d4fa8"
+    }
+  ],
+  "source_hashes": {
+    "arca_page_sha256": "9bbc1429c8ae6820a002fa0fa0a761d55fcdbfafaedb39f203073bd6e6ec0353",
+    "boletin_page_sha256": "448dac85a5ba2f4393f1ad00b4822148e252b825b8f5ae850df9539fc71d4fa8",
+    "boletin_body_pdf_sha256": "9c863c78f34504bb641d06196cf0730f787f29f67aac1bf47613f5ffdbe9652f",
+    "official_text_sha256": "51c582476f3d843007aee07d898eb3c18fcd391ee0f8fcf57aaedb1259fad827",
+    "normalized_cross_source_text_sha256": "3c7becae4096228bb2838e8db2809d1dabbd3169b8bf87af1b75738d2eb892a6"
+  },
+  "cross_source_comparison_result": {
+    "status": "matched",
+    "review_eligible": true,
+    "discrepancy_classifications": []
+  },
+  "annex_completeness": {
+    "expected_count": 0,
+    "acquired_count": 0,
+    "complete": true
+  },
+  "supersession_status": {
+    "modifies": [
+      "Resolución General AFIP N° 4.352/2018 y sus modificatorias",
+      "Resolución General ARCA N° 5.721/2025"
+    ],
+    "modified_by": [],
+    "repeals": [],
+    "repealed_by": [],
+    "supersedes": [],
+    "superseded_by": []
+  },
+  "effective_date_result": {
+    "effective_date": "2026-05-13",
+    "effective_date_rule": "Esta resolución general entrará en vigencia el día de su publicación en el Boletín Oficial.",
+    "unresolved": false
+  },
+  "unresolved_discrepancies": [],
+  "lifecycle": "pending_human_review",
+  "review_eligible": true,
+  "recommendation": "eligible_for_human_review",
+  "reviewer": null,
+  "decision_timestamp": null,
+  "checklist": {
+    "official_sources_matched": true,
+    "official_text_matched": true,
+    "annexes_complete": true,
+    "relationships_recorded": true,
+    "legal_interpretation_performed": false
+  },
+  "reviewer_checklist": {
+    "verify_official_identifiers": false,
+    "verify_effective_date": false,
+    "verify_annexes": false,
+    "verify_relationships": false,
+    "record_human_decision": false
+  },
+  "reason_codes": ["human_review_required"],
+  "allowed_recommendations": [
+    "eligible_for_human_review",
+    "blocked_incomplete_evidence",
+    "blocked_conflicting_sources"
+  ],
+  "schema_version": "1.0.0",
+  "canonicalization_version": "json-sorted-keys-v1",
+  "review_package_hash": "7f2932977642d7e8025b4e0e972ddc2f0f90a8213bebacbf499865051ef25123",
+  "review_status": "pending_human_review",
+  "publication_status": "not_published",
+  "interpretation_status": "not_interpreted",
+  "disclaimer": "Este paquete aporta información y evidencia regulatoria oficial para revisión humana; no constituye aprobación ni asesoramiento legal o aduanero vinculante.",
+  "not_published": true,
+  "not_interpreted": true,
+  "disclaimer_es": "Paquete pendiente de revisión humana. No constituye aprobación, interpretación legal, publicación ni autorización de uso en producción."
+}

@@ -1,0 +1,107 @@
+{
+  "artifact_id": "ar-arca-rg-5845-2026",
+  "authority": "ARCA",
+  "jurisdiction": "Argentina",
+  "instrument_type": "Resolución General",
+  "instrument_number": 5845,
+  "year": 2026,
+  "regulation_number": 5845,
+  "regulation_year": 2026,
+  "official_identifier": "Resolución General ARCA 5845/2026",
+  "title": "Resolución General ARCA N° 5845/2026",
+  "subject": "RESOG-2026-5845-E-ARCA-ARCA - Requisitos para la habilitación de depósitos fiscales y para la adhesión al régimen de cargas de exportación en planta. Resoluciones Generales Nros. 4.352 y sus modificatorias y 5.721. Sus modificaciones.",
+  "topics": [
+    "depósitos fiscales",
+    "cargas de exportación en planta",
+    "habilitación",
+    "simplificación normativa"
+  ],
+  "issue_date": "2026-05-12",
+  "publication_date": "2026-05-13",
+  "effective_date": "2026-05-13",
+  "effective_date_rule": "Esta resolución general entrará en vigencia el día de su publicación en el Boletín Oficial.",
+  "effective_date_or_rule": {
+    "date": "2026-05-13",
+    "rule": "Esta resolución general entrará en vigencia el día de su publicación en el Boletín Oficial."
+  },
+  "status": "vigente",
+  "current_status": "vigente",
+  "official_source_urls": [
+    {
+      "source_id": "arca_biblioteca",
+      "url": "https://biblioteca.arca.gob.ar/search/query/norma.aspx?p=t%3aRAG%7cn%3a5845%7co%3a9%7ca%3a2026%7cf%3a12%2f05%2f2026",
+      "retrieved_at": "2026-07-28T23:46:44Z",
+      "media_type": "text/html",
+      "sha256": "9bbc1429c8ae6820a002fa0fa0a761d55fcdbfafaedb39f203073bd6e6ec0353"
+    },
+    {
+      "source_id": "boletin_oficial",
+      "url": "https://www.boletinoficial.gob.ar/detalleAviso/primera/341889/20260513",
+      "retrieved_at": "2026-07-28T23:46:44Z",
+      "media_type": "text/html",
+      "sha256": "448dac85a5ba2f4393f1ad00b4822148e252b825b8f5ae850df9539fc71d4fa8"
+    }
+  ],
+  "source_sha256s": {
+    "arca_page_sha256": "9bbc1429c8ae6820a002fa0fa0a761d55fcdbfafaedb39f203073bd6e6ec0353",
+    "boletin_page_sha256": "448dac85a5ba2f4393f1ad00b4822148e252b825b8f5ae850df9539fc71d4fa8",
+    "boletin_body_pdf_sha256": "9c863c78f34504bb641d06196cf0730f787f29f67aac1bf47613f5ffdbe9652f",
+    "official_text_sha256": "51c582476f3d843007aee07d898eb3c18fcd391ee0f8fcf57aaedb1259fad827",
+    "normalized_cross_source_text_sha256": "3c7becae4096228bb2838e8db2809d1dabbd3169b8bf87af1b75738d2eb892a6"
+  },
+  "source_hashes": {
+    "arca_page_sha256": "9bbc1429c8ae6820a002fa0fa0a761d55fcdbfafaedb39f203073bd6e6ec0353",
+    "boletin_page_sha256": "448dac85a5ba2f4393f1ad00b4822148e252b825b8f5ae850df9539fc71d4fa8",
+    "boletin_body_pdf_sha256": "9c863c78f34504bb641d06196cf0730f787f29f67aac1bf47613f5ffdbe9652f",
+    "official_text_sha256": "51c582476f3d843007aee07d898eb3c18fcd391ee0f8fcf57aaedb1259fad827",
+    "normalized_cross_source_text_sha256": "3c7becae4096228bb2838e8db2809d1dabbd3169b8bf87af1b75738d2eb892a6"
+  },
+  "official_text": "Ciudad de Buenos Aires, 12/05/2026\nVISTO los Expedientes Electrónicos Nros. EX-2026-09041890- -APN-CGDYD#MDYTE y EX- 2026-00522319- ARCA-SGDADVCOAD#SDGINS y\nCONSIDERANDO:\nQue el inciso a) del apartado 2. del artículo 5° del Código Aduanero -Ley N° 22.415 y sus modificaciones- incluye en la zona primaria aduanera a los locales, instalaciones, depósitos, plazoletas y demás lugares en donde se realizaren operaciones aduaneras o se ejerciere el control aduanero.\nQue el artículo 208 del referido plexo normativo establece que los lugares de depósito solo podrán funcionar con la previa habilitación precaria por parte de este Organismo, el que determinará, entre otras, las condiciones que debe reunir el ámbito que se pretendiere habilitar.\nQue el Decreto de Necesidad y Urgencia N° 70 del 20 de diciembre de 2023 estableció, como uno de sus objetivos, el de reconstruir la economía a través de la eliminación de barreras y restricciones que impidan su normal desarrollo, así como de la adopción de medidas que promuevan una mayor inserción en el comercio mundial.\nQue, en relación a ello, el Decreto N° 90 del 13 de febrero de 2025 dispuso que las jurisdicciones y entidades comprendidas en el inciso a) del artículo 8° de la Ley N° 24.156 y sus modificatorias, deberán realizar un relevamiento normativo con el objetivo de identificar las normas vigentes y proponer la derogación de aquellas que resulten obsoletas, innecesarias o que encuadren dentro de los criterios establecidos en el artículo 3° del mismo decreto, entre los que se encuentran aquellas normas que generen un sobrecosto en el sector productivo.\nQue la Resolución General N° 4.352 y sus modificatorias, establece las normas relativas al procedimiento para la habilitación de depósitos fiscales, exigiendo como documentación a presentar, en su punto 6. del apartado II. del Anexo II, la habilitación municipal otorgada a nombre del solicitante y expedida por la autoridad municipal o autoridad competente acorde a su jurisdicción, de conformidad con lo previsto en las normas locales.\nQue, por su parte, la Resolución General N° 5.721 establece los requisitos y procedimientos del régimen de cargas de exportación en planta y, en su punto 2.2. del apartado B) del Anexo I, dispone como condición para la adhesión a dicho régimen, la presentación de la habilitación de la planta que se pretende utilizar expedida por la autoridad municipal o la autoridad competente, acorde a su jurisdicción, para el tipo o clase de mercadería a exportar.\nQue esta Agencia de Recaudación y Control Aduanero se encuentra abocada a la revisión de diversos registros y regímenes que pudieran obstaculizar la agilización de los procesos y la facilitación del comercio, llevando a cabo la simplificación normativa.\nQue, en función de lo expuesto, con el objeto de reducir los costos operativos y evitar la duplicación normativa, y a fin de generar un impacto positivo en la competitividad de los operadores de comercio exterior, se estima conveniente modificar el requisito de la habilitación municipal, para los depósitos fiscales, así como para el régimen de cargas de exportación.\nQue la presente medida no exime a los administrados del cumplimiento de la normativa nacional, provincial o municipal vigente aplicable al desarrollo de sus actividades, sino que suprime una exigencia documental en sede nacional vinculada a competencias propias de las jurisdicciones locales.\nQue, en virtud de ello, resulta procedente modificar la Resolución General N° 4.352 y sus modificatorias y la Resolución General N° 5.721, a fin de evitar la duplicidad en la carga administrativa para los operadores involucrados.\nQue han tomado la intervención que les compete la Dirección de Legislación, las Subdirecciones Generales de Asuntos Jurídicos, Técnico Legal Aduanera, Operaciones Aduaneras del Interior, Operaciones Aduaneras Metropolitanas, Control Aduanero y Sistemas y Telecomunicaciones, y la Dirección General de Aduanas.\nQue la presente se dicta en ejercicio de las facultades conferidas por el artículo 7° del Decreto N° 618 del 10 de julio de 1997, sus modificatorios y sus complementarios, por el Decreto N° 953 del 24 de octubre de 2024, y por el artículo 8° del Decreto N° 13 del 6 de enero de 2025 y su modificatorio.\nPor ello,\nEL DIRECTOR EJECUTIVO DE LA AGENCIA DE RECAUDACIÓN Y CONTROL ADUANERO\nRESUELVE:\nARTÍCULO 1º.- Modificar la Resolución General N° 4.352 y sus modificatorias, en la forma que se indica a continuación:\n- Sustituir el punto 6. del apartado II. del Anexo II, por el siguiente:\n“6. Declaración por medio de la cual el solicitante manifieste que el ámbito a habilitar resulta idóneo para el tipo y clase de mercadería a almacenar y cumple con la normativa municipal, provincial y nacional aplicable al desarrollo de sus actividades.”.\nARTÍCULO 2º.- Modificar la Resolución General N° 5.721, en la forma que se indica a continuación:\na) Sustituir el punto 2.2. del apartado B) del Anexo I, por el siguiente:\n“2.2. Declaración jurada mediante la cual manifieste que la planta que se pretende utilizar resulta un ámbito idóneo para el tipo y clase de mercadería a exportar, de acuerdo con la normativa municipal, provincial y nacional aplicable al desarrollo de sus actividades.”.\nb) Sustituir el punto 4.1. del apartado B) del Anexo I, por el siguiente:\n“4.1. De cumplirse con los requisitos establecidos, las jefaturas autorizarán la adhesión al régimen mediante el dictado del respectivo acto administrativo, en el que indicarán las fechas de inicio y de finalización de la habilitación concedida, la cual estará determinada por el plazo de CINCO (5) años.\nSin perjuicio de lo expuesto, la fecha del cierre de vigencia del lugar operativo en la Tabla de Lugares Operativos (LOT) del Sistema Informático MALVINA (SIM) estará determinada por la vigencia del contrato o del certificado habilitante, según corresponda, tomándose a este efecto la fecha de vencimiento que resultare anterior.”.\nARTÍCULO 3°.- Esta resolución general entrará en vigencia el día de su publicación en el Boletín Oficial.\nARTÍCULO 4°.- Comuníquese, dese a la DIRECCIÓN NACIONAL DEL REGISTRO OFICIAL para su publicación en el Boletín Oficial, difúndase en el Boletín de la Dirección General de Aduanas y archívese.\nAndres Edgardo Vazquez\ne. 13/05/2026 N° 31727/26 v. 13/05/2026",
+  "annexes": [],
+  "supersedes_or_modifies": [
+    {
+      "relationship": "modifies",
+      "instrument": "Resolución General AFIP N° 4.352/2018 y sus modificatorias"
+    },
+    {
+      "relationship": "modifies",
+      "instrument": "Resolución General ARCA N° 5.721/2025"
+    }
+  ],
+  "modifies": [
+    "Resolución General AFIP N° 4.352/2018 y sus modificatorias",
+    "Resolución General ARCA N° 5.721/2025"
+  ],
+  "modified_by": [],
+  "repeals": [],
+  "repealed_by": [],
+  "supersedes": [],
+  "superseded_by": [],
+  "source_verification": {
+    "status": "matched",
+    "compared_fields": [
+      "instrument_number",
+      "title",
+      "subject",
+      "issue_date",
+      "publication_date",
+      "official_text",
+      "annex_count"
+    ],
+    "annexes_complete": true,
+    "review_eligible": true
+  },
+  "acquired_at": "2026-07-28T23:46:44Z",
+  "acquisition_method": "manual_official_source_capture",
+  "schema_version": "1.0.0",
+  "canonicalization_version": "json-sorted-keys-v1",
+  "canonical_hash": "415ba2bf1c2071914c11d129fd7fb3d1393a18004aee11986225c6e6b4e058ba",
+  "review_status": "pending_human_review",
+  "publication_status": "not_published",
+  "interpretation_status": "not_interpreted",
+  "disclaimer": "Este artefacto aporta información y evidencia regulatoria oficial; no constituye asesoramiento legal o aduanero vinculante.",
+  "pending_human_review": true,
+  "not_published": true,
+  "not_interpreted": true,
+  "disclaimer_es": "Documento preparado para revisión humana. No constituye asesoramiento legal, interpretación normativa, publicación ni autorización de uso en producción."
+}

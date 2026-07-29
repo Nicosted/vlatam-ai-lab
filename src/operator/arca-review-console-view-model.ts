@@ -31,6 +31,7 @@ export interface ArcaConsoleHash {
 }
 
 export interface ArcaReviewConsoleViewModel {
+  readonly regulatory_batch: OperatorReadModel["arca_regulatory_batch"];
   readonly source_labels: readonly string[];
   readonly source_technical: readonly string[];
   readonly candidate: {
@@ -109,11 +110,16 @@ export function buildArcaReviewConsoleViewModel(
     sourceLabels.length,
     `Origen de la proyección: ${review.source_context.projection_source === "repository-current" ? "estado actual del repositorio" : "artefacto gobernado"}`,
     `Caso sintético: ${review.source_context.synthetic_candidate ? "Sí" : "No"}`,
+    "Clasificación del fixture arancelario: solo pruebas; no representa un artefacto regulatorio real",
     `Decisión humana real: ${label(review.source_context.real_human_decision)}`,
     `Artefacto aprobado: ${artifact.present ? "Presente" : "Ausente"}`,
   );
 
   return {
+    regulatory_batch:
+      model.arca_regulatory_batch === null
+        ? null
+        : structuredClone(model.arca_regulatory_batch),
     source_labels: sourceLabels,
     source_technical: [
       `projection_source: ${review.source_context.projection_source}`,

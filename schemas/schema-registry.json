@@ -1,6 +1,32 @@
 {
   "contracts": [
     {
+      "contract_name": "arca_regulatory_artifact",
+      "schema_file": "schemas/arca-regulatory-artifact.schema.json",
+      "valid_fixture": "data/regulatory/arca/first-batch/rg-5859-2026.artifact.json",
+      "invalid_fixtures": [],
+      "test_file": "tests/regulatory/arca-regulatory-batch.test.ts",
+      "status": "implemented_pending_human_review",
+      "purpose": "Canonical preservation and cross-source verification contract for the first three real ARCA regulatory artifacts.",
+      "downstream_role": "Read-only human-review input; never approval, interpretation, publication, database-write, scheduler or runtime authority.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": false
+    },
+    {
+      "contract_name": "arca_regulatory_review_package",
+      "schema_file": "schemas/arca-regulatory-review-package.schema.json",
+      "valid_fixture": "data/regulatory/arca/first-batch/rg-5859-2026.review.json",
+      "invalid_fixtures": [],
+      "test_file": "tests/regulatory/arca-regulatory-batch.test.ts",
+      "status": "implemented_pending_human_review",
+      "purpose": "Exact artifact binding and recommendation vocabulary for human review of real ARCA regulatory artifacts.",
+      "downstream_role": "Pending review package only; a recommendation is absent until a human records it through a separately authorized workflow.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": false
+    },
+    {
       "contract_name": "arca_scheduler_configuration",
       "schema_file": "schemas/arca-scheduler-configuration.schema.json",
       "valid_fixture": "config/ai-133-governed-arca-scheduler.json",

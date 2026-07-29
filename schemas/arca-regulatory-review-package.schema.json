@@ -1,0 +1,213 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam.ai/schemas/arca-regulatory-review-package.schema.json",
+  "title": "Governed ARCA regulatory review package",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "review_package_id",
+    "artifact_id",
+    "artifact_canonical_hash",
+    "instrument_number",
+    "year",
+    "regulation_number",
+    "regulation_year",
+    "official_source_summary",
+    "source_hashes",
+    "cross_source_comparison_result",
+    "annex_completeness",
+    "supersession_status",
+    "effective_date_result",
+    "unresolved_discrepancies",
+    "lifecycle",
+    "review_eligible",
+    "recommendation",
+    "reviewer",
+    "decision_timestamp",
+    "checklist",
+    "reviewer_checklist",
+    "reason_codes",
+    "allowed_recommendations",
+    "schema_version",
+    "canonicalization_version",
+    "review_package_hash",
+    "review_status",
+    "publication_status",
+    "interpretation_status",
+    "disclaimer",
+    "not_published",
+    "not_interpreted",
+    "disclaimer_es"
+  ],
+  "properties": {
+    "review_package_id": { "type": "string", "minLength": 1 },
+    "artifact_id": { "type": "string", "minLength": 1 },
+    "artifact_canonical_hash": { "$ref": "#/$defs/hash" },
+    "instrument_number": { "enum": [5859, 5845, 5838] },
+    "year": { "const": 2026 },
+    "regulation_number": { "enum": [5859, 5845, 5838] },
+    "regulation_year": { "const": 2026 },
+    "official_source_summary": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": { "$ref": "#/$defs/sourceSummary" }
+    },
+    "source_hashes": { "$ref": "#/$defs/sourceHashes" },
+    "cross_source_comparison_result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "review_eligible", "discrepancy_classifications"],
+      "properties": {
+        "status": { "const": "matched" },
+        "review_eligible": { "const": true },
+        "discrepancy_classifications": {
+          "type": "array",
+          "maxItems": 0
+        }
+      }
+    },
+    "annex_completeness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["expected_count", "acquired_count", "complete"],
+      "properties": {
+        "expected_count": { "type": "integer", "minimum": 0 },
+        "acquired_count": { "type": "integer", "minimum": 0 },
+        "complete": { "const": true }
+      }
+    },
+    "supersession_status": { "$ref": "#/$defs/supersessionStatus" },
+    "effective_date_result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["effective_date", "effective_date_rule", "unresolved"],
+      "properties": {
+        "effective_date": { "type": ["string", "null"], "format": "date" },
+        "effective_date_rule": { "type": "string", "minLength": 1 },
+        "unresolved": { "const": false }
+      }
+    },
+    "unresolved_discrepancies": {
+      "type": "array",
+      "maxItems": 0
+    },
+    "lifecycle": { "const": "pending_human_review" },
+    "review_eligible": { "const": true },
+    "recommendation": { "const": "eligible_for_human_review" },
+    "reviewer": { "type": "null" },
+    "decision_timestamp": { "type": "null" },
+    "checklist": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "official_sources_matched",
+        "official_text_matched",
+        "annexes_complete",
+        "relationships_recorded",
+        "legal_interpretation_performed"
+      ],
+      "properties": {
+        "official_sources_matched": { "const": true },
+        "official_text_matched": { "const": true },
+        "annexes_complete": { "const": true },
+        "relationships_recorded": { "const": true },
+        "legal_interpretation_performed": { "const": false }
+      }
+    },
+    "reviewer_checklist": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "verify_official_identifiers",
+        "verify_effective_date",
+        "verify_annexes",
+        "verify_relationships",
+        "record_human_decision"
+      ],
+      "properties": {
+        "verify_official_identifiers": { "const": false },
+        "verify_effective_date": { "const": false },
+        "verify_annexes": { "const": false },
+        "verify_relationships": { "const": false },
+        "record_human_decision": { "const": false }
+      }
+    },
+    "reason_codes": {
+      "const": ["human_review_required"]
+    },
+    "allowed_recommendations": {
+      "const": [
+        "eligible_for_human_review",
+        "blocked_incomplete_evidence",
+        "blocked_conflicting_sources"
+      ]
+    },
+    "schema_version": { "const": "1.0.0" },
+    "canonicalization_version": { "const": "json-sorted-keys-v1" },
+    "review_package_hash": { "$ref": "#/$defs/hash" },
+    "review_status": { "const": "pending_human_review" },
+    "publication_status": { "const": "not_published" },
+    "interpretation_status": { "const": "not_interpreted" },
+    "disclaimer": { "type": "string", "minLength": 1 },
+    "not_published": { "const": true },
+    "not_interpreted": { "const": true },
+    "disclaimer_es": { "type": "string", "minLength": 1 }
+  },
+  "$defs": {
+    "hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "sourceSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_id", "url", "sha256"],
+      "properties": {
+        "source_id": { "enum": ["arca_biblioteca", "boletin_oficial"] },
+        "url": { "type": "string", "format": "uri" },
+        "sha256": { "$ref": "#/$defs/hash" }
+      }
+    },
+    "sourceHashes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "arca_page_sha256",
+        "boletin_page_sha256",
+        "boletin_body_pdf_sha256",
+        "official_text_sha256",
+        "normalized_cross_source_text_sha256"
+      ],
+      "properties": {
+        "arca_page_sha256": { "$ref": "#/$defs/hash" },
+        "boletin_page_sha256": { "$ref": "#/$defs/hash" },
+        "boletin_body_pdf_sha256": { "$ref": "#/$defs/hash" },
+        "official_text_sha256": { "$ref": "#/$defs/hash" },
+        "normalized_cross_source_text_sha256": { "$ref": "#/$defs/hash" }
+      }
+    },
+    "relationshipList": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "supersessionStatus": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "modifies",
+        "modified_by",
+        "repeals",
+        "repealed_by",
+        "supersedes",
+        "superseded_by"
+      ],
+      "properties": {
+        "modifies": { "$ref": "#/$defs/relationshipList" },
+        "modified_by": { "$ref": "#/$defs/relationshipList" },
+        "repeals": { "$ref": "#/$defs/relationshipList" },
+        "repealed_by": { "$ref": "#/$defs/relationshipList" },
+        "supersedes": { "$ref": "#/$defs/relationshipList" },
+        "superseded_by": { "$ref": "#/$defs/relationshipList" }
+      }
+    }
+  }
+}

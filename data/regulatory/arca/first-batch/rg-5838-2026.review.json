@@ -1,0 +1,90 @@
+{
+  "review_package_id": "ar-arca-rg-5838-2026-review",
+  "artifact_id": "ar-arca-rg-5838-2026",
+  "artifact_canonical_hash": "5ec079c8f36592c7b07adcd8ac050fc1c92fb75f8973c07bdfef7b6c20a7252b",
+  "instrument_number": 5838,
+  "year": 2026,
+  "regulation_number": 5838,
+  "regulation_year": 2026,
+  "official_source_summary": [
+    {
+      "source_id": "arca_biblioteca",
+      "url": "https://biblioteca.arca.gob.ar/search/query/norma.aspx?p=t%3aRAG%7cn%3a5838%7co%3a9%7ca%3a2026%7cf%3a20%2f04%2f2026",
+      "sha256": "8958f258a098173010f8cebfa845963d2f5bdd70aa75aa6d70476d0e38cc6ab7"
+    },
+    {
+      "source_id": "boletin_oficial",
+      "url": "https://www.boletinoficial.gob.ar/detalleAviso/primera/341040/20260422",
+      "sha256": "b631b88fb445b6a88d59168d1c0b4335c0384d16b9b08884720ea4a740ef189a"
+    }
+  ],
+  "source_hashes": {
+    "arca_page_sha256": "8958f258a098173010f8cebfa845963d2f5bdd70aa75aa6d70476d0e38cc6ab7",
+    "boletin_page_sha256": "b631b88fb445b6a88d59168d1c0b4335c0384d16b9b08884720ea4a740ef189a",
+    "boletin_body_pdf_sha256": "a5a4268d7a68b880cac597464407c2fad1eedfbcff5c2ed0c217c671a78fba9d",
+    "official_text_sha256": "38a971d19b901e608f76a84e879baf576d1fc4dcdee4d88630d3e3778fcf6357",
+    "normalized_cross_source_text_sha256": "4567bb2af145dd8a7a845e18732a63c443119d63814aab7f3c988bade4ce0dcc"
+  },
+  "cross_source_comparison_result": {
+    "status": "matched",
+    "review_eligible": true,
+    "discrepancy_classifications": []
+  },
+  "annex_completeness": {
+    "expected_count": 3,
+    "acquired_count": 3,
+    "complete": true
+  },
+  "supersession_status": {
+    "modifies": [],
+    "modified_by": [],
+    "repeals": [
+      "Resolución N° 3.277/1996 (ANA)",
+      "Nota Externa N° 15/2005 (DGA)"
+    ],
+    "repealed_by": [],
+    "supersedes": [],
+    "superseded_by": []
+  },
+  "effective_date_result": {
+    "effective_date": "2026-04-22",
+    "effective_date_rule": "La presente resolución general entrará en vigencia el día de su publicación en el Boletín Oficial y será de aplicación de acuerdo con el cronograma de implementación que se publicará en el micrositio “Régimen de Plataformas Marinas”.",
+    "unresolved": false
+  },
+  "unresolved_discrepancies": [],
+  "lifecycle": "pending_human_review",
+  "review_eligible": true,
+  "recommendation": "eligible_for_human_review",
+  "reviewer": null,
+  "decision_timestamp": null,
+  "checklist": {
+    "official_sources_matched": true,
+    "official_text_matched": true,
+    "annexes_complete": true,
+    "relationships_recorded": true,
+    "legal_interpretation_performed": false
+  },
+  "reviewer_checklist": {
+    "verify_official_identifiers": false,
+    "verify_effective_date": false,
+    "verify_annexes": false,
+    "verify_relationships": false,
+    "record_human_decision": false
+  },
+  "reason_codes": ["human_review_required"],
+  "allowed_recommendations": [
+    "eligible_for_human_review",
+    "blocked_incomplete_evidence",
+    "blocked_conflicting_sources"
+  ],
+  "schema_version": "1.0.0",
+  "canonicalization_version": "json-sorted-keys-v1",
+  "review_package_hash": "6e68606abf011d71a06b33c1b55876b44a796f503ea035ab19340637304d59cd",
+  "review_status": "pending_human_review",
+  "publication_status": "not_published",
+  "interpretation_status": "not_interpreted",
+  "disclaimer": "Este paquete aporta información y evidencia regulatoria oficial para revisión humana; no constituye aprobación ni asesoramiento legal o aduanero vinculante.",
+  "not_published": true,
+  "not_interpreted": true,
+  "disclaimer_es": "Paquete pendiente de revisión humana. No constituye aprobación, interpretación legal, publicación ni autorización de uso en producción."
+}

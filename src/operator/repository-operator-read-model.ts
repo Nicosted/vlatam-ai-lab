@@ -54,6 +54,10 @@ import {
   type RuntimeEvidencePack,
 } from "../tournament/index.js";
 import { evaluateGovernedArcaCandidateReview } from "../review/governed-arca-candidate-review.js";
+import {
+  ARCA_REGULATORY_BATCH_ASSET_PATHS,
+  loadArcaRegulatoryBatch,
+} from "../regulatory/arca-regulatory-batch.js";
 
 export const REPOSITORY_OPERATOR_EVALUATED_AT =
   "2026-07-15T12:00:00.000Z" as const;
@@ -123,6 +127,12 @@ export async function loadRepositoryOperatorReadModel(
   const sourceErrors = Object.values(loaded).flatMap((entry) =>
     entry.error ? [entry.error] : [],
   );
+  let arcaRegulatoryBatch;
+  try {
+    arcaRegulatoryBatch = loadArcaRegulatoryBatch(options.repository_root);
+  } catch {
+    sourceErrors.push("arca_regulatory_batch:missing_or_invalid");
+  }
 
   const models = loaded.models.value;
   const glmConformance = loaded.glm_conformance.value;
@@ -713,6 +723,7 @@ export async function loadRepositoryOperatorReadModel(
     },
     audit_references: [
       ...Object.values(OPERATOR_READ_MODEL_ARTIFACTS),
+      ...ARCA_REGULATORY_BATCH_ASSET_PATHS,
       "config/ai-openrouter-glm-readiness-dossier.json",
       "config/ai-openrouter-glm-external-evidence-pack.json",
       "config/ai-openrouter-glm-supervised-enablement-proposal.json",
@@ -724,6 +735,9 @@ export async function loadRepositoryOperatorReadModel(
       "config/ai-commercial-document-pilot-operation.json",
       "reports/ai-lab-glm-fireworks-endpoint-evidence-2026-07-17.md",
     ],
+    ...(arcaRegulatoryBatch === undefined
+      ? {}
+      : { arca_regulatory_batch: arcaRegulatoryBatch }),
     arca_candidate_review: {
       source_context: {
         projection_source: "repository-current",

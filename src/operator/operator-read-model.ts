@@ -1,9 +1,10 @@
 import { createHash } from "node:crypto";
 
 import { canonicalizeOpenRouterRegistryJson } from "../providers/openrouter-registry.js";
+import type { ArcaRegulatoryBatchProjection } from "../regulatory/arca-regulatory-batch.js";
 import type { TournamentOperatorReadModel } from "../tournament/index.js";
 
-export const OPERATOR_READ_MODEL_CONTRACT_VERSION = "1.8.0" as const;
+export const OPERATOR_READ_MODEL_CONTRACT_VERSION = "1.9.0" as const;
 export const OPERATOR_READ_MODEL_HASH_DOMAIN =
   "vlatam-ai-lab:operator-read-model:v1" as const;
 
@@ -217,6 +218,7 @@ export interface OperatorReadModelInput {
   readonly audit_references: readonly string[];
   readonly arca_candidate_review?: OperatorArcaCandidateReview;
   readonly arca_approved_artifact?: OperatorApprovedArcaArtifact;
+  readonly arca_regulatory_batch?: ArcaRegulatoryBatchProjection;
   readonly additional_governed_candidates?: readonly OperatorGovernedCandidate[];
   readonly tournament?: TournamentOperatorReadModel;
 }
@@ -403,6 +405,7 @@ export interface OperatorReadModel {
   readonly audit_references: readonly string[];
   readonly arca_candidate_review: OperatorArcaCandidateReview;
   readonly arca_approved_artifact: OperatorApprovedArcaArtifact;
+  readonly arca_regulatory_batch: ArcaRegulatoryBatchProjection | null;
   readonly tournament: TournamentOperatorReadModel;
 }
 
@@ -846,6 +849,9 @@ export function buildOperatorReadModel(
       network_call_authorized: false,
       vlatam_global_access_authorized: false,
     },
+    arca_regulatory_batch: input.arca_regulatory_batch
+      ? structuredClone(input.arca_regulatory_batch)
+      : null,
     tournament: input.tournament ?? {
       registered_candidates: [],
       runtime_evidence: [],

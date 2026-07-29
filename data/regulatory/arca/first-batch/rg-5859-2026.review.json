@@ -1,0 +1,87 @@
+{
+  "review_package_id": "ar-arca-rg-5859-2026-review",
+  "artifact_id": "ar-arca-rg-5859-2026",
+  "artifact_canonical_hash": "02415dfe469aab285ec99e50abeb3a78cc611e1ce7b8448c4f76405345ab9207",
+  "instrument_number": 5859,
+  "year": 2026,
+  "regulation_number": 5859,
+  "regulation_year": 2026,
+  "official_source_summary": [
+    {
+      "source_id": "arca_biblioteca",
+      "url": "https://biblioteca.arca.gob.ar/search/query/norma.aspx?p=t%3aRAG%7cn%3a5859%7co%3a9%7ca%3a2026%7cf%3a04%2f06%2f2026",
+      "sha256": "ebef3a641bca0c27b330b6dc64162a6686b1473f68859b59591c36b08dfb33b9"
+    },
+    {
+      "source_id": "boletin_oficial",
+      "url": "https://www.boletinoficial.gob.ar/detalleAviso/primera/342833/20260605",
+      "sha256": "bc138c1a3bd9c59aebdaa49632b93c29050e33e975c0541ea77f876e9e30ef55"
+    }
+  ],
+  "source_hashes": {
+    "arca_page_sha256": "ebef3a641bca0c27b330b6dc64162a6686b1473f68859b59591c36b08dfb33b9",
+    "boletin_page_sha256": "bc138c1a3bd9c59aebdaa49632b93c29050e33e975c0541ea77f876e9e30ef55",
+    "boletin_body_pdf_sha256": "64cc4033b0da847793fcd60453cef8b105b5c049b346e3aecb42dc484c4502a4",
+    "official_text_sha256": "5575f5d60b9e36eb0fb3f6a2925286f2b45ce7195e41f983c675d362ae205f5a",
+    "normalized_cross_source_text_sha256": "285626eed34f9aaff90188b3daf8550a587a6d3de5585723bb3c6055d0b37c4b"
+  },
+  "cross_source_comparison_result": {
+    "status": "matched",
+    "review_eligible": true,
+    "discrepancy_classifications": []
+  },
+  "annex_completeness": {
+    "expected_count": 1,
+    "acquired_count": 1,
+    "complete": true
+  },
+  "supersession_status": {
+    "modifies": [],
+    "modified_by": [],
+    "repeals": [],
+    "repealed_by": [],
+    "supersedes": [],
+    "superseded_by": []
+  },
+  "effective_date_result": {
+    "effective_date": null,
+    "effective_date_rule": "Esta resolución general entrará en vigencia a los DIEZ (10) días hábiles contados a partir de su publicación en el Boletín Oficial.",
+    "unresolved": false
+  },
+  "unresolved_discrepancies": [],
+  "lifecycle": "pending_human_review",
+  "review_eligible": true,
+  "recommendation": "eligible_for_human_review",
+  "reviewer": null,
+  "decision_timestamp": null,
+  "checklist": {
+    "official_sources_matched": true,
+    "official_text_matched": true,
+    "annexes_complete": true,
+    "relationships_recorded": true,
+    "legal_interpretation_performed": false
+  },
+  "reviewer_checklist": {
+    "verify_official_identifiers": false,
+    "verify_effective_date": false,
+    "verify_annexes": false,
+    "verify_relationships": false,
+    "record_human_decision": false
+  },
+  "reason_codes": ["human_review_required"],
+  "allowed_recommendations": [
+    "eligible_for_human_review",
+    "blocked_incomplete_evidence",
+    "blocked_conflicting_sources"
+  ],
+  "schema_version": "1.0.0",
+  "canonicalization_version": "json-sorted-keys-v1",
+  "review_package_hash": "847fbdebd4e2131b17719d62f16dc71123225dc8db94603e5787f9575e64c4a5",
+  "review_status": "pending_human_review",
+  "publication_status": "not_published",
+  "interpretation_status": "not_interpreted",
+  "disclaimer": "Este paquete aporta información y evidencia regulatoria oficial para revisión humana; no constituye aprobación ni asesoramiento legal o aduanero vinculante.",
+  "not_published": true,
+  "not_interpreted": true,
+  "disclaimer_es": "Paquete pendiente de revisión humana. No constituye aprobación, interpretación legal, publicación ni autorización de uso en producción."
+}
