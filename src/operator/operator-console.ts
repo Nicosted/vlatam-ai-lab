@@ -117,6 +117,52 @@ const modelDisplayName = (modelId: string): string =>
       ? "GLM-5.2"
       : "Modelo registrado";
 
+const ARCA_SHORT_TITLES: Readonly<Record<number, string>> = {
+  5859: "Resolución anticipada de origen en VUCEA",
+  5845: "Depósitos fiscales y cargas de exportación en planta",
+  5838: "Registro de artefactos navales para recursos naturales",
+};
+
+const SPANISH_MONTHS = [
+  "enero",
+  "febrero",
+  "marzo",
+  "abril",
+  "mayo",
+  "junio",
+  "julio",
+  "agosto",
+  "septiembre",
+  "octubre",
+  "noviembre",
+  "diciembre",
+] as const;
+
+const arcaShortIdentifier = (number: number, year: number): string =>
+  `RG ${number}/${year}`;
+
+const arcaShortTitle = (number: number, fallback: string): string =>
+  ARCA_SHORT_TITLES[number] ?? fallback;
+
+const arcaHumanSubject = (subject: string): string => {
+  const separator = subject.indexOf(" - ");
+  return separator === -1 ? subject : subject.slice(separator + 3);
+};
+
+const formatArcaDate = (value: string): string => {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!match) return value;
+  const month = SPANISH_MONTHS[Number(match[2]) - 1];
+  return month ? `${Number(match[3])} de ${month} de ${match[1]}` : value;
+};
+
+const arcaAnnexSummary = (count: number): string =>
+  count === 0
+    ? "Sin anexos separados"
+    : count === 1
+      ? "1 anexo completo"
+      : `${count} anexos completos`;
+
 function shell(
   model: OperatorReadModel,
   pathname: string,
@@ -796,72 +842,96 @@ function arcaReview(model: OperatorReadModel): string {
   const regulatoryBatch =
     batch === null
       ? `<section class="notice"><strong>Lote regulatorio no disponible</strong><p>La carga falló de forma cerrada; ningún elemento es elegible para revisión.</p></section>`
-      : `<section class="card"><span class="panel-kicker">Primer lote regulatorio real</span><h3>Tres resoluciones pendientes de revisión humana</h3>${dl(
-          [
-            ["ID del lote", code(batch.batch_id)],
-            ["Pendientes", text(batch.pending_count)],
-            ["Aprobadas", text(batch.approved_count)],
-            ["Planificador activo", yesNo(batch.scheduler_active)],
-            [
-              "Ejecución ARCA disponible",
-              yesNo(batch.runtime_arca_execution_available),
-            ],
-            [
-              "Interpretación legal realizada",
-              yesNo(batch.legal_interpretation_performed),
-            ],
-          ],
-        )}<div class="grid3">${batch.artifacts
+      : `<section class="arca-batch-summary" aria-label="Resumen del lote regulatorio"><span class="panel-kicker">Primer lote regulatorio real</span><h3>Normas listas para revisión humana</h3><div class="grid-metrics arca-summary-metrics"><div class="metric"><span>Alcance</span><strong>${batch.artifacts.length} normas reales</strong></div><div class="metric"><span>Revisión</span><strong>${batch.pending_count} pendientes de revisión</strong></div><div class="metric"><span>Decisiones</span><strong>${batch.approved_count} aprobadas</strong></div><div class="metric"><span>Publicación</span><strong>Publicación deshabilitada</strong></div></div><aside class="notice arca-governance-note" aria-label="Límites de gobernanza"><strong>Límites de gobernanza</strong><p>Planificador inactivo · Ejecución ARCA no disponible · Sin interpretación legal · Interfaz de solo lectura.</p></aside></section><div class="grid3 arca-regulation-grid">${batch.artifacts
           .map((artifact, index) => {
-            const reviewPackage = batch.review_packages[index];
+            const reviewPackage =
+              batch.review_packages.find(
+                (candidate) => candidate.artifact_id === artifact.artifact_id,
+              ) ?? batch.review_packages[index];
+            const shortIdentifier = arcaShortIdentifier(
+              artifact.instrument_number,
+              artifact.year,
+            );
+            const shortTitle = arcaShortTitle(
+              artifact.instrument_number,
+              artifact.title,
+            );
             const sourceLinks = artifact.official_source_urls
               .map(
                 (source) =>
-                  `<li><a href="${escapeHtml(source.url)}" target="_blank" rel="noreferrer">${escapeHtml(source.source_id === "arca_biblioteca" ? "Biblioteca ARCA" : "Boletín Oficial")}</a> — ${code(shortHash(source.sha256))}${disclosure(`Hash completo de ${source.source_id}`, source.sha256)}</li>`,
+                  `<a class="official-source-link" href="${escapeHtml(source.url)}" target="_blank" rel="noreferrer">${escapeHtml(source.source_id === "arca_biblioteca" ? "Ver en Biblioteca ARCA" : "Ver en Boletín Oficial")}</a>`,
               )
               .join("");
-            const annexes = artifact.annexes.length
-              ? `<ul>${artifact.annexes
-                  .map(
-                    (annex) =>
-                      `<li><strong>${escapeHtml(annex.label)}</strong> — ${code(annex.document_number)} — ${code(shortHash(annex.sha256))}${disclosure(`Hash completo de ${annex.label}`, annex.sha256)} — <a href="${escapeHtml(annex.arca_url)}" target="_blank" rel="noreferrer">ARCA</a> · <a href="${escapeHtml(annex.boletin_url)}" target="_blank" rel="noreferrer">BORA</a></li>`,
-                  )
-                  .join("")}</ul>`
-              : `<p class="quiet">La norma no publica anexos propios.</p>`;
-            return `<article class="card"><span class="badge tone-pending" data-status="pending_human_review">Pendiente de revisión humana</span><h4>${escapeHtml(artifact.title)}</h4><p>${escapeHtml(artifact.subject)}</p>${dl(
+            const effectiveDate = artifact.effective_date
+              ? `<time datetime="${escapeHtml(artifact.effective_date)}">${escapeHtml(formatArcaDate(artifact.effective_date))}</time>. ${escapeHtml(artifact.effective_date_rule)}`
+              : escapeHtml(artifact.effective_date_rule);
+            const technicalValues = [
+              `artifact_id: ${artifact.artifact_id}`,
+              `official_identifier: ${artifact.official_identifier}`,
+              `official_title: ${artifact.title}`,
+              `canonical_hash: ${artifact.canonical_hash}`,
+              `review_package_id: ${reviewPackage?.review_package_id ?? "ausente"}`,
+              `review_package_hash: ${reviewPackage?.review_package_hash ?? "ausente"}`,
+              `artifact_canonical_hash: ${reviewPackage?.artifact_canonical_hash ?? "ausente"}`,
+              `arca_page_sha256: ${artifact.source_sha256s.arca_page_sha256}`,
+              `boletin_page_sha256: ${artifact.source_sha256s.boletin_page_sha256}`,
+              `boletin_body_pdf_sha256: ${artifact.source_sha256s.boletin_body_pdf_sha256}`,
+              `official_text_sha256: ${artifact.source_sha256s.official_text_sha256}`,
+              `normalized_cross_source_text_sha256: ${artifact.source_sha256s.normalized_cross_source_text_sha256}`,
+              `schema_version: ${artifact.schema_version}`,
+              `review_schema_version: ${reviewPackage?.schema_version ?? "ausente"}`,
+              `canonicalization_version: ${artifact.canonicalization_version}`,
+              `review_status: ${artifact.review_status}`,
+              `publication_status: ${artifact.publication_status}`,
+              `interpretation_status: ${artifact.interpretation_status}`,
+              `current_status: ${artifact.current_status}`,
+              `review_lifecycle: ${reviewPackage?.lifecycle ?? "ausente"}`,
+              `review_recommendation: ${reviewPackage?.recommendation ?? "ausente"}`,
+              `review_reason_codes: ${reviewPackage?.reason_codes.join(", ") ?? "ausente"}`,
+              `acquisition_method: ${artifact.acquisition_method}`,
+              ...artifact.annexes.flatMap((annex) => [
+                `annex_id: ${annex.annex_id}`,
+                `annex_label: ${annex.label}`,
+                `annex_document_number: ${annex.document_number}`,
+                `annex_sha256: ${annex.sha256}`,
+                `annex_arca_sha256: ${annex.arca_sha256}`,
+                `annex_boletin_sha256: ${annex.boletin_sha256}`,
+                `annex_arca_url: ${annex.arca_url}`,
+                `annex_boletin_url: ${annex.boletin_url}`,
+              ]),
+            ];
+            return `<article class="card arca-regulation-card" data-regulation="${escapeHtml(shortIdentifier)}"><header class="arca-regulation-card__header"><div><span class="arca-field-label">Número de norma</span><h3 class="arca-regulation-card__identifier">${escapeHtml(shortIdentifier)}</h3><span class="arca-field-label">Título breve</span><p class="arca-regulation-card__title">${escapeHtml(shortTitle)}</p></div><span class="badge tone-pending arca-regulation-card__status" data-status="pending_human_review">Pendiente de revisión humana</span></header>${dl(
               [
-                ["Autoridad", text(artifact.authority)],
-                ["Jurisdicción", text(artifact.jurisdiction)],
-                ["Fecha de emisión", text(artifact.issue_date)],
-                ["Fecha de publicación", text(artifact.publication_date)],
-                ["Estado actual", badge(artifact.current_status)],
+                ["Qué regula", text(arcaHumanSubject(artifact.subject))],
                 [
-                  "Fecha o regla de vigencia",
-                  text(artifact.effective_date ?? artifact.effective_date_rule),
+                  "A quién puede afectar",
+                  text("No definido en el artefacto actual"),
                 ],
                 [
-                  "Verificación de fuentes",
-                  badge(artifact.source_verification.status),
+                  "Fecha de publicación",
+                  `<time datetime="${escapeHtml(artifact.publication_date)}">${escapeHtml(formatArcaDate(artifact.publication_date))}</time>`,
+                ],
+                ["Vigencia", effectiveDate],
+                [
+                  "Estado actual",
+                  `<span class="badge tone-verified" data-status="${escapeHtml(artifact.current_status)}">Vigente</span>`,
                 ],
                 [
-                  "Anexos completos",
-                  yesNo(artifact.source_verification.annexes_complete),
+                  "Fuentes oficiales",
+                  `<span class="official-source-links">${sourceLinks}</span>`,
                 ],
+                [
+                  "Verificación entre fuentes",
+                  text(
+                    `${artifact.official_source_urls.length} fuentes oficiales coincidentes`,
+                  ),
+                ],
+                ["Anexos", text(arcaAnnexSummary(artifact.annexes.length))],
                 ["Estado de revisión", badge(artifact.review_status)],
-                [
-                  "Hash canónico",
-                  `${code(shortHash(artifact.canonical_hash))}${disclosure("Hash canónico completo", artifact.canonical_hash)}`,
-                ],
-                [
-                  "Recomendación humana",
-                  text(reviewPackage?.recommendation ?? "aún no registrada"),
-                ],
-                ["Publicación", badge("not_published")],
-                ["Interpretación", text("No realizada")],
               ],
-            )}<h5>Temas</h5><ul>${artifact.topics.map((topic) => `<li>${escapeHtml(topic)}</li>`).join("")}</ul><h5>Fuentes oficiales</h5><ul>${sourceLinks}</ul><h5>Anexos oficiales</h5>${annexes}<h5>Relaciones normativas registradas</h5><ul>${artifact.supersedes_or_modifies.map((relationship) => `<li>${code(relationship.relationship)} — ${escapeHtml(relationship.instrument)}</li>`).join("")}</ul><p class="quiet">${escapeHtml(artifact.disclaimer_es)}</p></article>`;
+            )}${codeList("Datos técnicos y trazabilidad", technicalValues)}<p class="quiet arca-regulation-card__disclaimer">${escapeHtml(artifact.disclaimer_es)}</p></article>`;
           })
-          .join("")}</div></section>`;
+          .join("")}</div>`;
 
   return `<h2>Revisión ARCA</h2><p class="lead">Consola interna de solo lectura para revisar el primer lote regulatorio real y conservar la trazabilidad del fixture arancelario de pruebas. No ejecuta ni modifica ninguna etapa.</p>${regulatoryBatch}<section class="notice" aria-label="Origen y autoridad"><strong>Fixture arancelario test-only</strong><ul>${view.source_labels.map((value) => `<li>${escapeHtml(value)}</li>`).join("")}</ul>${codeList("Valores técnicos de origen", view.source_technical)}</section><section class="card"><span class="panel-kicker">Fixture sintético test-only</span><h3>Resumen del candidato</h3>${dl(
     [

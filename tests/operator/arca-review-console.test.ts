@@ -4,6 +4,7 @@ import { dirname, resolve } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 
+import { APPLICATION_ROUTES } from "../../src/application/application-shell.js";
 import { buildArcaReviewConsoleViewModel } from "../../src/operator/arca-review-console-view-model.js";
 import {
   OPERATOR_CONSOLE_PATHS,
@@ -62,6 +63,130 @@ describe("AI-129 read-only ARCA Operator Review Console", () => {
       "No autorizado",
     ])
       assert.match(html, new RegExp(label));
+  });
+
+  it("renders exactly three human-first real regulation cards with aligned status headers", async () => {
+    const model = await load();
+    const batch = model.arca_regulatory_batch;
+    assert.ok(batch);
+    const html = renderOperatorConsole(model, "/operator/arca-review");
+    const cards = [
+      ...html.matchAll(
+        /<article class="card arca-regulation-card"[\s\S]*?<\/article>/g,
+      ),
+    ].map((match) => match[0]);
+
+    assert.equal(cards.length, 3);
+    assert.match(html, /<strong>3 normas reales<\/strong>/);
+    assert.match(html, /<strong>3 pendientes de revisión<\/strong>/);
+    assert.match(html, /<strong>0 aprobadas<\/strong>/);
+    assert.match(html, /<strong>Publicación deshabilitada<\/strong>/);
+    assert.match(
+      html,
+      /Planificador inactivo · Ejecución ARCA no disponible · Sin interpretación legal · Interfaz de solo lectura\./,
+    );
+
+    const expected = [
+      [
+        "RG 5859/2026",
+        "Resolución anticipada de origen en VUCEA",
+        "1 anexo completo",
+      ],
+      [
+        "RG 5845/2026",
+        "Depósitos fiscales y cargas de exportación en planta",
+        "Sin anexos separados",
+      ],
+      [
+        "RG 5838/2026",
+        "Registro de artefactos navales para recursos naturales",
+        "3 anexos completos",
+      ],
+    ] as const;
+
+    expected.forEach(([identifier, title, annexSummary], index) => {
+      const artifact = batch.artifacts[index]!;
+      const card = cards[index]!;
+      const header =
+        /<header class="arca-regulation-card__header">[\s\S]*?<\/header>/.exec(
+          card,
+        )?.[0] ?? "";
+      const technicalStart = card.indexOf(
+        '<details class="tech"><summary>Datos técnicos y trazabilidad</summary>',
+      );
+      assert.ok(technicalStart > 0);
+      const primaryContent = card.slice(0, technicalStart);
+
+      assert.match(
+        header,
+        new RegExp(
+          `<h3 class="arca-regulation-card__identifier">${identifier.replace("/", "\\/")}<\\/h3>`,
+        ),
+      );
+      assert.match(header, new RegExp(title));
+      assert.match(
+        header,
+        /<span class="badge tone-pending arca-regulation-card__status" data-status="pending_human_review">Pendiente de revisión humana<\/span>/,
+      );
+      assert.doesNotMatch(primaryContent, new RegExp(artifact.artifact_id));
+      assert.doesNotMatch(primaryContent, new RegExp(artifact.canonical_hash));
+      assert.match(
+        card,
+        /<details class="tech"><summary>Datos técnicos y trazabilidad<\/summary>/,
+      );
+      assert.doesNotMatch(card, /<details class="tech"[^>]*\sopen(?:\s|>)/);
+      assert.match(card, new RegExp(`artifact_id: ${artifact.artifact_id}`));
+      assert.match(
+        card,
+        new RegExp(`canonical_hash: ${artifact.canonical_hash}`),
+      );
+      assert.match(card, /review_status: pending_human_review/);
+      assert.match(card, /publication_status: not_published/);
+      assert.match(card, /No definido en el artefacto actual/);
+      assert.match(card, /2 fuentes oficiales coincidentes/);
+      assert.match(card, new RegExp(annexSummary));
+      assert.match(card, />Ver en Biblioteca ARCA<\/a>/);
+      assert.match(card, />Ver en Boletín Oficial<\/a>/);
+    });
+  });
+
+  it("preserves statuses, security boundaries, and route authorization", async () => {
+    const model = await load();
+    const batch = model.arca_regulatory_batch;
+    assert.ok(batch);
+    assert.equal(batch.artifacts.length, 3);
+    assert.equal(batch.review_packages.length, 3);
+    assert.equal(batch.pending_count, 3);
+    assert.equal(batch.approved_count, 0);
+    assert.equal(batch.scheduler_active, false);
+    assert.equal(batch.runtime_arca_execution_available, false);
+    assert.equal(batch.database_write_authorized, false);
+    assert.equal(batch.publication_authorized, false);
+    assert.equal(batch.legal_interpretation_performed, false);
+    for (const artifact of batch.artifacts) {
+      assert.equal(artifact.review_status, "pending_human_review");
+      assert.equal(artifact.publication_status, "not_published");
+    }
+    for (const reviewPackage of batch.review_packages) {
+      assert.equal(reviewPackage.lifecycle, "pending_human_review");
+      assert.equal(reviewPackage.review_status, "pending_human_review");
+      assert.equal(reviewPackage.publication_status, "not_published");
+    }
+    for (const path of [
+      "config/ai-131-controlled-live-arca-kill-switch.json",
+      "config/ai-132-governed-arca-export-kill-switch.json",
+      "config/ai-133-governed-arca-scheduler-kill-switch.json",
+    ]) {
+      const value = JSON.parse(readFileSync(resolve(root, path), "utf8")) as {
+        state: string;
+      };
+      assert.equal(value.state, "active", path);
+    }
+    assert.deepEqual(
+      APPLICATION_ROUTES.find((route) => route.path === "/operator/arca-review")
+        ?.allowed_roles,
+      ["operator", "reviewer", "admin"],
+    );
   });
 
   it("projects canonical lifecycle and evaluator states without inferring decisions", async () => {

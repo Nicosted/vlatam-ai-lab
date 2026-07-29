@@ -298,17 +298,14 @@ describe("AI-137 first real governed ARCA regulatory batch", () => {
     });
     const html = renderOperatorConsole(model, "/operator/arca-review");
     for (const number of ARCA_REGULATORY_TARGET_NUMBERS) {
-      assert.match(
-        html,
-        new RegExp(`Resolución General ARCA N° ${number}/2026`),
-      );
+      assert.match(html, new RegExp(`RG ${number}/2026`));
       assert.match(html, new RegExp(artifactByNumber(number).canonical_hash));
     }
-    assert.match(html, /Biblioteca ARCA/);
-    assert.match(html, /Boletín Oficial/);
+    assert.match(html, /Ver en Biblioteca ARCA/);
+    assert.match(html, /Ver en Boletín Oficial/);
     assert.match(html, /Anexo III/);
-    assert.match(html, /Verificación de fuentes/);
-    assert.match(html, /Anexos completos/);
+    assert.match(html, /Verificación entre fuentes/);
+    assert.match(html, /3 anexos completos/);
   });
 
   it("packages only the exact three artifacts and three review packages", () => {
