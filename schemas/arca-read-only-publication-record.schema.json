@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam.ai/schemas/arca-read-only-publication-record.schema.json",
+  "title": "ARCA read-only publication record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "publication_record_id",
+    "artifact_id",
+    "canonical_artifact_hash",
+    "human_decision_id",
+    "human_decision_hash",
+    "publication_status",
+    "review_status",
+    "publication_scope",
+    "published_at",
+    "source_authorities",
+    "disclaimer",
+    "revocation_status",
+    "schema_version",
+    "canonicalization_version",
+    "publication_record_hash"
+  ],
+  "properties": {
+    "publication_record_id": {
+      "type": "string",
+      "pattern": "^ar-arca-rg-(5859|5845|5838)-2026-read-only-publication$"
+    },
+    "artifact_id": {
+      "type": "string",
+      "pattern": "^ar-arca-rg-(5859|5845|5838)-2026$"
+    },
+    "canonical_artifact_hash": { "$ref": "#/$defs/hash" },
+    "human_decision_id": {
+      "type": "string",
+      "pattern": "^ar-arca-rg-(5859|5845|5838)-2026-human-decision$"
+    },
+    "human_decision_hash": { "$ref": "#/$defs/hash" },
+    "publication_status": { "const": "published_read_only" },
+    "review_status": { "const": "approved" },
+    "publication_scope": { "const": "informational_regulatory_library" },
+    "published_at": { "const": "2026-07-28T00:00:00-03:00" },
+    "source_authorities": {
+      "const": ["ARCA", "Boletín Oficial de la República Argentina"]
+    },
+    "disclaimer": {
+      "const": "Esta biblioteca presenta información normativa y evidencia oficial. No constituye asesoramiento legal o aduanero, interpretación vinculante ni autorización para ejecutar operaciones."
+    },
+    "revocation_status": { "const": "not_revoked" },
+    "schema_version": { "const": "1.0.0" },
+    "canonicalization_version": { "const": "json-sorted-keys-v1" },
+    "publication_record_hash": { "$ref": "#/$defs/hash" }
+  },
+  "$defs": {
+    "hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+  }
+}

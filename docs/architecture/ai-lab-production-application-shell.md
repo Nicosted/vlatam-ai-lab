@@ -67,7 +67,7 @@ same `roleCanView` rules that authorize the request, so a hidden tab is also a
 | Inicio                  | `/` and `/operator`    | all                       | Panel `/operator`, Estado del sistema `/operator/estado`, Bloqueos `/operator/blockers`, Acciones requeridas `/operator/actions`                                                                     |
 | Centro de misiones      | `/operator/misiones`   | operator, reviewer, admin | Áreas operativas `/operator/misiones`, ARCA `/operator/operations/arca`, Adquisiciones `…/acquisitions`, Exportaciones `…/exports`, Recuperación `…/recovery`                                        |
 | Revisiones              | `/operator/revisiones` | operator, reviewer, admin | Pendientes `/operator/revisiones`, Revisión humana `/operator/review`, Revisión ARCA `/operator/arca-review`, Artefactos aprobados `/operator/approved-artifacts`, Gobernanza `/operator/governance` |
-| Evidencia               | `/operator/evidence`   | all                       | Referencias `/operator/evidence`, Auditoría `/operator/audit`, Ejecución `/operator/execution`, Regulaciones, Fuentes, Noticias (`/operator/knowledge/*`)                                            |
+| Evidencia               | `/operator/evidence`   | all                       | Referencias `/operator/evidence`, Auditoría `/operator/audit`, Ejecución `/operator/execution`, Biblioteca ARCA `/operator/arca-library`, Fuentes y Noticias (`/operator/knowledge/*`)               |
 | Modelos e integraciones | `/operator/modelos`    | all                       | Resumen `/operator/modelos`, Proveedores `/operator/providers`, Registro `/operator/models/registry`, Torneos `/operator/models/tournaments`, Entornos `/operator/runtimes/ai-lab`                   |
 | Configuración           | `/operator/settings`   | admin                     | General `/operator/settings`                                                                                                                                                                         |
 
@@ -75,6 +75,12 @@ same `roleCanView` rules that authorize the request, so a hidden tab is also a
 `/operator/runtimes/cloudflare` belong to Modelos e integraciones with
 `in_tabs: false`; they are reached from the Entornos page (progressive
 disclosure of runtime detail).
+
+`/operator/arca-library` is the primary visible destination for the approved
+read-only ARCA publication. It remains inside Evidencia, so the sidebar keeps
+exactly six first-level sections. The legacy
+`/operator/knowledge/regulations` path resolves to the same read-only view but
+is not shown as a second tab.
 
 `/operator/governance` and `/operator/arca-review` were previously unregistered
 and therefore unfiltered. They are now registered under Revisiones and require

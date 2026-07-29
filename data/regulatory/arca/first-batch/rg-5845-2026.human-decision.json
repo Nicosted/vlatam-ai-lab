@@ -1,0 +1,33 @@
+{
+  "decision_id": "ar-arca-rg-5845-2026-human-decision",
+  "artifact_id": "ar-arca-rg-5845-2026",
+  "canonical_artifact_hash": "415ba2bf1c2071914c11d129fd7fb3d1393a18004aee11986225c6e6b4e058ba",
+  "review_package_id": "ar-arca-rg-5845-2026-review",
+  "review_package_hash": "7f2932977642d7e8025b4e0e972ddc2f0f90a8213bebacbf499865051ef25123",
+  "reviewer_name": "Nicolas Matias Stedile",
+  "reviewer_type": "human",
+  "reviewer_identity_source": "explicit_user_declaration",
+  "decision_date": "2026-07-28",
+  "decision_timestamp": "2026-07-28T00:00:00-03:00",
+  "decision": "approved_for_read_only_publication",
+  "reviewed_scope": [
+    "official_text",
+    "official_source_references",
+    "annex_completeness"
+  ],
+  "reviewer_statement": "The reviewer manually checked the three regulations and confirmed that their official texts, source references and annexes are correct.",
+  "limitations": [
+    "informational_read_only_publication_only",
+    "not_legal_advice",
+    "not_customs_advice",
+    "not_binding_interpretation",
+    "no_execution_authority",
+    "future_artifacts_require_separate_human_decision"
+  ],
+  "decision_validity": "valid",
+  "expiration_status": "not_expired",
+  "supersession_status": "current",
+  "decision_record_hash": "f61d126cd5d62c7e7aeb918e969bea051a3d9cc87fc78624e83e837ca6006bb3",
+  "schema_version": "1.0.0",
+  "canonicalization_version": "json-sorted-keys-v1"
+}

@@ -1,11 +1,11 @@
 # AI LAB Operator Read Model
 
-Status: backend read model implemented (contract `1.9.0`); local read-only
+Status: backend read model implemented (contract `1.10.0`); local read-only
 console implemented; future internal API not implemented.
 
 ## Purpose
 
-The Operator Read Model contract `1.9.0` consolidates already-evaluated,
+The Operator Read Model contract `1.10.0` consolidates already-evaluated,
 repository-governed state into one concise, deterministic, audit-safe JSON
 representation. It feeds the local read-only Operator Console and a future
 internal read-only API. It cannot approve, authorize, configure, mutate,
@@ -15,15 +15,18 @@ The dependency direction is:
 
 `registries + evidence + readiness + proposal + operational-verification projection + activation review + gold case + authorization + consumption + gateway metadata → pure builder → read-only console → future internal API`
 
-## Contract 1.9.0 additions (2026-07-28)
+## Contract 1.10.0 additions (2026-07-28)
 
-Version `1.9.0` adds the first real, repository-governed ARCA regulatory batch
-as a read-only projection. It loads exactly three canonical artifacts and
-their three pending review packages, validates deterministic hashes and
-official-source agreement, and fails closed to `null` with a source error when
-the package is missing or invalid. The projection grants no approval, export,
-publication, interpretation, production-reliance, or `vlatam-global`
-authority.
+Version `1.10.0` adds the first real, repository-governed ARCA regulatory batch
+and its approved read-only library projection. It preserves exactly three
+canonical artifacts and their original review packages, loads three explicit
+human decisions plus three publication records, validates every deterministic
+hash and exact cross-record binding, and fails closed to `null` with a source
+error when any packaged input is missing, invalid, expired, rejected,
+superseded, revoked, or mismatched. The projection reports three approved,
+zero pending, and three published-read-only regulations while continuing to
+grant no execution, export, interpretation, scheduler, database,
+production-reliance, or `vlatam-global` authority.
 
 ## Contract 1.8.0 additions (2026-07-25)
 

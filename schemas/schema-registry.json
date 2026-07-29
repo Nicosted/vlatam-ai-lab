@@ -27,6 +27,32 @@
       "downstream_allowed_field_present": false
     },
     {
+      "contract_name": "arca_human_review_decision",
+      "schema_file": "schemas/arca-human-review-decision.schema.json",
+      "valid_fixture": "data/regulatory/arca/first-batch/rg-5859-2026.human-decision.json",
+      "invalid_fixtures": [],
+      "test_file": "tests/regulatory/arca-read-only-library.test.ts",
+      "status": "implemented_human_approved_read_only",
+      "purpose": "Immutable explicit human decision bound to one exact ARCA artifact and review package.",
+      "downstream_role": "Informational read-only publication eligibility only; never legal interpretation, execution, scheduler, provider or database authority.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": false
+    },
+    {
+      "contract_name": "arca_read_only_publication_record",
+      "schema_file": "schemas/arca-read-only-publication-record.schema.json",
+      "valid_fixture": "data/regulatory/arca/first-batch/rg-5859-2026.publication.json",
+      "invalid_fixtures": [],
+      "test_file": "tests/regulatory/arca-read-only-library.test.ts",
+      "status": "implemented_published_read_only",
+      "purpose": "Immutable publication record bound to one exact approved human decision and canonical ARCA artifact.",
+      "downstream_role": "Read-only ARCA Regulatory Library display only; no mutation endpoint or operational authority.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": false
+    },
+    {
       "contract_name": "arca_scheduler_configuration",
       "schema_file": "schemas/arca-scheduler-configuration.schema.json",
       "valid_fixture": "config/ai-133-governed-arca-scheduler.json",

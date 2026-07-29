@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam.ai/schemas/arca-human-review-decision.schema.json",
+  "title": "ARCA human-review decision",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "decision_id",
+    "artifact_id",
+    "canonical_artifact_hash",
+    "review_package_id",
+    "review_package_hash",
+    "reviewer_name",
+    "reviewer_type",
+    "reviewer_identity_source",
+    "decision_date",
+    "decision_timestamp",
+    "decision",
+    "reviewed_scope",
+    "reviewer_statement",
+    "limitations",
+    "decision_validity",
+    "expiration_status",
+    "supersession_status",
+    "decision_record_hash",
+    "schema_version",
+    "canonicalization_version"
+  ],
+  "properties": {
+    "decision_id": {
+      "type": "string",
+      "pattern": "^ar-arca-rg-(5859|5845|5838)-2026-human-decision$"
+    },
+    "artifact_id": {
+      "type": "string",
+      "pattern": "^ar-arca-rg-(5859|5845|5838)-2026$"
+    },
+    "canonical_artifact_hash": { "$ref": "#/$defs/hash" },
+    "review_package_id": {
+      "type": "string",
+      "pattern": "^ar-arca-rg-(5859|5845|5838)-2026-review$"
+    },
+    "review_package_hash": { "$ref": "#/$defs/hash" },
+    "reviewer_name": { "const": "Nicolas Matias Stedile" },
+    "reviewer_type": { "const": "human" },
+    "reviewer_identity_source": { "const": "explicit_user_declaration" },
+    "decision_date": { "const": "2026-07-28" },
+    "decision_timestamp": { "const": "2026-07-28T00:00:00-03:00" },
+    "decision": { "const": "approved_for_read_only_publication" },
+    "reviewed_scope": {
+      "const": [
+        "official_text",
+        "official_source_references",
+        "annex_completeness"
+      ]
+    },
+    "reviewer_statement": {
+      "const": "The reviewer manually checked the three regulations and confirmed that their official texts, source references and annexes are correct."
+    },
+    "limitations": {
+      "const": [
+        "informational_read_only_publication_only",
+        "not_legal_advice",
+        "not_customs_advice",
+        "not_binding_interpretation",
+        "no_execution_authority",
+        "future_artifacts_require_separate_human_decision"
+      ]
+    },
+    "decision_validity": { "const": "valid" },
+    "expiration_status": { "const": "not_expired" },
+    "supersession_status": { "const": "current" },
+    "decision_record_hash": { "$ref": "#/$defs/hash" },
+    "schema_version": { "const": "1.0.0" },
+    "canonicalization_version": { "const": "json-sorted-keys-v1" }
+  },
+  "$defs": {
+    "hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+  }
+}

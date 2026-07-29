@@ -22,6 +22,7 @@ import {
   ARCA_REGULATORY_BATCH_ASSET_PATHS,
   ARCA_REGULATORY_BATCH_ASSETS,
 } from "../../src/regulatory/arca-regulatory-batch.js";
+import { ARCA_READ_ONLY_LIBRARY_ASSET_PATHS } from "../../src/regulatory/arca-read-only-library.js";
 
 interface VercelConfiguration {
   readonly builds?: readonly {
@@ -77,6 +78,11 @@ function createPackagedLayout(
     cpSync(resolve(repositoryRoot, relativePath), target);
   }
   for (const relativePath of ARCA_REGULATORY_BATCH_ASSET_PATHS) {
+    const target = resolve(packagedRoot, relativePath);
+    mkdirSync(dirname(target), { recursive: true });
+    cpSync(resolve(repositoryRoot, relativePath), target);
+  }
+  for (const relativePath of ARCA_READ_ONLY_LIBRARY_ASSET_PATHS) {
     const target = resolve(packagedRoot, relativePath);
     mkdirSync(dirname(target), { recursive: true });
     cpSync(resolve(repositoryRoot, relativePath), target);
@@ -163,6 +169,7 @@ describe("AI-136 Operator Read Model function packaging", () => {
       [
         ...OPERATOR_READ_MODEL_ASSET_PATHS,
         ...ARCA_REGULATORY_BATCH_ASSET_PATHS,
+        ...ARCA_READ_ONLY_LIBRARY_ASSET_PATHS,
       ].sort(),
     );
     assert.equal(vercel.functions, undefined);

@@ -1,0 +1,17 @@
+{
+  "publication_record_id": "ar-arca-rg-5859-2026-read-only-publication",
+  "artifact_id": "ar-arca-rg-5859-2026",
+  "canonical_artifact_hash": "02415dfe469aab285ec99e50abeb3a78cc611e1ce7b8448c4f76405345ab9207",
+  "human_decision_id": "ar-arca-rg-5859-2026-human-decision",
+  "human_decision_hash": "cc5fe0a4cbc8f0040faab77e7b3cd8d0d3bd0090b01b33b2958d9b46faee1be4",
+  "publication_status": "published_read_only",
+  "review_status": "approved",
+  "publication_scope": "informational_regulatory_library",
+  "published_at": "2026-07-28T00:00:00-03:00",
+  "source_authorities": ["ARCA", "Boletín Oficial de la República Argentina"],
+  "disclaimer": "Esta biblioteca presenta información normativa y evidencia oficial. No constituye asesoramiento legal o aduanero, interpretación vinculante ni autorización para ejecutar operaciones.",
+  "revocation_status": "not_revoked",
+  "schema_version": "1.0.0",
+  "canonicalization_version": "json-sorted-keys-v1",
+  "publication_record_hash": "98aacb0ca9817a88d1210a861938fbb2e0a2a5642c82ddab60799b02dd520e65"
+}

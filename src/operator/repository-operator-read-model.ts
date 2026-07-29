@@ -58,6 +58,10 @@ import {
   ARCA_REGULATORY_BATCH_ASSET_PATHS,
   loadArcaRegulatoryBatch,
 } from "../regulatory/arca-regulatory-batch.js";
+import {
+  ARCA_READ_ONLY_LIBRARY_ASSET_PATHS,
+  loadArcaReadOnlyLibrary,
+} from "../regulatory/arca-read-only-library.js";
 
 export const REPOSITORY_OPERATOR_EVALUATED_AT =
   "2026-07-15T12:00:00.000Z" as const;
@@ -128,10 +132,21 @@ export async function loadRepositoryOperatorReadModel(
     entry.error ? [entry.error] : [],
   );
   let arcaRegulatoryBatch;
+  let arcaReadOnlyLibrary;
   try {
     arcaRegulatoryBatch = loadArcaRegulatoryBatch(options.repository_root);
+    arcaReadOnlyLibrary = loadArcaReadOnlyLibrary(
+      options.repository_root,
+      arcaRegulatoryBatch,
+    );
+    arcaRegulatoryBatch = {
+      ...arcaRegulatoryBatch,
+      pending_count: arcaReadOnlyLibrary.pending_real_regulations,
+      approved_count: arcaReadOnlyLibrary.approved_real_regulations,
+      published_count: arcaReadOnlyLibrary.published_read_only_regulations,
+    };
   } catch {
-    sourceErrors.push("arca_regulatory_batch:missing_or_invalid");
+    sourceErrors.push("arca_regulatory_state:missing_or_invalid");
   }
 
   const models = loaded.models.value;
@@ -724,6 +739,7 @@ export async function loadRepositoryOperatorReadModel(
     audit_references: [
       ...Object.values(OPERATOR_READ_MODEL_ARTIFACTS),
       ...ARCA_REGULATORY_BATCH_ASSET_PATHS,
+      ...ARCA_READ_ONLY_LIBRARY_ASSET_PATHS,
       "config/ai-openrouter-glm-readiness-dossier.json",
       "config/ai-openrouter-glm-external-evidence-pack.json",
       "config/ai-openrouter-glm-supervised-enablement-proposal.json",
@@ -738,6 +754,9 @@ export async function loadRepositoryOperatorReadModel(
     ...(arcaRegulatoryBatch === undefined
       ? {}
       : { arca_regulatory_batch: arcaRegulatoryBatch }),
+    ...(arcaReadOnlyLibrary === undefined
+      ? {}
+      : { arca_read_only_library: arcaReadOnlyLibrary }),
     arca_candidate_review: {
       source_context: {
         projection_source: "repository-current",

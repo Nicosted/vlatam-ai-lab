@@ -305,7 +305,7 @@ function reviewsLanding(model: OperatorReadModel): string {
           .join("")}</ul>${codeList("Códigos canónicos", [
           ...review.pending_human_decisions,
         ])}`
-  }</section><div class="grid2"><section class="card"><h3>Revisión humana</h3><p class="quiet">Estado gobernado de la revisión de activación.</p><p><a href="/operator/review">Abrir revisión humana →</a></p></section><section class="card"><h3>Revisión ARCA</h3><p class="quiet">Trazabilidad del candidato ARCA y su decisión registrada.</p><p><a href="/operator/arca-review">Abrir revisión ARCA →</a></p></section></div>`;
+  }</section><div class="grid2"><section class="card"><h3>Revisión humana</h3><p class="quiet">Estado gobernado de la revisión de activación.</p><p><a href="/operator/review">Abrir revisión humana →</a></p></section><section class="card"><h3>Revisión ARCA</h3><p class="quiet">Trazabilidad del candidato ARCA y su decisión registrada.</p><p><a href="/operator/arca-review">Abrir revisión ARCA →</a></p></section><section class="card"><h3>Biblioteca ARCA</h3><p class="quiet">Normas aprobadas y publicadas en modalidad informativa de solo lectura.</p><p><a href="/operator/arca-library">Abrir Biblioteca ARCA →</a></p></section></div>`;
 }
 
 function modelsLanding(model: OperatorReadModel): string {
@@ -842,96 +842,98 @@ function arcaReview(model: OperatorReadModel): string {
   const regulatoryBatch =
     batch === null
       ? `<section class="notice"><strong>Lote regulatorio no disponible</strong><p>La carga falló de forma cerrada; ningún elemento es elegible para revisión.</p></section>`
-      : `<section class="arca-batch-summary" aria-label="Resumen del lote regulatorio"><span class="panel-kicker">Primer lote regulatorio real</span><h3>Normas listas para revisión humana</h3><div class="grid-metrics arca-summary-metrics"><div class="metric"><span>Alcance</span><strong>${batch.artifacts.length} normas reales</strong></div><div class="metric"><span>Revisión</span><strong>${batch.pending_count} pendientes de revisión</strong></div><div class="metric"><span>Decisiones</span><strong>${batch.approved_count} aprobadas</strong></div><div class="metric"><span>Publicación</span><strong>Publicación deshabilitada</strong></div></div><aside class="notice arca-governance-note" aria-label="Límites de gobernanza"><strong>Límites de gobernanza</strong><p>Planificador inactivo · Ejecución ARCA no disponible · Sin interpretación legal · Interfaz de solo lectura.</p></aside></section><div class="grid3 arca-regulation-grid">${batch.artifacts
-          .map((artifact, index) => {
-            const reviewPackage =
-              batch.review_packages.find(
-                (candidate) => candidate.artifact_id === artifact.artifact_id,
-              ) ?? batch.review_packages[index];
-            const shortIdentifier = arcaShortIdentifier(
-              artifact.instrument_number,
-              artifact.year,
-            );
-            const shortTitle = arcaShortTitle(
-              artifact.instrument_number,
-              artifact.title,
-            );
-            const sourceLinks = artifact.official_source_urls
-              .map(
-                (source) =>
-                  `<a class="official-source-link" href="${escapeHtml(source.url)}" target="_blank" rel="noreferrer">${escapeHtml(source.source_id === "arca_biblioteca" ? "Ver en Biblioteca ARCA" : "Ver en Boletín Oficial")}</a>`,
-              )
-              .join("");
-            const effectiveDate = artifact.effective_date
-              ? `<time datetime="${escapeHtml(artifact.effective_date)}">${escapeHtml(formatArcaDate(artifact.effective_date))}</time>. ${escapeHtml(artifact.effective_date_rule)}`
-              : escapeHtml(artifact.effective_date_rule);
-            const technicalValues = [
-              `artifact_id: ${artifact.artifact_id}`,
-              `official_identifier: ${artifact.official_identifier}`,
-              `official_title: ${artifact.title}`,
-              `canonical_hash: ${artifact.canonical_hash}`,
-              `review_package_id: ${reviewPackage?.review_package_id ?? "ausente"}`,
-              `review_package_hash: ${reviewPackage?.review_package_hash ?? "ausente"}`,
-              `artifact_canonical_hash: ${reviewPackage?.artifact_canonical_hash ?? "ausente"}`,
-              `arca_page_sha256: ${artifact.source_sha256s.arca_page_sha256}`,
-              `boletin_page_sha256: ${artifact.source_sha256s.boletin_page_sha256}`,
-              `boletin_body_pdf_sha256: ${artifact.source_sha256s.boletin_body_pdf_sha256}`,
-              `official_text_sha256: ${artifact.source_sha256s.official_text_sha256}`,
-              `normalized_cross_source_text_sha256: ${artifact.source_sha256s.normalized_cross_source_text_sha256}`,
-              `schema_version: ${artifact.schema_version}`,
-              `review_schema_version: ${reviewPackage?.schema_version ?? "ausente"}`,
-              `canonicalization_version: ${artifact.canonicalization_version}`,
-              `review_status: ${artifact.review_status}`,
-              `publication_status: ${artifact.publication_status}`,
-              `interpretation_status: ${artifact.interpretation_status}`,
-              `current_status: ${artifact.current_status}`,
-              `review_lifecycle: ${reviewPackage?.lifecycle ?? "ausente"}`,
-              `review_recommendation: ${reviewPackage?.recommendation ?? "ausente"}`,
-              `review_reason_codes: ${reviewPackage?.reason_codes.join(", ") ?? "ausente"}`,
-              `acquisition_method: ${artifact.acquisition_method}`,
-              ...artifact.annexes.flatMap((annex) => [
-                `annex_id: ${annex.annex_id}`,
-                `annex_label: ${annex.label}`,
-                `annex_document_number: ${annex.document_number}`,
-                `annex_sha256: ${annex.sha256}`,
-                `annex_arca_sha256: ${annex.arca_sha256}`,
-                `annex_boletin_sha256: ${annex.boletin_sha256}`,
-                `annex_arca_url: ${annex.arca_url}`,
-                `annex_boletin_url: ${annex.boletin_url}`,
-              ]),
-            ];
-            return `<article class="card arca-regulation-card" data-regulation="${escapeHtml(shortIdentifier)}"><header class="arca-regulation-card__header"><div><span class="arca-field-label">Número de norma</span><h3 class="arca-regulation-card__identifier">${escapeHtml(shortIdentifier)}</h3><span class="arca-field-label">Título breve</span><p class="arca-regulation-card__title">${escapeHtml(shortTitle)}</p></div><span class="badge tone-pending arca-regulation-card__status" data-status="pending_human_review">Pendiente de revisión humana</span></header>${dl(
-              [
-                ["Qué regula", text(arcaHumanSubject(artifact.subject))],
+      : batch.approved_count === 3 && batch.pending_count === 0
+        ? `<section class="arca-batch-summary" aria-label="Resumen del lote regulatorio"><span class="panel-kicker">Primer lote regulatorio real</span><h3>Revisión humana completada</h3><div class="grid-metrics arca-summary-metrics"><div class="metric"><span>Alcance</span><strong>${batch.artifacts.length} normas reales</strong></div><div class="metric"><span>Pendientes reales</span><strong>0</strong></div><div class="metric"><span>Aprobadas</span><strong>${batch.approved_count}</strong></div><div class="metric"><span>Publicadas en solo lectura</span><strong>${batch.published_count}</strong></div></div><aside class="notice arca-governance-note" aria-label="Límites de gobernanza"><strong>Decisión registrada</strong><p>La revisión de texto oficial, fuentes oficiales y anexos fue declarada por Nicolas Matias Stedile. La publicación es informativa y no concede autoridad operativa.</p><p><a href="/operator/arca-library">Abrir Biblioteca ARCA →</a></p></aside></section>`
+        : `<section class="arca-batch-summary" aria-label="Resumen del lote regulatorio"><span class="panel-kicker">Primer lote regulatorio real</span><h3>Normas listas para revisión humana</h3><div class="grid-metrics arca-summary-metrics"><div class="metric"><span>Alcance</span><strong>${batch.artifacts.length} normas reales</strong></div><div class="metric"><span>Revisión</span><strong>${batch.pending_count} pendientes de revisión</strong></div><div class="metric"><span>Decisiones</span><strong>${batch.approved_count} aprobadas</strong></div><div class="metric"><span>Publicación</span><strong>Publicación deshabilitada</strong></div></div><aside class="notice arca-governance-note" aria-label="Límites de gobernanza"><strong>Límites de gobernanza</strong><p>Planificador inactivo · Ejecución ARCA no disponible · Sin interpretación legal · Interfaz de solo lectura.</p></aside></section><div class="grid3 arca-regulation-grid">${batch.artifacts
+            .map((artifact, index) => {
+              const reviewPackage =
+                batch.review_packages.find(
+                  (candidate) => candidate.artifact_id === artifact.artifact_id,
+                ) ?? batch.review_packages[index];
+              const shortIdentifier = arcaShortIdentifier(
+                artifact.instrument_number,
+                artifact.year,
+              );
+              const shortTitle = arcaShortTitle(
+                artifact.instrument_number,
+                artifact.title,
+              );
+              const sourceLinks = artifact.official_source_urls
+                .map(
+                  (source) =>
+                    `<a class="official-source-link" href="${escapeHtml(source.url)}" target="_blank" rel="noreferrer">${escapeHtml(source.source_id === "arca_biblioteca" ? "Ver en Biblioteca ARCA" : "Ver en Boletín Oficial")}</a>`,
+                )
+                .join("");
+              const effectiveDate = artifact.effective_date
+                ? `<time datetime="${escapeHtml(artifact.effective_date)}">${escapeHtml(formatArcaDate(artifact.effective_date))}</time>. ${escapeHtml(artifact.effective_date_rule)}`
+                : escapeHtml(artifact.effective_date_rule);
+              const technicalValues = [
+                `artifact_id: ${artifact.artifact_id}`,
+                `official_identifier: ${artifact.official_identifier}`,
+                `official_title: ${artifact.title}`,
+                `canonical_hash: ${artifact.canonical_hash}`,
+                `review_package_id: ${reviewPackage?.review_package_id ?? "ausente"}`,
+                `review_package_hash: ${reviewPackage?.review_package_hash ?? "ausente"}`,
+                `artifact_canonical_hash: ${reviewPackage?.artifact_canonical_hash ?? "ausente"}`,
+                `arca_page_sha256: ${artifact.source_sha256s.arca_page_sha256}`,
+                `boletin_page_sha256: ${artifact.source_sha256s.boletin_page_sha256}`,
+                `boletin_body_pdf_sha256: ${artifact.source_sha256s.boletin_body_pdf_sha256}`,
+                `official_text_sha256: ${artifact.source_sha256s.official_text_sha256}`,
+                `normalized_cross_source_text_sha256: ${artifact.source_sha256s.normalized_cross_source_text_sha256}`,
+                `schema_version: ${artifact.schema_version}`,
+                `review_schema_version: ${reviewPackage?.schema_version ?? "ausente"}`,
+                `canonicalization_version: ${artifact.canonicalization_version}`,
+                `review_status: ${artifact.review_status}`,
+                `publication_status: ${artifact.publication_status}`,
+                `interpretation_status: ${artifact.interpretation_status}`,
+                `current_status: ${artifact.current_status}`,
+                `review_lifecycle: ${reviewPackage?.lifecycle ?? "ausente"}`,
+                `review_recommendation: ${reviewPackage?.recommendation ?? "ausente"}`,
+                `review_reason_codes: ${reviewPackage?.reason_codes.join(", ") ?? "ausente"}`,
+                `acquisition_method: ${artifact.acquisition_method}`,
+                ...artifact.annexes.flatMap((annex) => [
+                  `annex_id: ${annex.annex_id}`,
+                  `annex_label: ${annex.label}`,
+                  `annex_document_number: ${annex.document_number}`,
+                  `annex_sha256: ${annex.sha256}`,
+                  `annex_arca_sha256: ${annex.arca_sha256}`,
+                  `annex_boletin_sha256: ${annex.boletin_sha256}`,
+                  `annex_arca_url: ${annex.arca_url}`,
+                  `annex_boletin_url: ${annex.boletin_url}`,
+                ]),
+              ];
+              return `<article class="card arca-regulation-card" data-regulation="${escapeHtml(shortIdentifier)}"><header class="arca-regulation-card__header"><div><span class="arca-field-label">Número de norma</span><h3 class="arca-regulation-card__identifier">${escapeHtml(shortIdentifier)}</h3><span class="arca-field-label">Título breve</span><p class="arca-regulation-card__title">${escapeHtml(shortTitle)}</p></div><span class="badge tone-pending arca-regulation-card__status" data-status="pending_human_review">Pendiente de revisión humana</span></header>${dl(
                 [
-                  "A quién puede afectar",
-                  text("No definido en el artefacto actual"),
+                  ["Qué regula", text(arcaHumanSubject(artifact.subject))],
+                  [
+                    "A quién puede afectar",
+                    text("No definido en el artefacto actual"),
+                  ],
+                  [
+                    "Fecha de publicación",
+                    `<time datetime="${escapeHtml(artifact.publication_date)}">${escapeHtml(formatArcaDate(artifact.publication_date))}</time>`,
+                  ],
+                  ["Vigencia", effectiveDate],
+                  [
+                    "Estado actual",
+                    `<span class="badge tone-verified" data-status="${escapeHtml(artifact.current_status)}">Vigente</span>`,
+                  ],
+                  [
+                    "Fuentes oficiales",
+                    `<span class="official-source-links">${sourceLinks}</span>`,
+                  ],
+                  [
+                    "Verificación entre fuentes",
+                    text(
+                      `${artifact.official_source_urls.length} fuentes oficiales coincidentes`,
+                    ),
+                  ],
+                  ["Anexos", text(arcaAnnexSummary(artifact.annexes.length))],
+                  ["Estado de revisión", badge(artifact.review_status)],
                 ],
-                [
-                  "Fecha de publicación",
-                  `<time datetime="${escapeHtml(artifact.publication_date)}">${escapeHtml(formatArcaDate(artifact.publication_date))}</time>`,
-                ],
-                ["Vigencia", effectiveDate],
-                [
-                  "Estado actual",
-                  `<span class="badge tone-verified" data-status="${escapeHtml(artifact.current_status)}">Vigente</span>`,
-                ],
-                [
-                  "Fuentes oficiales",
-                  `<span class="official-source-links">${sourceLinks}</span>`,
-                ],
-                [
-                  "Verificación entre fuentes",
-                  text(
-                    `${artifact.official_source_urls.length} fuentes oficiales coincidentes`,
-                  ),
-                ],
-                ["Anexos", text(arcaAnnexSummary(artifact.annexes.length))],
-                ["Estado de revisión", badge(artifact.review_status)],
-              ],
-            )}${codeList("Datos técnicos y trazabilidad", technicalValues)}<p class="quiet arca-regulation-card__disclaimer">${escapeHtml(artifact.disclaimer_es)}</p></article>`;
-          })
-          .join("")}</div>`;
+              )}${codeList("Datos técnicos y trazabilidad", technicalValues)}<p class="quiet arca-regulation-card__disclaimer">${escapeHtml(artifact.disclaimer_es)}</p></article>`;
+            })
+            .join("")}</div>`;
 
   return `<h2>Revisión ARCA</h2><p class="lead">Consola interna de solo lectura para revisar el primer lote regulatorio real y conservar la trazabilidad del fixture arancelario de pruebas. No ejecuta ni modifica ninguna etapa.</p>${regulatoryBatch}<section class="notice" aria-label="Origen y autoridad"><strong>Fixture arancelario test-only</strong><ul>${view.source_labels.map((value) => `<li>${escapeHtml(value)}</li>`).join("")}</ul>${codeList("Valores técnicos de origen", view.source_technical)}</section><section class="card"><span class="panel-kicker">Fixture sintético test-only</span><h3>Resumen del candidato</h3>${dl(
     [
@@ -1467,6 +1469,100 @@ function audit(model: OperatorReadModel): string {
   )}</section>`;
 }
 
+function arcaLibrary(model: OperatorReadModel): string {
+  const library = model.arca_read_only_library;
+  if (library === null)
+    return `<h2>Biblioteca normativa ARCA</h2><p class="lead">La biblioteca no está disponible porque sus registros no superaron la validación cerrada.</p><section class="notice"><strong>Publicación no disponible</strong><p>No se muestra ningún instrumento ante evidencia ausente, inválida o no vinculada.</p></section>`;
+  const items = library.items
+    .map(({ artifact, human_decision: decision, publication_record }) => {
+      const identifier = arcaShortIdentifier(
+        artifact.instrument_number,
+        artifact.year,
+      );
+      const title = arcaShortTitle(artifact.instrument_number, artifact.title);
+      const searchValue = [
+        identifier,
+        artifact.official_identifier,
+        artifact.title,
+        title,
+        ...artifact.topics,
+      ].join(" ");
+      const sourceLinks = artifact.official_source_urls
+        .map(
+          (source) =>
+            `<a class="official-source-link" href="${escapeHtml(source.url)}" target="_blank" rel="noreferrer">${escapeHtml(source.source_id === "arca_biblioteca" ? "Biblioteca ARCA oficial" : "Boletín Oficial")}</a>`,
+        )
+        .join("");
+      const effectiveDate = artifact.effective_date
+        ? `<time datetime="${escapeHtml(artifact.effective_date)}">${escapeHtml(formatArcaDate(artifact.effective_date))}</time>`
+        : escapeHtml(artifact.effective_date_rule);
+      const relationships =
+        artifact.supersedes_or_modifies.length === 0
+          ? "No se registran relaciones de modificación, derogación o implementación."
+          : artifact.supersedes_or_modifies
+              .map(
+                (relationship) =>
+                  `${relationship.relationship}: ${relationship.instrument}`,
+              )
+              .join(" · ");
+      return `<article class="card arca-regulation-card" data-arca-library-item data-search="${escapeHtml(searchValue)}"><header class="arca-regulation-card__header"><div><span class="arca-field-label">Número de norma</span><h3 class="arca-regulation-card__identifier">${escapeHtml(identifier)}</h3><p class="arca-regulation-card__title">${escapeHtml(title)}</p></div><span class="badge tone-verified arca-regulation-card__status">Publicada · solo lectura</span></header>${dl(
+        [
+          [
+            "Fecha de publicación",
+            `<time datetime="${escapeHtml(artifact.publication_date)}">${escapeHtml(formatArcaDate(artifact.publication_date))}</time>`,
+          ],
+          [
+            "Fecha de emisión",
+            `<time datetime="${escapeHtml(artifact.issue_date)}">${escapeHtml(formatArcaDate(artifact.issue_date))}</time>`,
+          ],
+          ["Vigencia", effectiveDate],
+          [
+            "Estado oficial actual",
+            `<span class="badge tone-verified">Vigente</span>`,
+          ],
+          ["Materia", text(arcaHumanSubject(artifact.subject))],
+          ["Temas", text(artifact.topics.join(" · "))],
+          ["Anexos", text(arcaAnnexSummary(artifact.annexes.length))],
+          [
+            "Fuentes oficiales",
+            `<span class="official-source-links">${sourceLinks}</span>`,
+          ],
+          [
+            "Estado de revisión",
+            `<span class="badge tone-verified">Aprobada</span>`,
+          ],
+          ["Revisor", text(decision.reviewer_name)],
+          [
+            "Fecha de revisión",
+            `<time datetime="${escapeHtml(decision.decision_date)}">${escapeHtml(formatArcaDate(decision.decision_date))}</time>`,
+          ],
+        ],
+      )}<details class="library-detail"><summary>Ver detalle normativo</summary><div>${dl(
+        [
+          ["Título oficial", text(artifact.title)],
+          ["Relaciones y sustituciones", text(relationships)],
+          [
+            "Estado de revocación",
+            text(
+              publication_record.revocation_status === "not_revoked"
+                ? "No revocada"
+                : publication_record.revocation_status,
+            ),
+          ],
+        ],
+      )}${codeList("Divulgación técnica", [
+        `artifact_id: ${artifact.artifact_id}`,
+        `canonical_artifact_hash: ${artifact.canonical_hash}`,
+        `human_decision_id: ${decision.decision_id}`,
+        `human_decision_hash: ${decision.decision_record_hash}`,
+        `publication_record_id: ${publication_record.publication_record_id}`,
+        `publication_record_hash: ${publication_record.publication_record_hash}`,
+      ])}</div></details><p class="quiet arca-regulation-card__disclaimer">${escapeHtml(publication_record.disclaimer)}</p></article>`;
+    })
+    .join("");
+  return `<h2>Biblioteca normativa ARCA</h2><p class="lead">Instrumentos con decisión humana explícita y publicación informativa de solo lectura.</p><div class="grid-metrics">${metric("Normas publicadas", text(library.published_read_only_regulations))}${metric("Aprobadas", text(library.approved_real_regulations))}${metric("Pendientes reales", text(library.pending_real_regulations))}${metric("Ejecución", `<span class="badge tone-blocked">No permitida</span>`)}</div><section class="notice" aria-label="Aviso legal"><strong>Alcance informativo</strong><p>${escapeHtml(library.publication_records[0]?.disclaimer ?? "")}</p></section><section class="library-search" role="search" aria-label="Buscar en la Biblioteca ARCA"><label for="arca-library-search">Buscar por número, título o tema<input id="arca-library-search" data-arca-library-search type="search" autocomplete="off" placeholder="Ej.: 5859, depósitos fiscales o importación"></label><output id="arca-library-count" for="arca-library-search">${library.items.length} de ${library.items.length} normas</output></section><p class="notice library-empty" data-arca-library-empty hidden>No se encontraron normas para esta búsqueda.</p><div class="grid3 arca-regulation-grid">${items}</div><p class="quiet"><a href="/operator/knowledge/regulations">Abrir referencia regulatoria histórica</a></p>`;
+}
+
 function applicationPage(model: OperatorReadModel, pathname: string): string {
   const state = REPOSITORY_CURRENT_BLOCKED_STATUS;
   if (pathname === "/operator/operations/arca")
@@ -1491,6 +1587,7 @@ function applicationPage(model: OperatorReadModel, pathname: string): string {
     );
   if (pathname === "/operator/approved-artifacts") {
     const artifact = model.arca_approved_artifact;
+    const regulatoryLibrary = model.arca_read_only_library;
     return `<h2>Artefactos aprobados</h2><p class="lead">Artefactos aprobados locales; aprobación no implica exportación, publicación ni uso productivo.</p><section class="card"><h3>Artefacto aprobado ARCA</h3>${dl(
       [
         ["Presencia", artifact.present ? badge("approved") : badge("absent")],
@@ -1505,7 +1602,19 @@ function applicationPage(model: OperatorReadModel, pathname: string): string {
       `publication_status: ${artifact.publication_status}`,
       `production_reliance: ${artifact.production_reliance}`,
       `vlatam_global_consumption: ${artifact.vlatam_global_consumption}`,
-    ])}<p><a href="/operator/arca-review">Ver trazabilidad en Revisión ARCA</a></p></section>`;
+    ])}<p><a href="/operator/arca-review">Ver trazabilidad en Revisión ARCA</a></p></section><section class="card"><h3>Normas ARCA aprobadas para publicación informativa</h3>${dl(
+      [
+        ["Aprobadas", text(regulatoryLibrary?.approved_real_regulations ?? 0)],
+        [
+          "Publicadas en solo lectura",
+          text(regulatoryLibrary?.published_read_only_regulations ?? 0),
+        ],
+        [
+          "Pendientes reales",
+          text(regulatoryLibrary?.pending_real_regulations ?? 0),
+        ],
+      ],
+    )}<p><a href="/operator/arca-library">Abrir Biblioteca ARCA →</a></p><p class="quiet">Esta aprobación no autoriza modelos, operaciones ARCA, planificador, base de datos ni interpretación legal.</p></section>`;
   }
   if (pathname === "/operator/models/registry")
     return `<h2>Registro</h2><p class="lead">Identidades registradas según el modelo de lectura del operador.</p><div class="grid2"><section class="card"><h3>Modelos</h3><ul class="status-list">${model.models
@@ -1616,6 +1725,8 @@ const CONSOLE_PAGES: Readonly<
   "/operator/providers/openrouter": openrouter,
   "/operator/review": review,
   "/operator/arca-review": arcaReview,
+  "/operator/arca-library": arcaLibrary,
+  "/operator/knowledge/regulations": arcaLibrary,
   "/operator/governance": governance,
   "/operator/blockers": blockers,
   "/operator/actions": actions,

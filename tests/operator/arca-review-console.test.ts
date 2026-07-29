@@ -65,26 +65,21 @@ describe("AI-129 read-only ARCA Operator Review Console", () => {
       assert.match(html, new RegExp(label));
   });
 
-  it("renders exactly three human-first real regulation cards with aligned status headers", async () => {
+  it("renders exactly three approved real regulation cards in the separate library", async () => {
     const model = await load();
     const batch = model.arca_regulatory_batch;
     assert.ok(batch);
-    const html = renderOperatorConsole(model, "/operator/arca-review");
+    const html = renderOperatorConsole(model, "/operator/arca-library");
     const cards = [
       ...html.matchAll(
-        /<article class="card arca-regulation-card"[\s\S]*?<\/article>/g,
+        /<article class="card arca-regulation-card" data-arca-library-item[\s\S]*?<\/article>/g,
       ),
     ].map((match) => match[0]);
 
     assert.equal(cards.length, 3);
-    assert.match(html, /<strong>3 normas reales<\/strong>/);
-    assert.match(html, /<strong>3 pendientes de revisión<\/strong>/);
-    assert.match(html, /<strong>0 aprobadas<\/strong>/);
-    assert.match(html, /<strong>Publicación deshabilitada<\/strong>/);
-    assert.match(
-      html,
-      /Planificador inactivo · Ejecución ARCA no disponible · Sin interpretación legal · Interfaz de solo lectura\./,
-    );
+    assert.match(html, /<span>Normas publicadas<\/span><strong>3<\/strong>/);
+    assert.match(html, /<span>Aprobadas<\/span><strong>3<\/strong>/);
+    assert.match(html, /<span>Pendientes reales<\/span><strong>0<\/strong>/);
 
     const expected = [
       [
@@ -112,7 +107,7 @@ describe("AI-129 read-only ARCA Operator Review Console", () => {
           card,
         )?.[0] ?? "";
       const technicalStart = card.indexOf(
-        '<details class="tech"><summary>Datos técnicos y trazabilidad</summary>',
+        '<details class="tech"><summary>Divulgación técnica</summary>',
       );
       assert.ok(technicalStart > 0);
       const primaryContent = card.slice(0, technicalStart);
@@ -126,27 +121,26 @@ describe("AI-129 read-only ARCA Operator Review Console", () => {
       assert.match(header, new RegExp(title));
       assert.match(
         header,
-        /<span class="badge tone-pending arca-regulation-card__status" data-status="pending_human_review">Pendiente de revisión humana<\/span>/,
+        /<span class="badge tone-verified arca-regulation-card__status">Publicada · solo lectura<\/span>/,
       );
       assert.doesNotMatch(primaryContent, new RegExp(artifact.artifact_id));
       assert.doesNotMatch(primaryContent, new RegExp(artifact.canonical_hash));
       assert.match(
         card,
-        /<details class="tech"><summary>Datos técnicos y trazabilidad<\/summary>/,
+        /<details class="tech"><summary>Divulgación técnica<\/summary>/,
       );
       assert.doesNotMatch(card, /<details class="tech"[^>]*\sopen(?:\s|>)/);
       assert.match(card, new RegExp(`artifact_id: ${artifact.artifact_id}`));
       assert.match(
         card,
-        new RegExp(`canonical_hash: ${artifact.canonical_hash}`),
+        new RegExp(`canonical_artifact_hash: ${artifact.canonical_hash}`),
       );
-      assert.match(card, /review_status: pending_human_review/);
-      assert.match(card, /publication_status: not_published/);
-      assert.match(card, /No definido en el artefacto actual/);
-      assert.match(card, /2 fuentes oficiales coincidentes/);
+      assert.match(card, /Estado de revisión/);
+      assert.match(card, /Aprobada/);
+      assert.match(card, /Nicolas Matias Stedile/);
       assert.match(card, new RegExp(annexSummary));
-      assert.match(card, />Ver en Biblioteca ARCA<\/a>/);
-      assert.match(card, />Ver en Boletín Oficial<\/a>/);
+      assert.match(card, />Biblioteca ARCA oficial<\/a>/);
+      assert.match(card, />Boletín Oficial<\/a>/);
     });
   });
 
@@ -156,8 +150,9 @@ describe("AI-129 read-only ARCA Operator Review Console", () => {
     assert.ok(batch);
     assert.equal(batch.artifacts.length, 3);
     assert.equal(batch.review_packages.length, 3);
-    assert.equal(batch.pending_count, 3);
-    assert.equal(batch.approved_count, 0);
+    assert.equal(batch.pending_count, 0);
+    assert.equal(batch.approved_count, 3);
+    assert.equal(batch.published_count, 3);
     assert.equal(batch.scheduler_active, false);
     assert.equal(batch.runtime_arca_execution_available, false);
     assert.equal(batch.database_write_authorized, false);
