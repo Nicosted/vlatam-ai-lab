@@ -258,6 +258,22 @@ describe("AI-134 mobile application drawer at 390x844", () => {
       /\.mobile-context\{width:100%;display:flex/,
     );
     assert.match(
+      APPLICATION_SHELL_CSS,
+      /\.arca-regulation-card__header\{display:grid;grid-template-columns:minmax\(0,1fr\) auto;align-items:start;gap:12px;min-height:126px/,
+    );
+    assert.match(
+      APPLICATION_SHELL_CSS,
+      /@media\(max-width:1120px\)\{[\s\S]*?\.arca-regulation-grid\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/,
+    );
+    assert.match(
+      APPLICATION_SHELL_CSS,
+      /@media\(max-width:820px\)\{[\s\S]*?\.arca-regulation-card__header\{grid-template-columns:1fr;min-height:0\}[\s\S]*?\.arca-regulation-card__status\{justify-self:start\}/,
+    );
+    assert.match(
+      APPLICATION_SHELL_CSS,
+      /\.official-source-link\{display:inline-flex;align-items:center;min-height:34px/,
+    );
+    assert.match(
       html,
       /data-mobile-drawer aria-hidden="true" inert aria-label=/,
     );
