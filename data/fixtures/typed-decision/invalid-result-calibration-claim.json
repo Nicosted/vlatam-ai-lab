@@ -1,0 +1,61 @@
+{
+  "contract": "typed_decision_result",
+  "schema_version": "1.0.0",
+  "result_id": "synthetic-intent-result-0001",
+  "result_origin": "synthetic_fixture",
+  "request_binding": {
+    "request_id": "synthetic-intent-request-0001",
+    "capability_id": "synthetic.decision.intent_classify",
+    "request_hash": "7eec526cfe12a866ca0f1123338398d215b47b85e4085c3e884cb14c5f9a7fda",
+    "semantic_request_hash": "daef56807bcae765bcc14ffdb98c05093bf912c871e1e7f7cdd3ee3bb8fd249c"
+  },
+  "execution_paradigm": "typed_decision",
+  "decision_type": "choice",
+  "status": "succeeded",
+  "decision": {
+    "kind": "choice",
+    "selected_candidate_id": "intent.tariff_question",
+    "distribution": {
+      "completeness": "complete",
+      "entries": [
+        {
+          "candidate_id": "intent.document_submission",
+          "probability_micros": 150000
+        },
+        {
+          "candidate_id": "intent.other",
+          "probability_micros": 50000
+        },
+        {
+          "candidate_id": "intent.tariff_question",
+          "probability_micros": 800000
+        }
+      ]
+    }
+  },
+  "confidence": {
+    "confidence_micros": 800000,
+    "semantics": "uncalibrated_candidate_reported",
+    "calibration_ref": "calibration-0001"
+  },
+  "abstention": null,
+  "block": null,
+  "failure": null,
+  "escalation": {
+    "recommendation": "none",
+    "executed": false,
+    "governed_policy_ref": null
+  },
+  "evidence_refs": [
+    {
+      "evidence_id": "synthetic-fixture-intent-0001",
+      "content_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  ],
+  "governance": {
+    "human_review_required": true,
+    "downstream_allowed": false,
+    "approval_state": "pending"
+  },
+  "result_hash": "8c189bec4f60e648016dc22939b9d803937e627fd119490b7c8e88c76f9e988b"
+}

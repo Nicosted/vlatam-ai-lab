@@ -1,0 +1,39 @@
+{
+  "contract": "typed_decision_result",
+  "schema_version": "1.0.0",
+  "result_id": "synthetic-next-step-result-0001",
+  "result_origin": "synthetic_fixture",
+  "request_binding": {
+    "request_id": "synthetic-next-step-request-0001",
+    "capability_id": "synthetic.decision.workflow_next_step_rank",
+    "request_hash": "44434629fd6cfc231e695fbd241cde0305ace69c892b82f216ebbe2e8fb7154c",
+    "semantic_request_hash": "672c0a9e0aaa8ec75e46af58ac8f4283a89a5cad96527d4075eea852f2badb17"
+  },
+  "execution_paradigm": "typed_decision",
+  "decision_type": "ranking",
+  "status": "succeeded",
+  "decision": {
+    "kind": "ranking",
+    "ordered_candidate_ids": [
+      "step.route_to_reviewer",
+      "step.request_missing_document",
+      "step.hold"
+    ]
+  },
+  "confidence": null,
+  "abstention": null,
+  "block": null,
+  "failure": null,
+  "escalation": {
+    "recommendation": "human_review",
+    "executed": false,
+    "governed_policy_ref": null
+  },
+  "evidence_refs": [],
+  "governance": {
+    "human_review_required": true,
+    "downstream_allowed": false,
+    "approval_state": "pending"
+  },
+  "result_hash": "7fbe3a604741833555b5bf589be38640e8038156af315b8199609d9e652dceb4"
+}

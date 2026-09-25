@@ -628,6 +628,14 @@ and are not deferred to later PRs.
 10. Shadow outputs must never influence production responses. Shadow runs
     are auditable side effects; the operational response always comes from
     the selected production profile.
+11. A confidence or probability value is evidence about a model output, not
+    authority to act (AI-140). No threshold grants downstream authority, and
+    confidence is not a probability of truth without a reviewed calibration
+    artifact.
+12. Typed decision execution may recommend abstention or escalation, but
+    escalation must be governed explicitly and must never behave as an
+    implicit fallback (AI-140). See
+    `docs/architecture/ai-typed-decision-plane.md`.
 
 ## 6. Roadmap alignment
 

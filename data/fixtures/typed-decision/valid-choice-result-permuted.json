@@ -1,0 +1,52 @@
+{
+  "contract": "typed_decision_result",
+  "schema_version": "1.0.0",
+  "result_id": "synthetic-intent-result-0002",
+  "result_origin": "synthetic_fixture",
+  "request_binding": {
+    "request_id": "synthetic-intent-request-0002",
+    "capability_id": "synthetic.decision.intent_classify",
+    "request_hash": "107363d8f5d0eede8e0ec9c1723444216ded63a2379ddef5dd6a4c8597f5d6c7",
+    "semantic_request_hash": "daef56807bcae765bcc14ffdb98c05093bf912c871e1e7f7cdd3ee3bb8fd249c"
+  },
+  "execution_paradigm": "typed_decision",
+  "decision_type": "choice",
+  "status": "succeeded",
+  "decision": {
+    "kind": "choice",
+    "selected_candidate_id": "intent.tariff_question",
+    "distribution": {
+      "completeness": "complete",
+      "entries": [
+        {
+          "candidate_id": "intent.document_submission",
+          "probability_micros": 140000
+        },
+        {
+          "candidate_id": "intent.other",
+          "probability_micros": 60000
+        },
+        {
+          "candidate_id": "intent.tariff_question",
+          "probability_micros": 800000
+        }
+      ]
+    }
+  },
+  "confidence": null,
+  "abstention": null,
+  "block": null,
+  "failure": null,
+  "escalation": {
+    "recommendation": "none",
+    "executed": false,
+    "governed_policy_ref": null
+  },
+  "evidence_refs": [],
+  "governance": {
+    "human_review_required": true,
+    "downstream_allowed": false,
+    "approval_state": "pending"
+  },
+  "result_hash": "62059d24d2eca4b11c419aa8a0028b6a9d5a171d0df8a18621a6f07905ab132f"
+}

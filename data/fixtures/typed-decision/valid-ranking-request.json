@@ -1,0 +1,46 @@
+{
+  "contract": "typed_decision_request",
+  "schema_version": "1.0.0",
+  "request_id": "synthetic-next-step-request-0001",
+  "capability_id": "synthetic.decision.workflow_next_step_rank",
+  "execution_paradigm": "typed_decision",
+  "decision_type": "ranking",
+  "bounded_state": {
+    "facts": [
+      {
+        "fact_id": "workflow.stage",
+        "value_type": "string",
+        "value": "synthetic_intake"
+      }
+    ]
+  },
+  "question": {
+    "question_id": "synthetic.workflow.next_step",
+    "text": "Rank the declared next steps for this synthetic intake workflow."
+  },
+  "output_domain": {
+    "kind": "ranking",
+    "candidates": [
+      {
+        "candidate_id": "step.request_missing_document",
+        "label": "Request missing document"
+      },
+      {
+        "candidate_id": "step.route_to_reviewer",
+        "label": "Route to human reviewer"
+      },
+      {
+        "candidate_id": "step.hold",
+        "label": "Hold"
+      }
+    ]
+  },
+  "policy": {
+    "data_classification": "internal",
+    "human_review_required": true,
+    "abstention_permitted": true,
+    "escalation_policy_ref": null,
+    "downstream_use": "none"
+  },
+  "evidence_refs": []
+}
