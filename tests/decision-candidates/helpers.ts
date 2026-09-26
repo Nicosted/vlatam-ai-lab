@@ -31,6 +31,13 @@ export function adapterEntry(): Mutable {
   return load<Mutable>(`${FIXTURE_ROOT}/valid-candidate-entry-multi-role.json`);
 }
 
+/** A candidate whose requested repository moved to a resolved one. */
+export function movedEntry(): Mutable {
+  return load<Mutable>(
+    `${FIXTURE_ROOT}/valid-candidate-entry-moved-repository.json`,
+  );
+}
+
 export function fixtureRegistry(): Mutable {
   return load<Mutable>(`${FIXTURE_ROOT}/valid-candidate-registry.json`);
 }

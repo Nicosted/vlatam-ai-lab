@@ -16,6 +16,7 @@ import {
   codes,
   fixtureRegistry,
   modelEntry,
+  movedEntry,
   mutateEntry,
   registryFor,
   rehashRegistry,
@@ -134,6 +135,28 @@ describe("AI-142 candidate registry manifest", () => {
       registryCodes(fixtureRegistry(), [changed, adapterEntry()]),
       ["candidate_binding_mismatch"],
     );
+  });
+
+  it("binds a moved candidate by its resolved repository, not the requested one", () => {
+    const moved = movedEntry();
+    const registry = registryFor([moved, adapterEntry()]);
+    assert.equal(
+      validateDecisionCandidateRegistry(registry, [moved, adapterEntry()]).ok,
+      true,
+    );
+    const binding = (registry["candidates"] as Mutable[]).find(
+      (b) => b["candidate_id"] === moved["candidate_id"],
+    )!;
+    assert.equal(binding["repository"], moved["upstream"]["repository"]);
+    const requested = mutateRegistry(registry, (r) => {
+      const b = (r["candidates"] as Mutable[]).find(
+        (x) => x["candidate_id"] === moved["candidate_id"],
+      )!;
+      b["repository"] = moved["upstream"]["requested_repository"];
+    });
+    assert.deepEqual(registryCodes(requested, [moved, adapterEntry()]), [
+      "candidate_binding_mismatch",
+    ]);
   });
 
   it("rejects out-of-order bindings without re-sorting them", () => {

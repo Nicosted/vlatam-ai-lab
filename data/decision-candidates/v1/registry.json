@@ -50,8 +50,8 @@
     {
       "candidate_id": "tdc-theoleecj-semif",
       "evidence_revision": 1,
-      "candidate_hash": "cc22fdec03191e196c969222b6292cda75ed5c3a5c90987f248d7da7df65abdf",
-      "repository": "theoleecj/semif",
+      "candidate_hash": "02c465ac9c13b88f0cda245eae350f45b0d91cd66b24e0ededf9d73df5228f29",
+      "repository": "TheoLeeCJ/SemIf-OpenJev",
       "pinned_commit_sha": "23cf1f39fc9534fe81437200959b6dfc7106e45a",
       "roles": ["research_methodology", "typed_decision_adapter"],
       "evidence_completeness": "incomplete"
@@ -84,5 +84,5 @@
   "evidence_completeness_distribution": {
     "incomplete": 7
   },
-  "registry_hash": "26c171586581d9ad3292181627c0638ec75af7f30d7dc495bbe5bc3df73ffd8e"
+  "registry_hash": "bd6e3aadd0518e189b704a543edb04f638414eae50ab67d1a94e732439965cfd"
 }

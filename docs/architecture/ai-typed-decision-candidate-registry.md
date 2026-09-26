@@ -275,7 +275,7 @@ independent, read-only evidence capture pinned to an exact commit.
 
 Seed registry `ai-lab-typed-decision-candidates@1.0.0`
 (`data/decision-candidates/v1/`), review state **`in_review`**, registry
-hash `26c171586581d9ad3292181627c0638ec75af7f30d7dc495bbe5bc3df73ffd8e`.
+hash `bd6e3aadd0518e189b704a543edb04f638414eae50ab67d1a94e732439965cfd`.
 
 **Capture method.** On 2026-09-26 (13:31–13:32 UTC), with human
 authorization, each repository was fetched read-only as a shallow, bare,
@@ -287,8 +287,26 @@ blob SHA recomputed from the exact bytes and its SHA-256 recorded. Only
 short factual statements written for this registry are committed; no
 upstream file is copied. The GitHub REST API and web UI were not
 reachable from the capture environment, so repository metadata (the
-archived flag) is `unresolved` for every entry; git-level HTTP responses
-showed no redirect for any of the seven.
+archived flag) is `unresolved` for every entry.
+
+**Repository moves.** The capture proxy follows GitHub's redirects
+transparently: git and raw-content requests to a moved repository return
+`200`, so the capture environment cannot detect a move on its own.
+Independent review found that `theoleecj/semif` has moved permanently to
+`TheoLeeCJ/SemIf-OpenJev` (default branch `master`). The entry keeps
+`requested_repository: "theoleecj/semif"` and records the resolved
+`repository`, `repository_url`, evidence locators and source URLs under
+`TheoLeeCJ/SemIf-OpenJev`. A read-only re-fetch of the canonical
+repository (2026-09-26 13:58 UTC) confirmed that the pinned commit
+`23cf1f39…` exists there as the `master` head, and that `LICENSE`,
+`README.md` and `THIRD_PARTY.md` have identical git blob SHAs and SHA-256
+values. Because the registry is unmerged and `in_review`, this was
+corrected in place: `evidence_revision` stays `1`, `registry_version`
+stays `1.0.0`, and only the SemIf `candidate_hash` and the `registry_hash`
+changed. The canonical identity rests on that independent review, not on
+repository metadata captured here. For the other six, each project's own
+files at the pinned commit reference the requested `owner/name`, and no
+mismatch is known; that is a weak signal, not proof that no move exists.
 
 | Candidate                         | Pinned commit | Roles                                            | Code license           | Weights                                                  | Base model (license)                         | Training data         |
 | --------------------------------- | ------------- | ------------------------------------------------ | ---------------------- | -------------------------------------------------------- | -------------------------------------------- | --------------------- |
@@ -315,7 +333,9 @@ files. Notable recorded facts, none verified by AI LAB:
   THIRD_PARTY files) are recorded as upstream claims or
   `third_party_notice` evidence, never as the base model's own license.
 - **SemIf** is a direct-logit adapter over existing models and distributes
-  no weights. **Rizzo Flow** is primarily a llama.cpp-based runtime that
+  no weights. It was requested as `theoleecj/semif` and resolves to
+  `TheoLeeCJ/SemIf-OpenJev` (its README at the pinned commit also links to
+  an intermediate name, `TheoLeeCJ/SemIf`). **Rizzo Flow** is primarily a llama.cpp-based runtime that
   also ships its own fine-tuned weights since 2026-09-25. **Kev**'s four
   sizes stay one entry.
 - **Von**'s option-order invariance is an upstream claim; its README gives
@@ -347,8 +367,9 @@ declare commercial/legal suitability.
   a point in time bound by a snapshot hash; it is not content-addressed
   by the upstream host.
 - The seed capture could not observe the GitHub repository record, so
-  every seed entry has `archive_state: "unresolved"`; redirects were
-  checked only at the git HTTP layer.
+  every seed entry has `archive_state: "unresolved"`. The capture proxy
+  also hides repository redirects, so a move is only recorded when
+  independent review establishes it.
 - Only `github.com` is admitted as an upstream host in `1.0.0`.
 - License identifiers are recorded as declared text; the validator checks
   shape and evidence kind, not legal meaning.

@@ -15,6 +15,7 @@ import {
   clone,
   codes,
   modelEntry,
+  movedEntry,
   mutateEntry,
   rehashEntry,
   type Mutable,
@@ -209,18 +210,6 @@ describe("AI-142 candidate entry: pinned upstream revision", () => {
     );
   });
 
-  it("records a redirect explicitly instead of hiding it", () => {
-    const entry = assertValid(
-      mutateEntry(modelEntry(), (e) => {
-        e["upstream"]["requested_repository"] = "ai-lab-fixtures/old-name";
-      }),
-    );
-    assert.notEqual(
-      entry.upstream.requested_repository,
-      entry.upstream.repository,
-    );
-  });
-
   it("rejects malformed timestamps", () => {
     for (const bad of [
       "2026-02-30T00:00:00Z",
@@ -233,6 +222,95 @@ describe("AI-142 candidate entry: pinned upstream revision", () => {
         }),
         "timestamp_invalid",
       );
+  });
+});
+
+describe("AI-142 candidate entry: moved or redirected repositories", () => {
+  const moved = movedEntry;
+  const RESOLVED = "ai-lab-fixtures/synthetic-decision-model";
+  const REQUESTED = "ai-lab-fixtures/old-decision-model-name";
+
+  it("records the requested repository separately from the resolved one", () => {
+    const entry = assertValid(moved());
+    assert.equal(entry.upstream.requested_repository, REQUESTED);
+    assert.equal(entry.upstream.repository, RESOLVED);
+    assert.equal(
+      entry.upstream.repository_url,
+      `https://github.com/${RESOLVED}`,
+    );
+    for (const evidence of entry.evidence) {
+      assert.equal(evidence.locator.repository, RESOLVED);
+      assert.ok(
+        evidence.locator.source_url.startsWith(
+          `https://github.com/${RESOLVED}/`,
+        ),
+        evidence.locator.source_url,
+      );
+    }
+  });
+
+  it("requires repository_url to name the resolved repository", () => {
+    assertIssue(
+      mutateEntry(moved(), (e) => {
+        e["upstream"]["repository_url"] = `https://github.com/${REQUESTED}`;
+      }),
+      "repository_url_mismatch",
+      "candidate.upstream.repository_url",
+    );
+  });
+
+  it("requires every evidence locator to use the resolved repository", () => {
+    for (const index of [0, 1, 2])
+      assertIssue(
+        mutateEntry(moved(), (e) => {
+          e["evidence"][index]["locator"]["repository"] = REQUESTED;
+        }),
+        "evidence_repository_mismatch",
+        `candidate.evidence[${index}].locator.repository`,
+      );
+  });
+
+  it("requires every immutable source URL to use the resolved repository", () => {
+    for (const index of [0, 1, 2])
+      assertIssue(
+        mutateEntry(moved(), (e) => {
+          const locator = e["evidence"][index]["locator"];
+          locator["source_url"] = locator["source_url"].replace(
+            RESOLVED,
+            REQUESTED,
+          );
+        }),
+        "evidence_locator_invalid",
+        `candidate.evidence[${index}].locator.source_url`,
+      );
+  });
+
+  it("keeps candidate identity stable when a move is recorded", () => {
+    // Before the move was known, the entry recorded the requested name as
+    // the resolved one. Correcting it changes the evidence binding (and so
+    // the hash), never the candidate identity.
+    const before = mutateEntry(moved(), (e) => {
+      e["upstream"]["repository"] = REQUESTED;
+      e["upstream"]["repository_url"] = `https://github.com/${REQUESTED}`;
+      for (const evidence of e["evidence"] as Mutable[]) {
+        evidence["locator"]["repository"] = REQUESTED;
+        evidence["locator"]["source_url"] = evidence["locator"][
+          "source_url"
+        ].replace(RESOLVED, REQUESTED);
+      }
+    });
+    const after = assertValid(moved());
+    assertValid(before);
+    assert.equal(after.candidate_id, before["candidate_id"]);
+    assert.equal(
+      after.upstream.requested_repository,
+      before["upstream"]["requested_repository"],
+    );
+    assert.equal(
+      after.upstream.pinned_commit_sha,
+      before["upstream"]["pinned_commit_sha"],
+    );
+    assert.notEqual(after.candidate_hash, before["candidate_hash"]);
   });
 });
 

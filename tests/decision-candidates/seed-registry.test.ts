@@ -43,6 +43,14 @@ function byId(
  * A refresh must add a new evidence revision and registry version; it
  * never silently rewrites these.
  */
+/**
+ * The repository names AI LAB was asked to inspect, where they differ from
+ * the resolved repository (moves and redirects stay visible).
+ */
+const REQUESTED: Record<string, string> = {
+  "tdc-theoleecj-semif": "theoleecj/semif",
+};
+
 const PINNED: Record<string, readonly [string, string]> = {
   "tdc-bespokelabsai-nimble": [
     "bespokelabsai/nimble",
@@ -60,8 +68,9 @@ const PINNED: Record<string, readonly [string, string]> = {
     "Rizzo-AI-Academy/rizzo-flow",
     "b9ba007ee4d2928bbab5b1d8bfe9009c3696b6de",
   ],
+  // Requested as theoleecj/semif; the host resolves it to this repository.
   "tdc-theoleecj-semif": [
-    "theoleecj/semif",
+    "TheoLeeCJ/SemIf-OpenJev",
     "23cf1f39fc9534fe81437200959b6dfc7106e45a",
   ],
   "tdc-tianyucodings-nanojev": [
@@ -118,7 +127,14 @@ describe("AI-142 seed candidate registry ai-lab-typed-decision-candidates@1.0.0"
     for (const entry of entries) {
       const [repository, commit] = PINNED[entry.candidate_id]!;
       assert.equal(entry.upstream.repository, repository);
-      assert.equal(entry.upstream.requested_repository, repository);
+      assert.equal(
+        entry.upstream.requested_repository,
+        REQUESTED[entry.candidate_id] ?? repository,
+      );
+      assert.equal(
+        entry.upstream.repository_url,
+        `https://github.com/${repository}`,
+      );
       assert.equal(entry.upstream.pinned_commit_sha, commit);
       assert.match(entry.upstream.pinned_commit_sha, /^[a-f0-9]{40}$/);
       assert.equal(entry.evidence_revision, 1);
@@ -302,11 +318,51 @@ describe("AI-142 seed candidate registry ai-lab-typed-decision-candidates@1.0.0"
     }
   });
 
+  it("records the SemIf move without changing identity, revision or evidence bytes", () => {
+    const { registry, entries } = readRegistry();
+    const semif = byId(entries, "tdc-theoleecj-semif");
+    assert.equal(semif.upstream.requested_repository, "theoleecj/semif");
+    assert.equal(semif.upstream.repository, "TheoLeeCJ/SemIf-OpenJev");
+    assert.equal(semif.evidence_revision, 1);
+    assert.equal(semif.upstream.default_branch_at_observation, "master");
+    assert.deepEqual(
+      semif.evidence.map((e) => [
+        e.locator.path,
+        e.locator.blob_sha,
+        e.content_sha256,
+      ]),
+      [
+        [
+          "LICENSE",
+          "ca562883550941229de6555a8374fe2c83a18e08",
+          "f765f2140f8507a8f0d81ec0fd2c4bd72fe6a066841ef27883ff876a76bf61be",
+        ],
+        [
+          "README.md",
+          "8f607dad48e9bff34b5bb5079e3d825715b01134",
+          "89f00284285ea0dac7b0e10ff04ebe643e37fb1a3165ab7dbd13686e97d65f62",
+        ],
+        [
+          "THIRD_PARTY.md",
+          "c11c1a471d6d9d35173dd244c2a4148dda098e90",
+          "cf1815041c71181c6601c8acde1dd0d93fc4c9528efcd4a0637922d7fa96286b",
+        ],
+      ],
+    );
+    const binding = registry.candidates.find(
+      (c) => c.candidate_id === "tdc-theoleecj-semif",
+    )!;
+    assert.equal(binding.repository, "TheoLeeCJ/SemIf-OpenJev");
+    assert.equal(binding.candidate_hash, semif.candidate_hash);
+    assert.equal(registry.registry_version, "1.0.0");
+    assert.equal(registry.supersedes, null);
+  });
+
   it("is bound by a deterministic registry hash", () => {
     const { registry } = readRegistry();
     assert.equal(
       registry.registry_hash,
-      "26c171586581d9ad3292181627c0638ec75af7f30d7dc495bbe5bc3df73ffd8e",
+      "bd6e3aadd0518e189b704a543edb04f638414eae50ab67d1a94e732439965cfd",
     );
   });
 });

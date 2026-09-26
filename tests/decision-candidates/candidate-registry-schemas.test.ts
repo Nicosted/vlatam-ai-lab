@@ -87,19 +87,18 @@ describe("AI-142 candidate registry JSON Schemas", () => {
     }
   });
 
-  it("the multi-role fixture satisfies the entry schema", () => {
+  it("the multi-role and moved-repository fixtures satisfy the entry schema", () => {
     const validate = schemaValidator(
       "schemas/ai-typed-decision-candidate-entry.schema.json",
     );
-    assert.equal(
-      validate(
-        load(
-          "data/fixtures/decision-candidates/valid-candidate-entry-multi-role.json",
-        ),
-      ),
-      true,
-      JSON.stringify(validate.errors),
-    );
+    for (const name of [
+      "valid-candidate-entry-multi-role.json",
+      "valid-candidate-entry-moved-repository.json",
+    ]) {
+      const fixture = load(`data/fixtures/decision-candidates/${name}`);
+      assert.equal(validate(fixture), true, JSON.stringify(validate.errors));
+      assert.equal(validateDecisionCandidateEntry(fixture).ok, true, name);
+    }
   });
 
   it("schemas are closed and carry no authority-granting field", () => {
