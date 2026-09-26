@@ -1,0 +1,43 @@
+{
+  "contract": "typed_decision_request",
+  "schema_version": "1.0.0",
+  "request_id": "synthetic-unbound-request-0001",
+  "capability_id": "synthetic.decision.unbound_route",
+  "execution_paradigm": "typed_decision",
+  "decision_type": "choice",
+  "bounded_state": {
+    "facts": [
+      {
+        "fact_id": "record.flag_count",
+        "value_type": "integer",
+        "value": 1
+      }
+    ]
+  },
+  "question": {
+    "question_id": "synthetic.unbound.primary",
+    "text": "Which declared synthetic lane should this unreviewed synthetic record use?"
+  },
+  "output_domain": {
+    "kind": "choice",
+    "candidates": [
+      {
+        "candidate_id": "lane.east",
+        "label": "Synthetic east lane"
+      },
+      {
+        "candidate_id": "lane.west",
+        "label": "Synthetic west lane"
+      }
+    ],
+    "complete_distribution_required": true
+  },
+  "policy": {
+    "data_classification": "internal",
+    "human_review_required": true,
+    "abstention_permitted": true,
+    "escalation_policy_ref": null,
+    "downstream_use": "none"
+  },
+  "evidence_refs": []
+}

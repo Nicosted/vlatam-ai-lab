@@ -22,9 +22,13 @@ import {
 } from "../../src/decision-sandbox/fixture/direct-logit-method-adapter.mjs";
 import {
   computeTypedDecisionRequestHash,
+  computeTypedDecisionResultHash,
   computeTypedDecisionSemanticRequestHash,
 } from "../../src/decision/canonical.js";
-import type { TypedDecisionRequest } from "../../src/decision/contracts.js";
+import type {
+  TypedDecisionRequest,
+  TypedDecisionResult,
+} from "../../src/decision/contracts.js";
 import { validateTypedDecisionResultForRequest } from "../../src/decision/validation.js";
 import { validateDecisionCandidateEntry } from "../../src/decision-candidates/index.js";
 import {
@@ -61,6 +65,7 @@ const REQUESTS = {
   sixteen: `${REQUEST_ROOT}/choice-request-sixteen-options.json`,
   topTie: `${REQUEST_ROOT}/choice-request-top-tie.json`,
   seventeen: `${REQUEST_ROOT}/choice-request-seventeen-options.json`,
+  unbound: `${REQUEST_ROOT}/choice-request-unbound.json`,
   boolean: "data/fixtures/typed-decision/valid-boolean-request.json",
   score: "data/fixtures/typed-decision/valid-score-request.json",
   ranking: "data/fixtures/typed-decision/valid-ranking-request.json",
@@ -212,31 +217,104 @@ describe("AI-144 direct-logit method fixture under the AI-143 sandbox", () => {
     assert.deepEqual(first.result, second.result);
   });
 
-  it("a tie at the maximum synthetic logit fails closed with no result", async () => {
-    const execution = await executeDecisionSandboxFixture(
-      methodExecution("topTie"),
-    );
+  /**
+   * Two layers: the AI-143 record says the process and protocol succeeded;
+   * the nested AI-140 result carries the decision-level outcome.
+   */
+  async function assertTypedOutcome(
+    value: Mutable,
+    req: TypedDecisionRequest,
+  ): Promise<TypedDecisionResult> {
+    const execution = await executeDecisionSandboxFixture(value);
     const record = execution.record as unknown as Mutable;
-    assert.equal(record["status"], "process_failed");
-    assert.equal(record["process_outcome"]["exit_code"], 6);
-    assert.deepEqual(record["diagnostics"], ["process_exit_nonzero"]);
-    assert.equal(record["typed_result_hash"], null);
-    assert.equal(execution.result, null);
+    assert.equal(record["status"], "succeeded", JSON.stringify(record));
+    assert.deepEqual(record["process_outcome"], {
+      started: true,
+      exit_code: 0,
+      signal: null,
+      terminated_by_runtime: "none",
+    });
+    assert.deepEqual(record["diagnostics"], []);
     assertRecordIntegrity(record);
+    const result = execution.result;
+    assert.ok(result, "a typed result exists");
+    assert.equal(record["typed_result_hash"], result.result_hash);
+    assert.equal(result.result_hash, computeTypedDecisionResultHash(result));
+    assert.equal(validateTypedDecisionResultForRequest(result, req).ok, true);
+    assert.equal(result.result_origin, "synthetic_fixture");
+    assert.equal(result.execution_paradigm, "typed_decision");
+    assert.equal(result.decision_type, "choice");
+    assert.equal(result.governance.downstream_allowed, false);
+    assert.equal(result.escalation.executed, false);
+    assert.equal(result.decision, null);
+    assert.equal(result.confidence, null);
+    assert.equal(result.failure, null);
+    return result;
+  }
+
+  it("a tie at the maximum synthetic logit is a succeeded execution carrying a typed abstention", async () => {
+    const result = await assertTypedOutcome(
+      methodExecution("topTie"),
+      request("topTie"),
+    );
+    assert.equal(result.status, "abstained");
+    assert.deepEqual(result.abstention, { reason_code: "ambiguous" });
+    assert.equal(result.block, null);
   });
 
-  it("a request with no reviewed synthetic logits fails closed with no result", async () => {
+  it("no reviewed synthetic logits is a succeeded execution carrying a typed block", async () => {
+    const unbound = await assertTypedOutcome(
+      methodExecution("unbound"),
+      request("unbound"),
+    );
+    assert.equal(unbound.status, "blocked");
+    assert.deepEqual(unbound.block, { reason_code: "execution_unavailable" });
+    assert.equal(unbound.abstention, null);
+
+    // Same semantics as a reviewed request, but this exact request was
+    // never bound to synthetic logits.
     const renamed = clone(request("intent")) as Mutable;
     renamed["request_id"] = "synthetic-intent-request-0099";
-    const value = methodExecution("intent");
+    const value = methodExecution("intent", "ai144-method-renamed-0001");
     value["request"] = renamed;
     value["request_hash"] = computeTypedDecisionRequestHash(
       renamed as TypedDecisionRequest,
     );
-    const execution = await executeDecisionSandboxFixture(value);
-    assert.equal(execution.record.status, "process_failed");
-    assert.equal(execution.record.process_outcome.exit_code, 3);
-    assert.equal(execution.result, null);
+    const blocked = await assertTypedOutcome(
+      value,
+      renamed as TypedDecisionRequest,
+    );
+    assert.equal(blocked.status, "blocked");
+    assert.deepEqual(blocked.block, { reason_code: "execution_unavailable" });
+  });
+
+  it("genuine technical conditions still produce AI-143 technical failures, never typed outcomes", async () => {
+    // Malformed adapter output (AI-143 replay fixture behaviours).
+    const malformed = await executeDecisionSandboxFixture(
+      executionRequest("fixture-behavior-malformed-json-0001"),
+    );
+    assert.equal(malformed.record.status, "protocol_failed");
+    assert.equal(malformed.result, null);
+    const nonzero = await executeDecisionSandboxFixture(
+      executionRequest("fixture-behavior-exit-nonzero-0001"),
+    );
+    assert.equal(nonzero.record.status, "process_failed");
+    assert.equal(nonzero.result, null);
+    // A runtime failure around the method fixture discards the typed
+    // abstention rather than reporting it.
+    const cleanup = await executeDecisionSandboxFixture(
+      methodExecution("topTie", "ai144-method-cleanup-0001"),
+      {
+        workspace_removal: () => {
+          throw new Error("synthetic cleanup failure");
+        },
+      },
+    );
+    assert.equal(cleanup.record.status, "runtime_failed");
+    assert.ok(cleanup.record.diagnostics.includes("workspace_cleanup_failed"));
+    assert.equal(cleanup.record.typed_result_hash, null);
+    assert.equal(cleanup.result, null);
+    assertRecordIntegrity(cleanup.record as unknown as Mutable);
   });
 
   for (const key of ["boolean", "score", "ranking"] as const)

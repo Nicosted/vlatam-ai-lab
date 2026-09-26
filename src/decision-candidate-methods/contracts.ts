@@ -194,7 +194,19 @@ export interface DirectLogitMethodParameters {
   readonly normalization: "softmax_max_shift_candidate_id_order";
   readonly probability_rounding: "floor_then_largest_remainder_candidate_id_ascending";
   readonly selection: "unique_maximum_logit";
+  /** No candidate is selected on a tie at the maximum logit. */
   readonly top_logit_tie: "fail_closed";
+  /**
+   * The fail-closed tie outcome is an explicit AI-140 abstention
+   * (`abstained`, reason `ambiguous`), never a process failure.
+   */
+  readonly top_logit_tie_outcome: "typed_abstention_ambiguous";
+  /**
+   * No reviewed synthetic logits bound to the exact request: an explicit
+   * AI-140 block (`blocked`, reason `execution_unavailable`), never a
+   * runtime or model failure.
+   */
+  readonly unbound_synthetic_logits_outcome: "typed_block_execution_unavailable";
   readonly distribution: "complete";
 }
 
@@ -211,6 +223,8 @@ export const DIRECT_LOGIT_METHOD_PARAMETERS: DirectLogitMethodParameters =
     probability_rounding: "floor_then_largest_remainder_candidate_id_ascending",
     selection: "unique_maximum_logit",
     top_logit_tie: "fail_closed",
+    top_logit_tie_outcome: "typed_abstention_ambiguous",
+    unbound_synthetic_logits_outcome: "typed_block_execution_unavailable",
     distribution: "complete",
   });
 

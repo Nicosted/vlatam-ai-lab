@@ -194,7 +194,7 @@ export const DECISION_SANDBOX_DIRECT_LOGIT_METHOD_ADAPTER: DecisionSandboxFixtur
     artifact_path:
       "src/decision-sandbox/fixture/direct-logit-method-adapter.mjs",
     artifact_sha256:
-      "47fd52b6a952b6b7b3ad7053286e03242fa762830d92eae9f1a99d285b8e4f65",
+      "5cc95a5209b2b8a60ef68735772fd9fc3fc93796173fcbedd67d8ecab38d509d",
     protocol_version: DECISION_ADAPTER_PROTOCOL_VERSION,
     result_origin: "synthetic_fixture",
     supported_decision_types: Object.freeze(["choice"] as const),

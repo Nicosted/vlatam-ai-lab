@@ -378,6 +378,12 @@ describe("AI-144 candidate adapter specification", () => {
     assert.equal(s.execution_mode, "synthetic_logits_only");
     assert.equal(s.result_origin, "synthetic_fixture");
     assert.equal(s.authority, "none");
+    assert.equal(s.method.top_logit_tie, "fail_closed");
+    assert.equal(s.method.top_logit_tie_outcome, "typed_abstention_ambiguous");
+    assert.equal(
+      s.method.unbound_synthetic_logits_outcome,
+      "typed_block_execution_unavailable",
+    );
     assert.equal(s.benchmark_eligible, false);
     assert.equal(s.promotion_eligible, false);
     assert.equal(s.production_eligible, false);
@@ -416,6 +422,16 @@ describe("AI-144 candidate adapter specification", () => {
       ],
       [
         (v: Mutable) => (v["method"]["top_logit_tie"] = "first_position"),
+        "method_parameters_invalid",
+      ],
+      [
+        (v: Mutable) =>
+          (v["method"]["top_logit_tie_outcome"] = "process_failure"),
+        "method_parameters_invalid",
+      ],
+      [
+        (v: Mutable) =>
+          (v["method"]["unbound_synthetic_logits_outcome"] = "process_failure"),
         "method_parameters_invalid",
       ],
       [

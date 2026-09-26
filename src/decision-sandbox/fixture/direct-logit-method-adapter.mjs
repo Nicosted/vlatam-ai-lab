@@ -13,10 +13,11 @@
  *
  * It executes methodology, not candidate-supplied code or model weights.
  * It contains no upstream code, no model, no weights, no provider, no
- * network, no filesystem access, no credentials and no customer data. It performs no natural-language inference: the only
- * numeric evidence it reads is the embedded, repository-owned synthetic
- * logit fixture set below, keyed by the exact AI-140 request hash the
- * runtime verified. Every result has `result_origin: "synthetic_fixture"`.
+ * network, no filesystem access, no credentials and no customer data. It
+ * performs no natural-language inference: the only numeric evidence it
+ * reads is the embedded, repository-owned synthetic logit fixture set
+ * below, keyed by the exact AI-140 request hash the runtime verified.
+ * Every result has `result_origin: "synthetic_fixture"`.
  * A method-conformance success is not evidence of model quality.
  *
  * Method (pure; `readoutDirectOptionLogits`):
@@ -32,29 +33,43 @@
  *     1_000_000 - sum(floors) micros go one each to the largest fractional
  *     remainders; equal remainders resolve by ascending `candidate_id`. The
  *     distribution always sums to exactly 1_000_000.
- *  5. Selection: the unique maximum logit. A tie at the maximum is
- *     refused (the upstream tie-break is positional, which would make the
- *     selection depend on display order). No temperature or calibration is
- *     applied.
+ *  5. Selection: the unique maximum logit. No temperature or calibration
+ *     is applied.
+ *
+ * Typed outcomes (AI-140 results; the process exits 0 for all three):
+ *  - `succeeded`: the unique maximum-logit candidate with the complete
+ *    distribution and uncalibrated confidence.
+ *  - `abstained` / `ambiguous`: a tie at the maximum logit. No candidate
+ *    is selected: the upstream tie-break is positional (display order), so
+ *    it is not adopted and no other tie-break is invented. Abstention is a
+ *    decision-level outcome, never a process failure.
+ *  - `blocked` / `execution_unavailable`: no reviewed synthetic logit
+ *    fixture is bound to the exact request hash. The method cannot run
+ *    for this request; the runtime did not fail.
  *
  * Supported: AI-140 `choice` only. `boolean`, `score` and `ranking` are
- * refused here as well as before process creation.
+ * blocked before process creation; reaching this adapter with one is a
+ * contract violation.
  *
- * Result hashing: the sandbox grants read access to this file only, so it
- * cannot import the repository canonicalizer. It builds its single fixed
- * result shape with every key already in `registry-json-v1` order and
- * hashes `JSON.stringify` of it under the AI-140 result domain. This is
- * not a general canonicalizer; the runtime independently recomputes the
- * AI-140 result hash on every output and rejects any mismatch.
+ * Hashing: the sandbox grants read access to this file only, so it cannot
+ * import the repository canonicalizer. It builds its fixed result shape,
+ * and the fixed AI-140 choice-request semantic payload, with every key
+ * already in `registry-json-v1` order and hashes `JSON.stringify` of them
+ * under the AI-140 domains. This is not a general canonicalizer; the
+ * runtime independently recomputes the AI-140 result hash and semantic
+ * request hash on every output and rejects any mismatch.
  *
  * Protocol `ai-lab-decision-adapter` 1.0.0, framing `json-line-v1`: read
  * exactly one compact JSON line from stdin until EOF, write exactly one
  * compact JSON line to stdout. stderr is never written.
  *
- * Closed exit codes: 2 input framing/protocol invalid, 3 no synthetic
- * logit fixture bound to the request hash, 4 refused environment, 5
- * method refusal (unsupported request, candidate set mismatch, invalid
- * logit, normalization failure), 6 tie at the maximum logit.
+ * Non-zero exits are reserved for technical defects that no admitted
+ * AI-140 result can represent: 2 input framing/protocol invalid, 3
+ * embedded fixture set inconsistent with the request (several fixtures
+ * bind one hash, or a bound fixture disagrees on capability or semantic
+ * request hash), 4 refused environment, 5 method contract violation
+ * (non-choice request, candidate set mismatch, invalid logit,
+ * normalization failure).
  *
  * The adapter refuses (exit 4, no output) unless it runs with an empty
  * environment under the Node permission model, as the sandbox runtime
@@ -71,6 +86,8 @@ const PROTOCOL = "ai-lab-decision-adapter";
 const PROTOCOL_VERSION = "1.0.0";
 const MAX_INPUT_BYTES = 65536;
 const RESULT_HASH_DOMAIN = "vlatam-ai-lab:typed-decision-result:v1";
+const SEMANTIC_REQUEST_HASH_DOMAIN =
+  "vlatam-ai-lab:typed-decision-request-semantic:v1";
 const CANDIDATE_ID_PATTERN = /^[a-z0-9][a-z0-9._-]{1,127}$/;
 
 export const DIRECT_LOGIT_METHOD = Object.freeze({
@@ -83,10 +100,9 @@ export const DIRECT_LOGIT_METHOD = Object.freeze({
 
 export const EXIT_CODES = Object.freeze({
   input_invalid: 2,
-  fixture_unbound: 3,
+  fixture_set_invalid: 3,
   environment_refused: 4,
-  method_refused: 5,
-  top_logit_tie: 6,
+  method_contract_violation: 5,
 });
 
 function deepFreeze(value) {
@@ -314,11 +330,15 @@ export function readoutDirectOptionLogits(candidateIds, logits) {
   };
 }
 
-/** The unique embedded fixture bound to an exact request hash, or null. */
-export function findSyntheticLogitFixture(requestHash) {
-  const matches = SYNTHETIC_LOGIT_FIXTURES.filter((fixture) =>
+function boundFixtures(requestHash) {
+  return SYNTHETIC_LOGIT_FIXTURES.filter((fixture) =>
     fixture.request_binding.request_hashes.includes(requestHash),
   );
+}
+
+/** The unique embedded fixture bound to an exact request hash, or null. */
+export function findSyntheticLogitFixture(requestHash) {
+  const matches = boundFixtures(requestHash);
   return matches.length === 1 ? matches[0] : null;
 }
 
@@ -326,60 +346,100 @@ function sha256Hex(text) {
   return createHash("sha256").update(text).digest("hex");
 }
 
-/**
- * Builds the AI-140 `choice` result for one request from one synthetic
- * logit fixture. Every object literal below lists its keys in
- * `registry-json-v1` (ascending UTF-16) order, so `JSON.stringify` of the
- * body is its canonical form.
- */
-export function buildDirectLogitChoiceResult(request, requestHash, fixture) {
-  if (
-    request === null ||
-    typeof request !== "object" ||
-    request.decision_type !== "choice" ||
-    request.output_domain === null ||
-    typeof request.output_domain !== "object" ||
-    request.output_domain.kind !== "choice" ||
-    !Array.isArray(request.output_domain.candidates)
-  )
-    return refuse("decision_type_unsupported");
-  if (
-    fixture === null ||
-    fixture.logit_unit !== "micro_logit" ||
-    fixture.model_output !== false ||
-    fixture.request_binding.capability_id !== request.capability_id ||
-    !fixture.request_binding.request_hashes.includes(requestHash)
-  )
-    return refuse("fixture_unbound");
-  const readout = readoutDirectOptionLogits(
-    request.output_domain.candidates.map((candidate) => candidate.candidate_id),
-    fixture.candidate_logits,
-  );
-  if (!readout.ok) return readout;
-  const humanReview =
+function byKey(key) {
+  return (left, right) => compareIds(String(left[key]), String(right[key]));
+}
+
+function isChoiceRequest(request) {
+  return (
+    request !== null &&
+    typeof request === "object" &&
+    request.decision_type === "choice" &&
+    request.output_domain !== null &&
+    typeof request.output_domain === "object" &&
+    request.output_domain.kind === "choice" &&
+    Array.isArray(request.output_domain.candidates) &&
+    request.bounded_state !== null &&
+    typeof request.bounded_state === "object" &&
+    Array.isArray(request.bounded_state.facts) &&
+    Array.isArray(request.evidence_refs) &&
     request.policy !== null &&
     typeof request.policy === "object" &&
-    request.policy.human_review_required === true;
-  const body = {
-    abstention: null,
-    block: null,
-    confidence: {
-      calibration_ref: null,
-      confidence_micros: readout.selected_probability_micros,
-      semantics: "uncalibrated_candidate_reported",
-    },
-    contract: "typed_decision_result",
-    decision: {
-      distribution: {
-        completeness: "complete",
-        entries: readout.entries.map((entry) => ({
-          candidate_id: entry.candidate_id,
-          probability_micros: entry.probability_micros,
+    request.question !== null &&
+    typeof request.question === "object"
+  );
+}
+
+/**
+ * The AI-140 semantic request hash of a (runtime-validated, closed) choice
+ * request: `request_id` excluded, candidates, facts and evidence sorted by
+ * id. Every object literal lists its keys in `registry-json-v1` order.
+ */
+export function computeChoiceSemanticRequestHash(request) {
+  const domain = request.output_domain;
+  const policy = request.policy;
+  const payload = {
+    bounded_state: {
+      facts: [...request.bounded_state.facts]
+        .sort(byKey("fact_id"))
+        .map((fact) => ({
+          fact_id: fact.fact_id,
+          value: fact.value,
+          value_type: fact.value_type,
         })),
-      },
-      kind: "choice",
-      selected_candidate_id: readout.selected_candidate_id,
     },
+    capability_id: request.capability_id,
+    contract: request.contract,
+    decision_type: request.decision_type,
+    evidence_refs: [...request.evidence_refs]
+      .sort(byKey("evidence_id"))
+      .map((ref) => ({
+        content_hash: ref.content_hash,
+        evidence_id: ref.evidence_id,
+      })),
+    execution_paradigm: request.execution_paradigm,
+    output_domain: {
+      candidates: [...domain.candidates]
+        .sort(byKey("candidate_id"))
+        .map((candidate) => ({
+          candidate_id: candidate.candidate_id,
+          label: candidate.label,
+        })),
+      complete_distribution_required: domain.complete_distribution_required,
+      kind: domain.kind,
+    },
+    policy: {
+      abstention_permitted: policy.abstention_permitted,
+      data_classification: policy.data_classification,
+      downstream_use: policy.downstream_use,
+      escalation_policy_ref: policy.escalation_policy_ref,
+      human_review_required: policy.human_review_required,
+    },
+    question: {
+      question_id: request.question.question_id,
+      text: request.question.text,
+    },
+    schema_version: request.schema_version,
+  };
+  return sha256Hex(
+    `${SEMANTIC_REQUEST_HASH_DOMAIN}\n${JSON.stringify(payload)}`,
+  );
+}
+
+/**
+ * Builds one AI-140 choice result with the shared binding, governance,
+ * escalation, origin and hashing rules. Every object literal lists its
+ * keys in `registry-json-v1` (ascending UTF-16) order, so
+ * `JSON.stringify` of the body is its canonical form.
+ */
+function typedResult(request, requestHash, semanticRequestHash, outcome) {
+  const humanReview = request.policy.human_review_required === true;
+  const body = {
+    abstention: outcome.abstention,
+    block: outcome.block,
+    confidence: outcome.confidence,
+    contract: "typed_decision_result",
+    decision: outcome.decision,
     decision_type: "choice",
     escalation: {
       executed: false,
@@ -398,12 +458,12 @@ export function buildDirectLogitChoiceResult(request, requestHash, fixture) {
       capability_id: request.capability_id,
       request_hash: requestHash,
       request_id: request.request_id,
-      semantic_request_hash: fixture.request_binding.semantic_request_hash,
+      semantic_request_hash: semanticRequestHash,
     },
     result_id: `direct-logit-method-result-${requestHash.slice(0, 32)}`,
     result_origin: "synthetic_fixture",
     schema_version: "1.0.0",
-    status: "succeeded",
+    status: outcome.status,
   };
   const resultHash = sha256Hex(
     `${RESULT_HASH_DOMAIN}\n${JSON.stringify(body)}`,
@@ -411,10 +471,71 @@ export function buildDirectLogitChoiceResult(request, requestHash, fixture) {
   return { ok: true, result: { ...body, result_hash: resultHash } };
 }
 
-const REFUSAL_EXIT_CODES = {
-  fixture_unbound: EXIT_CODES.fixture_unbound,
-  top_logit_tie: EXIT_CODES.top_logit_tie,
-};
+/**
+ * Builds the AI-140 result for one choice request and the synthetic logit
+ * fixture bound to its exact request hash (`null` when none is bound):
+ *
+ *  - no bound fixture: `blocked` / `execution_unavailable`;
+ *  - a tie at the maximum logit: `abstained` / `ambiguous`, no selection;
+ *  - otherwise: `succeeded` with the unique maximum-logit candidate.
+ *
+ * Returns a closed refusal code only for technical defects that no
+ * admitted AI-140 result can represent.
+ */
+export function buildDirectLogitChoiceResult(request, requestHash, fixture) {
+  if (!isChoiceRequest(request)) return refuse("decision_type_unsupported");
+  const semanticRequestHash = computeChoiceSemanticRequestHash(request);
+  if (fixture === null)
+    return typedResult(request, requestHash, semanticRequestHash, {
+      status: "blocked",
+      decision: null,
+      confidence: null,
+      abstention: null,
+      block: { reason_code: "execution_unavailable" },
+    });
+  if (
+    fixture.logit_unit !== "micro_logit" ||
+    fixture.model_output !== false ||
+    fixture.request_binding.capability_id !== request.capability_id ||
+    fixture.request_binding.semantic_request_hash !== semanticRequestHash ||
+    !fixture.request_binding.request_hashes.includes(requestHash)
+  )
+    return refuse("fixture_binding_invalid");
+  const readout = readoutDirectOptionLogits(
+    request.output_domain.candidates.map((candidate) => candidate.candidate_id),
+    fixture.candidate_logits,
+  );
+  if (!readout.ok && readout.code === "top_logit_tie")
+    return typedResult(request, requestHash, semanticRequestHash, {
+      status: "abstained",
+      decision: null,
+      confidence: null,
+      abstention: { reason_code: "ambiguous" },
+      block: null,
+    });
+  if (!readout.ok) return readout;
+  return typedResult(request, requestHash, semanticRequestHash, {
+    status: "succeeded",
+    decision: {
+      distribution: {
+        completeness: "complete",
+        entries: readout.entries.map((entry) => ({
+          candidate_id: entry.candidate_id,
+          probability_micros: entry.probability_micros,
+        })),
+      },
+      kind: "choice",
+      selected_candidate_id: readout.selected_candidate_id,
+    },
+    confidence: {
+      calibration_ref: null,
+      confidence_micros: readout.selected_probability_micros,
+      semantics: "uncalibrated_candidate_reported",
+    },
+    abstention: null,
+    block: null,
+  });
+}
 
 function handle(bytes) {
   let input;
@@ -441,19 +562,21 @@ function handle(bytes) {
     process.exitCode = EXIT_CODES.input_invalid;
     return;
   }
-  const fixture = findSyntheticLogitFixture(input.request_hash);
-  if (fixture === null) {
-    process.exitCode = EXIT_CODES.fixture_unbound;
+  const matches = boundFixtures(input.request_hash);
+  if (matches.length > 1) {
+    process.exitCode = EXIT_CODES.fixture_set_invalid;
     return;
   }
   const built = buildDirectLogitChoiceResult(
     input.request,
     input.request_hash,
-    fixture,
+    matches.length === 1 ? matches[0] : null,
   );
   if (!built.ok) {
     process.exitCode =
-      REFUSAL_EXIT_CODES[built.code] ?? EXIT_CODES.method_refused;
+      built.code === "fixture_binding_invalid"
+        ? EXIT_CODES.fixture_set_invalid
+        : EXIT_CODES.method_contract_violation;
     return;
   }
   const output = {

@@ -89,7 +89,7 @@
       {
         "topic": "logit_source",
         "disposition": "replaced_by_synthetic",
-        "statement": "Upstream reads native last-position logits of a pinned model restricted to single-token answer letters. AI-144 loads no model, tokenizer or weights; repository-owned synthetic integer micro-logits bound by candidate id stand in for them.",
+        "statement": "Upstream reads native last-position logits of a pinned model restricted to single-token answer letters. AI-144 loads no model, tokenizer or weights; reviewed synthetic integer micro-logits bound by candidate id stand in. With none bound to the exact request, the result is a typed AI-140 block: execution_unavailable.",
         "evidence_refs": ["ev-direct-source", "ev-model-manifest"]
       },
       {
@@ -141,7 +141,7 @@
       {
         "topic": "top_logit_tie",
         "disposition": "fail_closed",
-        "statement": "The upstream evaluator breaks ties by first position in option order, which depends on display order. AI-144 defines no positional tie-break: a tie at the maximum logit is refused and no result is produced.",
+        "statement": "The upstream evaluator breaks ties by first position in option order, which depends on display order; that tie-break is not adopted and none is invented. On a tie at the maximum logit AI-144 selects no candidate and returns an explicit AI-140 abstention (reason ambiguous), not a process failure.",
         "evidence_refs": ["ev-evaluator-source"]
       }
     ]
@@ -154,7 +154,7 @@
     "adapter_id": "ai-lab-direct-logit-method-fixture-adapter",
     "adapter_version": "1.0.0",
     "artifact_path": "src/decision-sandbox/fixture/direct-logit-method-adapter.mjs",
-    "artifact_sha256": "47fd52b6a952b6b7b3ad7053286e03242fa762830d92eae9f1a99d285b8e4f65"
+    "artifact_sha256": "5cc95a5209b2b8a60ef68735772fd9fc3fc93796173fcbedd67d8ecab38d509d"
   },
   "method": {
     "readout": "direct_option_logits",
@@ -168,6 +168,8 @@
     "probability_rounding": "floor_then_largest_remainder_candidate_id_ascending",
     "selection": "unique_maximum_logit",
     "top_logit_tie": "fail_closed",
+    "top_logit_tie_outcome": "typed_abstention_ambiguous",
+    "unbound_synthetic_logits_outcome": "typed_block_execution_unavailable",
     "distribution": "complete"
   },
   "supported_decision_types": ["boolean", "choice"],
@@ -181,5 +183,5 @@
   "benchmark_eligible": false,
   "promotion_eligible": false,
   "production_eligible": false,
-  "adapter_spec_hash": "02d70975dbdfd73d88074a9e35b3687699b81ffa187ab0cd6ea49d550804b499"
+  "adapter_spec_hash": "1bed58897043c66765b2c594056e5be2f2adb5a8d75e4a40463f21bc90b39574"
 }

@@ -11,7 +11,7 @@
   "adapter_spec": {
     "adapter_spec_id": "ai-lab-semif-direct-logit-method-adapter-spec",
     "adapter_spec_version": "1.0.0",
-    "adapter_spec_hash": "02d70975dbdfd73d88074a9e35b3687699b81ffa187ab0cd6ea49d550804b499"
+    "adapter_spec_hash": "1bed58897043c66765b2c594056e5be2f2adb5a8d75e4a40463f21bc90b39574"
   },
   "methodology_evidence": [
     {
@@ -79,7 +79,7 @@
     "ownership": "ai_lab",
     "adapter_id": "ai-lab-direct-logit-method-fixture-adapter",
     "adapter_version": "1.0.0",
-    "artifact_sha256": "47fd52b6a952b6b7b3ad7053286e03242fa762830d92eae9f1a99d285b8e4f65"
+    "artifact_sha256": "5cc95a5209b2b8a60ef68735772fd9fc3fc93796173fcbedd67d8ecab38d509d"
   },
   "synthetic_logit_fixtures": [
     {
@@ -126,5 +126,5 @@
     "human_review_required": true
   },
   "authority": "none",
-  "evidence_pack_hash": "84e708c97044fb64d2e5e79f2e98e146ff1f175d51efc96cfdb836d15c78abf9"
+  "evidence_pack_hash": "c2b5bc46cc4ec554138195fd82d467b4917610b6d6cd257811c59cd31c333280"
 }

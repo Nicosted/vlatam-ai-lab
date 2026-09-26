@@ -35,7 +35,7 @@ export type DirectLogitMethodRefusal =
   | "candidate_duplicate"
   | "candidate_id_invalid"
   | "decision_type_unsupported"
-  | "fixture_unbound"
+  | "fixture_binding_invalid"
   | "logit_duplicate"
   | "logit_invalid"
   | "logit_missing"
@@ -67,10 +67,9 @@ export declare const DIRECT_LOGIT_METHOD: Readonly<{
 
 export declare const EXIT_CODES: Readonly<{
   input_invalid: 2;
-  fixture_unbound: 3;
+  fixture_set_invalid: 3;
   environment_refused: 4;
-  method_refused: 5;
-  top_logit_tie: 6;
+  method_contract_violation: 5;
 }>;
 
 export declare const SYNTHETIC_LOGIT_FIXTURES: readonly DirectLogitMethodFixture[];
@@ -84,6 +83,15 @@ export declare function findSyntheticLogitFixture(
   requestHash: string,
 ): DirectLogitMethodFixture | null;
 
+export declare function computeChoiceSemanticRequestHash(
+  request: TypedDecisionRequest,
+): string;
+
+/**
+ * `succeeded` (unique maximum logit), `abstained`/`ambiguous` (tie at the
+ * maximum) or `blocked`/`execution_unavailable` (no bound fixture); a
+ * refusal only for technical defects.
+ */
 export declare function buildDirectLogitChoiceResult(
   request: TypedDecisionRequest,
   requestHash: string,

@@ -26,11 +26,11 @@ export const METHOD_ARTIFACT_PATH =
 /** Pinned identities of the committed AI-144 artifacts. */
 export const PINNED = {
   adapter_spec_hash:
-    "02d70975dbdfd73d88074a9e35b3687699b81ffa187ab0cd6ea49d550804b499",
+    "1bed58897043c66765b2c594056e5be2f2adb5a8d75e4a40463f21bc90b39574",
   evidence_pack_hash:
-    "84e708c97044fb64d2e5e79f2e98e146ff1f175d51efc96cfdb836d15c78abf9",
+    "c2b5bc46cc4ec554138195fd82d467b4917610b6d6cd257811c59cd31c333280",
   artifact_sha256:
-    "47fd52b6a952b6b7b3ad7053286e03242fa762830d92eae9f1a99d285b8e4f65",
+    "5cc95a5209b2b8a60ef68735772fd9fc3fc93796173fcbedd67d8ecab38d509d",
   sandbox_policy_hash:
     "6bad0bd18d779acb838ecf37e561d1678b13f0b53649acf40810972b03bc8378",
   fixtures: {
@@ -104,6 +104,7 @@ export const REQUESTS = {
   topTie: `${REQUEST_ROOT}/choice-request-top-tie.json`,
   sixteen: `${REQUEST_ROOT}/choice-request-sixteen-options.json`,
   seventeen: `${REQUEST_ROOT}/choice-request-seventeen-options.json`,
+  unbound: `${REQUEST_ROOT}/choice-request-unbound.json`,
   boolean: "data/fixtures/typed-decision/valid-boolean-request.json",
   score: "data/fixtures/typed-decision/valid-score-request.json",
   ranking: "data/fixtures/typed-decision/valid-ranking-request.json",

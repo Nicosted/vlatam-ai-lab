@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://vlatam-ai-lab.local/schemas/ai-typed-decision-candidate-adapter-spec.schema.json",
   "title": "AI-144 Typed Decision Candidate Adapter Specification",
-  "description": "Contract 1.0.0. Closed, versioned specification of the AI-LAB-owned SemIf direct-logit method adapter. It binds exactly one AI-142 candidate evidence revision (candidate_id, candidate_hash, evidence_revision), the pinned upstream methodology evidence (immutable commit, path, git blob SHA, content SHA-256) and per-topic interpretations, the AI-LAB-owned method artifact admitted by the AI-143 fixture sandbox by exact SHA-256, fixed method parameters and a narrow decision-type scope (choice only). It executes methodology over repository-owned synthetic logits only: no upstream code, no model, no weights. calibration_state is not_applied, result_origin is synthetic_fixture, authority is none and no benchmark, promotion or production eligibility exists. Interpretation completeness and required dispositions, evidence ordering and references, drift against the AI-142 entry and the self-excluding adapter_spec_hash are enforced by src/decision-candidate-methods/validation.ts and readiness.ts.",
+  "description": "Contract 1.0.0. Closed, versioned specification of the AI-LAB-owned SemIf direct-logit method adapter. It binds exactly one AI-142 candidate evidence revision (candidate_id, candidate_hash, evidence_revision), the pinned upstream methodology evidence (immutable commit, path, git blob SHA, content SHA-256) and per-topic interpretations, the AI-LAB-owned method artifact admitted by the AI-143 fixture sandbox by exact SHA-256, fixed method parameters (a top-logit tie is a typed AI-140 abstention with reason ambiguous; unbound synthetic logits are a typed AI-140 block with reason execution_unavailable) and a narrow decision-type scope (choice only). It executes methodology over repository-owned synthetic logits only: no upstream code, no model, no weights. calibration_state is not_applied, result_origin is synthetic_fixture, authority is none and no benchmark, promotion or production eligibility exists. Interpretation completeness and required dispositions, evidence ordering and references, drift against the AI-142 entry and the self-excluding adapter_spec_hash are enforced by src/decision-candidate-methods/validation.ts and readiness.ts.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -216,6 +216,8 @@
         "probability_rounding",
         "selection",
         "top_logit_tie",
+        "top_logit_tie_outcome",
+        "unbound_synthetic_logits_outcome",
         "distribution"
       ],
       "properties": {
@@ -251,6 +253,12 @@
         },
         "top_logit_tie": {
           "const": "fail_closed"
+        },
+        "top_logit_tie_outcome": {
+          "const": "typed_abstention_ambiguous"
+        },
+        "unbound_synthetic_logits_outcome": {
+          "const": "typed_block_execution_unavailable"
         },
         "distribution": {
           "const": "complete"

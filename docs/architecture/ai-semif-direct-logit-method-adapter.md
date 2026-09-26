@@ -84,9 +84,9 @@ candidate binding lives only in the AI-144 specification.
 | Upstream repository     | `TheoLeeCJ/SemIf-OpenJev`                                                      |
 | Upstream commit         | `23cf1f39fc9534fe81437200959b6dfc7106e45a`                                     |
 | Method adapter id       | `ai-lab-direct-logit-method-fixture-adapter` `1.0.0`                           |
-| Method artifact SHA-256 | `47fd52b6a952b6b7b3ad7053286e03242fa762830d92eae9f1a99d285b8e4f65`             |
-| `adapter_spec_hash`     | `02d70975dbdfd73d88074a9e35b3687699b81ffa187ab0cd6ea49d550804b499`             |
-| `evidence_pack_hash`    | `84e708c97044fb64d2e5e79f2e98e146ff1f175d51efc96cfdb836d15c78abf9`             |
+| Method artifact SHA-256 | `5cc95a5209b2b8a60ef68735772fd9fc3fc93796173fcbedd67d8ecab38d509d`             |
+| `adapter_spec_hash`     | `1bed58897043c66765b2c594056e5be2f2adb5a8d75e4a40463f21bc90b39574`             |
+| `evidence_pack_hash`    | `c2b5bc46cc4ec554138195fd82d467b4917610b6d6cd257811c59cd31c333280`             |
 | AI-143 policy hash      | `6bad0bd18d779acb838ecf37e561d1678b13f0b53649acf40810972b03bc8378` (unchanged) |
 
 The binding is exact. `checkCandidateAdapterBinding` re-validates the
@@ -122,19 +122,19 @@ What the evidence establishes (each topic is recorded in the
 specification with a pinned disposition; a specification cannot silently
 upgrade one):
 
-| Topic                      | Upstream (pinned)                                                            | AI-144                                                                | Disposition             |
-| -------------------------- | ---------------------------------------------------------------------------- | --------------------------------------------------------------------- | ----------------------- |
-| option construction        | 2-16 options, unique string ids, descriptions (`validate_row`)               | AI-140 choice candidates (id, label); 2-16 enforced                   | `adopted`               |
-| prompt construction        | fixed system prompt + JSON payload with lettered options, chat template      | none: no prompt, tokenizer or model                                   | `not_applicable`        |
-| logit source               | native last-position logits restricted to single-token answer letters        | repository-owned synthetic integer micro-logits bound by candidate id | `replaced_by_synthetic` |
-| normalization              | softmax over option logits with max subtraction; ≥2 finite values            | same                                                                  | `adopted`               |
-| selection                  | scorer returns probabilities only; evaluator/calibration notes use argmax    | unique maximum logit (method-specific, not an AI-140 rule)            | `adopted`               |
-| top-logit tie              | evaluator takes the first maximum in option order (positional)               | refused: no result                                                    | `fail_closed`           |
-| option ordering            | letters by display position; stability measured after aligning by option id  | logits bound by candidate id; computation in candidate-id order       | `ai_lab_policy`         |
-| probability representation | floating-point probabilities                                                 | AI-140 integer micros (section 8)                                     | `ai_lab_policy`         |
-| boolean decisions          | no boolean mode; binary criteria are ordinary options                        | not supported                                                         | `not_supported`         |
-| score and ranking          | no direct score mode; ranking only via a separate reranker system and model  | not supported                                                         | `not_supported`         |
-| calibration                | optional per-workload temperature `softmax(logits/T)` fitted on labeled rows | not applied, not fitted, not verified                                 | `not_applied`           |
+| Topic                      | Upstream (pinned)                                                            | AI-144                                                                                                                | Disposition             |
+| -------------------------- | ---------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ----------------------- |
+| option construction        | 2-16 options, unique string ids, descriptions (`validate_row`)               | AI-140 choice candidates (id, label); 2-16 enforced                                                                   | `adopted`               |
+| prompt construction        | fixed system prompt + JSON payload with lettered options, chat template      | none: no prompt, tokenizer or model                                                                                   | `not_applicable`        |
+| logit source               | native last-position logits restricted to single-token answer letters        | reviewed synthetic integer micro-logits bound by candidate id; none bound → typed `blocked` / `execution_unavailable` | `replaced_by_synthetic` |
+| normalization              | softmax over option logits with max subtraction; ≥2 finite values            | same                                                                                                                  | `adopted`               |
+| selection                  | scorer returns probabilities only; evaluator/calibration notes use argmax    | unique maximum logit (method-specific, not an AI-140 rule)                                                            | `adopted`               |
+| top-logit tie              | evaluator takes the first maximum in option order (positional)               | no selection: typed AI-140 abstention (`abstained`, `ambiguous`)                                                      | `fail_closed`           |
+| option ordering            | letters by display position; stability measured after aligning by option id  | logits bound by candidate id; computation in candidate-id order                                                       | `ai_lab_policy`         |
+| probability representation | floating-point probabilities                                                 | AI-140 integer micros (section 8)                                                                                     | `ai_lab_policy`         |
+| boolean decisions          | no boolean mode; binary criteria are ordinary options                        | not supported                                                                                                         | `not_supported`         |
+| score and ranking          | no direct score mode; ranking only via a separate reranker system and model  | not supported                                                                                                         | `not_supported`         |
+| calibration                | optional per-workload temperature `softmax(logits/T)` fitted on labeled rows | not applied, not fitted, not verified                                                                                 | `not_applied`           |
 
 ## 6. AI-LAB implementation versus upstream implementation
 
@@ -172,7 +172,7 @@ outputs and no natural-language inference is performed.** Each binds:
 | Fixture                        | Purpose                                           | `fixture_hash`                                                     |
 | ------------------------------ | ------------------------------------------------- | ------------------------------------------------------------------ |
 | `synthetic-logits-bucket-0001` | 16 options (upper bound), `±100` extreme logit    | `d719613a0496b861dc91111c9d2278722b7b3c0f34dc2d3d06931ce381808636` |
-| `synthetic-logits-hold-0001`   | tie at the maximum logit → refused                | `1bb649c6f16d58b84887b19276218c545627cd8fee4399c8c551721694dc7da9` |
+| `synthetic-logits-hold-0001`   | tie at the maximum logit → typed abstention       | `1bb649c6f16d58b84887b19276218c545627cd8fee4399c8c551721694dc7da9` |
 | `synthetic-logits-intent-0001` | AI-140 choice request and its permutation         | `22320b8d899196ba781d54274e37981101abbd0974673bec1967f4a9bb7ab515` |
 | `synthetic-logits-route-0001`  | equal remainders in rounding, and its permutation | `5c1b65bd9734563aa982a51b47027a8cf048d2b5165ffedfa1acbca0452f7355` |
 
@@ -198,8 +198,10 @@ with the committed files, and the artifact hash pins them.
 5. **Selection.** The unique maximum logit (compared exactly as
    integers). This is SemIf-method behavior only; AI-140 validation is
    unchanged and still admits non-modal selections.
-6. **Ties.** A tie at the maximum logit is refused (exit code 6, no
-   result), because the only upstream tie-break is positional. Ties below
+6. **Ties.** On a tie at the maximum logit no candidate is selected: the
+   only upstream tie-break is positional (display order), so it is not
+   adopted and no other tie-break (candidate id or otherwise) is invented.
+   The outcome is an explicit AI-140 abstention (section 9). Ties below
    the maximum are fine.
 7. **Confidence.** `confidence_micros` is the selected option's micros
    with `semantics: "uncalibrated_candidate_reported"` and
@@ -216,13 +218,50 @@ hashes) and share the semantic request hash.
 
 **Result hashing inside the sandbox.** The AI-143 permission model grants
 the artifact read access to its own file only, so it cannot import the
-repository canonicalizer. It builds its single fixed result shape with
-every key already in `registry-json-v1` order and hashes `JSON.stringify`
-of it under the AI-140 result domain. This is not a general
-canonicalizer: the runtime recomputes the AI-140 result hash with the
+repository canonicalizer. It builds its fixed result shape, and the fixed
+AI-140 choice-request semantic payload, with every key already in
+`registry-json-v1` order and hashes `JSON.stringify` of them under the
+AI-140 domains. This is not a general canonicalizer: the runtime
+recomputes the AI-140 result hash and semantic request hash with the
 repository canonicalizer on every output and rejects any mismatch.
 
-## 9. Supported and unsupported decision types
+## 9. Typed outcomes versus technical failures
+
+AI-140 states that abstention is always permitted and is never a failure.
+The adapter therefore keeps method-level decision semantics separate from
+runtime/process failure. Every case below exits 0, the AI-143 execution
+record is `succeeded` (the process and protocol worked), and the nested
+AI-140 result carries the decision-level outcome:
+
+| Condition                                     | AI-143 record | AI-140 result `status` | Reason                         | `decision` / `confidence` |
+| --------------------------------------------- | ------------- | ---------------------- | ------------------------------ | ------------------------- |
+| unique maximum logit                          | `succeeded`   | `succeeded`            | —                              | selected choice / micros  |
+| tie at the maximum logit                      | `succeeded`   | `abstained`            | `abstention: ambiguous`        | `null` / `null`           |
+| no reviewed synthetic logits for this request | `succeeded`   | `blocked`              | `block: execution_unavailable` | `null` / `null`           |
+
+All three keep `result_origin: "synthetic_fixture"`,
+`downstream_allowed: false`, `escalation.executed: false`, the same request
+binding, governance and hashing rules. A tie is not a model failure, and
+missing synthetic evidence is not a runtime failure: it means the method
+cannot run for this exact request (no reviewed synthetic evidence exists),
+so execution is unavailable and the result fails closed as a typed block.
+
+Non-zero exits remain reserved for technical defects that no admitted
+AI-140 result can represent: malformed protocol input (2), an embedded
+fixture set inconsistent with the request (3), a refused environment (4)
+and a method contract violation such as a non-choice request or a bound
+fixture that does not cover the candidates (5). AI-143 keeps recording
+those, and timeouts, output limits, protocol violations and runtime
+failures, as `process_failed`, `timed_out`, `output_limit_exceeded`,
+`protocol_failed` or `runtime_failed`; a runtime failure discards any
+typed result.
+
+The adapter builds its result and the choice request's semantic payload
+in fixed canonical key order; the runtime recomputes the AI-140 result
+hash and semantic request hash for every outcome, including abstained
+and blocked results.
+
+## 10. Supported and unsupported decision types
 
 - Supported: **`choice`** only.
 - Unsupported: `boolean` (no described alternatives in AI-140 and no
@@ -235,14 +274,14 @@ allowlist entry now declares `supported_decision_types` and
 `adapter_decision_type_unsupported` or `adapter_candidate_limit_exceeded`.
 The AI-143 replay fixture keeps its full four-type coverage.
 
-## 10. Calibration
+## 11. Calibration
 
 Upstream documents per-workload temperature calibration. AI-144 fits no
 temperature, trains nothing, consumes no AI-141 labels and applies no
 calibration (`calibration_state: "not_applied"`). The AI-142 calibration
 claim stays `verification: "upstream_claim"`.
 
-## 11. Actual-candidate execution readiness
+## 12. Actual-candidate execution readiness
 
 `evaluateCandidateExecutionReadiness` is separate from the synthetic
 method adapter. It grants no authority and has exactly one state:
@@ -262,7 +301,7 @@ method adapter. It grants no authority and has exactly one state:
 AI-142 drift or tampering. No evidence was fabricated to shorten the
 list, and no model license was inferred from README text.
 
-## 12. Relationships
+## 13. Relationships
 
 - **AI-140**: results are ordinary `TypedDecisionResult`s; no competing
   result shape; `result_origin` is not extended and stays
@@ -282,15 +321,17 @@ list, and no model license was inferred from README text.
 - **AI-120**: no lifecycle transition. SemIf is not `benchmark_candidate`,
   `shadow`, `canary`, `approved` or `preferred`.
 
-## 13. What success does and does not prove
+## 14. What success does and does not prove
 
 A successful method-fixture execution proves that the adapter protocol
 worked, that the pinned method implementation ran, and that synthetic
-logits were normalized and read out as specified. It does **not** prove
+logits were normalized and read out as specified, including that ties and
+missing synthetic evidence surface as typed abstention and block results.
+It does **not** prove
 SemIf upstream correctness, Qwen quality, trade-domain competence,
 calibration, candidate benchmark quality or production readiness.
 
-## 14. Future boundary for real model execution
+## 15. Future boundary for real model execution
 
 Executing the actual SemIf path would require, each in its own reviewed
 change: an isolation layer that establishes hostile-code containment and
@@ -300,7 +341,7 @@ execution authorization; an authoritative, immutable base-model license
 record; a hash-bound model artifact and a hash-locked runtime dependency
 set; an AI-140 `result_origin` extension; and only then AI-141 evaluation.
 
-## 15. Explicit non-goals
+## 16. Explicit non-goals
 
 AI-144 does not execute SemIf upstream code, install or clone it for
 execution, download or run Qwen or any model, execute any other AI-142

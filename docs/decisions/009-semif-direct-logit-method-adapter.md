@@ -40,8 +40,14 @@ license and unpinned runtime dependencies.
    candidate-neutral. Method: softmax with max subtraction over integer
    synthetic micro-logits bound by candidate id, computed in candidate-id
    order; integer micros by floor plus largest remainder (ties by
-   candidate id); selection by unique maximum logit; a tie at the maximum
-   is refused because the only upstream tie-break is positional.
+   candidate id); selection by unique maximum logit. A tie at the maximum
+   selects nothing (the only upstream tie-break is positional and none is
+   invented) and yields an explicit AI-140 abstention (`abstained`,
+   `ambiguous`); a request with no reviewed synthetic logits yields an
+   explicit AI-140 block (`blocked`, `execution_unavailable`). Both exit 0
+   and are recorded by AI-143 as `succeeded` executions: decision-level
+   outcomes are never encoded as process failures. Non-zero exits are
+   reserved for technical defects.
 3. Extend AI-143 preflight narrowly: allowlist entries declare
    `supported_decision_types` and `max_candidates`, and unsupported
    requests are blocked before process creation. Boolean, score and

@@ -12,12 +12,14 @@ import {
   DIRECT_LOGIT_METHOD,
   SYNTHETIC_LOGIT_FIXTURES,
   buildDirectLogitChoiceResult,
+  computeChoiceSemanticRequestHash,
   findSyntheticLogitFixture,
   readoutDirectOptionLogits,
 } from "../../src/decision-sandbox/fixture/direct-logit-method-adapter.mjs";
 import {
   computeTypedDecisionRequestHash,
   computeTypedDecisionResultHash,
+  computeTypedDecisionSemanticRequestHash,
 } from "../../src/decision/canonical.js";
 import type { TypedDecisionRequest } from "../../src/decision/contracts.js";
 import {
@@ -421,7 +423,89 @@ describe("AI-144 direct option-logit method (AI-LAB implementation)", () => {
     }
   });
 
-  it("refuses unsupported decision types, unbound fixtures and ties", () => {
+  it("a tie at the maximum logit is an explicit typed abstention (ambiguous), not a selection", () => {
+    const tie = request("topTie");
+    const tieHash = computeTypedDecisionRequestHash(tie);
+    const built = buildDirectLogitChoiceResult(
+      tie,
+      tieHash,
+      findSyntheticLogitFixture(tieHash),
+    );
+    assert.equal(built.ok, true);
+    if (!built.ok) return;
+    const result = built.result;
+    assert.equal(result.status, "abstained");
+    assert.equal(result.decision, null);
+    assert.equal(result.confidence, null);
+    assert.deepEqual(result.abstention, { reason_code: "ambiguous" });
+    assert.equal(result.block, null);
+    assert.equal(result.failure, null);
+    assert.equal(result.result_origin, "synthetic_fixture");
+    assert.equal(result.execution_paradigm, "typed_decision");
+    assert.equal(result.decision_type, "choice");
+    assert.equal(result.governance.downstream_allowed, false);
+    assert.equal(result.escalation.executed, false);
+    assert.equal(result.result_hash, computeTypedDecisionResultHash(result));
+    const check = validateTypedDecisionResultForRequest(result, tie);
+    assert.equal(check.ok, true, JSON.stringify(check));
+    // The raw readout still refuses to pick a candidate.
+    assert.deepEqual(
+      readoutDirectOptionLogits(
+        ids("synthetic-logits-hold-0001"),
+        logits("synthetic-logits-hold-0001"),
+      ),
+      { ok: false, code: "top_logit_tie" },
+    );
+  });
+
+  it("no reviewed synthetic logits is an explicit typed block (execution_unavailable)", () => {
+    const renamed = clone(request("intent")) as Mutable;
+    renamed["request_id"] = "synthetic-intent-request-0099";
+    for (const req of [request("unbound"), renamed as TypedDecisionRequest]) {
+      const hash = computeTypedDecisionRequestHash(req);
+      assert.equal(findSyntheticLogitFixture(hash), null);
+      const built = buildDirectLogitChoiceResult(req, hash, null);
+      assert.equal(built.ok, true);
+      if (!built.ok) continue;
+      const result = built.result;
+      assert.equal(result.status, "blocked");
+      assert.equal(result.decision, null);
+      assert.equal(result.confidence, null);
+      assert.equal(result.abstention, null);
+      assert.deepEqual(result.block, { reason_code: "execution_unavailable" });
+      assert.equal(result.failure, null);
+      assert.equal(result.result_origin, "synthetic_fixture");
+      assert.equal(result.governance.downstream_allowed, false);
+      assert.equal(result.escalation.executed, false);
+      assert.equal(result.result_hash, computeTypedDecisionResultHash(result));
+      assert.equal(
+        result.request_binding.semantic_request_hash,
+        computeTypedDecisionSemanticRequestHash(req),
+      );
+      const check = validateTypedDecisionResultForRequest(result, req);
+      assert.equal(check.ok, true, JSON.stringify(check));
+    }
+  });
+
+  it("computes the AI-140 semantic request hash exactly, for every committed choice request", () => {
+    for (const key of [
+      "intent",
+      "intentPermuted",
+      "route",
+      "routePermuted",
+      "topTie",
+      "sixteen",
+      "seventeen",
+      "unbound",
+    ] as const)
+      assert.equal(
+        computeChoiceSemanticRequestHash(request(key)),
+        computeTypedDecisionSemanticRequestHash(request(key)),
+        key,
+      );
+  });
+
+  it("refuses only genuine contract defects, which no admitted AI-140 result can represent", () => {
     const intent = logitFixture("synthetic-logits-intent-0001");
     for (const key of ["boolean", "score", "ranking"] as const) {
       const req = request(key);
@@ -434,6 +518,7 @@ describe("AI-144 direct option-logit method (AI-LAB implementation)", () => {
         { ok: false, code: "decision_type_unsupported" },
       );
     }
+    // A fixture that does not bind this request is a fixture-set defect.
     const route = request("route");
     assert.deepEqual(
       buildDirectLogitChoiceResult(
@@ -441,31 +526,16 @@ describe("AI-144 direct option-logit method (AI-LAB implementation)", () => {
         computeTypedDecisionRequestHash(route),
         intent,
       ),
-      { ok: false, code: "fixture_unbound" },
+      { ok: false, code: "fixture_binding_invalid" },
     );
-    const renamed = clone(request("intent")) as Mutable;
-    renamed["request_id"] = "synthetic-intent-request-0099";
-    const renamedHash = computeTypedDecisionRequestHash(
-      renamed as TypedDecisionRequest,
-    );
-    assert.equal(findSyntheticLogitFixture(renamedHash), null);
+    // A bound fixture whose logits do not cover the candidates is a defect.
+    const intentReq = request("intent");
+    const intentHash = computeTypedDecisionRequestHash(intentReq);
+    const short = clone(intent) as Mutable;
+    short["candidate_logits"] = short["candidate_logits"].slice(1);
     assert.deepEqual(
-      buildDirectLogitChoiceResult(
-        renamed as TypedDecisionRequest,
-        renamedHash,
-        null,
-      ),
-      { ok: false, code: "fixture_unbound" },
-    );
-    const tie = request("topTie");
-    const tieHash = computeTypedDecisionRequestHash(tie);
-    assert.deepEqual(
-      buildDirectLogitChoiceResult(
-        tie,
-        tieHash,
-        findSyntheticLogitFixture(tieHash),
-      ),
-      { ok: false, code: "top_logit_tie" },
+      buildDirectLogitChoiceResult(intentReq, intentHash, short as never),
+      { ok: false, code: "logit_missing" },
     );
   });
 
