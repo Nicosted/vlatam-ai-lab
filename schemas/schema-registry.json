@@ -1627,6 +1627,42 @@
       "requires_human_review_semantics": true,
       "requires_traceability": true,
       "downstream_allowed_field_present": false
+    },
+    {
+      "contract_name": "ai_typed_decision_request",
+      "schema_file": "schemas/ai-typed-decision-request.schema.json",
+      "valid_fixture": "data/fixtures/typed-decision/valid-choice-request.json",
+      "invalid_fixtures": [
+        "data/fixtures/typed-decision/invalid-request-unknown-decision-type.json",
+        "data/fixtures/typed-decision/invalid-request-provider-field.json",
+        "data/fixtures/typed-decision/invalid-request-regulated-data.json"
+      ],
+      "test_file": "tests/decision/typed-decision-contracts.test.ts",
+      "status": "implemented",
+      "purpose": "AI-140 contract 1.0.0: provider-neutral, model-neutral typed decision request with bounded state, bounded question, explicit output domain (choice, boolean, score, ranking) and non-authoritative policy.",
+      "downstream_role": "Contract definition only; no execution, routing, escalation, provider, model or runtime path consumes it.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": false
+    },
+    {
+      "contract_name": "ai_typed_decision_result",
+      "schema_file": "schemas/ai-typed-decision-result.schema.json",
+      "valid_fixture": "data/fixtures/typed-decision/valid-choice-result.json",
+      "invalid_fixtures": [
+        "data/fixtures/typed-decision/invalid-result-downstream-authority.json",
+        "data/fixtures/typed-decision/invalid-result-probability-out-of-range.json",
+        "data/fixtures/typed-decision/invalid-result-calibration-claim.json",
+        "data/fixtures/typed-decision/invalid-result-escalation-executed.json",
+        "data/fixtures/typed-decision/invalid-result-private-reasoning.json"
+      ],
+      "test_file": "tests/decision/typed-decision-contracts.test.ts",
+      "status": "implemented",
+      "purpose": "AI-140 contract 1.0.0: hash-bound typed decision result or first-class abstention with exact integer probabilities, uncalibrated confidence metadata and non-executed escalation recommendation.",
+      "downstream_role": "Synthetic-fixture evidence only; downstream_allowed is always false, approval is never carried and no result grants production or downstream authority.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": true
     }
   ]
 }

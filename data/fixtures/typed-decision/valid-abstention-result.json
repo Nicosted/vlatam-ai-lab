@@ -1,0 +1,34 @@
+{
+  "contract": "typed_decision_result",
+  "schema_version": "1.0.0",
+  "result_id": "synthetic-intent-result-0003",
+  "result_origin": "synthetic_fixture",
+  "request_binding": {
+    "request_id": "synthetic-intent-request-0001",
+    "capability_id": "synthetic.decision.intent_classify",
+    "request_hash": "7eec526cfe12a866ca0f1123338398d215b47b85e4085c3e884cb14c5f9a7fda",
+    "semantic_request_hash": "daef56807bcae765bcc14ffdb98c05093bf912c871e1e7f7cdd3ee3bb8fd249c"
+  },
+  "execution_paradigm": "typed_decision",
+  "decision_type": "choice",
+  "status": "abstained",
+  "decision": null,
+  "confidence": null,
+  "abstention": {
+    "reason_code": "ambiguous"
+  },
+  "block": null,
+  "failure": null,
+  "escalation": {
+    "recommendation": "governed_escalation_candidate",
+    "executed": false,
+    "governed_policy_ref": null
+  },
+  "evidence_refs": [],
+  "governance": {
+    "human_review_required": true,
+    "downstream_allowed": false,
+    "approval_state": "pending"
+  },
+  "result_hash": "3fbcad9dc47883e31f5967f806ac0de0b253ba20c621a2d4dfb4a50d222b9b59"
+}

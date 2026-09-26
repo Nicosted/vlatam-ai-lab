@@ -1,0 +1,363 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/ai-typed-decision-request.schema.json",
+  "title": "AI-140 typed decision request",
+  "description": "Contract 1.0.0. Provider-neutral, model-neutral typed decision request: bounded state, bounded question, explicitly declared output domain and policy. Grants no execution, routing or downstream authority. Cross-field rules that JSON Schema cannot express (unique candidate/fact/evidence identities) are enforced by src/decision/validation.ts.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract",
+    "schema_version",
+    "request_id",
+    "capability_id",
+    "execution_paradigm",
+    "decision_type",
+    "bounded_state",
+    "question",
+    "output_domain",
+    "policy",
+    "evidence_refs"
+  ],
+  "properties": {
+    "contract": {
+      "const": "typed_decision_request"
+    },
+    "schema_version": {
+      "type": "string",
+      "pattern": "^1\\.[0-9]+\\.[0-9]+$"
+    },
+    "request_id": {
+      "$ref": "#/$defs/id"
+    },
+    "capability_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$"
+    },
+    "execution_paradigm": {
+      "const": "typed_decision"
+    },
+    "decision_type": {
+      "enum": ["choice", "boolean", "score", "ranking"]
+    },
+    "bounded_state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["facts"],
+      "properties": {
+        "facts": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "$ref": "#/$defs/fact"
+          }
+        }
+      }
+    },
+    "question": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["question_id", "text"],
+      "properties": {
+        "question_id": {
+          "$ref": "#/$defs/id"
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        }
+      }
+    },
+    "output_domain": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/choice_domain"
+        },
+        {
+          "$ref": "#/$defs/boolean_domain"
+        },
+        {
+          "$ref": "#/$defs/score_domain"
+        },
+        {
+          "$ref": "#/$defs/ranking_domain"
+        }
+      ]
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "data_classification",
+        "human_review_required",
+        "abstention_permitted",
+        "escalation_policy_ref",
+        "downstream_use"
+      ],
+      "properties": {
+        "data_classification": {
+          "enum": ["public", "internal"]
+        },
+        "human_review_required": {
+          "type": "boolean"
+        },
+        "abstention_permitted": {
+          "const": true
+        },
+        "escalation_policy_ref": {
+          "type": "null"
+        },
+        "downstream_use": {
+          "const": "none"
+        }
+      }
+    },
+    "evidence_refs": {
+      "type": "array",
+      "maxItems": 32,
+      "items": {
+        "$ref": "#/$defs/evidence_ref"
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "type": "object",
+        "required": ["decision_type"],
+        "properties": {
+          "decision_type": {
+            "const": "choice"
+          }
+        }
+      },
+      "then": {
+        "type": "object",
+        "properties": {
+          "output_domain": {
+            "$ref": "#/$defs/choice_domain"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "type": "object",
+        "required": ["decision_type"],
+        "properties": {
+          "decision_type": {
+            "const": "boolean"
+          }
+        }
+      },
+      "then": {
+        "type": "object",
+        "properties": {
+          "output_domain": {
+            "$ref": "#/$defs/boolean_domain"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "type": "object",
+        "required": ["decision_type"],
+        "properties": {
+          "decision_type": {
+            "const": "score"
+          }
+        }
+      },
+      "then": {
+        "type": "object",
+        "properties": {
+          "output_domain": {
+            "$ref": "#/$defs/score_domain"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "type": "object",
+        "required": ["decision_type"],
+        "properties": {
+          "decision_type": {
+            "const": "ranking"
+          }
+        }
+      },
+      "then": {
+        "type": "object",
+        "properties": {
+          "output_domain": {
+            "$ref": "#/$defs/ranking_domain"
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{1,127}$"
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "fact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fact_id", "value_type", "value"],
+      "properties": {
+        "fact_id": {
+          "$ref": "#/$defs/id"
+        },
+        "value_type": {
+          "enum": ["string", "integer", "boolean"]
+        },
+        "value": {
+          "description": "Typed by value_type; see oneOf."
+        }
+      },
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "value_type": {
+              "const": "string"
+            },
+            "value": {
+              "type": "string",
+              "maxLength": 512
+            }
+          }
+        },
+        {
+          "type": "object",
+          "properties": {
+            "value_type": {
+              "const": "integer"
+            },
+            "value": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            }
+          }
+        },
+        {
+          "type": "object",
+          "properties": {
+            "value_type": {
+              "const": "boolean"
+            },
+            "value": {
+              "type": "boolean"
+            }
+          }
+        }
+      ]
+    },
+    "candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["candidate_id", "label"],
+      "properties": {
+        "candidate_id": {
+          "$ref": "#/$defs/id"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        }
+      }
+    },
+    "candidates": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 32,
+      "items": {
+        "$ref": "#/$defs/candidate"
+      }
+    },
+    "choice_domain": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "candidates", "complete_distribution_required"],
+      "properties": {
+        "kind": {
+          "const": "choice"
+        },
+        "candidates": {
+          "$ref": "#/$defs/candidates"
+        },
+        "complete_distribution_required": {
+          "type": "boolean"
+        }
+      }
+    },
+    "boolean_domain": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind"],
+      "properties": {
+        "kind": {
+          "const": "boolean"
+        }
+      }
+    },
+    "score_domain": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "scale_id", "minimum", "maximum"],
+      "properties": {
+        "kind": {
+          "const": "score"
+        },
+        "scale_id": {
+          "$ref": "#/$defs/id"
+        },
+        "minimum": {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        },
+        "maximum": {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        }
+      }
+    },
+    "ranking_domain": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "candidates"],
+      "properties": {
+        "kind": {
+          "const": "ranking"
+        },
+        "candidates": {
+          "$ref": "#/$defs/candidates"
+        }
+      }
+    },
+    "evidence_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["evidence_id", "content_hash"],
+      "properties": {
+        "evidence_id": {
+          "$ref": "#/$defs/id"
+        },
+        "content_hash": {
+          "$ref": "#/$defs/hash"
+        }
+      }
+    }
+  }
+}

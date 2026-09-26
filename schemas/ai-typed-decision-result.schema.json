@@ -1,0 +1,621 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/ai-typed-decision-result.schema.json",
+  "title": "AI-140 typed decision result",
+  "description": "Contract 1.0.0. Typed decision result bound to an exact request hash. Confidence and probability are uncalibrated evidence metadata, never authority. downstream_allowed is always false, approval is never carried, escalation is never executed, and the only admitted origin is synthetic_fixture. Cross-field rules (canonical distribution order, exact sums, request binding, self-hash) are enforced by src/decision/validation.ts.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract",
+    "schema_version",
+    "result_id",
+    "result_origin",
+    "request_binding",
+    "execution_paradigm",
+    "decision_type",
+    "status",
+    "decision",
+    "confidence",
+    "abstention",
+    "block",
+    "failure",
+    "escalation",
+    "governance",
+    "evidence_refs",
+    "result_hash"
+  ],
+  "properties": {
+    "contract": {
+      "const": "typed_decision_result"
+    },
+    "schema_version": {
+      "type": "string",
+      "pattern": "^1\\.[0-9]+\\.[0-9]+$"
+    },
+    "result_id": {
+      "$ref": "#/$defs/id"
+    },
+    "result_origin": {
+      "const": "synthetic_fixture"
+    },
+    "request_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "request_id",
+        "capability_id",
+        "request_hash",
+        "semantic_request_hash"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "#/$defs/id"
+        },
+        "capability_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$"
+        },
+        "request_hash": {
+          "$ref": "#/$defs/hash"
+        },
+        "semantic_request_hash": {
+          "$ref": "#/$defs/hash"
+        }
+      }
+    },
+    "execution_paradigm": {
+      "const": "typed_decision"
+    },
+    "decision_type": {
+      "enum": ["choice", "boolean", "score", "ranking"]
+    },
+    "status": {
+      "enum": ["succeeded", "abstained", "blocked", "failed"]
+    },
+    "decision": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/choice_decision"
+        },
+        {
+          "$ref": "#/$defs/boolean_decision"
+        },
+        {
+          "$ref": "#/$defs/score_decision"
+        },
+        {
+          "$ref": "#/$defs/ranking_decision"
+        }
+      ]
+    },
+    "confidence": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/confidence"
+        }
+      ]
+    },
+    "abstention": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["reason_code"],
+          "properties": {
+            "reason_code": {
+              "enum": [
+                "insufficient_confidence",
+                "insufficient_evidence",
+                "ambiguous",
+                "unsupported_input",
+                "policy_blocked"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "block": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["reason_code"],
+          "properties": {
+            "reason_code": {
+              "enum": [
+                "execution_unavailable",
+                "privacy_policy",
+                "human_review_policy",
+                "contract_violation"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "failure": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["reason_code"],
+          "properties": {
+            "reason_code": {
+              "enum": [
+                "execution_error",
+                "timeout",
+                "output_contract_violation"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "escalation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["recommendation", "executed", "governed_policy_ref"],
+      "properties": {
+        "recommendation": {
+          "enum": ["none", "human_review", "governed_escalation_candidate"]
+        },
+        "executed": {
+          "const": false
+        },
+        "governed_policy_ref": {
+          "type": "null"
+        }
+      }
+    },
+    "governance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "human_review_required",
+        "downstream_allowed",
+        "approval_state"
+      ],
+      "properties": {
+        "human_review_required": {
+          "type": "boolean"
+        },
+        "downstream_allowed": {
+          "const": false
+        },
+        "approval_state": {
+          "enum": ["pending", "not_required"]
+        }
+      },
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "human_review_required": {
+              "const": true
+            },
+            "approval_state": {
+              "const": "pending"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "properties": {
+            "human_review_required": {
+              "const": false
+            },
+            "approval_state": {
+              "const": "not_required"
+            }
+          }
+        }
+      ]
+    },
+    "evidence_refs": {
+      "type": "array",
+      "maxItems": 32,
+      "items": {
+        "$ref": "#/$defs/evidence_ref"
+      }
+    },
+    "result_hash": {
+      "$ref": "#/$defs/hash"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "type": "object",
+        "required": ["status"],
+        "properties": {
+          "status": {
+            "const": "succeeded"
+          }
+        }
+      },
+      "then": {
+        "type": "object",
+        "properties": {
+          "decision": {
+            "type": "object"
+          },
+          "abstention": {
+            "type": "null"
+          },
+          "block": {
+            "type": "null"
+          },
+          "failure": {
+            "type": "null"
+          },
+          "escalation": {
+            "type": "object",
+            "properties": {
+              "recommendation": {
+                "enum": ["none", "human_review"]
+              }
+            }
+          }
+        }
+      },
+      "else": {
+        "type": "object",
+        "properties": {
+          "decision": {
+            "type": "null"
+          },
+          "confidence": {
+            "type": "null"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "type": "object",
+        "required": ["status"],
+        "properties": {
+          "status": {
+            "const": "abstained"
+          }
+        }
+      },
+      "then": {
+        "type": "object",
+        "properties": {
+          "abstention": {
+            "type": "object"
+          },
+          "block": {
+            "type": "null"
+          },
+          "failure": {
+            "type": "null"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "type": "object",
+        "required": ["status"],
+        "properties": {
+          "status": {
+            "const": "blocked"
+          }
+        }
+      },
+      "then": {
+        "type": "object",
+        "properties": {
+          "block": {
+            "type": "object"
+          },
+          "abstention": {
+            "type": "null"
+          },
+          "failure": {
+            "type": "null"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "type": "object",
+        "required": ["status"],
+        "properties": {
+          "status": {
+            "const": "failed"
+          }
+        }
+      },
+      "then": {
+        "type": "object",
+        "properties": {
+          "failure": {
+            "type": "object"
+          },
+          "abstention": {
+            "type": "null"
+          },
+          "block": {
+            "type": "null"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "type": "object",
+        "required": ["decision_type"],
+        "properties": {
+          "decision_type": {
+            "const": "choice"
+          }
+        }
+      },
+      "then": {
+        "type": "object",
+        "properties": {
+          "decision": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/$defs/choice_decision"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "type": "object",
+        "required": ["decision_type"],
+        "properties": {
+          "decision_type": {
+            "const": "boolean"
+          }
+        }
+      },
+      "then": {
+        "type": "object",
+        "properties": {
+          "decision": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/$defs/boolean_decision"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "type": "object",
+        "required": ["decision_type"],
+        "properties": {
+          "decision_type": {
+            "const": "score"
+          }
+        }
+      },
+      "then": {
+        "type": "object",
+        "properties": {
+          "decision": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/$defs/score_decision"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "type": "object",
+        "required": ["decision_type"],
+        "properties": {
+          "decision_type": {
+            "const": "ranking"
+          }
+        }
+      },
+      "then": {
+        "type": "object",
+        "properties": {
+          "decision": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/$defs/ranking_decision"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{1,127}$"
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "micros": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 1000000
+    },
+    "choice_decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "selected_candidate_id", "distribution"],
+      "properties": {
+        "kind": {
+          "const": "choice"
+        },
+        "selected_candidate_id": {
+          "$ref": "#/$defs/id"
+        },
+        "distribution": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["completeness", "entries"],
+              "properties": {
+                "completeness": {
+                  "enum": ["complete", "partial"]
+                },
+                "entries": {
+                  "type": "array",
+                  "minItems": 1,
+                  "maxItems": 32,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["candidate_id", "probability_micros"],
+                    "properties": {
+                      "candidate_id": {
+                        "$ref": "#/$defs/id"
+                      },
+                      "probability_micros": {
+                        "$ref": "#/$defs/micros"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "boolean_decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "value", "probability_true_micros"],
+      "properties": {
+        "kind": {
+          "const": "boolean"
+        },
+        "value": {
+          "type": "boolean"
+        },
+        "probability_true_micros": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/micros"
+            }
+          ]
+        }
+      }
+    },
+    "score_decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "scale_id", "value"],
+      "properties": {
+        "kind": {
+          "const": "score"
+        },
+        "scale_id": {
+          "$ref": "#/$defs/id"
+        },
+        "value": {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        }
+      }
+    },
+    "ranking_decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "ordered_candidate_ids"],
+      "properties": {
+        "kind": {
+          "const": "ranking"
+        },
+        "ordered_candidate_ids": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 32,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/id"
+          }
+        }
+      }
+    },
+    "confidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["confidence_micros", "semantics", "calibration_ref"],
+      "properties": {
+        "confidence_micros": {
+          "$ref": "#/$defs/micros"
+        },
+        "semantics": {
+          "const": "uncalibrated_candidate_reported"
+        },
+        "calibration_ref": {
+          "type": "null"
+        }
+      }
+    },
+    "evidence_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["evidence_id", "content_hash"],
+      "properties": {
+        "evidence_id": {
+          "$ref": "#/$defs/id"
+        },
+        "content_hash": {
+          "$ref": "#/$defs/hash"
+        }
+      }
+    }
+  }
+}

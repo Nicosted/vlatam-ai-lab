@@ -115,6 +115,33 @@ may a candidate move from `discovered` to `sandbox_only`; only a later approved
 synthetic-run implementation may enter `benchmark_candidate`. Existing
 OpenRouter/GLM/MiniMax blockers and activation order remain unchanged.
 
+## AI-140 governed typed decision plane (implemented 2026-09-25; contracts only)
+
+AI-140 adds the provider-neutral, model-neutral typed decision contract
+`1.0.0` (`src/decision/`, `schemas/ai-typed-decision-*.schema.json`), the
+execution paradigm vocabulary `deterministic | typed_decision |
+frontier_reasoning` (no routing), first-class abstention, exact integer
+probabilities, non-executed escalation recommendations and exact/semantic
+request hashing for permutation-invariance testing. See
+`docs/architecture/ai-typed-decision-plane.md` and ADR-005. No model,
+provider, runtime, sandbox, capability, Operator surface, scheduler or traffic
+is added; AI-120 contracts are unchanged.
+
+The following typed decision sequence is a roadmap intention only. None of
+AI-141 through AI-148 exists, and each requires its own review:
+
+| PR         | Title                                      | Intent                                                                                              |
+| ---------- | ------------------------------------------ | --------------------------------------------------------------------------------------------------- |
+| **AI-140** | Governed Typed Decision Plane              | Contracts, validators, hashing, disposition (this PR).                                              |
+| AI-141     | Gold Decision Evaluation Set               | Reviewed, versioned synthetic gold decisions per decision type, including abstention cases.         |
+| AI-142     | Typed Decision Candidate Registry          | Disabled, kill-switched candidate registry; capability-to-paradigm binding.                         |
+| AI-143     | Decision Sandbox Runtime                   | Isolated synthetic-only sandbox admitting a new result origin; no production traffic.               |
+| AI-144     | Direct-Logit Baseline                      | Reference baseline candidate evaluated in the sandbox.                                              |
+| AI-145     | Specialized Decision Candidates            | Additional governed candidates admitted only through AI-142/AI-143.                                 |
+| AI-146     | Decision Model Research / Training Lab     | Separately governed research track; no promotion authority.                                         |
+| AI-147     | Continuous Decision Tournament Integration | Additive `execution_paradigm` on AI-120 identity; capability-specific ranking, no universal winner. |
+| AI-148     | First Governed Decision Tournament         | First human-reviewed synthetic tournament; promotion remains an independent human decision.         |
+
 ## 2. Why AI-78 is not a "cheapest model" selector
 
 The danger of stopping at AI-72 + AI-78 is that a router might optimize

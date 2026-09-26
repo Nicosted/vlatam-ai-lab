@@ -1,0 +1,40 @@
+{
+  "contract": "typed_decision_result",
+  "schema_version": "1.0.0",
+  "result_id": "synthetic-document-completeness-result-0001",
+  "result_origin": "synthetic_fixture",
+  "request_binding": {
+    "request_id": "synthetic-document-completeness-request-0001",
+    "capability_id": "synthetic.decision.document_completeness_score",
+    "request_hash": "d3c469c794e6bb5461f49d4a5d60e50e9d5ade86c984cade9d253db5001fcd00",
+    "semantic_request_hash": "a5958d8a220d79391f1da17d1b4a765fbdd726929e94fd6938c6fa533c6a3a1a"
+  },
+  "execution_paradigm": "typed_decision",
+  "decision_type": "score",
+  "status": "succeeded",
+  "decision": {
+    "kind": "score",
+    "scale_id": "synthetic.completeness.0_4",
+    "value": 3
+  },
+  "confidence": {
+    "confidence_micros": 600000,
+    "semantics": "uncalibrated_candidate_reported",
+    "calibration_ref": null
+  },
+  "abstention": null,
+  "block": null,
+  "failure": null,
+  "escalation": {
+    "recommendation": "none",
+    "executed": false,
+    "governed_policy_ref": null
+  },
+  "evidence_refs": [],
+  "governance": {
+    "human_review_required": false,
+    "downstream_allowed": false,
+    "approval_state": "not_required"
+  },
+  "result_hash": "1e3eadc0918df19b654f0343eab9d5b61f39e04b86a549c53c5ffb5ff805006e"
+}
