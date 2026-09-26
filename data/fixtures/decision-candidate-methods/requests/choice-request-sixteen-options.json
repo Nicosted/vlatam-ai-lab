@@ -1,0 +1,99 @@
+{
+  "contract": "typed_decision_request",
+  "schema_version": "1.0.0",
+  "request_id": "synthetic-bucket-request-0001",
+  "capability_id": "synthetic.decision.bucket_select",
+  "execution_paradigm": "typed_decision",
+  "decision_type": "choice",
+  "bounded_state": {
+    "facts": [
+      {
+        "fact_id": "record.size_class",
+        "value_type": "string",
+        "value": "synthetic_medium"
+      }
+    ]
+  },
+  "question": {
+    "question_id": "synthetic.bucket.primary",
+    "text": "Which declared synthetic bucket fits this synthetic record?"
+  },
+  "output_domain": {
+    "kind": "choice",
+    "candidates": [
+      {
+        "candidate_id": "bucket.01",
+        "label": "Synthetic bucket 1"
+      },
+      {
+        "candidate_id": "bucket.02",
+        "label": "Synthetic bucket 2"
+      },
+      {
+        "candidate_id": "bucket.03",
+        "label": "Synthetic bucket 3"
+      },
+      {
+        "candidate_id": "bucket.04",
+        "label": "Synthetic bucket 4"
+      },
+      {
+        "candidate_id": "bucket.05",
+        "label": "Synthetic bucket 5"
+      },
+      {
+        "candidate_id": "bucket.06",
+        "label": "Synthetic bucket 6"
+      },
+      {
+        "candidate_id": "bucket.07",
+        "label": "Synthetic bucket 7"
+      },
+      {
+        "candidate_id": "bucket.08",
+        "label": "Synthetic bucket 8"
+      },
+      {
+        "candidate_id": "bucket.09",
+        "label": "Synthetic bucket 9"
+      },
+      {
+        "candidate_id": "bucket.10",
+        "label": "Synthetic bucket 10"
+      },
+      {
+        "candidate_id": "bucket.11",
+        "label": "Synthetic bucket 11"
+      },
+      {
+        "candidate_id": "bucket.12",
+        "label": "Synthetic bucket 12"
+      },
+      {
+        "candidate_id": "bucket.13",
+        "label": "Synthetic bucket 13"
+      },
+      {
+        "candidate_id": "bucket.14",
+        "label": "Synthetic bucket 14"
+      },
+      {
+        "candidate_id": "bucket.15",
+        "label": "Synthetic bucket 15"
+      },
+      {
+        "candidate_id": "bucket.16",
+        "label": "Synthetic bucket 16"
+      }
+    ],
+    "complete_distribution_required": true
+  },
+  "policy": {
+    "data_classification": "internal",
+    "human_review_required": true,
+    "abstention_permitted": true,
+    "escalation_policy_ref": null,
+    "downstream_use": "none"
+  },
+  "evidence_refs": []
+}

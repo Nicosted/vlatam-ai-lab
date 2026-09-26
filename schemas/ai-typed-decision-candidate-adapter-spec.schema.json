@@ -1,0 +1,298 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/ai-typed-decision-candidate-adapter-spec.schema.json",
+  "title": "AI-144 Typed Decision Candidate Adapter Specification",
+  "description": "Contract 1.0.0. Closed, versioned specification of the AI-LAB-owned SemIf direct-logit method adapter. It binds exactly one AI-142 candidate evidence revision (candidate_id, candidate_hash, evidence_revision), the pinned upstream methodology evidence (immutable commit, path, git blob SHA, content SHA-256) and per-topic interpretations, the AI-LAB-owned method artifact admitted by the AI-143 fixture sandbox by exact SHA-256, fixed method parameters and a narrow decision-type scope (choice only). It executes methodology over repository-owned synthetic logits only: no upstream code, no model, no weights. calibration_state is not_applied, result_origin is synthetic_fixture, authority is none and no benchmark, promotion or production eligibility exists. Interpretation completeness and required dispositions, evidence ordering and references, drift against the AI-142 entry and the self-excluding adapter_spec_hash are enforced by src/decision-candidate-methods/validation.ts and readiness.ts.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract",
+    "schema_version",
+    "adapter_spec_id",
+    "adapter_spec_version",
+    "candidate_binding",
+    "methodology",
+    "implementation",
+    "method",
+    "supported_decision_types",
+    "unsupported_decision_types",
+    "probability_semantics",
+    "calibration_state",
+    "confidence_semantics",
+    "execution_mode",
+    "result_origin",
+    "authority",
+    "benchmark_eligible",
+    "promotion_eligible",
+    "production_eligible",
+    "adapter_spec_hash"
+  ],
+  "properties": {
+    "contract": {
+      "const": "typed_decision_candidate_adapter_spec"
+    },
+    "schema_version": {
+      "type": "string",
+      "pattern": "^1\\.[0-9]+\\.[0-9]+$"
+    },
+    "adapter_spec_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{1,127}$"
+    },
+    "adapter_spec_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "candidate_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["candidate_id", "candidate_hash", "evidence_revision"],
+      "properties": {
+        "candidate_id": {
+          "const": "tdc-theoleecj-semif"
+        },
+        "candidate_hash": {
+          "const": "02c465ac9c13b88f0cda245eae350f45b0d91cd66b24e0ededf9d73df5228f29"
+        },
+        "evidence_revision": {
+          "const": 1
+        }
+      }
+    },
+    "methodology": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "upstream_repository",
+        "upstream_commit",
+        "evidence",
+        "interpretations"
+      ],
+      "properties": {
+        "upstream_repository": {
+          "const": "TheoLeeCJ/SemIf-OpenJev"
+        },
+        "upstream_commit": {
+          "const": "23cf1f39fc9534fe81437200959b6dfc7106e45a"
+        },
+        "evidence": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["evidence_id", "path", "blob_sha", "content_sha256"],
+            "properties": {
+              "evidence_id": {
+                "type": "string",
+                "pattern": "^[a-z0-9][a-z0-9._-]{1,127}$"
+              },
+              "path": {
+                "type": "string",
+                "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))[A-Za-z0-9._/-]{1,256}$"
+              },
+              "blob_sha": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{40}$"
+              },
+              "content_sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              }
+            }
+          }
+        },
+        "interpretations": {
+          "type": "array",
+          "minItems": 11,
+          "maxItems": 11,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["topic", "disposition", "statement", "evidence_refs"],
+            "properties": {
+              "topic": {
+                "enum": [
+                  "boolean_decisions",
+                  "calibration",
+                  "logit_source",
+                  "normalization",
+                  "option_construction",
+                  "option_ordering",
+                  "probability_representation",
+                  "prompt_construction",
+                  "score_and_ranking_decisions",
+                  "selection",
+                  "top_logit_tie"
+                ]
+              },
+              "disposition": {
+                "enum": [
+                  "adopted",
+                  "ai_lab_policy",
+                  "fail_closed",
+                  "not_applicable",
+                  "not_applied",
+                  "not_supported",
+                  "replaced_by_synthetic"
+                ]
+              },
+              "statement": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 320
+              },
+              "evidence_refs": {
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "pattern": "^[a-z0-9][a-z0-9._-]{1,127}$"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "implementation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ownership",
+        "implementation_kind",
+        "upstream_code_reused",
+        "sandbox_subject_kind",
+        "adapter_id",
+        "adapter_version",
+        "artifact_path",
+        "artifact_sha256"
+      ],
+      "properties": {
+        "ownership": {
+          "const": "ai_lab"
+        },
+        "implementation_kind": {
+          "const": "method_reimplementation"
+        },
+        "upstream_code_reused": {
+          "const": false
+        },
+        "sandbox_subject_kind": {
+          "const": "synthetic_fixture_adapter"
+        },
+        "adapter_id": {
+          "type": "string",
+          "pattern": "^(?!tdc-)[a-z0-9][a-z0-9._-]{1,127}$"
+        },
+        "adapter_version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "artifact_path": {
+          "type": "string",
+          "pattern": "^src/decision-sandbox/fixture/[a-z0-9][a-z0-9-]{0,96}\\.mjs$"
+        },
+        "artifact_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "method": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "readout",
+        "logit_source",
+        "logit_unit",
+        "max_abs_logit_micros",
+        "min_candidates",
+        "max_candidates",
+        "logit_binding",
+        "normalization",
+        "probability_rounding",
+        "selection",
+        "top_logit_tie",
+        "distribution"
+      ],
+      "properties": {
+        "readout": {
+          "const": "direct_option_logits"
+        },
+        "logit_source": {
+          "const": "repository_owned_synthetic_logits"
+        },
+        "logit_unit": {
+          "const": "micro_logit"
+        },
+        "max_abs_logit_micros": {
+          "const": 100000000
+        },
+        "min_candidates": {
+          "const": 2
+        },
+        "max_candidates": {
+          "const": 16
+        },
+        "logit_binding": {
+          "const": "candidate_id"
+        },
+        "normalization": {
+          "const": "softmax_max_shift_candidate_id_order"
+        },
+        "probability_rounding": {
+          "const": "floor_then_largest_remainder_candidate_id_ascending"
+        },
+        "selection": {
+          "const": "unique_maximum_logit"
+        },
+        "top_logit_tie": {
+          "const": "fail_closed"
+        },
+        "distribution": {
+          "const": "complete"
+        }
+      }
+    },
+    "supported_decision_types": {
+      "const": ["choice"]
+    },
+    "unsupported_decision_types": {
+      "const": ["boolean", "ranking", "score"]
+    },
+    "probability_semantics": {
+      "const": "conditional_on_declared_options_uncalibrated"
+    },
+    "calibration_state": {
+      "const": "not_applied"
+    },
+    "confidence_semantics": {
+      "const": "uncalibrated_candidate_reported"
+    },
+    "execution_mode": {
+      "const": "synthetic_logits_only"
+    },
+    "result_origin": {
+      "const": "synthetic_fixture"
+    },
+    "authority": {
+      "const": "none"
+    },
+    "benchmark_eligible": {
+      "const": false
+    },
+    "promotion_eligible": {
+      "const": false
+    },
+    "production_eligible": {
+      "const": false
+    },
+    "adapter_spec_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    }
+  }
+}

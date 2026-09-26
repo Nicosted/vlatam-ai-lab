@@ -1,0 +1,274 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/ai-typed-decision-candidate-adapter-evidence-pack.schema.json",
+  "title": "AI-144 Typed Decision Candidate Adapter Evidence Pack",
+  "description": "Contract 1.0.0. Immutable evidence pack binding the exact AI-142 SemIf candidate evidence revision, the pinned upstream commit, the adapter specification hash, the exact methodology evidence, the AI-LAB-owned method artifact hash, every synthetic logit fixture hash, the unchanged AI-143 fixture sandbox policy hash and the actual-candidate execution readiness blockers. Readiness state is always not_eligible_for_candidate_execution with at least the standing blockers; every execution fact is false (no upstream code, model, weights or candidate dependencies; AI-142 ai_lab_executed unchanged). calibration_state is not_applied, result_origin is synthetic_fixture, authority is none, and review is draft or in_review only: a pack never approves itself. Cross-artifact binding, readiness recomputation and the self-excluding evidence_pack_hash are enforced by src/decision-candidate-methods/validation.ts.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract",
+    "schema_version",
+    "pack_id",
+    "candidate_binding",
+    "upstream_commit",
+    "adapter_spec",
+    "methodology_evidence",
+    "method_artifact",
+    "synthetic_logit_fixtures",
+    "sandbox_policy_hash",
+    "calibration_state",
+    "result_origin",
+    "execution_readiness",
+    "execution_facts",
+    "review",
+    "authority",
+    "evidence_pack_hash"
+  ],
+  "properties": {
+    "contract": {
+      "const": "typed_decision_candidate_adapter_evidence_pack"
+    },
+    "schema_version": {
+      "type": "string",
+      "pattern": "^1\\.[0-9]+\\.[0-9]+$"
+    },
+    "pack_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{1,127}$"
+    },
+    "candidate_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["candidate_id", "candidate_hash", "evidence_revision"],
+      "properties": {
+        "candidate_id": {
+          "const": "tdc-theoleecj-semif"
+        },
+        "candidate_hash": {
+          "const": "02c465ac9c13b88f0cda245eae350f45b0d91cd66b24e0ededf9d73df5228f29"
+        },
+        "evidence_revision": {
+          "const": 1
+        }
+      }
+    },
+    "upstream_commit": {
+      "const": "23cf1f39fc9534fe81437200959b6dfc7106e45a"
+    },
+    "adapter_spec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "adapter_spec_id",
+        "adapter_spec_version",
+        "adapter_spec_hash"
+      ],
+      "properties": {
+        "adapter_spec_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]{1,127}$"
+        },
+        "adapter_spec_version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "adapter_spec_hash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "methodology_evidence": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 32,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["evidence_id", "path", "blob_sha", "content_sha256"],
+        "properties": {
+          "evidence_id": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9._-]{1,127}$"
+          },
+          "path": {
+            "type": "string",
+            "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))[A-Za-z0-9._/-]{1,256}$"
+          },
+          "blob_sha": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{40}$"
+          },
+          "content_sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        }
+      }
+    },
+    "method_artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ownership",
+        "adapter_id",
+        "adapter_version",
+        "artifact_sha256"
+      ],
+      "properties": {
+        "ownership": {
+          "const": "ai_lab"
+        },
+        "adapter_id": {
+          "type": "string",
+          "pattern": "^(?!tdc-)[a-z0-9][a-z0-9._-]{1,127}$"
+        },
+        "adapter_version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "artifact_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "synthetic_logit_fixtures": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["fixture_id", "fixture_hash"],
+        "properties": {
+          "fixture_id": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9._-]{1,127}$"
+          },
+          "fixture_hash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        }
+      }
+    },
+    "sandbox_policy_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "calibration_state": {
+      "const": "not_applied"
+    },
+    "result_origin": {
+      "const": "synthetic_fixture"
+    },
+    "execution_readiness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "blockers"],
+      "properties": {
+        "state": {
+          "const": "not_eligible_for_candidate_execution"
+        },
+        "blockers": {
+          "type": "array",
+          "minItems": 5,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "archive_state_unresolved",
+              "base_model_license_unresolved",
+              "candidate_binding_stale",
+              "candidate_entry_invalid",
+              "candidate_execution_not_authorized",
+              "code_license_unresolved",
+              "hostile_code_isolation_not_established",
+              "model_artifact_not_bound",
+              "runtime_dependency_set_not_bound",
+              "training_data_provenance_incomplete",
+              "upstream_code_not_admitted_to_sandbox",
+              "weights_involvement_unresolved",
+              "weights_license_unresolved",
+              "weights_location_unresolved"
+            ]
+          },
+          "allOf": [
+            {
+              "contains": {
+                "const": "candidate_execution_not_authorized"
+              }
+            },
+            {
+              "contains": {
+                "const": "hostile_code_isolation_not_established"
+              }
+            },
+            {
+              "contains": {
+                "const": "model_artifact_not_bound"
+              }
+            },
+            {
+              "contains": {
+                "const": "runtime_dependency_set_not_bound"
+              }
+            },
+            {
+              "contains": {
+                "const": "upstream_code_not_admitted_to_sandbox"
+              }
+            }
+          ]
+        }
+      }
+    },
+    "execution_facts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "upstream_code_executed",
+        "model_executed",
+        "model_weights_downloaded",
+        "candidate_dependencies_installed",
+        "ai_lab_executed"
+      ],
+      "properties": {
+        "upstream_code_executed": {
+          "const": false
+        },
+        "model_executed": {
+          "const": false
+        },
+        "model_weights_downloaded": {
+          "const": false
+        },
+        "candidate_dependencies_installed": {
+          "const": false
+        },
+        "ai_lab_executed": {
+          "const": false
+        }
+      }
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "human_review_required"],
+      "properties": {
+        "state": {
+          "enum": ["draft", "in_review"]
+        },
+        "human_review_required": {
+          "const": true
+        }
+      }
+    },
+    "authority": {
+      "const": "none"
+    },
+    "evidence_pack_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    }
+  }
+}

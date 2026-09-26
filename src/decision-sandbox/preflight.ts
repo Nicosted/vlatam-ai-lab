@@ -11,6 +11,11 @@
  * is not approval and grants no authority over the output; it only means
  * the fixture runner may start one process for this exact binding.
  *
+ * The bound adapter must also support the request: its decision type
+ * must be one the allowlisted adapter declares and a choice/ranking
+ * candidate set may not exceed the adapter's bound (AI-144). Otherwise
+ * preflight blocks before any process exists.
+ *
  * An AI-142 registered candidate is never executable here: a
  * `registered_decision_candidate` subject, any candidate binding field,
  * or a candidate identifier used as an adapter id is blocked with
@@ -169,6 +174,28 @@ function checkSubject(
   return exact ? adapter : null;
 }
 
+/** Blocks a request the bound adapter does not declare support for. */
+function checkAdapterRequestSupport(
+  adapter: DecisionSandboxFixtureAdapter,
+  request: TypedDecisionRequest,
+  c: DecisionSandboxIssueCollector,
+): void {
+  if (!adapter.supported_decision_types.includes(request.decision_type))
+    c.add(
+      "adapter_decision_type_unsupported",
+      "execution.request.decision_type",
+    );
+  const domain = request.output_domain;
+  if (
+    (domain.kind === "choice" || domain.kind === "ranking") &&
+    domain.candidates.length > adapter.max_candidates
+  )
+    c.add(
+      "adapter_candidate_limit_exceeded",
+      "execution.request.output_domain.candidates",
+    );
+}
+
 /**
  * Evaluates one submitted execution request against the fixed fixture
  * policy. Pure and fail-closed: any defect blocks.
@@ -238,6 +265,9 @@ export function evaluateDecisionSandboxPreflight(
 
   if (value["output_authority"] !== "none")
     c.add("output_authority_invalid", "execution.output_authority");
+
+  if (adapter !== null && requestCheck.ok)
+    checkAdapterRequestSupport(adapter, requestCheck.value, c);
 
   if (requestCheck.ok && executionId !== null) {
     const frame = encodeDecisionAdapterFrame(

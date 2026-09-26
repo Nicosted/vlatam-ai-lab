@@ -1,0 +1,82 @@
+{
+  "contract": "typed_decision_synthetic_logit_fixture",
+  "schema_version": "1.0.0",
+  "fixture_id": "synthetic-logits-bucket-0001",
+  "provenance": "repository_owned_synthetic",
+  "model_output": false,
+  "request_binding": {
+    "capability_id": "synthetic.decision.bucket_select",
+    "semantic_request_hash": "d95cab1e64950e19b51039fa4c7ef4d4a5b5610f2a727e9b3dd7b719f8b10dc6",
+    "request_hashes": [
+      "e251e7eb520148fcfd4d891a4906197535f17ee396e1fede6ed2aad654eac5f3"
+    ]
+  },
+  "logit_unit": "micro_logit",
+  "candidate_logits": [
+    {
+      "candidate_id": "bucket.01",
+      "logit_micros": -100000000
+    },
+    {
+      "candidate_id": "bucket.02",
+      "logit_micros": -2500000
+    },
+    {
+      "candidate_id": "bucket.03",
+      "logit_micros": -1000000
+    },
+    {
+      "candidate_id": "bucket.04",
+      "logit_micros": 0
+    },
+    {
+      "candidate_id": "bucket.05",
+      "logit_micros": 250000
+    },
+    {
+      "candidate_id": "bucket.06",
+      "logit_micros": 500000
+    },
+    {
+      "candidate_id": "bucket.07",
+      "logit_micros": 4000000
+    },
+    {
+      "candidate_id": "bucket.08",
+      "logit_micros": 750000
+    },
+    {
+      "candidate_id": "bucket.09",
+      "logit_micros": 1000000
+    },
+    {
+      "candidate_id": "bucket.10",
+      "logit_micros": -750000
+    },
+    {
+      "candidate_id": "bucket.11",
+      "logit_micros": 1500000
+    },
+    {
+      "candidate_id": "bucket.12",
+      "logit_micros": 2000000
+    },
+    {
+      "candidate_id": "bucket.13",
+      "logit_micros": -3000000
+    },
+    {
+      "candidate_id": "bucket.14",
+      "logit_micros": 3250000
+    },
+    {
+      "candidate_id": "bucket.15",
+      "logit_micros": -50000000
+    },
+    {
+      "candidate_id": "bucket.16",
+      "logit_micros": 100000
+    }
+  ],
+  "fixture_hash": "d719613a0496b861dc91111c9d2278722b7b3c0f34dc2d3d06931ce381808636"
+}

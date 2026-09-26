@@ -1,0 +1,35 @@
+{
+  "contract": "typed_decision_synthetic_logit_fixture",
+  "schema_version": "1.0.0",
+  "fixture_id": "synthetic-logits-route-0001",
+  "provenance": "repository_owned_synthetic",
+  "model_output": false,
+  "request_binding": {
+    "capability_id": "synthetic.decision.queue_route",
+    "semantic_request_hash": "91f50131725203491fbd11f68dc6ab83a2e40897fae03d0b3db9d08779b6640b",
+    "request_hashes": [
+      "a2954e11fa261c8f0d27118410ae03b47bbe00f08bb972e3a3fdee8714bf8474",
+      "fc68832c2988d52282f065c3dee056ee852505d0ce75393f86310895553e7c1c"
+    ]
+  },
+  "logit_unit": "micro_logit",
+  "candidate_logits": [
+    {
+      "candidate_id": "route.alpha",
+      "logit_micros": 1000000
+    },
+    {
+      "candidate_id": "route.beta",
+      "logit_micros": -1000000
+    },
+    {
+      "candidate_id": "route.delta",
+      "logit_micros": -600000
+    },
+    {
+      "candidate_id": "route.gamma",
+      "logit_micros": -1000000
+    }
+  ],
+  "fixture_hash": "5c1b65bd9734563aa982a51b47027a8cf048d2b5165ffedfa1acbca0452f7355"
+}

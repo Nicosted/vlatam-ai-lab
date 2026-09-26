@@ -1,0 +1,31 @@
+{
+  "contract": "typed_decision_synthetic_logit_fixture",
+  "schema_version": "1.0.0",
+  "fixture_id": "synthetic-logits-intent-0001",
+  "provenance": "repository_owned_synthetic",
+  "model_output": false,
+  "request_binding": {
+    "capability_id": "synthetic.decision.intent_classify",
+    "semantic_request_hash": "daef56807bcae765bcc14ffdb98c05093bf912c871e1e7f7cdd3ee3bb8fd249c",
+    "request_hashes": [
+      "107363d8f5d0eede8e0ec9c1723444216ded63a2379ddef5dd6a4c8597f5d6c7",
+      "7eec526cfe12a866ca0f1123338398d215b47b85e4085c3e884cb14c5f9a7fda"
+    ]
+  },
+  "logit_unit": "micro_logit",
+  "candidate_logits": [
+    {
+      "candidate_id": "intent.document_submission",
+      "logit_micros": 100000001
+    },
+    {
+      "candidate_id": "intent.other",
+      "logit_micros": -1100000
+    },
+    {
+      "candidate_id": "intent.tariff_question",
+      "logit_micros": 1800000
+    }
+  ],
+  "fixture_hash": "22320b8d899196ba781d54274e37981101abbd0974673bec1967f4a9bb7ab515"
+}

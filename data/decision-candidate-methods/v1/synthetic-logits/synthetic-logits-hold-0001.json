@@ -1,0 +1,30 @@
+{
+  "contract": "typed_decision_synthetic_logit_fixture",
+  "schema_version": "1.0.0",
+  "fixture_id": "synthetic-logits-hold-0001",
+  "provenance": "repository_owned_synthetic",
+  "model_output": false,
+  "request_binding": {
+    "capability_id": "synthetic.decision.hold_or_release",
+    "semantic_request_hash": "8994b773ce64eac76b282a371dd8412ec46b3c60a462772f3b2f35f94f10ca06",
+    "request_hashes": [
+      "03daeaa2926edb2b9aabcba6cf33b88b0eb1cf01261693493277cbbf94e0040f"
+    ]
+  },
+  "logit_unit": "micro_logit",
+  "candidate_logits": [
+    {
+      "candidate_id": "hold.escalate",
+      "logit_micros": -500000
+    },
+    {
+      "candidate_id": "hold.keep",
+      "logit_micros": 1200000
+    },
+    {
+      "candidate_id": "hold.release",
+      "logit_micros": 1200000
+    }
+  ],
+  "fixture_hash": "1bb649c6f16d58b84887b19276218c545627cd8fee4399c8c551721694dc7da9"
+}

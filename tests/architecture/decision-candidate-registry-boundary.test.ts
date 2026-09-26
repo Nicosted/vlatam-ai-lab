@@ -180,18 +180,36 @@ describe("AI-142 typed decision candidate registry architecture boundary", () =>
     // AI-143: the decision sandbox preflight reuses only the candidate id
     // vocabulary, to refuse registered candidates before process creation
     // (tests/architecture/decision-sandbox-boundary.test.ts).
+    // AI-144: the pure candidate method evidence layer re-validates the
+    // exact AI-142 entry it binds (hash drift fails closed) and reuses the
+    // contract vocabulary; it is itself unwired
+    // (tests/architecture/decision-candidate-method-boundary.test.ts).
+    const CANDIDATE_METHOD_DIR = "src/decision-candidate-methods/";
     assert.deepEqual(
-      consumers.filter((file) => !file.startsWith("src/decision-sandbox/")),
+      consumers.filter(
+        (file) =>
+          !file.startsWith("src/decision-sandbox/") &&
+          !file.startsWith(CANDIDATE_METHOD_DIR),
+      ),
       [],
       "no production module may consume the AI-142 candidate registry",
     );
     for (const file of consumers)
       for (const specifier of importSpecifiers(readFileSync(file, "utf8")))
         if (resolveLocal(file, specifier).startsWith(`${REGISTRY_DIR}/`))
-          assert.equal(
-            resolveLocal(file, specifier),
-            `${REGISTRY_DIR}/contracts.ts`,
-            `${file} may only reuse the AI-142 contract vocabulary`,
+          assert.ok(
+            file.startsWith(CANDIDATE_METHOD_DIR)
+              ? [
+                  `${REGISTRY_DIR}/contracts.ts`,
+                  `${REGISTRY_DIR}/validation.ts`,
+                ].includes(resolveLocal(file, specifier))
+              : resolveLocal(file, specifier) ===
+                  `${REGISTRY_DIR}/contracts.ts`,
+            `${file} may only reuse the AI-142 contract vocabulary${
+              file.startsWith(CANDIDATE_METHOD_DIR)
+                ? " and entry validator"
+                : ""
+            }`,
           );
     for (const file of ["api"].filter(existsSync).flatMap(walk))
       assert.doesNotMatch(

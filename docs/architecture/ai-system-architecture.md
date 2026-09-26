@@ -659,6 +659,14 @@ and are not deferred to later PRs.
     untrusted candidate code is safe to run, and registered candidates
     stay non-executable. See
     `docs/architecture/ai-decision-sandbox-runtime.md`.
+16. AI-144 executes candidate-specific methodology, not candidate-supplied
+    code or model weights. The AI-LAB-owned SemIf direct-logit method
+    adapter runs only over repository-owned synthetic logits as an AI-143
+    synthetic fixture subject, binds the exact AI-142 candidate hash (drift
+    makes it stale), keeps `result_origin: "synthetic_fixture"` and applies
+    no calibration. A method-conformance success is not evidence of model
+    quality, and the registered candidate stays non-executable. See
+    `docs/architecture/ai-semif-direct-logit-method-adapter.md`.
 
 ## 6. Roadmap alignment
 
