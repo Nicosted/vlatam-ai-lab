@@ -393,8 +393,10 @@ export async function loadRepositoryOperatorReadModel(
   const runtimeHash = isRecord(runtime)
     ? artifactHash("vlatam-ai-lab:openrouter-sandbox-runtime:v1", runtime)
     : null;
-  const glmGovernance = evaluateGlmGovernanceArtifacts();
-  const glmPreflight = projectGlmFirstRunReadiness();
+  // One evaluation instant for the whole read model: nested GLM evidence
+  // expiry must be judged as of `evaluated_at`, never the process clock.
+  const glmGovernance = evaluateGlmGovernanceArtifacts(evaluatedAt);
+  const glmPreflight = projectGlmFirstRunReadiness(evaluatedAt);
   const glmProfile = typedProfiles.find(
     (profile) => profile.profile_id === GLM_PROFILE_ID,
   );
