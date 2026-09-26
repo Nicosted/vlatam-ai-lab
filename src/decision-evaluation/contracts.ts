@@ -1,8 +1,11 @@
 /**
  * AI-141 — Gold Decision Evaluation Set: contract types.
  *
- * A Gold Decision Case is reviewed evaluation evidence for one bounded
- * typed decision (AI-140). It composes an exact AI-140
+ * A Gold Decision Case is reviewable, hash-bound evaluation evidence for
+ * one bounded typed decision (AI-140). While its dataset is `draft` or
+ * `in_review` it is provisional evaluation truth; it becomes reviewed
+ * evaluation authority only through a future governed publication bound
+ * to the exact dataset hash. It composes an exact AI-140
  * `TypedDecisionRequest` with an answer key, an explicit abstention
  * policy, provenance and slicing metadata. A Gold Decision Set manifest
  * binds an exact, ordered list of case hashes under one dataset
@@ -210,7 +213,8 @@ export interface GoldScoreExactExpectation {
 }
 
 /**
- * A reviewed acceptable band on the declared scale. Every value in
+ * A declared acceptable band on the declared scale (pending governed
+ * human review with its dataset). Every value in
  * `[acceptable_minimum, acceptable_maximum]` is correct. There is no
  * fuzzy scoring: the band is declared by the case, not inferred.
  */
@@ -294,7 +298,10 @@ export interface GoldDecisionCase {
 export interface GoldDecisionLabelingRule {
   readonly rule_id: string;
   readonly capability_id: string;
-  /** Declarative, reviewed labeling rule. Never model reasoning. */
+  /**
+   * Declarative labeling rule pending governed human review with its
+   * dataset. Never model reasoning.
+   */
   readonly statement: string;
 }
 

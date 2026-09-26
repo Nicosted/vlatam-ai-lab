@@ -538,7 +538,7 @@ describe("AI-141 dataset succession and test-split immutability", () => {
     );
   });
 
-  it("rejects a mutated or removed published test case", () => {
+  it("rejects a mutated or removed frozen test case", () => {
     const previous = previousVersion();
     const testIndex = previous["cases"].findIndex(
       (e: Loose) => e["split"] === "test",
@@ -561,7 +561,7 @@ describe("AI-141 dataset succession and test-split immutability", () => {
     );
   });
 
-  it("rejects moving a published case between splits", () => {
+  it("rejects moving a frozen case between splits", () => {
     const previous = previousVersion();
     const testIndex = previous["cases"].findIndex(
       (e: Loose) => e["split"] === "test",

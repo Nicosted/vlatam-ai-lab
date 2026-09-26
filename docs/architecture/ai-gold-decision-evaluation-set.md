@@ -48,9 +48,17 @@ here.
 
 ## 1. What a Gold Decision is
 
-A Gold Decision is reviewed evaluation evidence for one bounded typed
-decision (AI-140). It is not model output, and it is never produced,
-edited or selected by the system it evaluates.
+A Gold Decision is reviewable, hash-bound evaluation evidence for one
+bounded typed decision (AI-140). It is not model output, and it is never
+produced, edited or selected by the system it evaluates.
+
+| Dataset state                                                   | What its Gold Decisions are                                    |
+| --------------------------------------------------------------- | -------------------------------------------------------------- |
+| `draft` / `in_review` (all AI-141 sets, including the seed set) | Provisional evaluation evidence — provisional evaluation truth |
+| Future governed publication bound to the exact `dataset_hash`   | Reviewed evaluation authority (not implemented in AI-141)      |
+
+The 68 seed cases were authored in the repository and have not yet
+received governed human review.
 
 ```text
 Gold Decision Set (manifest, exact case hashes, split policy, review state)
@@ -121,7 +129,8 @@ Expected-answer semantics (no fuzzy scoring, no thresholds):
 
 ### Provenance
 
-Every label is justified by a declared, reviewed labeling rule
+Every label is justified by a declared labeling rule, pending governed
+human review with its dataset
 (`provenance.labeling_rule_id`, defined once in the set manifest) applied
 to named bounded facts (`provenance.evidence_basis`, each a `fact_id` of
 the request). Every seed rule is also stated in the case's question text,

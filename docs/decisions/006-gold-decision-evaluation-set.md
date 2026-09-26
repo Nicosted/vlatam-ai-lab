@@ -55,7 +55,8 @@ correctness.
 ## Consequences
 
 AI-142 through AI-148 can register, sandbox and compare candidates against
-reviewed truth without changing it. The AI-140 architecture boundary now
+evaluation truth they cannot change; that truth stays provisional until a
+future governed publication binds the exact dataset hash. The AI-140 architecture boundary now
 admits exactly one consumer, the pure and unwired evaluation layer. AI-120
 contracts are unchanged; tournament integration is a documented additive
 extension point (AI-147). ECE, rank-correlation metrics and partial

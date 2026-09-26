@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://vlatam-ai-lab.local/schemas/ai-gold-decision-case.schema.json",
   "title": "AI-141 Gold Decision Case",
-  "description": "Contract 1.0.0. One reviewed, synthetic, provider-neutral evaluation case: an exact AI-140 typed decision request, an answer key inside its declared output domain, an explicit abstention policy (required | allowed | not_allowed), provenance bound to declared facts and a labeling rule, and language/jurisdiction/split slicing metadata. Candidates never create or modify it. Cross-field rules JSON Schema cannot express (expected kind equals decision type, expected candidate membership, score within scale, ranking permutation, evidence basis facts, strict tag order, self-hash) are enforced by src/decision-evaluation/validation.ts.",
+  "description": "Contract 1.0.0. One reviewable, hash-bound, synthetic, provider-neutral evaluation case (provisional evaluation truth while its dataset is draft or in_review): an exact AI-140 typed decision request, an answer key inside its declared output domain, an explicit abstention policy (required | allowed | not_allowed), provenance bound to declared facts and a labeling rule, and language/jurisdiction/split slicing metadata. Candidates never create or modify it. Cross-field rules JSON Schema cannot express (expected kind equals decision type, expected candidate membership, score within scale, ranking permutation, evidence basis facts, strict tag order, self-hash) are enforced by src/decision-evaluation/validation.ts.",
   "type": "object",
   "additionalProperties": false,
   "required": [
