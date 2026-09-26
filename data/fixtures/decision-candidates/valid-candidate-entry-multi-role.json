@@ -1,0 +1,103 @@
+{
+  "contract": "typed_decision_candidate_entry",
+  "schema_version": "1.0.0",
+  "candidate_id": "tdc-fixture-direct-logit-adapter",
+  "evidence_revision": 1,
+  "supersedes": null,
+  "display_name": "Synthetic fixture direct-logit adapter",
+  "roles": [
+    {
+      "role": "research_methodology",
+      "evidence_refs": ["ev-paper"]
+    },
+    {
+      "role": "typed_decision_adapter",
+      "evidence_refs": ["ev-readme"]
+    }
+  ],
+  "upstream": {
+    "host": "github.com",
+    "requested_repository": "ai-lab-fixtures/synthetic-direct-logit-adapter",
+    "repository": "ai-lab-fixtures/synthetic-direct-logit-adapter",
+    "repository_url": "https://github.com/ai-lab-fixtures/synthetic-direct-logit-adapter",
+    "pinned_commit_sha": "89abcdef0123456789abcdef0123456789abcdef",
+    "default_branch_at_observation": "main",
+    "archive_state": "unresolved",
+    "observed_at": "2026-09-26T12:00:00Z"
+  },
+  "evidence": [
+    {
+      "evidence_id": "ev-paper",
+      "evidence_kind": "architecture_document",
+      "locator": {
+        "repository": "ai-lab-fixtures/synthetic-direct-logit-adapter",
+        "commit_sha": "89abcdef0123456789abcdef0123456789abcdef",
+        "path": "docs/method.md",
+        "blob_sha": "527fafcd6e45478351f6f2a366efe520ca292cf0",
+        "source_url": "https://github.com/ai-lab-fixtures/synthetic-direct-logit-adapter/blob/89abcdef0123456789abcdef0123456789abcdef/docs/method.md"
+      },
+      "content_sha256": "8f9859eba8e3c5646d1254624069145faf3fac1b754eba90d7022998fe9bf875",
+      "observed_at": "2026-09-26T12:00:00Z"
+    },
+    {
+      "evidence_id": "ev-readme",
+      "evidence_kind": "readme",
+      "locator": {
+        "repository": "ai-lab-fixtures/synthetic-direct-logit-adapter",
+        "commit_sha": "89abcdef0123456789abcdef0123456789abcdef",
+        "path": "README.md",
+        "blob_sha": "a9ebfaba2e4042a920b3da12fa284a0d0a29760a",
+        "source_url": "https://github.com/ai-lab-fixtures/synthetic-direct-logit-adapter/blob/89abcdef0123456789abcdef0123456789abcdef/README.md"
+      },
+      "content_sha256": "3d8b30465dcfcf889eacbc023820edda911c5ea877e7a65633550cba5f75bf26",
+      "observed_at": "2026-09-26T12:00:00Z"
+    }
+  ],
+  "licensing": {
+    "code": {
+      "status": "unresolved",
+      "declared_identifier": null,
+      "evidence_refs": []
+    },
+    "weights": {
+      "involvement": "not_involved",
+      "location": "not_applicable",
+      "declared_reference": null,
+      "status": "not_applicable",
+      "declared_identifier": null,
+      "evidence_refs": ["ev-readme"]
+    },
+    "base_model": {
+      "status": "not_applicable",
+      "declared_name": null,
+      "declared_identifier": null,
+      "evidence_refs": ["ev-readme"]
+    },
+    "training_data": {
+      "status": "not_applicable",
+      "evidence_refs": ["ev-readme"]
+    }
+  },
+  "upstream_claims": [
+    {
+      "claim_id": "claim-order-invariance",
+      "claim_kind": "invariance",
+      "statement": "Synthetic README states option-order invariant scoring.",
+      "evidence_refs": ["ev-paper", "ev-readme"],
+      "verification": "upstream_claim"
+    }
+  ],
+  "evidence_gaps": ["archive_state_unresolved", "code_license_unresolved"],
+  "evidence_completeness": "incomplete",
+  "lifecycle": {
+    "registry_state": "discovered",
+    "ai_lab_executed": false,
+    "execution_enabled": false,
+    "benchmark_execution_enabled": false,
+    "promotion_eligible": false,
+    "production_eligible": false,
+    "routing_enabled": false,
+    "authority": "evidence_only"
+  },
+  "candidate_hash": "dfe296bfbff08a96aac64147ccc3f988a10138bc5027786bafbdc10b7d26dd9c"
+}

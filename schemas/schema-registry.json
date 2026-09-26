@@ -1737,6 +1737,51 @@
       "requires_human_review_semantics": true,
       "requires_traceability": true,
       "downstream_allowed_field_present": false
+    },
+    {
+      "contract_name": "ai_typed_decision_candidate_entry",
+      "schema_file": "schemas/ai-typed-decision-candidate-entry.schema.json",
+      "valid_fixture": "data/fixtures/decision-candidates/valid-candidate-entry.json",
+      "invalid_fixtures": [
+        "data/fixtures/decision-candidates/invalid-entry-unpinned-upstream-revision.json",
+        "data/fixtures/decision-candidates/invalid-entry-mutable-evidence-url.json",
+        "data/fixtures/decision-candidates/invalid-entry-execution-enabled.json",
+        "data/fixtures/decision-candidates/invalid-entry-promotion-eligible.json",
+        "data/fixtures/decision-candidates/invalid-entry-private-reasoning.json",
+        "data/fixtures/decision-candidates/invalid-entry-provider-credential.json",
+        "data/fixtures/decision-candidates/invalid-entry-claim-ai-lab-verified.json",
+        "data/fixtures/decision-candidates/invalid-entry-claim-without-evidence.json",
+        "data/fixtures/decision-candidates/invalid-entry-license-without-identifier.json",
+        "data/fixtures/decision-candidates/invalid-entry-approved-registry-state.json",
+        "data/fixtures/decision-candidates/invalid-entry-unsupported-schema-major.json",
+        "data/fixtures/decision-candidates/invalid-entry-unknown-role.json"
+      ],
+      "test_file": "tests/decision-candidates/candidate-registry-schemas.test.ts",
+      "status": "implemented",
+      "purpose": "AI-142 contract 1.0.0: evidence-bound inventory record for one public upstream typed decision candidate source, pinned to an exact upstream commit with immutable evidence locators, evidence-backed roles, layered licensing (code, weights, base model, training data) and evidence-backed upstream claims.",
+      "downstream_role": "Inventory evidence only; registration grants no execution, benchmark execution, promotion, production use or routing. Upstream claims are never AI LAB verification.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": false
+    },
+    {
+      "contract_name": "ai_typed_decision_candidate_registry",
+      "schema_file": "schemas/ai-typed-decision-candidate-registry.schema.json",
+      "valid_fixture": "data/fixtures/decision-candidates/valid-candidate-registry.json",
+      "invalid_fixtures": [
+        "data/fixtures/decision-candidates/invalid-registry-approved-review.json",
+        "data/fixtures/decision-candidates/invalid-registry-universal-winner.json",
+        "data/fixtures/decision-candidates/invalid-registry-self-approval.json",
+        "data/fixtures/decision-candidates/invalid-registry-duplicate-candidate.json",
+        "data/fixtures/decision-candidates/invalid-registry-unpinned-commit.json"
+      ],
+      "test_file": "tests/decision-candidates/candidate-registry-schemas.test.ts",
+      "status": "implemented",
+      "purpose": "AI-142 contract 1.0.0: versioned manifest binding exact typed decision candidate entry hashes, evidence revisions and pinned upstream commits, with recomputable role and evidence-completeness distributions.",
+      "downstream_role": "Inventory evidence only; authority is evidence_only and universal_winner is false; review state draft or in_review only, never self-approved.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": false
     }
   ]
 }

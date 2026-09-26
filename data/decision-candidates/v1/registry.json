@@ -1,0 +1,88 @@
+{
+  "contract": "typed_decision_candidate_registry",
+  "schema_version": "1.0.0",
+  "registry_id": "ai-lab-typed-decision-candidates",
+  "registry_version": "1.0.0",
+  "review": {
+    "state": "in_review",
+    "human_review_required": true
+  },
+  "supersedes": null,
+  "authority": "evidence_only",
+  "universal_winner": false,
+  "candidates": [
+    {
+      "candidate_id": "tdc-bespokelabsai-nimble",
+      "evidence_revision": 1,
+      "candidate_hash": "3f97ec3e2accd7dee6fb6e0db26426fb205591a78dea8ae82417de279e597961",
+      "repository": "bespokelabsai/nimble",
+      "pinned_commit_sha": "62076b4f2d365b5879dafcf7f6dd072a1fe76df7",
+      "roles": ["research_methodology", "typed_decision_model"],
+      "evidence_completeness": "incomplete"
+    },
+    {
+      "candidate_id": "tdc-jaredpalmer-kev",
+      "evidence_revision": 1,
+      "candidate_hash": "af5ed21e8e8de4cac7c7286dbe88485a13b771368053a16f14c1672f79949464",
+      "repository": "jaredpalmer/kev",
+      "pinned_commit_sha": "f1535963cea021439370c23127bc970b6788e730",
+      "roles": ["research_methodology", "typed_decision_model"],
+      "evidence_completeness": "incomplete"
+    },
+    {
+      "candidate_id": "tdc-nandhakishorm-laya",
+      "evidence_revision": 1,
+      "candidate_hash": "3f1a251931275a7fb530ebc6f889fb1597741ee645cdfaa7d8a2b1e7f1d1a974",
+      "repository": "NandhaKishorM/laya",
+      "pinned_commit_sha": "4066d5d5fbf08b66c6757ddeedbd797bd7655bc0",
+      "roles": ["typed_decision_model"],
+      "evidence_completeness": "incomplete"
+    },
+    {
+      "candidate_id": "tdc-rizzo-ai-academy-rizzo-flow",
+      "evidence_revision": 1,
+      "candidate_hash": "1189c1cf30b14d26d239d456e7f06042ea1f9b7b39988d0856e9759ce753b06c",
+      "repository": "Rizzo-AI-Academy/rizzo-flow",
+      "pinned_commit_sha": "b9ba007ee4d2928bbab5b1d8bfe9009c3696b6de",
+      "roles": ["typed_decision_model", "typed_decision_runtime"],
+      "evidence_completeness": "incomplete"
+    },
+    {
+      "candidate_id": "tdc-theoleecj-semif",
+      "evidence_revision": 1,
+      "candidate_hash": "cc22fdec03191e196c969222b6292cda75ed5c3a5c90987f248d7da7df65abdf",
+      "repository": "theoleecj/semif",
+      "pinned_commit_sha": "23cf1f39fc9534fe81437200959b6dfc7106e45a",
+      "roles": ["research_methodology", "typed_decision_adapter"],
+      "evidence_completeness": "incomplete"
+    },
+    {
+      "candidate_id": "tdc-tianyucodings-nanojev",
+      "evidence_revision": 1,
+      "candidate_hash": "f7b2aec5293cb428a81f65d7818b2378f0c8ff52b488948d22a63c4fad0fd3db",
+      "repository": "TianyuCodings/NanoJev",
+      "pinned_commit_sha": "76fdfc9ecdca45a9bcef17991a07d3041a87685a",
+      "roles": ["research_methodology", "typed_decision_model"],
+      "evidence_completeness": "incomplete"
+    },
+    {
+      "candidate_id": "tdc-wfzyx-von",
+      "evidence_revision": 1,
+      "candidate_hash": "0c1050bb5f056e0f19bc637dc2ec2216dce51a83fff75f00857e02539f225cf4",
+      "repository": "wfzyx/von",
+      "pinned_commit_sha": "fb6e7a937e4fc6b6e72b2ce5035edd56bc370e54",
+      "roles": ["typed_decision_model"],
+      "evidence_completeness": "incomplete"
+    }
+  ],
+  "role_distribution": {
+    "research_methodology": 4,
+    "typed_decision_model": 6,
+    "typed_decision_runtime": 1,
+    "typed_decision_adapter": 1
+  },
+  "evidence_completeness_distribution": {
+    "incomplete": 7
+  },
+  "registry_hash": "26c171586581d9ad3292181627c0638ec75af7f30d7dc495bbe5bc3df73ffd8e"
+}

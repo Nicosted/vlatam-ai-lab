@@ -645,6 +645,12 @@ and are not deferred to later PRs.
     domain-representative or promotion evidence), and its public test
     split is not a blind holdout. See
     `docs/architecture/ai-gold-decision-evaluation-set.md`.
+14. A candidate registry records what we know; it does not authorize what
+    may run (AI-142). Registration is not execution, approval, benchmark
+    eligibility or promotion eligibility; upstream claims are never AI LAB
+    verification; code, weight, base-model and training-data licensing are
+    separate layers and unknown layers stay `unresolved`. See
+    `docs/architecture/ai-typed-decision-candidate-registry.md`.
 
 ## 6. Roadmap alignment
 

@@ -1,0 +1,231 @@
+{
+  "contract": "typed_decision_candidate_entry",
+  "schema_version": "1.0.0",
+  "candidate_id": "tdc-jaredpalmer-kev",
+  "evidence_revision": 1,
+  "supersedes": null,
+  "display_name": "Kev",
+  "roles": [
+    {
+      "role": "research_methodology",
+      "evidence_refs": ["ev-readme"]
+    },
+    {
+      "role": "typed_decision_model",
+      "evidence_refs": ["ev-card-kev-4b", "ev-readme"]
+    }
+  ],
+  "upstream": {
+    "host": "github.com",
+    "requested_repository": "jaredpalmer/kev",
+    "repository": "jaredpalmer/kev",
+    "repository_url": "https://github.com/jaredpalmer/kev",
+    "pinned_commit_sha": "f1535963cea021439370c23127bc970b6788e730",
+    "default_branch_at_observation": "main",
+    "archive_state": "unresolved",
+    "observed_at": "2026-09-26T13:32:09Z"
+  },
+  "evidence": [
+    {
+      "evidence_id": "ev-card-kev-0.8b",
+      "evidence_kind": "model_card",
+      "locator": {
+        "repository": "jaredpalmer/kev",
+        "commit_sha": "f1535963cea021439370c23127bc970b6788e730",
+        "path": "docs/model-cards/kev-0.8b.md",
+        "blob_sha": "9db7cf46a171f4c3132dbe06737dff5f0f6f96b9",
+        "source_url": "https://github.com/jaredpalmer/kev/blob/f1535963cea021439370c23127bc970b6788e730/docs/model-cards/kev-0.8b.md"
+      },
+      "content_sha256": "0609e6f8c47dd2da0ad22a2132157600f4acf7b6c4314a2c3592c9554b3c3f44",
+      "observed_at": "2026-09-26T13:32:09Z"
+    },
+    {
+      "evidence_id": "ev-card-kev-27b",
+      "evidence_kind": "model_card",
+      "locator": {
+        "repository": "jaredpalmer/kev",
+        "commit_sha": "f1535963cea021439370c23127bc970b6788e730",
+        "path": "docs/model-cards/kev-27b.md",
+        "blob_sha": "90e0afcc311f7ba7c20c442985c8ee2033469c32",
+        "source_url": "https://github.com/jaredpalmer/kev/blob/f1535963cea021439370c23127bc970b6788e730/docs/model-cards/kev-27b.md"
+      },
+      "content_sha256": "71686b3940acd83cd95c91431ad15cb696228f8c3c585173d7ecacc1cfe88476",
+      "observed_at": "2026-09-26T13:32:09Z"
+    },
+    {
+      "evidence_id": "ev-card-kev-4b",
+      "evidence_kind": "model_card",
+      "locator": {
+        "repository": "jaredpalmer/kev",
+        "commit_sha": "f1535963cea021439370c23127bc970b6788e730",
+        "path": "docs/model-cards/kev-4b.md",
+        "blob_sha": "3c833a1018d222a933b95516c6df155702f7ef32",
+        "source_url": "https://github.com/jaredpalmer/kev/blob/f1535963cea021439370c23127bc970b6788e730/docs/model-cards/kev-4b.md"
+      },
+      "content_sha256": "d565a09beda46044b4c6b284e55c55a4e3b3f0ecb79bf54077218289bfd48230",
+      "observed_at": "2026-09-26T13:32:09Z"
+    },
+    {
+      "evidence_id": "ev-card-kev-9b",
+      "evidence_kind": "model_card",
+      "locator": {
+        "repository": "jaredpalmer/kev",
+        "commit_sha": "f1535963cea021439370c23127bc970b6788e730",
+        "path": "docs/model-cards/kev-9b.md",
+        "blob_sha": "fb7e49e73cce661a19a13cb7d3f867cfcd3f3a5c",
+        "source_url": "https://github.com/jaredpalmer/kev/blob/f1535963cea021439370c23127bc970b6788e730/docs/model-cards/kev-9b.md"
+      },
+      "content_sha256": "1badc15defa0501e3a9880a40617206eba7c771a94f3bf6423777fee02fec2d3",
+      "observed_at": "2026-09-26T13:32:09Z"
+    },
+    {
+      "evidence_id": "ev-license",
+      "evidence_kind": "license",
+      "locator": {
+        "repository": "jaredpalmer/kev",
+        "commit_sha": "f1535963cea021439370c23127bc970b6788e730",
+        "path": "LICENSE",
+        "blob_sha": "e1ece45b775283628888a36bc75f56078cee9de0",
+        "source_url": "https://github.com/jaredpalmer/kev/blob/f1535963cea021439370c23127bc970b6788e730/LICENSE"
+      },
+      "content_sha256": "6b08bb37982c233aa12bcbdf19106da12f3f4fcf800773ea42e28ebeddd34fb8",
+      "observed_at": "2026-09-26T13:32:09Z"
+    },
+    {
+      "evidence_id": "ev-readme",
+      "evidence_kind": "readme",
+      "locator": {
+        "repository": "jaredpalmer/kev",
+        "commit_sha": "f1535963cea021439370c23127bc970b6788e730",
+        "path": "README.md",
+        "blob_sha": "f49a266884395037f1bb1bc0d31188b5413e885c",
+        "source_url": "https://github.com/jaredpalmer/kev/blob/f1535963cea021439370c23127bc970b6788e730/README.md"
+      },
+      "content_sha256": "21648828a1700b93ffe540f607bb83f840e8e4689791a23a3a1b115213a91482",
+      "observed_at": "2026-09-26T13:32:09Z"
+    }
+  ],
+  "licensing": {
+    "code": {
+      "status": "evidenced",
+      "declared_identifier": "Apache-2.0",
+      "evidence_refs": ["ev-license"]
+    },
+    "weights": {
+      "involvement": "involved",
+      "location": "external_reference",
+      "declared_reference": "huggingface.co/jaredpalmer/kev-0.8b, kev-4b, kev-9b, kev-27b; GitHub release kev-family",
+      "status": "evidenced",
+      "declared_identifier": "apache-2.0",
+      "evidence_refs": [
+        "ev-card-kev-0.8b",
+        "ev-card-kev-27b",
+        "ev-card-kev-4b",
+        "ev-card-kev-9b"
+      ]
+    },
+    "base_model": {
+      "status": "unresolved",
+      "declared_name": "Qwen/Qwen3.5-0.8B-Base, 4B-Base, 9B-Base; Qwen/Qwen3.8-27B",
+      "declared_identifier": null,
+      "evidence_refs": [
+        "ev-card-kev-0.8b",
+        "ev-card-kev-27b",
+        "ev-card-kev-4b",
+        "ev-card-kev-9b",
+        "ev-readme"
+      ]
+    },
+    "training_data": {
+      "status": "partially_evidenced",
+      "evidence_refs": [
+        "ev-card-kev-0.8b",
+        "ev-card-kev-27b",
+        "ev-card-kev-4b",
+        "ev-card-kev-9b",
+        "ev-readme"
+      ]
+    }
+  },
+  "upstream_claims": [
+    {
+      "claim_id": "claim-base-license-statement",
+      "claim_kind": "base_model_relationship",
+      "statement": "README states the Qwen3, Qwen3.5 and Qwen3.8 base models are also Apache-2.0 and that training datasets have their own licenses.",
+      "evidence_refs": ["ev-readme"],
+      "verification": "upstream_claim"
+    },
+    {
+      "claim_id": "claim-base-models",
+      "claim_kind": "base_model_relationship",
+      "statement": "Model cards declare LoRA adapters over Qwen3.5-0.8B, 4B and 9B Base; Kev-27B starts from post-trained Qwen3.8-27B, whose training data the README says is unknown.",
+      "evidence_refs": [
+        "ev-card-kev-0.8b",
+        "ev-card-kev-27b",
+        "ev-card-kev-4b",
+        "ev-card-kev-9b",
+        "ev-readme"
+      ],
+      "verification": "upstream_claim"
+    },
+    {
+      "claim_id": "claim-calibration",
+      "claim_kind": "calibration",
+      "statement": "README states each checkpoint ships a temperature fitted on in-distribution development data (Kev-27B 1.38, Kev-9B 2.30, Kev-4B 2.41, Kev-0.8B 2.35).",
+      "evidence_refs": ["ev-readme"],
+      "verification": "upstream_claim"
+    },
+    {
+      "claim_id": "claim-eval-suites",
+      "claim_kind": "evaluation_documentation",
+      "statement": "README states evaluation data under evals/ is frozen with dataset versions and checksums recorded, and that locked test partitions are read once per candidate.",
+      "evidence_refs": ["ev-readme"],
+      "verification": "upstream_claim"
+    },
+    {
+      "claim_id": "claim-execution-surfaces",
+      "claim_kind": "execution_surface",
+      "statement": "README states local serving on CUDA or ROCm GPUs and MLX on Apple Silicon, a TypeSafe-compatible HTTP API and a one-command hosted deployment on Modal.",
+      "evidence_refs": ["ev-readme"],
+      "verification": "upstream_claim"
+    },
+    {
+      "claim_id": "claim-performance",
+      "claim_kind": "performance",
+      "statement": "README reports new-source development/test accuracy from 0.648/0.697 (Kev-0.8B) to 0.848/0.896 (Kev-27B).",
+      "evidence_refs": ["ev-readme"],
+      "verification": "upstream_claim"
+    },
+    {
+      "claim_id": "claim-training-data",
+      "claim_kind": "training_methodology",
+      "statement": "README states the released models share the decision-v7 training set: 10,000 examples from ten public datasets plus generated policy and rule-structure examples.",
+      "evidence_refs": ["ev-readme"],
+      "verification": "upstream_claim"
+    },
+    {
+      "claim_id": "claim-weights",
+      "claim_kind": "weights_reference",
+      "statement": "README lists four sizes (0.8B, 4B, 9B, 27B) with weights on Hugging Face and in a GitHub release with SHA-256 checksums.",
+      "evidence_refs": ["ev-readme"],
+      "verification": "upstream_claim"
+    }
+  ],
+  "evidence_gaps": [
+    "archive_state_unresolved",
+    "base_model_license_unresolved",
+    "training_data_provenance_incomplete"
+  ],
+  "evidence_completeness": "incomplete",
+  "lifecycle": {
+    "registry_state": "discovered",
+    "ai_lab_executed": false,
+    "execution_enabled": false,
+    "benchmark_execution_enabled": false,
+    "promotion_eligible": false,
+    "production_eligible": false,
+    "routing_enabled": false,
+    "authority": "evidence_only"
+  },
+  "candidate_hash": "af5ed21e8e8de4cac7c7286dbe88485a13b771368053a16f14c1672f79949464"
+}

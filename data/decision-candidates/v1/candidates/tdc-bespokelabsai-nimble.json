@@ -1,0 +1,157 @@
+{
+  "contract": "typed_decision_candidate_entry",
+  "schema_version": "1.0.0",
+  "candidate_id": "tdc-bespokelabsai-nimble",
+  "evidence_revision": 1,
+  "supersedes": null,
+  "display_name": "Bespoke Nimble",
+  "roles": [
+    {
+      "role": "research_methodology",
+      "evidence_refs": ["ev-dataset-doc", "ev-readme"]
+    },
+    {
+      "role": "typed_decision_model",
+      "evidence_refs": ["ev-readme"]
+    }
+  ],
+  "upstream": {
+    "host": "github.com",
+    "requested_repository": "bespokelabsai/nimble",
+    "repository": "bespokelabsai/nimble",
+    "repository_url": "https://github.com/bespokelabsai/nimble",
+    "pinned_commit_sha": "62076b4f2d365b5879dafcf7f6dd072a1fe76df7",
+    "default_branch_at_observation": "main",
+    "archive_state": "unresolved",
+    "observed_at": "2026-09-26T13:32:05Z"
+  },
+  "evidence": [
+    {
+      "evidence_id": "ev-dataset-doc",
+      "evidence_kind": "dataset_document",
+      "locator": {
+        "repository": "bespokelabsai/nimble",
+        "commit_sha": "62076b4f2d365b5879dafcf7f6dd072a1fe76df7",
+        "path": "docs/DATASET.md",
+        "blob_sha": "9e21bf49a907f31fc013d1868e32fd47eb6d6805",
+        "source_url": "https://github.com/bespokelabsai/nimble/blob/62076b4f2d365b5879dafcf7f6dd072a1fe76df7/docs/DATASET.md"
+      },
+      "content_sha256": "af9647395a721f05312d623420de256729f53fd0ecabc2fa5381d4610650d9a2",
+      "observed_at": "2026-09-26T13:32:05Z"
+    },
+    {
+      "evidence_id": "ev-readme",
+      "evidence_kind": "readme",
+      "locator": {
+        "repository": "bespokelabsai/nimble",
+        "commit_sha": "62076b4f2d365b5879dafcf7f6dd072a1fe76df7",
+        "path": "README.md",
+        "blob_sha": "61351e013375d47f49606f5d411ee71ee54e5a6c",
+        "source_url": "https://github.com/bespokelabsai/nimble/blob/62076b4f2d365b5879dafcf7f6dd072a1fe76df7/README.md"
+      },
+      "content_sha256": "c5ab93053591d52905eaa492a01e5fd75e07e94dbcb21901d3ed5dde18913c84",
+      "observed_at": "2026-09-26T13:32:05Z"
+    },
+    {
+      "evidence_id": "ev-skill-license",
+      "evidence_kind": "license",
+      "locator": {
+        "repository": "bespokelabsai/nimble",
+        "commit_sha": "62076b4f2d365b5879dafcf7f6dd072a1fe76df7",
+        "path": ".agents/skills/typesafe-ai/LICENSE",
+        "blob_sha": "8c73b41b89d9a76ddf0fdb0edfaafdda800d36e8",
+        "source_url": "https://github.com/bespokelabsai/nimble/blob/62076b4f2d365b5879dafcf7f6dd072a1fe76df7/.agents/skills/typesafe-ai/LICENSE"
+      },
+      "content_sha256": "835f233f1d6ed84a9b9a351aba0689b47644a4137d6316911fc7957bde523b02",
+      "observed_at": "2026-09-26T13:32:05Z"
+    }
+  ],
+  "licensing": {
+    "code": {
+      "status": "unresolved",
+      "declared_identifier": null,
+      "evidence_refs": ["ev-readme", "ev-skill-license"]
+    },
+    "weights": {
+      "involvement": "involved",
+      "location": "external_reference",
+      "declared_reference": "huggingface.co/bespokelabs/Bespoke-Nimble-9B",
+      "status": "unresolved",
+      "declared_identifier": null,
+      "evidence_refs": ["ev-readme"]
+    },
+    "base_model": {
+      "status": "unresolved",
+      "declared_name": "Qwen3.5-9B",
+      "declared_identifier": null,
+      "evidence_refs": ["ev-readme"]
+    },
+    "training_data": {
+      "status": "partially_evidenced",
+      "evidence_refs": ["ev-dataset-doc"]
+    }
+  },
+  "upstream_claims": [
+    {
+      "claim_id": "claim-base-model",
+      "claim_kind": "base_model_relationship",
+      "statement": "README states Nimble fine-tunes Qwen3.5-9B with LoRA on the answer tokens only.",
+      "evidence_refs": ["ev-readme"],
+      "verification": "upstream_claim"
+    },
+    {
+      "claim_id": "claim-calibration",
+      "claim_kind": "calibration",
+      "statement": "README states a probability temperature was fitted on 2026-09-22 for the original release; the latest checkpoint uses T=1.0 without a separate temperature fit.",
+      "evidence_refs": ["ev-readme"],
+      "verification": "upstream_claim"
+    },
+    {
+      "claim_id": "claim-contrastive-curation",
+      "claim_kind": "training_methodology",
+      "statement": "README describes contrastive data curation: paired examples that differ in one relevant fact so that the correct answer flips.",
+      "evidence_refs": ["ev-readme"],
+      "verification": "upstream_claim"
+    },
+    {
+      "claim_id": "claim-execution-surfaces",
+      "claim_kind": "execution_surface",
+      "statement": "README states the model runs on Apple Silicon via MLX and on NVIDIA GPUs via CUDA, with an SGLang deployment guide for hosted serving.",
+      "evidence_refs": ["ev-readme"],
+      "verification": "upstream_claim"
+    },
+    {
+      "claim_id": "claim-training-data",
+      "claim_kind": "training_methodology",
+      "statement": "Dataset guide states 2,676 contrastive training records and a 324-record frozen holdout whose labels are synthetic and model-checked, not human-reviewed.",
+      "evidence_refs": ["ev-dataset-doc"],
+      "verification": "upstream_claim"
+    },
+    {
+      "claim_id": "claim-weights",
+      "claim_kind": "weights_reference",
+      "statement": "README links Bespoke-Nimble-9B on Hugging Face; the latest checkpoint is stated to have an 8,192-token context and up to 255 choices per field.",
+      "evidence_refs": ["ev-readme"],
+      "verification": "upstream_claim"
+    }
+  ],
+  "evidence_gaps": [
+    "archive_state_unresolved",
+    "base_model_license_unresolved",
+    "code_license_unresolved",
+    "training_data_provenance_incomplete",
+    "weights_license_unresolved"
+  ],
+  "evidence_completeness": "incomplete",
+  "lifecycle": {
+    "registry_state": "discovered",
+    "ai_lab_executed": false,
+    "execution_enabled": false,
+    "benchmark_execution_enabled": false,
+    "promotion_eligible": false,
+    "production_eligible": false,
+    "routing_enabled": false,
+    "authority": "evidence_only"
+  },
+  "candidate_hash": "3f97ec3e2accd7dee6fb6e0db26426fb205591a78dea8ae82417de279e597961"
+}

@@ -143,21 +143,36 @@ answers; evaluators may measure them; candidates may not define their own
 truth. No candidate, registry, runtime, runner, model or provider is added.
 See `docs/architecture/ai-gold-decision-evaluation-set.md` and ADR-006.
 
-The following typed decision sequence is a roadmap intention only. Apart
-from AI-140 and AI-141, none of AI-142 through AI-148 exists, and each
-requires its own review:
+## AI-142 Typed Decision Candidate Registry (current PR; inventory only)
 
-| PR         | Title                                      | Intent                                                                                              |
-| ---------- | ------------------------------------------ | --------------------------------------------------------------------------------------------------- |
-| **AI-140** | Governed Typed Decision Plane              | Contracts, validators, hashing, disposition (implemented).                                          |
-| **AI-141** | Gold Decision Evaluation Set               | Versioned synthetic gold decisions, evaluator and metrics (implemented; seed set in review).        |
-| AI-142     | Typed Decision Candidate Registry          | Disabled, kill-switched candidate registry; capability-to-paradigm binding.                         |
-| AI-143     | Decision Sandbox Runtime                   | Isolated synthetic-only sandbox admitting a new result origin; no production traffic.               |
-| AI-144     | Direct-Logit Baseline                      | Reference baseline candidate evaluated in the sandbox.                                              |
-| AI-145     | Specialized Decision Candidates            | Additional governed candidates admitted only through AI-142/AI-143.                                 |
-| AI-146     | Decision Model Research / Training Lab     | Separately governed research track; no promotion authority.                                         |
-| AI-147     | Continuous Decision Tournament Integration | Additive `execution_paradigm` on AI-120 identity; capability-specific ranking, no universal winner. |
-| AI-148     | First Governed Decision Tournament         | First human-reviewed synthetic tournament; promotion remains an independent human decision.         |
+AI-142 adds the typed decision candidate entry and registry manifest
+contracts `1.0.0` (`src/decision-candidates/`,
+`schemas/ai-typed-decision-candidate-*.schema.json`): AI LAB-owned
+candidate identity separate from evidence revision, evidence pinned to
+exact upstream commits, evidence-backed roles, layered licensing (code,
+weights, base model, training data), upstream claims that are never AI
+LAB verification, derived evidence gaps and a constant fail-closed
+lifecycle (`discovered`; no execution, benchmark, promotion, production or
+routing). Review states are `draft | in_review` only. A candidate registry
+records what we know; it does not authorize what may run. No candidate is
+executed, installed, downloaded, benchmarked or ranked. See
+`docs/architecture/ai-typed-decision-candidate-registry.md` and ADR-007.
+
+The following typed decision sequence is a roadmap intention only. Apart
+from AI-140, AI-141 and the current AI-142 PR, none of AI-143 through
+AI-148 exists, and each requires its own review:
+
+| PR         | Title                                              | Intent                                                                                              |
+| ---------- | -------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| **AI-140** | Governed Typed Decision Plane                      | Contracts, validators, hashing, disposition (implemented).                                          |
+| **AI-141** | Gold Decision Evaluation Set                       | Versioned synthetic gold decisions, evaluator and metrics (implemented; seed set in review).        |
+| **AI-142** | Candidate Registry                                 | Evidence-bound, fail-closed candidate inventory (current PR; no execution).                         |
+| AI-143     | Decision Sandbox Runtime + common adapter protocol | Isolated synthetic-only sandbox admitting a new result origin; no production traffic (future).      |
+| AI-144     | Direct-Logit Baseline                              | Reference baseline candidate evaluated in the sandbox (future).                                     |
+| AI-145     | Specialized Candidates                             | Additional governed candidates admitted only through AI-142/AI-143 (future).                        |
+| AI-146     | Research/Training Lab                              | Separately governed research track; no promotion authority (future).                                |
+| AI-147     | Tournament + Operator integration                  | Additive `execution_paradigm` on AI-120 identity; capability-specific ranking, no universal winner. |
+| AI-148     | First governed tournament                          | First human-reviewed synthetic tournament; promotion remains an independent human decision.         |
 
 ## 2. Why AI-78 is not a "cheapest model" selector
 

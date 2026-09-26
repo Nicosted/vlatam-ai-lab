@@ -1,0 +1,158 @@
+{
+  "contract": "typed_decision_candidate_entry",
+  "schema_version": "1.0.0",
+  "candidate_id": "tdc-wfzyx-von",
+  "evidence_revision": 1,
+  "supersedes": null,
+  "display_name": "Von",
+  "roles": [
+    {
+      "role": "typed_decision_model",
+      "evidence_refs": ["ev-model-card", "ev-readme"]
+    }
+  ],
+  "upstream": {
+    "host": "github.com",
+    "requested_repository": "wfzyx/von",
+    "repository": "wfzyx/von",
+    "repository_url": "https://github.com/wfzyx/von",
+    "pinned_commit_sha": "fb6e7a937e4fc6b6e72b2ce5035edd56bc370e54",
+    "default_branch_at_observation": "master",
+    "archive_state": "unresolved",
+    "observed_at": "2026-09-26T13:32:12Z"
+  },
+  "evidence": [
+    {
+      "evidence_id": "ev-license",
+      "evidence_kind": "license",
+      "locator": {
+        "repository": "wfzyx/von",
+        "commit_sha": "fb6e7a937e4fc6b6e72b2ce5035edd56bc370e54",
+        "path": "LICENSE.md",
+        "blob_sha": "242fe7d30be938ca6303d115e06866bcfb5222e1",
+        "source_url": "https://github.com/wfzyx/von/blob/fb6e7a937e4fc6b6e72b2ce5035edd56bc370e54/LICENSE.md"
+      },
+      "content_sha256": "2f308dae6ea546fb195b91a976960035d197b8b7e74b91d5d25b06021db742f3",
+      "observed_at": "2026-09-26T13:32:12Z"
+    },
+    {
+      "evidence_id": "ev-model-card",
+      "evidence_kind": "model_card",
+      "locator": {
+        "repository": "wfzyx/von",
+        "commit_sha": "fb6e7a937e4fc6b6e72b2ce5035edd56bc370e54",
+        "path": "hf/MODEL_CARD.md",
+        "blob_sha": "fbbfdf50f474d7edf0c62ddfd229ef9c366a44ca",
+        "source_url": "https://github.com/wfzyx/von/blob/fb6e7a937e4fc6b6e72b2ce5035edd56bc370e54/hf/MODEL_CARD.md"
+      },
+      "content_sha256": "baaa998b9a063a7e29efe1d5d73cb5b025c44c8f351df127503676c6009bd30b",
+      "observed_at": "2026-09-26T13:32:12Z"
+    },
+    {
+      "evidence_id": "ev-readme",
+      "evidence_kind": "readme",
+      "locator": {
+        "repository": "wfzyx/von",
+        "commit_sha": "fb6e7a937e4fc6b6e72b2ce5035edd56bc370e54",
+        "path": "README.md",
+        "blob_sha": "e2d39e7df374934bc172a25ac5520a234a3e8193",
+        "source_url": "https://github.com/wfzyx/von/blob/fb6e7a937e4fc6b6e72b2ce5035edd56bc370e54/README.md"
+      },
+      "content_sha256": "0148776dca4a5ceddf036bf966ef0e5178020ebfa1ccf10f232a768d00c68fba",
+      "observed_at": "2026-09-26T13:32:12Z"
+    }
+  ],
+  "licensing": {
+    "code": {
+      "status": "evidenced",
+      "declared_identifier": "Apache-2.0",
+      "evidence_refs": ["ev-license"]
+    },
+    "weights": {
+      "involvement": "involved",
+      "location": "external_reference",
+      "declared_reference": "huggingface.co/wfzyx/von",
+      "status": "evidenced",
+      "declared_identifier": "apache-2.0",
+      "evidence_refs": ["ev-model-card"]
+    },
+    "base_model": {
+      "status": "unresolved",
+      "declared_name": "answerdotai/ModernBERT-large",
+      "declared_identifier": null,
+      "evidence_refs": ["ev-model-card", "ev-readme"]
+    },
+    "training_data": {
+      "status": "partially_evidenced",
+      "evidence_refs": ["ev-readme"]
+    }
+  },
+  "upstream_claims": [
+    {
+      "claim_id": "claim-base-model",
+      "claim_kind": "base_model_relationship",
+      "statement": "Model card declares base_model answerdotai/ModernBERT-large; README states a 395M ModernBERT-large backbone fine-tuned for non-autoregressive decisions.",
+      "evidence_refs": ["ev-model-card", "ev-readme"],
+      "verification": "upstream_claim"
+    },
+    {
+      "claim_id": "claim-calibration-inconsistent",
+      "claim_kind": "calibration",
+      "statement": "README states two different calibration temperatures: T = 1.0367 in its capability list and T = 1.1692 in its scoring and temperature-scaling sections.",
+      "evidence_refs": ["ev-readme"],
+      "verification": "upstream_claim"
+    },
+    {
+      "claim_id": "claim-execution-surfaces",
+      "claim_kind": "execution_surface",
+      "statement": "README states CUDA, ROCm, Apple MPS, Intel GPUs via OpenVINO and CPU execution, in-process or via an HTTP server.",
+      "evidence_refs": ["ev-readme"],
+      "verification": "upstream_claim"
+    },
+    {
+      "claim_id": "claim-language",
+      "claim_kind": "language_support",
+      "statement": "Model card metadata declares language: en.",
+      "evidence_refs": ["ev-model-card"],
+      "verification": "upstream_claim"
+    },
+    {
+      "claim_id": "claim-order-invariance",
+      "claim_kind": "invariance",
+      "statement": "README states Von 1.2 option scoring is order-invariant by architecture and reports 0.0% answer flips under option reordering on a JevBench hard tier.",
+      "evidence_refs": ["ev-readme"],
+      "verification": "upstream_claim"
+    },
+    {
+      "claim_id": "claim-performance",
+      "claim_kind": "performance",
+      "statement": "README states sub-25ms inference and 91.23% accuracy on adversarial multi-hop reasoning benchmarks.",
+      "evidence_refs": ["ev-readme"],
+      "verification": "upstream_claim"
+    },
+    {
+      "claim_id": "claim-training-data",
+      "claim_kind": "training_methodology",
+      "statement": "README states 250,000 class-balanced training examples curated from ANLI, WANLI, MultiNLI and SNLI, post-trained with a joint cross-entropy and Brier loss (RLCD).",
+      "evidence_refs": ["ev-readme"],
+      "verification": "upstream_claim"
+    }
+  ],
+  "evidence_gaps": [
+    "archive_state_unresolved",
+    "base_model_license_unresolved",
+    "training_data_provenance_incomplete"
+  ],
+  "evidence_completeness": "incomplete",
+  "lifecycle": {
+    "registry_state": "discovered",
+    "ai_lab_executed": false,
+    "execution_enabled": false,
+    "benchmark_execution_enabled": false,
+    "promotion_eligible": false,
+    "production_eligible": false,
+    "routing_enabled": false,
+    "authority": "evidence_only"
+  },
+  "candidate_hash": "0c1050bb5f056e0f19bc637dc2ec2216dce51a83fff75f00857e02539f225cf4"
+}

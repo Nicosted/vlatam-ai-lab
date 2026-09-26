@@ -1,0 +1,140 @@
+{
+  "contract": "typed_decision_candidate_entry",
+  "schema_version": "1.0.0",
+  "candidate_id": "tdc-theoleecj-semif",
+  "evidence_revision": 1,
+  "supersedes": null,
+  "display_name": "SemIf",
+  "roles": [
+    {
+      "role": "research_methodology",
+      "evidence_refs": ["ev-readme"]
+    },
+    {
+      "role": "typed_decision_adapter",
+      "evidence_refs": ["ev-readme"]
+    }
+  ],
+  "upstream": {
+    "host": "github.com",
+    "requested_repository": "theoleecj/semif",
+    "repository": "theoleecj/semif",
+    "repository_url": "https://github.com/theoleecj/semif",
+    "pinned_commit_sha": "23cf1f39fc9534fe81437200959b6dfc7106e45a",
+    "default_branch_at_observation": "master",
+    "archive_state": "unresolved",
+    "observed_at": "2026-09-26T13:32:10Z"
+  },
+  "evidence": [
+    {
+      "evidence_id": "ev-license",
+      "evidence_kind": "license",
+      "locator": {
+        "repository": "theoleecj/semif",
+        "commit_sha": "23cf1f39fc9534fe81437200959b6dfc7106e45a",
+        "path": "LICENSE",
+        "blob_sha": "ca562883550941229de6555a8374fe2c83a18e08",
+        "source_url": "https://github.com/theoleecj/semif/blob/23cf1f39fc9534fe81437200959b6dfc7106e45a/LICENSE"
+      },
+      "content_sha256": "f765f2140f8507a8f0d81ec0fd2c4bd72fe6a066841ef27883ff876a76bf61be",
+      "observed_at": "2026-09-26T13:32:10Z"
+    },
+    {
+      "evidence_id": "ev-readme",
+      "evidence_kind": "readme",
+      "locator": {
+        "repository": "theoleecj/semif",
+        "commit_sha": "23cf1f39fc9534fe81437200959b6dfc7106e45a",
+        "path": "README.md",
+        "blob_sha": "8f607dad48e9bff34b5bb5079e3d825715b01134",
+        "source_url": "https://github.com/theoleecj/semif/blob/23cf1f39fc9534fe81437200959b6dfc7106e45a/README.md"
+      },
+      "content_sha256": "89f00284285ea0dac7b0e10ff04ebe643e37fb1a3165ab7dbd13686e97d65f62",
+      "observed_at": "2026-09-26T13:32:10Z"
+    },
+    {
+      "evidence_id": "ev-third-party",
+      "evidence_kind": "third_party_notice",
+      "locator": {
+        "repository": "theoleecj/semif",
+        "commit_sha": "23cf1f39fc9534fe81437200959b6dfc7106e45a",
+        "path": "THIRD_PARTY.md",
+        "blob_sha": "c11c1a471d6d9d35173dd244c2a4148dda098e90",
+        "source_url": "https://github.com/theoleecj/semif/blob/23cf1f39fc9534fe81437200959b6dfc7106e45a/THIRD_PARTY.md"
+      },
+      "content_sha256": "cf1815041c71181c6601c8acde1dd0d93fc4c9528efcd4a0637922d7fa96286b",
+      "observed_at": "2026-09-26T13:32:10Z"
+    }
+  ],
+  "licensing": {
+    "code": {
+      "status": "evidenced",
+      "declared_identifier": "MIT",
+      "evidence_refs": ["ev-license"]
+    },
+    "weights": {
+      "involvement": "not_involved",
+      "location": "not_applicable",
+      "declared_reference": null,
+      "status": "not_applicable",
+      "declared_identifier": null,
+      "evidence_refs": ["ev-third-party"]
+    },
+    "base_model": {
+      "status": "unresolved",
+      "declared_name": "Qwen/Qwen3.5-4B at revision 851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a",
+      "declared_identifier": null,
+      "evidence_refs": ["ev-readme", "ev-third-party"]
+    },
+    "training_data": {
+      "status": "not_applicable",
+      "evidence_refs": ["ev-readme"]
+    }
+  },
+  "upstream_claims": [
+    {
+      "claim_id": "claim-base-model",
+      "claim_kind": "base_model_relationship",
+      "statement": "README and third-party notes name Qwen/Qwen3.5-4B at a pinned revision as the direct-logit baseline; the notes say to check the upstream model license.",
+      "evidence_refs": ["ev-readme", "ev-third-party"],
+      "verification": "upstream_claim"
+    },
+    {
+      "claim_id": "claim-calibration",
+      "claim_kind": "calibration",
+      "statement": "README states per-workload temperature calibration and calibrated prediction outputs were added on 2026-09-22.",
+      "evidence_refs": ["ev-readme"],
+      "verification": "upstream_claim"
+    },
+    {
+      "claim_id": "claim-execution-surfaces",
+      "claim_kind": "execution_surface",
+      "statement": "README states CUDA scoring, Apple Silicon via MLX and PyTorch/MPS, CPU-only scoring via a llama.cpp GGUF backend, and a WebGPU browser demo.",
+      "evidence_refs": ["ev-readme"],
+      "verification": "upstream_claim"
+    },
+    {
+      "claim_id": "claim-no-weights",
+      "claim_kind": "weights_reference",
+      "statement": "Third-party notes state that no model weights or third-party raw evaluation records are distributed in the repository.",
+      "evidence_refs": ["ev-third-party"],
+      "verification": "upstream_claim"
+    }
+  ],
+  "evidence_gaps": [
+    "archive_state_unresolved",
+    "base_model_license_unresolved"
+  ],
+  "evidence_completeness": "incomplete",
+  "lifecycle": {
+    "registry_state": "discovered",
+    "ai_lab_executed": false,
+    "execution_enabled": false,
+    "benchmark_execution_enabled": false,
+    "promotion_eligible": false,
+    "production_eligible": false,
+    "routing_enabled": false,
+    "authority": "evidence_only"
+  },
+  "candidate_hash": "cc22fdec03191e196c969222b6292cda75ed5c3a5c90987f248d7da7df65abdf"
+}

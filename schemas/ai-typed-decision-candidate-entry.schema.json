@@ -1,0 +1,646 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/ai-typed-decision-candidate-entry.schema.json",
+  "title": "AI-142 Typed Decision Candidate Entry",
+  "description": "Contract 1.0.0. Evidence-bound, fail-closed inventory record for one public upstream project that might later supply a typed decision model, adapter, runtime or research methodology. A candidate registry records what we know; it does not authorize what may run. Binds a stable AI LAB candidate_id and evidence_revision to an exact pinned upstream commit, immutable evidence locators (path, git blob SHA, content SHA-256), evidence-backed roles, layered licensing (code, weights, base model, training data; none inferred from another), evidence-backed upstream claims that are never AI LAB verification, derived evidence gaps and a constant lifecycle that grants no execution, benchmark execution, promotion, production use or routing. Strict ordering, reference resolution, gap derivation, forbidden fields and the self-excluding candidate_hash are enforced by src/decision-candidates/validation.ts.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract",
+    "schema_version",
+    "candidate_id",
+    "evidence_revision",
+    "supersedes",
+    "display_name",
+    "roles",
+    "upstream",
+    "evidence",
+    "licensing",
+    "upstream_claims",
+    "evidence_gaps",
+    "evidence_completeness",
+    "lifecycle",
+    "candidate_hash"
+  ],
+  "properties": {
+    "contract": {
+      "const": "typed_decision_candidate_entry"
+    },
+    "schema_version": {
+      "type": "string",
+      "pattern": "^1\\.[0-9]+\\.[0-9]+$"
+    },
+    "candidate_id": {
+      "$ref": "#/$defs/candidate_id"
+    },
+    "evidence_revision": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "supersedes": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["evidence_revision", "candidate_hash"],
+          "properties": {
+            "evidence_revision": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "candidate_hash": {
+              "$ref": "#/$defs/sha256"
+            }
+          }
+        }
+      ]
+    },
+    "display_name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80
+    },
+    "roles": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 4,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["role", "evidence_refs"],
+        "properties": {
+          "role": {
+            "enum": [
+              "research_methodology",
+              "typed_decision_adapter",
+              "typed_decision_model",
+              "typed_decision_runtime"
+            ]
+          },
+          "evidence_refs": {
+            "$ref": "#/$defs/refs_nonempty"
+          }
+        }
+      }
+    },
+    "upstream": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "host",
+        "requested_repository",
+        "repository",
+        "repository_url",
+        "pinned_commit_sha",
+        "default_branch_at_observation",
+        "archive_state",
+        "observed_at"
+      ],
+      "properties": {
+        "host": {
+          "const": "github.com"
+        },
+        "requested_repository": {
+          "$ref": "#/$defs/repository"
+        },
+        "repository": {
+          "$ref": "#/$defs/repository"
+        },
+        "repository_url": {
+          "type": "string",
+          "pattern": "^https://github\\.com/[A-Za-z0-9][A-Za-z0-9-]{0,38}/[A-Za-z0-9._-]{1,100}$"
+        },
+        "pinned_commit_sha": {
+          "$ref": "#/$defs/git_sha"
+        },
+        "default_branch_at_observation": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9._/-]{1,100}$"
+        },
+        "archive_state": {
+          "enum": ["archived", "not_archived", "unresolved"]
+        },
+        "observed_at": {
+          "$ref": "#/$defs/timestamp"
+        }
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 32,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "evidence_id",
+          "evidence_kind",
+          "locator",
+          "content_sha256",
+          "observed_at"
+        ],
+        "properties": {
+          "evidence_id": {
+            "$ref": "#/$defs/local_id"
+          },
+          "evidence_kind": {
+            "enum": [
+              "architecture_document",
+              "dataset_document",
+              "evaluation_document",
+              "license",
+              "model_card",
+              "package_manifest",
+              "readme",
+              "repository_metadata",
+              "third_party_notice"
+            ]
+          },
+          "locator": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "repository",
+              "commit_sha",
+              "path",
+              "blob_sha",
+              "source_url"
+            ],
+            "properties": {
+              "repository": {
+                "$ref": "#/$defs/repository"
+              },
+              "commit_sha": {
+                "$ref": "#/$defs/git_sha"
+              },
+              "path": {
+                "oneOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 512,
+                    "pattern": "^[A-Za-z0-9._-]+(/[A-Za-z0-9._-]+)*$"
+                  }
+                ]
+              },
+              "blob_sha": {
+                "oneOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "$ref": "#/$defs/git_sha"
+                  }
+                ]
+              },
+              "source_url": {
+                "description": "Immutable commit locator only; branch, tag and bare repository URLs are mutable and rejected.",
+                "type": "string",
+                "pattern": "^https://github\\.com/[A-Za-z0-9][A-Za-z0-9-]{0,38}/[A-Za-z0-9._-]{1,100}/(blob|tree)/[a-f0-9]{40}(/[A-Za-z0-9._-]+)*$"
+              }
+            }
+          },
+          "content_sha256": {
+            "$ref": "#/$defs/sha256"
+          },
+          "observed_at": {
+            "$ref": "#/$defs/timestamp"
+          }
+        }
+      }
+    },
+    "licensing": {
+      "description": "Layered licensing evidence. Code, weights, base-model and training-data layers are independent; none is inferred from another. Records declared evidence only; never a legal or commercial conclusion.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "weights", "base_model", "training_data"],
+      "properties": {
+        "code": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "declared_identifier", "evidence_refs"],
+          "properties": {
+            "status": {
+              "$ref": "#/$defs/license_status"
+            },
+            "declared_identifier": {
+              "$ref": "#/$defs/declared_identifier"
+            },
+            "evidence_refs": {
+              "$ref": "#/$defs/refs"
+            }
+          },
+          "allOf": [
+            {
+              "$ref": "#/$defs/license_status_rules"
+            }
+          ]
+        },
+        "weights": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "involvement",
+            "location",
+            "declared_reference",
+            "status",
+            "declared_identifier",
+            "evidence_refs"
+          ],
+          "properties": {
+            "involvement": {
+              "enum": ["involved", "not_involved", "unresolved"]
+            },
+            "location": {
+              "enum": [
+                "external_reference",
+                "in_repository",
+                "not_applicable",
+                "unresolved"
+              ]
+            },
+            "declared_reference": {
+              "$ref": "#/$defs/declared_text"
+            },
+            "status": {
+              "$ref": "#/$defs/license_status"
+            },
+            "declared_identifier": {
+              "$ref": "#/$defs/declared_identifier"
+            },
+            "evidence_refs": {
+              "$ref": "#/$defs/refs"
+            }
+          },
+          "allOf": [
+            {
+              "$ref": "#/$defs/license_status_rules"
+            },
+            {
+              "if": {
+                "type": "object",
+                "required": ["involvement"],
+                "properties": {
+                  "involvement": {
+                    "const": "not_involved"
+                  }
+                }
+              },
+              "then": {
+                "type": "object",
+                "properties": {
+                  "location": {
+                    "const": "not_applicable"
+                  },
+                  "status": {
+                    "const": "not_applicable"
+                  }
+                }
+              }
+            },
+            {
+              "if": {
+                "type": "object",
+                "required": ["involvement"],
+                "properties": {
+                  "involvement": {
+                    "const": "unresolved"
+                  }
+                }
+              },
+              "then": {
+                "type": "object",
+                "properties": {
+                  "location": {
+                    "const": "unresolved"
+                  },
+                  "status": {
+                    "const": "unresolved"
+                  }
+                }
+              }
+            },
+            {
+              "if": {
+                "type": "object",
+                "required": ["involvement"],
+                "properties": {
+                  "involvement": {
+                    "const": "involved"
+                  }
+                }
+              },
+              "then": {
+                "type": "object",
+                "properties": {
+                  "location": {
+                    "enum": [
+                      "external_reference",
+                      "in_repository",
+                      "unresolved"
+                    ]
+                  },
+                  "status": {
+                    "enum": ["evidenced", "unresolved"]
+                  },
+                  "evidence_refs": {
+                    "type": "array",
+                    "minItems": 1
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "base_model": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status",
+            "declared_name",
+            "declared_identifier",
+            "evidence_refs"
+          ],
+          "properties": {
+            "status": {
+              "$ref": "#/$defs/license_status"
+            },
+            "declared_name": {
+              "$ref": "#/$defs/declared_text"
+            },
+            "declared_identifier": {
+              "$ref": "#/$defs/declared_identifier"
+            },
+            "evidence_refs": {
+              "$ref": "#/$defs/refs"
+            }
+          },
+          "allOf": [
+            {
+              "$ref": "#/$defs/license_status_rules"
+            }
+          ]
+        },
+        "training_data": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "evidence_refs"],
+          "properties": {
+            "status": {
+              "enum": [
+                "evidenced",
+                "not_applicable",
+                "partially_evidenced",
+                "unresolved"
+              ]
+            },
+            "evidence_refs": {
+              "$ref": "#/$defs/refs"
+            }
+          }
+        }
+      }
+    },
+    "upstream_claims": {
+      "type": "array",
+      "maxItems": 48,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "claim_id",
+          "claim_kind",
+          "statement",
+          "evidence_refs",
+          "verification"
+        ],
+        "properties": {
+          "claim_id": {
+            "$ref": "#/$defs/local_id"
+          },
+          "claim_kind": {
+            "enum": [
+              "base_model_relationship",
+              "calibration",
+              "evaluation_documentation",
+              "execution_surface",
+              "invariance",
+              "language_support",
+              "performance",
+              "training_methodology",
+              "weights_reference"
+            ]
+          },
+          "statement": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 280
+          },
+          "evidence_refs": {
+            "$ref": "#/$defs/refs_nonempty"
+          },
+          "verification": {
+            "description": "Constant in 1.0.0: an upstream claim is evidence, never AI LAB verification.",
+            "const": "upstream_claim"
+          }
+        }
+      }
+    },
+    "evidence_gaps": {
+      "type": "array",
+      "maxItems": 7,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "archive_state_unresolved",
+          "base_model_license_unresolved",
+          "code_license_unresolved",
+          "training_data_provenance_incomplete",
+          "weights_involvement_unresolved",
+          "weights_license_unresolved",
+          "weights_location_unresolved"
+        ]
+      }
+    },
+    "evidence_completeness": {
+      "enum": ["complete", "incomplete"]
+    },
+    "lifecycle": {
+      "description": "Constant fail-closed lifecycle. Registration is not execution, approval, benchmark eligibility, promotion eligibility, production eligibility or routing.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "registry_state",
+        "ai_lab_executed",
+        "execution_enabled",
+        "benchmark_execution_enabled",
+        "promotion_eligible",
+        "production_eligible",
+        "routing_enabled",
+        "authority"
+      ],
+      "properties": {
+        "registry_state": {
+          "const": "discovered"
+        },
+        "ai_lab_executed": {
+          "const": false
+        },
+        "execution_enabled": {
+          "const": false
+        },
+        "benchmark_execution_enabled": {
+          "const": false
+        },
+        "promotion_eligible": {
+          "const": false
+        },
+        "production_eligible": {
+          "const": false
+        },
+        "routing_enabled": {
+          "const": false
+        },
+        "authority": {
+          "const": "evidence_only"
+        }
+      }
+    },
+    "candidate_hash": {
+      "$ref": "#/$defs/sha256"
+    }
+  },
+  "$defs": {
+    "candidate_id": {
+      "type": "string",
+      "pattern": "^tdc-[a-z0-9][a-z0-9-]{1,60}$"
+    },
+    "local_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{1,63}$"
+    },
+    "repository": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9-]{0,38}/[A-Za-z0-9._-]{1,100}$"
+    },
+    "git_sha": {
+      "description": "Full 40-hex lowercase commit or blob identity; abbreviations, branch and tag names are rejected.",
+      "type": "string",
+      "pattern": "^[a-f0-9]{40}$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "timestamp": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+    },
+    "refs": {
+      "type": "array",
+      "maxItems": 16,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/local_id"
+      }
+    },
+    "refs_nonempty": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 16,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/local_id"
+      }
+    },
+    "license_status": {
+      "enum": ["evidenced", "not_applicable", "unresolved"]
+    },
+    "declared_identifier": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9.+_-]{0,63}$"
+        }
+      ]
+    },
+    "declared_text": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      ]
+    },
+    "license_status_rules": {
+      "description": "evidenced requires a declared identifier and evidence; unresolved and not_applicable carry no identifier; not_applicable must cite evidence.",
+      "type": "object",
+      "allOf": [
+        {
+          "if": {
+            "type": "object",
+            "required": ["status"],
+            "properties": {
+              "status": {
+                "const": "evidenced"
+              }
+            }
+          },
+          "then": {
+            "type": "object",
+            "properties": {
+              "declared_identifier": {
+                "type": "string"
+              },
+              "evidence_refs": {
+                "type": "array",
+                "minItems": 1
+              }
+            }
+          },
+          "else": {
+            "type": "object",
+            "properties": {
+              "declared_identifier": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "type": "object",
+            "required": ["status"],
+            "properties": {
+              "status": {
+                "const": "not_applicable"
+              }
+            }
+          },
+          "then": {
+            "type": "object",
+            "properties": {
+              "evidence_refs": {
+                "type": "array",
+                "minItems": 1
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
