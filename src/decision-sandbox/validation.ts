@@ -27,12 +27,14 @@ import {
 } from "../decision/validation.js";
 import {
   computeDecisionSandboxExecutionRecordHash,
+  computeDecisionSandboxSemanticExecutionHash,
   computeDecisionSandboxPolicyHash,
 } from "./canonical.js";
 import {
   DECISION_ADAPTER_FRAMING,
   DECISION_ADAPTER_PROTOCOL,
   DECISION_ADAPTER_PROTOCOL_VERSION,
+  DECISION_SANDBOX_EMPTY_SHA256,
   DECISION_SANDBOX_ENFORCED_CONTROLS,
   DECISION_SANDBOX_EXECUTION_STATUSES,
   DECISION_SANDBOX_FIXTURE_ADAPTERS,
@@ -116,6 +118,7 @@ export const DECISION_SANDBOX_ISSUE_CODES = [
   "diagnostics_invalid",
   "telemetry_invalid",
   "downstream_authority_forbidden",
+  "semantic_hash_mismatch",
   "record_hash_mismatch",
 ] as const;
 export type DecisionSandboxIssueCode =
@@ -623,6 +626,7 @@ const RECORD_KEYS = [
   "output_authority",
   "downstream_allowed",
   "telemetry",
+  "semantic_execution_hash",
   "execution_record_hash",
 ] as const;
 
@@ -663,7 +667,8 @@ function isCount(value: unknown): boolean {
 /**
  * Validates an execution record: closed shape, bound fixed policy and
  * allowlisted adapter, status/outcome consistency, closed diagnostics,
- * constant non-authority and the semantic self-hash. A `succeeded`
+ * constant non-authority, telemetry hash/count consistency, the semantic
+ * execution hash and the complete-record hash. A `succeeded`
  * record is evidence that the protocol was honoured, never approval.
  */
 export function validateDecisionSandboxExecutionRecord(
@@ -771,6 +776,22 @@ export function validateDecisionSandboxExecutionRecord(
       !isSandboxHash(telemetry["stderr_sha256"])
     )
       c.add("telemetry_invalid", "record.telemetry");
+    else {
+      // Each hash covers exactly the counted bytes: zero bytes hash to the
+      // empty digest and only zero bytes do. No process, no bytes.
+      for (const stream of ["stdout", "stderr"] as const)
+        if (
+          (telemetry[`${stream}_bytes`] === 0) !==
+          (telemetry[`${stream}_sha256`] === DECISION_SANDBOX_EMPTY_SHA256)
+        )
+          c.add("telemetry_invalid", `record.telemetry.${stream}_sha256`);
+      if (
+        isRecord(processOutcome) &&
+        processOutcome["started"] === false &&
+        (telemetry["stdout_bytes"] !== 0 || telemetry["stderr_bytes"] !== 0)
+      )
+        c.add("telemetry_invalid", "record.telemetry");
+    }
   }
 
   if (
@@ -788,15 +809,32 @@ export function validateDecisionSandboxExecutionRecord(
       c,
     );
 
-  if (!isSandboxHash(value["execution_record_hash"])) {
+  // Both hashes are always recomputed (when the record is canonicalizable),
+  // so tampering is reported even alongside other issues.
+  const recompute = (compute: () => string): string | null => {
+    try {
+      return compute();
+    } catch {
+      return null;
+    }
+  };
+  const asRecord = value as unknown as DecisionSandboxExecutionRecord;
+  const semantic = recompute(() =>
+    computeDecisionSandboxSemanticExecutionHash(asRecord),
+  );
+  if (
+    !isSandboxHash(value["semantic_execution_hash"]) ||
+    semantic !== value["semantic_execution_hash"]
+  )
+    c.add("semantic_hash_mismatch", "record.semantic_execution_hash");
+  const complete = recompute(() =>
+    computeDecisionSandboxExecutionRecordHash(asRecord),
+  );
+  if (
+    !isSandboxHash(value["execution_record_hash"]) ||
+    complete !== value["execution_record_hash"]
+  )
     c.add("record_hash_mismatch", "record.execution_record_hash");
-  } else if (c.issues.length === 0) {
-    const computed = computeDecisionSandboxExecutionRecordHash(
-      value as unknown as DecisionSandboxExecutionRecord,
-    );
-    if (computed !== value["execution_record_hash"])
-      c.add("record_hash_mismatch", "record.execution_record_hash");
-  }
   return c.result(value as unknown as DecisionSandboxExecutionRecord);
 }
 

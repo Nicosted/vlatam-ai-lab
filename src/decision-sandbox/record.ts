@@ -9,7 +9,10 @@
  * approval, benchmark success or promotion eligibility.
  */
 
-import { computeDecisionSandboxExecutionRecordHash } from "./canonical.js";
+import {
+  computeDecisionSandboxExecutionRecordHash,
+  computeDecisionSandboxSemanticExecutionHash,
+} from "./canonical.js";
 import {
   DECISION_SANDBOX_CONTRACT_VERSION,
   DECISION_SANDBOX_FIXTURE_POLICY,
@@ -43,12 +46,19 @@ function freezeDeep<T>(value: T): T {
   return value;
 }
 
-/** Builds a deeply frozen record with its semantic self-hash. */
+/**
+ * Builds a deeply frozen record. `semantic_execution_hash` covers the
+ * semantic outcome (no telemetry); `execution_record_hash` then covers the
+ * complete record, telemetry and semantic hash included.
+ */
 export function buildDecisionSandboxExecutionRecord(
   fields: DecisionSandboxRecordFields,
 ): DecisionSandboxExecutionRecord {
   const policy = DECISION_SANDBOX_FIXTURE_POLICY;
-  const body: Omit<DecisionSandboxExecutionRecord, "execution_record_hash"> = {
+  const body: Omit<
+    DecisionSandboxExecutionRecord,
+    "semantic_execution_hash" | "execution_record_hash"
+  > = {
     contract: "decision_sandbox_execution_record",
     schema_version: DECISION_SANDBOX_CONTRACT_VERSION,
     execution_id: fields.execution_id,
@@ -76,8 +86,13 @@ export function buildDecisionSandboxExecutionRecord(
     downstream_allowed: false,
     telemetry: { ...fields.telemetry },
   };
-  return freezeDeep({
+  const withSemantic = {
     ...body,
-    execution_record_hash: computeDecisionSandboxExecutionRecordHash(body),
+    semantic_execution_hash: computeDecisionSandboxSemanticExecutionHash(body),
+  };
+  return freezeDeep({
+    ...withSemantic,
+    execution_record_hash:
+      computeDecisionSandboxExecutionRecordHash(withSemantic),
   });
 }

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://vlatam-ai-lab.local/schemas/ai-decision-sandbox-execution-record.schema.json",
   "title": "AI-143 decision sandbox execution record",
-  "description": "Contract 1.0.0. Immutable evidence of one fixture-runner execution: the fixed policy binding, the allowlisted adapter binding, the AI-140 request hash, status, preflight outcome, process outcome, the accepted output envelope hash and AI-140 result hash, and closed non-authoritative machine diagnostics. stderr content is never persisted. telemetry (duration, captured byte counts and hashes) is operational and excluded from the self-excluding execution_record_hash. Sandbox success is not approval, benchmark success or promotion eligibility: output_authority is none and downstream_allowed is false. Status/outcome consistency, the closed diagnostic vocabulary and the hash are enforced by src/decision-sandbox/validation.ts.",
+  "description": "Contract 1.0.0. Immutable evidence of one fixture-runner execution: the fixed policy binding, the allowlisted adapter binding, the AI-140 request hash, status, preflight outcome, process outcome, the accepted output envelope hash and AI-140 result hash, and closed non-authoritative machine diagnostics. telemetry (duration, and for stdout and stderr the observed byte count with the streaming SHA-256 of exactly those bytes) is operational; stdout and stderr content are never persisted. semantic_execution_hash (domain vlatam-ai-lab:decision-sandbox-execution-semantic:v1) is the deterministic identity of the semantic outcome and excludes telemetry, itself and execution_record_hash. execution_record_hash (domain vlatam-ai-lab:decision-sandbox-execution-record:v1) is the tamper-evident hash of the complete record, including telemetry and semantic_execution_hash, excluding only itself. Sandbox success is not approval, benchmark success or promotion eligibility: output_authority is none and downstream_allowed is false. Status/outcome and telemetry consistency, the closed diagnostic vocabulary and both hashes are enforced by src/decision-sandbox/validation.ts.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -21,6 +21,7 @@
     "output_authority",
     "downstream_allowed",
     "telemetry",
+    "semantic_execution_hash",
     "execution_record_hash"
   ],
   "properties": {
@@ -216,6 +217,10 @@
           "pattern": "^[a-f0-9]{64}$"
         }
       }
+    },
+    "semantic_execution_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
     },
     "execution_record_hash": {
       "type": "string",

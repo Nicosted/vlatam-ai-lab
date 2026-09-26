@@ -33,6 +33,7 @@
     "stderr_bytes": 0,
     "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
   },
-  "execution_record_hash": "61d250e22f02e84732acd5983fc9edb4ad9de33471d6705b2f916b0a101cb70d",
+  "semantic_execution_hash": "9831d131097293a65b0ce3f671d2f0bed081119bad3ec35567272a6e565d6d7f",
+  "execution_record_hash": "9d64397dc9eca1aad63f078f42599bcf48c9148c03f8d2b9a54427baf6b5b502",
   "reasoning": "synthetic placeholder"
 }

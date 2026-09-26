@@ -39,6 +39,7 @@ const PURE_CLOSURE = new Set([
   "src/decision-sandbox/protocol.ts",
   "src/decision-sandbox/preflight.ts",
   "src/decision-sandbox/record.ts",
+  "src/decision-sandbox/stream-evidence.ts",
   "src/decision/contracts.ts",
   "src/decision/canonical.ts",
   "src/decision/validation.ts",
@@ -334,6 +335,7 @@ describe("AI-143 decision sandbox architecture boundary", () => {
       "src/decision-sandbox/preflight.ts",
       "src/decision-sandbox/protocol.ts",
       "src/decision-sandbox/record.ts",
+      "src/decision-sandbox/stream-evidence.ts",
       "src/decision-sandbox/validation.ts",
     ]);
     for (const path of [

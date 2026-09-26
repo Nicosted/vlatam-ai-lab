@@ -18,3 +18,4 @@ export * from "./validation.js";
 export * from "./protocol.js";
 export * from "./preflight.js";
 export * from "./record.js";
+export * from "./stream-evidence.js";

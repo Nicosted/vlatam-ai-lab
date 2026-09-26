@@ -5,6 +5,7 @@ import { describe, it } from "node:test";
 
 import { validateTypedDecisionResultForRequest } from "../../src/decision/validation.js";
 import {
+  DECISION_SANDBOX_EMPTY_SHA256,
   DECISION_SANDBOX_FIXTURE_ADAPTER,
   DECISION_SANDBOX_FIXTURE_POLICY,
   validateDecisionSandboxExecutionRecord,
@@ -21,6 +22,9 @@ import {
   FIXTURE_ROOT,
   load,
 } from "./helpers.js";
+
+const sha256 = (bytes: string | Uint8Array): string =>
+  createHash("sha256").update(bytes).digest("hex");
 
 /** Runs one execution and checks the invariants every record must keep. */
 async function run(
@@ -158,44 +162,68 @@ describe("AI-143 fixture runner: successful synthetic decision", () => {
     }
   });
 
-  it("produces a deterministic semantic record hash matching the registered fixture", async () => {
+  it("produces a deterministic semantic execution hash matching the registered fixture", async () => {
     const first = await run(executionRequest());
     const second = await run(executionRequest());
     assert.equal(
-      first.record.execution_record_hash,
-      second.record.execution_record_hash,
+      first.record.semantic_execution_hash,
+      second.record.semantic_execution_hash,
     );
     const fixture = load<DecisionSandboxExecutionRecord>(
       `${FIXTURE_ROOT}/valid-execution-record.json`,
     );
     assert.equal(
-      first.record.execution_record_hash,
-      fixture.execution_record_hash,
+      first.record.semantic_execution_hash,
+      fixture.semantic_execution_hash,
     );
     assert.equal(
-      first.record.execution_record_hash,
-      "61d250e22f02e84732acd5983fc9edb4ad9de33471d6705b2f916b0a101cb70d",
+      first.record.semantic_execution_hash,
+      "9831d131097293a65b0ce3f671d2f0bed081119bad3ec35567272a6e565d6d7f",
     );
   });
 
-  it("an injected clock drives only non-semantic telemetry", async () => {
-    let tick = 0;
-    const execution = await executeDecisionSandboxFixture(executionRequest(), {
-      clock: () => (tick += 1_000),
+  it("different clocks: same semantic execution hash, different complete-record hash", async () => {
+    let slowTick = 0;
+    const slow = await executeDecisionSandboxFixture(executionRequest(), {
+      clock: () => (slowTick += 1_000),
     });
-    assert.equal(execution.record.telemetry.duration_ms, 1_000);
-    const baseline = await run(executionRequest());
+    let fastTick = 0;
+    const fast = await executeDecisionSandboxFixture(executionRequest(), {
+      clock: () => (fastTick += 7),
+    });
+    assert.equal(slow.record.telemetry.duration_ms, 1_000);
+    assert.equal(fast.record.telemetry.duration_ms, 7);
     assert.equal(
-      execution.record.execution_record_hash,
-      baseline.record.execution_record_hash,
+      slow.record.semantic_execution_hash,
+      fast.record.semantic_execution_hash,
     );
+    assert.notEqual(
+      slow.record.execution_record_hash,
+      fast.record.execution_record_hash,
+    );
+    for (const r of [slow.record, fast.record])
+      assert.equal(validateDecisionSandboxExecutionRecord(r).ok, true);
   });
 
-  it("stderr is diagnostic only: it never changes the result or the record hash", async () => {
+  it("stdout evidence of a success hashes exactly the observed response bytes", async () => {
+    const { record } = await run(executionRequest());
+    // The conformant fixture writes exactly one JSON.stringify line.
+    const expected = Buffer.from(
+      `${JSON.stringify(load(`${FIXTURE_ROOT}/valid-adapter-output.json`))}\n`,
+    );
+    assert.equal(record.telemetry.stdout_bytes, expected.byteLength);
+    assert.equal(record.telemetry.stdout_sha256, sha256(expected));
+    assert.equal(record.telemetry.stderr_bytes, 0);
+    assert.equal(record.telemetry.stderr_sha256, DECISION_SANDBOX_EMPTY_SHA256);
+  });
+
+  it("stderr is diagnostic only: its evidence is exact, and it never changes the result or the semantic hash", async () => {
     const plain = await run(behaviorRequest("conformant"));
     const noisy = await run(behaviorRequest("stderr-diagnostic"));
     assert.equal(noisy.record.status, "succeeded");
-    assert.ok(noisy.record.telemetry.stderr_bytes > 0);
+    const diagnostic = Buffer.from("synthetic fixture diagnostic\n");
+    assert.equal(noisy.record.telemetry.stderr_bytes, diagnostic.byteLength);
+    assert.equal(noisy.record.telemetry.stderr_sha256, sha256(diagnostic));
     assert.deepEqual(noisy.result, plain.result);
     assert.doesNotMatch(
       JSON.stringify(noisy.record),
@@ -231,10 +259,12 @@ describe("AI-143 fixture runner: timeout", () => {
       `${FIXTURE_ROOT}/valid-execution-record-timed-out.json`,
     );
     assert.equal(
-      record.execution_record_hash,
-      fixture.execution_record_hash,
+      record.semantic_execution_hash,
+      fixture.semantic_execution_hash,
       "deterministic evidence shape apart from telemetry",
     );
+    assert.equal(record.telemetry.stdout_bytes, 0);
+    assert.equal(record.telemetry.stdout_sha256, DECISION_SANDBOX_EMPTY_SHA256);
   });
 });
 
@@ -244,16 +274,27 @@ describe("AI-143 fixture runner: output limits", () => {
     assertFailure(record, "output_limit_exceeded", ["stdout_limit_exceeded"]);
     assert.equal(record.process_outcome.signal, "SIGKILL");
     assert.equal(record.process_outcome.terminated_by_runtime, "output_limit");
-    assert.ok(
-      record.telemetry.stdout_bytes >
-        DECISION_SANDBOX_FIXTURE_POLICY.max_stdout_bytes,
+    const observed = record.telemetry.stdout_bytes;
+    assert.ok(observed > DECISION_SANDBOX_FIXTURE_POLICY.max_stdout_bytes);
+    assert.ok(observed <= 262_144, "never more than the fixture wrote");
+    // The flood is only "a" bytes, so whatever the chunking, the hash of
+    // exactly the observed bytes is known; it is never SHA-256(empty).
+    assert.notEqual(
+      record.telemetry.stdout_sha256,
+      DECISION_SANDBOX_EMPTY_SHA256,
     );
+    assert.equal(record.telemetry.stdout_sha256, sha256("a".repeat(observed)));
   });
 
-  it("kills a fixture that exceeds the stderr bound", async () => {
+  it("kills a fixture that exceeds the stderr bound with aligned hash/count evidence", async () => {
     const { record } = await run(behaviorRequest("stderr-flood"));
     assertFailure(record, "output_limit_exceeded", ["stderr_limit_exceeded"]);
     assert.equal(record.process_outcome.terminated_by_runtime, "output_limit");
+    const observed = record.telemetry.stderr_bytes;
+    assert.ok(observed > DECISION_SANDBOX_FIXTURE_POLICY.max_stderr_bytes);
+    assert.ok(observed <= 65_536, "never more than the fixture wrote");
+    assert.equal(record.telemetry.stderr_sha256, sha256("a".repeat(observed)));
+    assert.equal(record.telemetry.stdout_bytes, 0);
   });
 });
 

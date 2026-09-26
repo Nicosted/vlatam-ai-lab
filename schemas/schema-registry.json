@@ -1870,7 +1870,7 @@
       ],
       "test_file": "tests/decision-sandbox/decision-sandbox-schemas.test.ts",
       "status": "implemented",
-      "purpose": "AI-143 contract 1.0.0: immutable, hash-bound evidence of one fixture-runner execution (policy, adapter, request hash, status, process outcome, accepted envelope and result hashes, closed diagnostics) with non-semantic telemetry excluded from the hash.",
+      "purpose": "AI-143 contract 1.0.0: immutable, hash-bound evidence of one fixture-runner execution (policy, adapter, request hash, status, process outcome, accepted envelope and result hashes, closed diagnostics), with a semantic_execution_hash that excludes operational telemetry and an execution_record_hash that binds the complete record including telemetry.",
       "downstream_role": "Evidence only; output_authority none and downstream_allowed false; sandbox success is not approval, benchmark success or promotion eligibility; not wired into AI-141 evaluation or AI-120 lifecycle.",
       "requires_human_review_semantics": true,
       "requires_traceability": true,

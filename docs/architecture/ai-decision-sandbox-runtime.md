@@ -113,9 +113,10 @@ DecisionAdapterInput                DecisionAdapterOutput
   JSON response → `response_multiple`; any other trailing stdout →
   `response_trailing_output`.
 - stdout and stderr are bounded by the policy.
-- stderr is diagnostic only. Only its byte count and a hash of the bounded
-  prefix appear, in non-semantic telemetry. Its content is never persisted
-  and never becomes decision truth.
+- stderr is diagnostic only. Only its observed byte count and the
+  streaming SHA-256 of exactly those bytes appear, in telemetry (see §9).
+  Its content is never retained, never persisted and never becomes
+  decision truth.
 
 ## 4. Execution subject
 
@@ -277,8 +278,9 @@ DecisionSandboxExecutionRecord
 ├── diagnostics                   (closed machine codes, sorted)
 ├── output_authority: none
 ├── downstream_allowed: false
-├── telemetry                     (non-semantic; excluded from the hash)
-└── execution_record_hash
+├── telemetry                     (operational; see below)
+├── semantic_execution_hash       (semantic identity; excludes telemetry)
+└── execution_record_hash         (complete record; includes telemetry)
 ```
 
 Statuses: `succeeded`, `blocked`, `timed_out`, `process_failed`,
@@ -295,8 +297,29 @@ diagnostics; `blocked` requires that no process started).
   `output_authority` is `none`, `downstream_allowed` is `false`, and the
   AI-140 result keeps `downstream_allowed: false`.
 
-Diagnostics are non-authoritative machine codes. stderr content, private
-reasoning and adapter-created files are never persisted.
+Diagnostics are non-authoritative machine codes. stdout content, stderr
+content, private reasoning and adapter-created files are never persisted.
+
+### Telemetry and stream evidence
+
+`telemetry` holds `duration_ms` and, for each of stdout and stderr, an
+observed byte count with the SHA-256 of exactly those bytes:
+
+- The runtime feeds every chunk it observes to a bounded streaming
+  accumulator (`src/decision-sandbox/stream-evidence.ts`) that increments
+  the count by the chunk length and updates the hash with the same bytes.
+  Count and hash therefore always describe the same byte set.
+- stdout is retained in memory only while within `max_stdout_bytes`, for
+  protocol decoding; once the bound is exceeded the retained content is
+  released and the child is killed. stderr content is never retained. Memory
+  is bounded by the stdout limit plus one in-flight chunk.
+- On overflow, `*_bytes` is the number of bytes observed up to and
+  including the chunk that crossed the bound, and `*_sha256` hashes exactly
+  those bytes (never the empty digest). When the runtime terminates the
+  child (timeout or either bound), observation of **both** streams stops;
+  bytes arriving afterwards are ignored by both the counter and the hash.
+- The validator requires `*_bytes = 0` exactly when `*_sha256` is the
+  empty digest, and zero bytes for a process that never started.
 
 ## 10. Hashing and determinism
 
@@ -304,17 +327,31 @@ All hashes reuse the AI-140 `registry-json-v1` canonicalizer; no new
 canonicalization algorithm exists. Hash = SHA-256(domain ‖ "\n" ‖
 canonical JSON), self-hash fields excluded.
 
-| Domain                                        | Covers                                               |
-| --------------------------------------------- | ---------------------------------------------------- |
-| `vlatam-ai-lab:decision-sandbox-policy:v1`    | Policy minus `policy_hash`                           |
-| `vlatam-ai-lab:decision-adapter-envelope:v1`  | A whole input or output envelope                     |
-| `vlatam-ai-lab:decision-sandbox-execution:v1` | Record minus `execution_record_hash` and `telemetry` |
+| Domain                                                 | Field                     | Covers                                                                                 |
+| ------------------------------------------------------ | ------------------------- | -------------------------------------------------------------------------------------- |
+| `vlatam-ai-lab:decision-sandbox-policy:v1`             | `policy_hash`             | Policy minus `policy_hash`                                                             |
+| `vlatam-ai-lab:decision-adapter-envelope:v1`           | `protocol_result_hash`    | A whole input or output envelope                                                       |
+| `vlatam-ai-lab:decision-sandbox-execution-semantic:v1` | `semantic_execution_hash` | Record minus `telemetry`, `semantic_execution_hash` and `execution_record_hash`        |
+| `vlatam-ai-lab:decision-sandbox-execution-record:v1`   | `execution_record_hash`   | The complete record, including `telemetry` and `semantic_execution_hash`, minus itself |
 
-The semantic record hash does not depend on wall-clock time, randomness,
-process id, temporary directory name or hostname. Duration and captured
-byte counts are telemetry only; an injected clock drives duration in
-tests. Tests prove that two runs of the same request, and a timeout run,
-reproduce the registered fixture record hashes exactly.
+The two record hashes have distinct meanings and never substitute for
+each other:
+
+- `semantic_execution_hash` is the deterministic identity of the semantic
+  execution outcome. It does not depend on wall-clock time, randomness,
+  process id, temporary directory name, hostname or any telemetry. Tests
+  prove that two runs of the same request under different injected clocks,
+  and a timeout run, reproduce the registered semantic hashes exactly.
+- `execution_record_hash` makes the persisted record tamper-evident as a
+  whole: changing any telemetry field (duration, byte counts or stream
+  hashes) or the semantic hash without recomputing it fails validation. A
+  properly rebuilt record with different telemetry has a different
+  `execution_record_hash` and the same `semantic_execution_hash`.
+
+The validator recomputes both hashes whenever the record can be
+canonicalized and reports each mismatch alongside any other issue. These
+are integrity hashes, not signatures: anyone able to rewrite the record
+can recompute them.
 
 ## 11. Architecture boundary
 

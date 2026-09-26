@@ -33,5 +33,6 @@
     "stderr_bytes": 0,
     "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
   },
-  "execution_record_hash": "3f721384cb6187a71d6570797b60870b9e68ad69b2f928e37d1585d816bb0533"
+  "semantic_execution_hash": "6782131b38e12ce233fa62afd1206632ce9be82ff29ab68893fdcec3d23bcc25",
+  "execution_record_hash": "74e1727cb75a0af6526c49f2e1d2b03d9c98b07a7d2247ff5a0522950097540d"
 }

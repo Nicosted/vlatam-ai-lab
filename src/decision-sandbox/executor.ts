@@ -28,6 +28,9 @@
  *    request and at most one live fixture process per runtime.
  *  - Bounded stdout and stderr; the child is killed with SIGKILL when a
  *    bound or the timeout is exceeded. No partial result is accepted.
+ *    Each stream's byte count and SHA-256 are streamed over exactly the
+ *    same observed bytes (`stream-evidence.ts`); stdout is retained only
+ *    within its bound and stderr content is never retained.
  *  - No automatic retry and no fallback.
  *  - The temporary working directory is removed after completion.
  *
@@ -55,13 +58,15 @@ import { fileURLToPath } from "node:url";
 
 import type { TypedDecisionResult } from "../decision/contracts.js";
 import { computeDecisionAdapterEnvelopeHash } from "./canonical.js";
-import type {
-  DecisionSandboxExecutionRecord,
+import {
+  DECISION_SANDBOX_EMPTY_SHA256,
+  type DecisionSandboxExecutionRecord,
   DecisionSandboxExecutionStatus,
   DecisionSandboxPolicy,
   DecisionSandboxTermination,
 } from "./contracts.js";
 import { evaluateDecisionSandboxPreflight } from "./preflight.js";
+import { DecisionSandboxStreamEvidence } from "./stream-evidence.js";
 import {
   buildDecisionAdapterInput,
   decodeDecisionAdapterFrame,
@@ -107,13 +112,13 @@ interface ProcessRun {
   readonly signal: string | null;
   readonly termination: DecisionSandboxTermination;
   readonly limit_code: DecisionSandboxIssueCode | null;
+  /** Retained stdout for protocol decoding; empty once over the bound. */
   readonly stdout: Buffer;
   readonly stdout_bytes: number;
+  readonly stdout_sha256: string;
   readonly stderr_bytes: number;
   readonly stderr_sha256: string;
 }
-
-const EMPTY_SHA256 = createHash("sha256").digest("hex");
 
 let liveProcesses = 0;
 
@@ -168,16 +173,23 @@ function runFixtureProcess(
         limit_code: null,
         stdout: Buffer.alloc(0),
         stdout_bytes: 0,
+        stdout_sha256: DECISION_SANDBOX_EMPTY_SHA256,
         stderr_bytes: 0,
-        stderr_sha256: EMPTY_SHA256,
+        stderr_sha256: DECISION_SANDBOX_EMPTY_SHA256,
       });
       return;
     }
-    const stdoutChunks: Buffer[] = [];
-    let stdoutBytes = 0;
-    let stdoutCaptured = true;
-    const stderrHash = createHash("sha256");
-    let stderrBytes = 0;
+    // Streaming evidence: each counter and its hash cover the same bytes.
+    // stdout is retained only within its bound (for protocol decoding);
+    // stderr content is never retained.
+    const stdout = new DecisionSandboxStreamEvidence(
+      policy.max_stdout_bytes,
+      true,
+    );
+    const stderr = new DecisionSandboxStreamEvidence(
+      policy.max_stderr_bytes,
+      false,
+    );
     let termination: DecisionSandboxTermination = "none";
     let limitCode: DecisionSandboxIssueCode | null = null;
     let settled = false;
@@ -190,6 +202,9 @@ function runFixtureProcess(
         termination = reason;
         limitCode = code;
       }
+      // Bytes arriving after termination are ignored by counter and hash.
+      stdout.stop();
+      stderr.stop();
       child.kill("SIGKILL");
       child.stdout.destroy();
       child.stderr.destroy();
@@ -206,6 +221,8 @@ function runFixtureProcess(
       if (settled) return;
       settled = true;
       clearTimeout(timer);
+      const out = stdout.seal();
+      const err = stderr.seal();
       settle({
         started: !spawnFailed,
         spawn_failed: spawnFailed,
@@ -213,29 +230,20 @@ function runFixtureProcess(
         signal,
         termination,
         limit_code: limitCode,
-        stdout: stdoutCaptured ? Buffer.concat(stdoutChunks) : Buffer.alloc(0),
-        stdout_bytes: stdoutBytes,
-        stderr_bytes: stderrBytes,
-        stderr_sha256: stderrHash.digest("hex"),
+        stdout: out.retained,
+        stdout_bytes: out.bytes,
+        stdout_sha256: out.sha256,
+        stderr_bytes: err.bytes,
+        stderr_sha256: err.sha256,
       });
     };
 
     child.stdout.on("data", (chunk: Buffer) => {
-      if (termination !== "none") return;
-      stdoutBytes += chunk.length;
-      if (stdoutBytes > policy.max_stdout_bytes) {
-        stdoutCaptured = false;
+      if (stdout.observe(chunk))
         terminate("output_limit", "stdout_limit_exceeded");
-        return;
-      }
-      stdoutChunks.push(chunk);
     });
     child.stderr.on("data", (chunk: Buffer) => {
-      if (termination !== "none") return;
-      const room = policy.max_stderr_bytes - stderrBytes;
-      stderrHash.update(chunk.subarray(0, Math.max(0, room)));
-      stderrBytes += chunk.length;
-      if (stderrBytes > policy.max_stderr_bytes)
+      if (stderr.observe(chunk))
         terminate("output_limit", "stderr_limit_exceeded");
     });
     child.on("error", () => {
@@ -292,9 +300,9 @@ export async function executeDecisionSandboxFixture(
       telemetry: {
         duration_ms: Math.max(0, Math.round(clock() - startedAt)),
         stdout_bytes: run?.stdout_bytes ?? 0,
-        stdout_sha256: run === null ? EMPTY_SHA256 : sha256(run.stdout),
+        stdout_sha256: run?.stdout_sha256 ?? DECISION_SANDBOX_EMPTY_SHA256,
         stderr_bytes: run?.stderr_bytes ?? 0,
-        stderr_sha256: run?.stderr_sha256 ?? EMPTY_SHA256,
+        stderr_sha256: run?.stderr_sha256 ?? DECISION_SANDBOX_EMPTY_SHA256,
       },
     });
     return { record, result: accepted?.result ?? null };

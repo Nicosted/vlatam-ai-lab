@@ -354,10 +354,15 @@ export interface DecisionSandboxAdapterBinding {
 }
 
 /**
- * Operational observations. Excluded from `execution_record_hash`:
- * duration and captured byte counts vary between machines and never
- * carry decision semantics. stderr is summarised by size and hash only;
- * its content is never persisted.
+ * Operational observations. Excluded from `semantic_execution_hash`
+ * (duration and observed byte counts vary between machines and never
+ * carry decision semantics) but bound by `execution_record_hash`, so they
+ * cannot be altered after execution without detection.
+ *
+ * For each stream, `*_sha256` is the streaming SHA-256 of exactly the
+ * `*_bytes` bytes the runtime observed before it terminated the child;
+ * bytes arriving after termination are ignored by both the counter and
+ * the hash. Neither stdout nor stderr content is persisted.
  */
 export interface DecisionSandboxTelemetry {
   readonly duration_ms: number;
@@ -389,9 +394,22 @@ export interface DecisionSandboxExecutionRecord {
   readonly output_authority: "none";
   readonly downstream_allowed: false;
   readonly telemetry: DecisionSandboxTelemetry;
+  /**
+   * Deterministic identity of the semantic execution outcome: every field
+   * except `telemetry`, `semantic_execution_hash` and
+   * `execution_record_hash`. Stable across clocks and machines.
+   */
+  readonly semantic_execution_hash: string;
+  /**
+   * Tamper-evident hash of the complete persisted record, including
+   * `telemetry` and `semantic_execution_hash`; excludes only itself.
+   */
   readonly execution_record_hash: string;
 }
 
 export const DECISION_SANDBOX_ID_PATTERN = /^[a-z0-9][a-z0-9._-]{1,127}$/;
 export const DECISION_SANDBOX_HASH_PATTERN = /^[a-f0-9]{64}$/;
+/** SHA-256 of zero bytes: the telemetry hash of a stream with no output. */
+export const DECISION_SANDBOX_EMPTY_SHA256 =
+  "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855" as const;
 export const DECISION_SANDBOX_VERSION_PATTERN = /^\d+\.\d+\.\d+$/;

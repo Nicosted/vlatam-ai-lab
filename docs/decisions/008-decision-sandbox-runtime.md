@@ -41,13 +41,20 @@ execution authority, and it must not overclaim isolation.
 5. A pure, fail-closed preflight (`blocked` |
    `eligible_for_fixture_execution`) and an immutable execution record
    (`succeeded`, `blocked`, `timed_out`, `process_failed`,
-   `protocol_failed`, `output_limit_exceeded`) with non-semantic telemetry
-   excluded from its hash. `output_authority` is always `none` and
+   `protocol_failed`, `output_limit_exceeded`). Semantic identity and
+   record integrity are separate hashes: `semantic_execution_hash`
+   excludes operational telemetry so it is stable across clocks and
+   machines; `execution_record_hash` binds the complete persisted record,
+   telemetry and semantic hash included, so changing any field without
+   recomputing it invalidates the record. Telemetry stream hashes cover
+   exactly the counted bytes observed before termination; no stdout or
+   stderr content is persisted. `output_authority` is always `none` and
    `downstream_allowed` always `false`.
 6. Hashes reuse the AI-140 `registry-json-v1` canonicalizer under new
    domains `vlatam-ai-lab:decision-sandbox-policy:v1`,
-   `vlatam-ai-lab:decision-adapter-envelope:v1` and
-   `vlatam-ai-lab:decision-sandbox-execution:v1`.
+   `vlatam-ai-lab:decision-adapter-envelope:v1`,
+   `vlatam-ai-lab:decision-sandbox-execution-semantic:v1` and
+   `vlatam-ai-lab:decision-sandbox-execution-record:v1`.
 7. `node:child_process` lives only in `src/decision-sandbox/executor.ts`,
    which is not re-exported, exposes no generic subprocess utility and is
    reachable only from tests. No CLI, API route, scheduler or production
