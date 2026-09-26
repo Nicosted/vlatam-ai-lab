@@ -1,0 +1,89 @@
+{
+  "contract": "gold_decision_case",
+  "schema_version": "1.0.0",
+  "case_id": "gd-queue-003",
+  "dataset_id": "ai-lab-gold-decisions",
+  "dataset_version": "1.0.0",
+  "split": "validation",
+  "request": {
+    "contract": "typed_decision_request",
+    "schema_version": "1.0.0",
+    "request_id": "gd-queue-003",
+    "capability_id": "synthetic.decision.document_queue_rank",
+    "execution_paradigm": "typed_decision",
+    "decision_type": "ranking",
+    "bounded_state": {
+      "facts": [
+        {
+          "fact_id": "queue.certificate.expires_in_days",
+          "value_type": "integer",
+          "value": 45
+        },
+        {
+          "fact_id": "queue.invoice.expires_in_days",
+          "value_type": "integer",
+          "value": 5
+        },
+        {
+          "fact_id": "queue.transport_document.expires_in_days",
+          "value_type": "integer",
+          "value": 15
+        }
+      ]
+    },
+    "question": {
+      "question_id": "synthetic.document.queue_order",
+      "text": "Regra sintética R-QUE-1: processar os documentos em ordem crescente de dias até o vencimento. Ordene a fila sintética de documentos da primeira à última."
+    },
+    "output_domain": {
+      "kind": "ranking",
+      "candidates": [
+        {
+          "candidate_id": "queue.certificate",
+          "label": "Certificado"
+        },
+        {
+          "candidate_id": "queue.transport_document",
+          "label": "Documento de transporte"
+        },
+        {
+          "candidate_id": "queue.invoice",
+          "label": "Fatura comercial"
+        }
+      ]
+    },
+    "policy": {
+      "data_classification": "internal",
+      "human_review_required": false,
+      "abstention_permitted": true,
+      "escalation_policy_ref": null,
+      "downstream_use": "none"
+    },
+    "evidence_refs": []
+  },
+  "expected": {
+    "kind": "ranking",
+    "expected_order": [
+      "queue.invoice",
+      "queue.transport_document",
+      "queue.certificate"
+    ]
+  },
+  "abstention_policy": "not_allowed",
+  "permutation_group_id": null,
+  "provenance": {
+    "source_kind": "synthetic_construction",
+    "authoring_method": "repository_fixture",
+    "labeling_rule_id": "rule.document_queue_order.v1",
+    "evidence_basis": [
+      "queue.certificate.expires_in_days",
+      "queue.invoice.expires_in_days",
+      "queue.transport_document.expires_in_days"
+    ],
+    "candidate_generated": false
+  },
+  "language": "pt-BR",
+  "jurisdiction": "NONE",
+  "tags": ["document_queue"],
+  "case_hash": "8f0bf086740c5d30a0e31381911aec976348363d0e1ae6e387f6f42a90c858e8"
+}

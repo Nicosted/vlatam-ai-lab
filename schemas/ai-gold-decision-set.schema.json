@@ -1,0 +1,288 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/ai-gold-decision-set.schema.json",
+  "title": "AI-141 Gold Decision Set manifest",
+  "description": "Contract 1.0.0. Versioned, immutable manifest binding an exact ordered list of (case_id, case_hash, split) entries, the explicit split policy (test split never used for training, candidates never select cases, every case public, no blind holdout), evaluation purpose synthetic_conformance (never domain-representative, never promotion-eligible), review state draft or in_review (a set can never approve itself; publication requires a future governed human-review binding of the exact dataset hash), labeling rules, scoring policy gold-decision-scoring-v1 and recomputable distributions under a self-excluding dataset_hash. Strict ordering, uniqueness, case binding, distribution recomputation and hashes are enforced by src/decision-evaluation/validation.ts.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract",
+    "schema_version",
+    "dataset_id",
+    "dataset_version",
+    "scoring_policy",
+    "evaluation_purpose",
+    "domain_representative",
+    "promotion_eligible",
+    "split_policy",
+    "review",
+    "created_from",
+    "supersedes",
+    "labeling_rules",
+    "cases",
+    "split_distribution",
+    "decision_type_distribution",
+    "language_distribution",
+    "jurisdiction_distribution",
+    "capability_distribution",
+    "dataset_hash"
+  ],
+  "properties": {
+    "contract": {
+      "const": "gold_decision_set"
+    },
+    "schema_version": {
+      "type": "string",
+      "pattern": "^1\\.[0-9]+\\.[0-9]+$"
+    },
+    "dataset_id": {
+      "$ref": "#/$defs/id"
+    },
+    "dataset_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "scoring_policy": {
+      "const": "gold-decision-scoring-v1"
+    },
+    "evaluation_purpose": {
+      "const": "synthetic_conformance"
+    },
+    "domain_representative": {
+      "const": false
+    },
+    "promotion_eligible": {
+      "const": false
+    },
+    "split_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "policy_id",
+        "assignment",
+        "splits",
+        "test_split_training_use",
+        "candidate_case_selection",
+        "permutation_groups_share_split",
+        "case_visibility",
+        "blind_holdout"
+      ],
+      "properties": {
+        "policy_id": {
+          "const": "gold-decision-split-v1"
+        },
+        "assignment": {
+          "const": "explicit_per_case"
+        },
+        "splits": {
+          "const": ["development", "validation", "test"]
+        },
+        "test_split_training_use": {
+          "const": "forbidden"
+        },
+        "candidate_case_selection": {
+          "const": "forbidden"
+        },
+        "permutation_groups_share_split": {
+          "const": true
+        },
+        "case_visibility": {
+          "const": "public"
+        },
+        "blind_holdout": {
+          "const": false
+        }
+      }
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "human_review_required"],
+      "properties": {
+        "state": {
+          "enum": ["draft", "in_review"]
+        },
+        "human_review_required": {
+          "const": true
+        }
+      }
+    },
+    "created_from": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_kind",
+        "authoring_method",
+        "customer_data",
+        "production_data",
+        "candidate_generated_labels"
+      ],
+      "properties": {
+        "source_kind": {
+          "const": "synthetic_construction"
+        },
+        "authoring_method": {
+          "const": "repository_fixture"
+        },
+        "customer_data": {
+          "const": false
+        },
+        "production_data": {
+          "const": false
+        },
+        "candidate_generated_labels": {
+          "const": false
+        }
+      }
+    },
+    "supersedes": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["dataset_version", "dataset_hash"],
+          "properties": {
+            "dataset_version": {
+              "type": "string",
+              "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+            },
+            "dataset_hash": {
+              "$ref": "#/$defs/hash"
+            }
+          }
+        }
+      ]
+    },
+    "labeling_rules": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 64,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["rule_id", "capability_id", "statement"],
+        "properties": {
+          "rule_id": {
+            "$ref": "#/$defs/id"
+          },
+          "capability_id": {
+            "type": "string",
+            "pattern": "^synthetic\\.decision(\\.[a-z][a-z0-9_]*)+$"
+          },
+          "statement": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          }
+        }
+      }
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1000,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["case_id", "case_hash", "split"],
+        "properties": {
+          "case_id": {
+            "$ref": "#/$defs/id"
+          },
+          "case_hash": {
+            "$ref": "#/$defs/hash"
+          },
+          "split": {
+            "enum": ["development", "validation", "test"]
+          }
+        }
+      }
+    },
+    "split_distribution": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 128
+      },
+      "additionalProperties": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 1000
+      }
+    },
+    "decision_type_distribution": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 128
+      },
+      "additionalProperties": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 1000
+      }
+    },
+    "language_distribution": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 128
+      },
+      "additionalProperties": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 1000
+      }
+    },
+    "jurisdiction_distribution": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 128
+      },
+      "additionalProperties": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 1000
+      }
+    },
+    "capability_distribution": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 128
+      },
+      "additionalProperties": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 1000
+      }
+    },
+    "dataset_hash": {
+      "$ref": "#/$defs/hash"
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{1,127}$"
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    }
+  }
+}

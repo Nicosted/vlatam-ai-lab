@@ -1,0 +1,110 @@
+{
+  "contract": "gold_decision_case",
+  "schema_version": "1.0.0",
+  "case_id": "gd-workflow-007",
+  "dataset_id": "ai-lab-gold-decisions",
+  "dataset_version": "1.0.0",
+  "split": "validation",
+  "request": {
+    "contract": "typed_decision_request",
+    "schema_version": "1.0.0",
+    "request_id": "gd-workflow-007",
+    "capability_id": "synthetic.decision.workflow_next_step",
+    "execution_paradigm": "typed_decision",
+    "decision_type": "choice",
+    "bounded_state": {
+      "facts": [
+        {
+          "fact_id": "operation.on_hold",
+          "value_type": "boolean",
+          "value": false
+        },
+        {
+          "fact_id": "operation.missing_required_documents",
+          "value_type": "integer",
+          "value": 0
+        },
+        {
+          "fact_id": "operation.unextracted_documents",
+          "value_type": "integer",
+          "value": 0
+        },
+        {
+          "fact_id": "operation.open_regulatory_questions",
+          "value_type": "integer",
+          "value": 1
+        },
+        {
+          "fact_id": "operation.route_defined",
+          "value_type": "boolean",
+          "value": false
+        }
+      ]
+    },
+    "question": {
+      "question_id": "synthetic.workflow.next_step",
+      "text": "Synthetic rule R-WFL-1: apply in order and take the first match — operation on hold → hold; missing required documents > 0 → request information; unextracted documents > 0 → document extraction; open regulatory questions > 0 → regulatory research; route not defined → logistics analysis; otherwise → human review. If the step selected by this order is not among the declared options, abstain. What is the next workflow step for this synthetic operation?"
+    },
+    "output_domain": {
+      "kind": "choice",
+      "candidates": [
+        {
+          "candidate_id": "step.request_information",
+          "label": "Request information"
+        },
+        {
+          "candidate_id": "step.document_extraction",
+          "label": "Document extraction"
+        },
+        {
+          "candidate_id": "step.regulatory_research",
+          "label": "Regulatory research"
+        },
+        {
+          "candidate_id": "step.logistics_analysis",
+          "label": "Logistics analysis"
+        },
+        {
+          "candidate_id": "step.human_review",
+          "label": "Human review"
+        },
+        {
+          "candidate_id": "step.hold",
+          "label": "Hold"
+        }
+      ],
+      "complete_distribution_required": false
+    },
+    "policy": {
+      "data_classification": "internal",
+      "human_review_required": true,
+      "abstention_permitted": true,
+      "escalation_policy_ref": null,
+      "downstream_use": "none"
+    },
+    "evidence_refs": []
+  },
+  "expected": {
+    "kind": "choice",
+    "expected_candidate_id": "step.regulatory_research"
+  },
+  "abstention_policy": "allowed",
+  "permutation_group_id": "perm-workflow-regulatory-en",
+  "provenance": {
+    "source_kind": "synthetic_construction",
+    "authoring_method": "repository_fixture",
+    "labeling_rule_id": "rule.workflow_next_step.v1",
+    "evidence_basis": [
+      "operation.missing_required_documents",
+      "operation.on_hold",
+      "operation.open_regulatory_questions",
+      "operation.route_defined",
+      "operation.unextracted_documents"
+    ],
+    "candidate_generated": false
+  },
+  "language": "en",
+  "jurisdiction": "NONE",
+  "tags": ["permutation_pair", "workflow_next_step"],
+  "case_hash": "52c9c3c19c242572e6abd96d78f59aaf3f7d4427e6715586d58d32a8bebc1daa"
+}

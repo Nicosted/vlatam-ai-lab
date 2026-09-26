@@ -1,0 +1,88 @@
+{
+  "contract": "gold_decision_case",
+  "schema_version": "1.0.0",
+  "case_id": "fx-ai140-choice",
+  "dataset_id": "gold-decision-fixtures",
+  "dataset_version": "1.0.0",
+  "split": "development",
+  "request": {
+    "contract": "typed_decision_request",
+    "schema_version": "1.0.0",
+    "request_id": "synthetic-intent-request-0001",
+    "capability_id": "synthetic.decision.intent_classify",
+    "execution_paradigm": "typed_decision",
+    "decision_type": "choice",
+    "bounded_state": {
+      "facts": [
+        {
+          "fact_id": "message.channel",
+          "value_type": "string",
+          "value": "synthetic_web_form"
+        },
+        {
+          "fact_id": "message.length_chars",
+          "value_type": "integer",
+          "value": 142
+        },
+        {
+          "fact_id": "message.mentions_tariff_code",
+          "value_type": "boolean",
+          "value": true
+        }
+      ]
+    },
+    "question": {
+      "question_id": "synthetic.intent.primary",
+      "text": "Which declared intent best describes this synthetic inbound message?"
+    },
+    "output_domain": {
+      "kind": "choice",
+      "candidates": [
+        {
+          "candidate_id": "intent.tariff_question",
+          "label": "Tariff classification question"
+        },
+        {
+          "candidate_id": "intent.document_submission",
+          "label": "Document submission"
+        },
+        {
+          "candidate_id": "intent.other",
+          "label": "Other or unclear"
+        }
+      ],
+      "complete_distribution_required": true
+    },
+    "policy": {
+      "data_classification": "internal",
+      "human_review_required": true,
+      "abstention_permitted": true,
+      "escalation_policy_ref": null,
+      "downstream_use": "none"
+    },
+    "evidence_refs": [
+      {
+        "evidence_id": "synthetic-fixture-intent-0001",
+        "content_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    ]
+  },
+  "expected": {
+    "kind": "choice",
+    "expected_candidate_id": "intent.tariff_question"
+  },
+  "abstention_policy": "allowed",
+  "permutation_group_id": "perm-fx-intent",
+  "provenance": {
+    "source_kind": "synthetic_construction",
+    "authoring_method": "repository_fixture",
+    "labeling_rule_id": "rule.fixture.intent.v1",
+    "evidence_basis": ["message.mentions_tariff_code"],
+    "candidate_generated": false,
+    "reasoning": "free-form private reasoning"
+  },
+  "language": "en",
+  "jurisdiction": "NONE",
+  "tags": ["fixture", "permutation_pair"],
+  "case_hash": "932419f52aef5b9c87c5490cc650143d92821df0f1f992f5e279955c95d45cbc"
+}

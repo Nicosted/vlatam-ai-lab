@@ -1,0 +1,110 @@
+{
+  "contract": "gold_decision_case",
+  "schema_version": "1.0.0",
+  "case_id": "gd-workflow-001",
+  "dataset_id": "ai-lab-gold-decisions",
+  "dataset_version": "1.0.0",
+  "split": "development",
+  "request": {
+    "contract": "typed_decision_request",
+    "schema_version": "1.0.0",
+    "request_id": "gd-workflow-001",
+    "capability_id": "synthetic.decision.workflow_next_step",
+    "execution_paradigm": "typed_decision",
+    "decision_type": "choice",
+    "bounded_state": {
+      "facts": [
+        {
+          "fact_id": "operation.on_hold",
+          "value_type": "boolean",
+          "value": true
+        },
+        {
+          "fact_id": "operation.missing_required_documents",
+          "value_type": "integer",
+          "value": 2
+        },
+        {
+          "fact_id": "operation.unextracted_documents",
+          "value_type": "integer",
+          "value": 0
+        },
+        {
+          "fact_id": "operation.open_regulatory_questions",
+          "value_type": "integer",
+          "value": 0
+        },
+        {
+          "fact_id": "operation.route_defined",
+          "value_type": "boolean",
+          "value": true
+        }
+      ]
+    },
+    "question": {
+      "question_id": "synthetic.workflow.next_step",
+      "text": "Regla sintética R-WFL-1: aplicar en orden y tomar la primera coincidencia — operación en espera → en espera; documentos requeridos faltantes > 0 → solicitar información; documentos sin extraer > 0 → extracción de documentos; preguntas regulatorias abiertas > 0 → investigación regulatoria; ruta no definida → análisis logístico; en otro caso → revisión humana. Si el paso seleccionado por este orden no está entre las opciones declaradas, abstenerse. ¿Cuál es el próximo paso del flujo para esta operación sintética?"
+    },
+    "output_domain": {
+      "kind": "choice",
+      "candidates": [
+        {
+          "candidate_id": "step.request_information",
+          "label": "Solicitar información"
+        },
+        {
+          "candidate_id": "step.document_extraction",
+          "label": "Extracción de documentos"
+        },
+        {
+          "candidate_id": "step.regulatory_research",
+          "label": "Investigación regulatoria"
+        },
+        {
+          "candidate_id": "step.logistics_analysis",
+          "label": "Análisis logístico"
+        },
+        {
+          "candidate_id": "step.human_review",
+          "label": "Revisión humana"
+        },
+        {
+          "candidate_id": "step.hold",
+          "label": "En espera"
+        }
+      ],
+      "complete_distribution_required": false
+    },
+    "policy": {
+      "data_classification": "internal",
+      "human_review_required": true,
+      "abstention_permitted": true,
+      "escalation_policy_ref": null,
+      "downstream_use": "none"
+    },
+    "evidence_refs": []
+  },
+  "expected": {
+    "kind": "choice",
+    "expected_candidate_id": "step.hold"
+  },
+  "abstention_policy": "allowed",
+  "permutation_group_id": null,
+  "provenance": {
+    "source_kind": "synthetic_construction",
+    "authoring_method": "repository_fixture",
+    "labeling_rule_id": "rule.workflow_next_step.v1",
+    "evidence_basis": [
+      "operation.missing_required_documents",
+      "operation.on_hold",
+      "operation.open_regulatory_questions",
+      "operation.route_defined",
+      "operation.unextracted_documents"
+    ],
+    "candidate_generated": false
+  },
+  "language": "es-AR",
+  "jurisdiction": "NONE",
+  "tags": ["workflow_next_step"],
+  "case_hash": "9def523acca4017a76b69f4437b2e7984d2bddfe7f57e40a8732f7b87a0b9b92"
+}

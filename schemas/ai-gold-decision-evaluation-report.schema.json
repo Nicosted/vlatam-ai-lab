@@ -1,0 +1,396 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/ai-gold-decision-evaluation-report.schema.json",
+  "title": "AI-141 Gold Decision evaluation report",
+  "description": "Contract 1.0.0. Deterministic aggregate of Gold Decision case evaluations for one exact dataset hash and split scope, with exact lowest-terms rationals (accuracy, coverage, accuracy_at_coverage, abstention_rate, uncalibrated Brier evidence, per-scale score error) overall and per capability, decision type, jurisdiction, language and split. Metrics are evidence, not authority: no calibration claim, no ranking, no promotion and no universal winner. Each report restates that it is synthetic conformance evidence (not domain-representative, not promotion-eligible) over public cases (not a blind holdout).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract",
+    "schema_version",
+    "scoring_policy",
+    "dataset_id",
+    "dataset_version",
+    "dataset_hash",
+    "dataset_review_state",
+    "evaluation_purpose",
+    "domain_representative",
+    "promotion_eligible",
+    "case_visibility",
+    "blind_holdout",
+    "split_scope",
+    "evaluation_hashes",
+    "overall",
+    "slices",
+    "authority",
+    "calibration_claimed",
+    "universal_winner",
+    "report_hash"
+  ],
+  "properties": {
+    "contract": {
+      "const": "gold_decision_evaluation_report"
+    },
+    "schema_version": {
+      "type": "string",
+      "pattern": "^1\\.[0-9]+\\.[0-9]+$"
+    },
+    "scoring_policy": {
+      "const": "gold-decision-scoring-v1"
+    },
+    "dataset_id": {
+      "$ref": "#/$defs/id"
+    },
+    "dataset_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "dataset_hash": {
+      "$ref": "#/$defs/hash"
+    },
+    "dataset_review_state": {
+      "enum": ["draft", "in_review"]
+    },
+    "evaluation_purpose": {
+      "const": "synthetic_conformance"
+    },
+    "domain_representative": {
+      "const": false
+    },
+    "promotion_eligible": {
+      "const": false
+    },
+    "case_visibility": {
+      "const": "public"
+    },
+    "blind_holdout": {
+      "const": false
+    },
+    "split_scope": {
+      "enum": ["all", "development", "validation", "test"]
+    },
+    "evaluation_hashes": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1000,
+      "items": {
+        "$ref": "#/$defs/hash"
+      }
+    },
+    "overall": {
+      "$ref": "#/$defs/metrics"
+    },
+    "slices": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "capability_id",
+        "decision_type",
+        "jurisdiction",
+        "language",
+        "split"
+      ],
+      "properties": {
+        "capability_id": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["key", "metrics"],
+            "properties": {
+              "key": {
+                "type": "string",
+                "minLength": 1
+              },
+              "metrics": {
+                "$ref": "#/$defs/metrics"
+              }
+            }
+          }
+        },
+        "decision_type": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["key", "metrics"],
+            "properties": {
+              "key": {
+                "type": "string",
+                "minLength": 1
+              },
+              "metrics": {
+                "$ref": "#/$defs/metrics"
+              }
+            }
+          }
+        },
+        "jurisdiction": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["key", "metrics"],
+            "properties": {
+              "key": {
+                "type": "string",
+                "minLength": 1
+              },
+              "metrics": {
+                "$ref": "#/$defs/metrics"
+              }
+            }
+          }
+        },
+        "language": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["key", "metrics"],
+            "properties": {
+              "key": {
+                "type": "string",
+                "minLength": 1
+              },
+              "metrics": {
+                "$ref": "#/$defs/metrics"
+              }
+            }
+          }
+        },
+        "split": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["key", "metrics"],
+            "properties": {
+              "key": {
+                "type": "string",
+                "minLength": 1
+              },
+              "metrics": {
+                "$ref": "#/$defs/metrics"
+              }
+            }
+          }
+        }
+      }
+    },
+    "authority": {
+      "const": "evidence_only"
+    },
+    "calibration_claimed": {
+      "const": false
+    },
+    "universal_winner": {
+      "const": false
+    },
+    "report_hash": {
+      "$ref": "#/$defs/hash"
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{1,127}$"
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "ratio": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["numerator", "denominator"],
+          "properties": {
+            "numerator": {
+              "type": "string",
+              "pattern": "^(0|[1-9][0-9]*)$"
+            },
+            "denominator": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]*$"
+            }
+          }
+        }
+      ]
+    },
+    "brier": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "eligible_decisions",
+        "decisions_without_probability",
+        "sum_squared_error_micros2",
+        "brier_score"
+      ],
+      "properties": {
+        "eligible_decisions": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "decisions_without_probability": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "sum_squared_error_micros2": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$"
+        },
+        "brier_score": {
+          "$ref": "#/$defs/ratio"
+        }
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "total_cases",
+        "valid_results",
+        "invalid_results",
+        "decisions",
+        "correct_decisions",
+        "incorrect_decisions",
+        "abstentions",
+        "correct_abstentions",
+        "permitted_abstentions",
+        "incorrect_abstentions",
+        "no_decisions",
+        "abstention_required_cases",
+        "accuracy",
+        "coverage",
+        "accuracy_at_coverage",
+        "abstention_rate",
+        "brier_choice_multiclass",
+        "brier_boolean_binary",
+        "score_error_by_scale"
+      ],
+      "properties": {
+        "total_cases": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "valid_results": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "invalid_results": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "decisions": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "correct_decisions": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "incorrect_decisions": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "abstentions": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "correct_abstentions": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "permitted_abstentions": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "incorrect_abstentions": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "no_decisions": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "abstention_required_cases": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "accuracy": {
+          "$ref": "#/$defs/ratio"
+        },
+        "coverage": {
+          "$ref": "#/$defs/ratio"
+        },
+        "accuracy_at_coverage": {
+          "$ref": "#/$defs/ratio"
+        },
+        "abstention_rate": {
+          "$ref": "#/$defs/ratio"
+        },
+        "brier_choice_multiclass": {
+          "$ref": "#/$defs/brier"
+        },
+        "brier_boolean_binary": {
+          "$ref": "#/$defs/brier"
+        },
+        "score_error_by_scale": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "scale_id",
+              "scored_decisions",
+              "exact_or_in_range",
+              "sum_absolute_error",
+              "mean_absolute_error"
+            ],
+            "properties": {
+              "scale_id": {
+                "$ref": "#/$defs/id"
+              },
+              "scored_decisions": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 1000
+              },
+              "exact_or_in_range": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 1000
+              },
+              "sum_absolute_error": {
+                "type": "string",
+                "pattern": "^(0|[1-9][0-9]*)$"
+              },
+              "mean_absolute_error": {
+                "$ref": "#/$defs/ratio"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

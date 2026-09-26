@@ -637,6 +637,14 @@ and are not deferred to later PRs.
     escalation must be governed explicitly and must never behave as an
     implicit fallback (AI-140). See
     `docs/architecture/ai-typed-decision-plane.md`.
+13. Candidates may produce answers. Evaluators may measure them.
+    Candidates may not define their own truth (AI-141). A benchmark is
+    invalid if the candidate can influence the answer key, case selection,
+    scoring policy or evaluation split. A Gold Decision Set cannot approve
+    itself, AI-141 results are synthetic conformance evidence only (never
+    domain-representative or promotion evidence), and its public test
+    split is not a blind holdout. See
+    `docs/architecture/ai-gold-decision-evaluation-set.md`.
 
 ## 6. Roadmap alignment
 

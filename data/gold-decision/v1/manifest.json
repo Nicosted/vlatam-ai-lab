@@ -1,0 +1,458 @@
+{
+  "contract": "gold_decision_set",
+  "schema_version": "1.0.0",
+  "dataset_id": "ai-lab-gold-decisions",
+  "dataset_version": "1.0.0",
+  "scoring_policy": "gold-decision-scoring-v1",
+  "evaluation_purpose": "synthetic_conformance",
+  "domain_representative": false,
+  "promotion_eligible": false,
+  "split_policy": {
+    "policy_id": "gold-decision-split-v1",
+    "assignment": "explicit_per_case",
+    "splits": ["development", "validation", "test"],
+    "test_split_training_use": "forbidden",
+    "candidate_case_selection": "forbidden",
+    "permutation_groups_share_split": true,
+    "case_visibility": "public",
+    "blind_holdout": false
+  },
+  "review": {
+    "state": "in_review",
+    "human_review_required": true
+  },
+  "created_from": {
+    "source_kind": "synthetic_construction",
+    "authoring_method": "repository_fixture",
+    "customer_data": false,
+    "production_data": false,
+    "candidate_generated_labels": false
+  },
+  "supersedes": null,
+  "labeling_rules": [
+    {
+      "rule_id": "rule.citation_completeness.v1",
+      "capability_id": "synthetic.decision.claim_citation_complete",
+      "statement": "R-CIT-1: a synthetic packet is fully cited (true) iff claims_count is at least 1 and claims_with_citation_count equals claims_count; otherwise false."
+    },
+    {
+      "rule_id": "rule.document_completeness_0_4.v1",
+      "capability_id": "synthetic.decision.document_completeness_score",
+      "statement": "R-CMP-1 on scale synthetic.completeness.0_4: score = floor(4 * present_fields / required_fields), counting illegible fields as not present. When illegible_fields > 0 and floor(4 * (present_fields + illegible_fields) / required_fields) is higher, every integer between the two bounds is acceptable. If required_fields is 0 the score is undefined and abstention is required."
+    },
+    {
+      "rule_id": "rule.document_queue_order.v1",
+      "capability_id": "synthetic.decision.document_queue_rank",
+      "statement": "R-QUE-1: order the queued synthetic documents by ascending expires_in_days. Cases never contain ties."
+    },
+    {
+      "rule_id": "rule.document_type.v1",
+      "capability_id": "synthetic.decision.document_type_classify",
+      "statement": "R-DOC-1: markers are has_unit_prices (invoice), has_package_weights (packing_list), has_certifying_body_declaration (certificate), numbered_safety_sections equal to 16 (msds) and has_carrier_and_ports (transport_document). Exactly one marker determines the type; no marker yields unknown; two or more markers make the document ambiguous and abstention is required. The declared title never overrides the markers."
+    },
+    {
+      "rule_id": "rule.evidence_sufficiency.v1",
+      "capability_id": "synthetic.decision.evidence_sufficiency",
+      "statement": "R-EVD-1: sufficient iff every listed required item is present_verified; insufficient iff any item is missing; uncertain iff no item is missing and at least one is present_unverified. If the declared required_items count differs from the number of listed items the facts contradict each other and abstention is required."
+    },
+    {
+      "rule_id": "rule.human_review_routing.v1",
+      "capability_id": "synthetic.decision.human_review_required",
+      "statement": "R-HRV-1: true iff the synthetic item declares hazardous goods, declares a value of at least 10000 USD, has unverified evidence or contains a regulatory claim; otherwise false. The rule answers only this synthetic routing question and never removes a review required by another policy."
+    },
+    {
+      "rule_id": "rule.regulatory_relevance.v1",
+      "capability_id": "synthetic.decision.regulatory_relevance_triage",
+      "statement": "R-REG-1 (synthetic scenario, no legal advice): if notice.jurisdiction is undeclared abstention is required; else if notice.jurisdiction differs from operation.destination_jurisdiction the notice is not_relevant; else if operation.product_category is undeclared it is uncertain; else relevant iff the product categories match, otherwise not_relevant."
+    },
+    {
+      "rule_id": "rule.workflow_next_step.v1",
+      "capability_id": "synthetic.decision.workflow_next_step",
+      "statement": "R-WFL-1: first match in order: on_hold -> hold; missing_required_documents > 0 -> request_information; unextracted_documents > 0 -> document_extraction; open_regulatory_questions > 0 -> regulatory_research; route_defined false -> logistics_analysis; otherwise human_review. If the selected step is not a declared option abstention is required."
+    },
+    {
+      "rule_id": "rule.workflow_priority.v1",
+      "capability_id": "synthetic.decision.workflow_priority_rank",
+      "statement": "R-PRI-1: order synthetic tasks by ascending deadline_days, breaking ties by descending blocked_operations. Cases never tie on both keys."
+    }
+  ],
+  "cases": [
+    {
+      "case_id": "gd-citation-001",
+      "case_hash": "8fc06c9999d2cb728e05f74dd4a63f3c7a420363268b185f7d56a724c52d577d",
+      "split": "development"
+    },
+    {
+      "case_id": "gd-citation-002",
+      "case_hash": "a3325b39e5eb3d8664cfed1dbbc8d5907b23d5bad26ca7218e63bb92ff5a86b7",
+      "split": "validation"
+    },
+    {
+      "case_id": "gd-citation-003",
+      "case_hash": "dacbd2127bafadf0261648b4f78058f8c0f5c6d222c9e142fb173b7410de5dbc",
+      "split": "test"
+    },
+    {
+      "case_id": "gd-citation-004",
+      "case_hash": "4ef8e2dd6643084c26616d06116eb4a7d36397a32af47ed3f08c400cb8aa7e02",
+      "split": "test"
+    },
+    {
+      "case_id": "gd-completeness-001",
+      "case_hash": "857633cc4d86d1d4d7daf9bee7c69e253f203da718f9fb5346253eaf837a924f",
+      "split": "development"
+    },
+    {
+      "case_id": "gd-completeness-002",
+      "case_hash": "e26254c394676c0df77d0f07672525389f25ac21bceef197c5d148f935054110",
+      "split": "development"
+    },
+    {
+      "case_id": "gd-completeness-003",
+      "case_hash": "062be8766237745de70ba90164a2a13befafec13ca19d1010f50536e06574346",
+      "split": "validation"
+    },
+    {
+      "case_id": "gd-completeness-004",
+      "case_hash": "1c125dc7b193a89ca9ac9e4fca115930e8d172795eb856c639bb5215e5207d25",
+      "split": "test"
+    },
+    {
+      "case_id": "gd-completeness-005",
+      "case_hash": "4a17820945065f7169b5b74235e1f0074d2734a3bbe91569a5d361634c8786e8",
+      "split": "test"
+    },
+    {
+      "case_id": "gd-completeness-006",
+      "case_hash": "c62cdb3c0652be0811d51790439aa3a884079e98d409b5de1948dce92ceff0c5",
+      "split": "validation"
+    },
+    {
+      "case_id": "gd-completeness-007",
+      "case_hash": "05495a1e1d8cbcf7f9d9523ce58d5479fd6f0498a6e96c4b5ae420329a4d97d2",
+      "split": "test"
+    },
+    {
+      "case_id": "gd-completeness-008",
+      "case_hash": "c330b82c8853d080eaabe96c896235176fc21cfe8be623ba9b3b9611a79662fd",
+      "split": "test"
+    },
+    {
+      "case_id": "gd-doctype-001",
+      "case_hash": "a12c8a1b95790d89b2c00da8382c1727d9cc00d42ec383313643d2be2a153ed8",
+      "split": "development"
+    },
+    {
+      "case_id": "gd-doctype-002",
+      "case_hash": "face68ad0124edcf6bb854edcb228d16c5f0d5cca487fb287f6464a72cc1a10d",
+      "split": "development"
+    },
+    {
+      "case_id": "gd-doctype-003",
+      "case_hash": "b3a15e44c4b4304f141d037ff330f5ba7fc55676dffff766344c7a550e8481c2",
+      "split": "validation"
+    },
+    {
+      "case_id": "gd-doctype-004",
+      "case_hash": "6b9b16c25787b757d5e8c5ef86e14d59fbfccb93c89019227a1cf155b24d7a88",
+      "split": "test"
+    },
+    {
+      "case_id": "gd-doctype-005",
+      "case_hash": "89b0916db36d78b774ab2c94c0a7306222d0a321568e6b02d3cae090064abb3c",
+      "split": "test"
+    },
+    {
+      "case_id": "gd-doctype-006",
+      "case_hash": "3babf7754b53ee82ccfb423498fe43e08d5b35d35c1f9c665f928d511ae9267c",
+      "split": "test"
+    },
+    {
+      "case_id": "gd-doctype-007",
+      "case_hash": "41b79b7b42210e771882ef4cbb3610d2ee1ad346b61913dae2353fe8772ca50b",
+      "split": "validation"
+    },
+    {
+      "case_id": "gd-doctype-008",
+      "case_hash": "f7dc22a3f4db343d80dc59c77d3d59deefe0ff702f3e8b770d585dacf8a76958",
+      "split": "development"
+    },
+    {
+      "case_id": "gd-doctype-009",
+      "case_hash": "e9603e913e90ed3c42642317c9acedc4b75da0bbaf58c0ff7ee14abdfe3f8655",
+      "split": "development"
+    },
+    {
+      "case_id": "gd-doctype-010",
+      "case_hash": "5781ad2b848f669bab51762ddeab69183d2725d2f684e98f5e2ea1130ca7ec6c",
+      "split": "test"
+    },
+    {
+      "case_id": "gd-doctype-011",
+      "case_hash": "2a0ec0eaedbc3a8ec1f0ec85b1598d27279cc439ce3fe63b1419d83cefbe14b0",
+      "split": "test"
+    },
+    {
+      "case_id": "gd-doctype-012",
+      "case_hash": "5e760945223a0e352411a30d7ac5df6108c98a3b2cdd946d9fbca06747ce89db",
+      "split": "development"
+    },
+    {
+      "case_id": "gd-doctype-013",
+      "case_hash": "73b0e2810fe26d6736e60359b98a068ff10f246be0e081dd8b46c974fff3f171",
+      "split": "development"
+    },
+    {
+      "case_id": "gd-doctype-014",
+      "case_hash": "fe6154370a4e8e94a8c9b8e62e3abf9bbff0255950d2c6af6a351ec726c87048",
+      "split": "test"
+    },
+    {
+      "case_id": "gd-doctype-015",
+      "case_hash": "c8fd12224486de391e7c2c50092f26b986a119735c9edd79865c7256624a3d0a",
+      "split": "validation"
+    },
+    {
+      "case_id": "gd-evidence-001",
+      "case_hash": "53ed741b53c67695d538075e013d855f0252407bb3b3b19ec669e4694a5614ae",
+      "split": "development"
+    },
+    {
+      "case_id": "gd-evidence-002",
+      "case_hash": "4536a9ae77ebb6fc6ec0803bd0c8b50b69d49ceefb20433eba65230d67ce7f1d",
+      "split": "development"
+    },
+    {
+      "case_id": "gd-evidence-003",
+      "case_hash": "971d69a183dadff8472c66a799eee11d01a538eca826bf114d5512b7aa8cdfef",
+      "split": "validation"
+    },
+    {
+      "case_id": "gd-evidence-004",
+      "case_hash": "b1f3d35637eaca005821b79de7cd1bd7b2b65017d577e8ee54d5b57a687014ad",
+      "split": "test"
+    },
+    {
+      "case_id": "gd-evidence-005",
+      "case_hash": "906b427185b8d09d1a3c9f49565075273797be3aec46db8fb87c40068340b8b9",
+      "split": "test"
+    },
+    {
+      "case_id": "gd-evidence-006",
+      "case_hash": "210f37eda39c6dcfb4782f898113ea60ac1a18320e5fb040fb0b0b637955526a",
+      "split": "test"
+    },
+    {
+      "case_id": "gd-evidence-007",
+      "case_hash": "f8a000f59bff0dde9ee5c9c04b96b99be3789eb7ad42d68f3a2f00f63722ef11",
+      "split": "test"
+    },
+    {
+      "case_id": "gd-evidence-008",
+      "case_hash": "dfd0182e593f2e1e9d99b5bb22c5ae078be09341e6df84dd450a57b24251efd8",
+      "split": "validation"
+    },
+    {
+      "case_id": "gd-priority-001",
+      "case_hash": "2925077783d0c4a476af2e760df8014a1d8117e58ca533623367404cdf5bff74",
+      "split": "development"
+    },
+    {
+      "case_id": "gd-priority-002",
+      "case_hash": "1a856444566ee945b84aa35ff9e25fa55ddd284d9187c407d4799ee48c60f9f3",
+      "split": "validation"
+    },
+    {
+      "case_id": "gd-priority-003",
+      "case_hash": "b4a68abdffd1b71def71a20157ed1a610581fa43bcdd4e6163fe92e7b703497b",
+      "split": "test"
+    },
+    {
+      "case_id": "gd-priority-004",
+      "case_hash": "8a46b139965d783f40fc370519a8aa8cc5f121267b87d103d8c13e1e5672aa6a",
+      "split": "test"
+    },
+    {
+      "case_id": "gd-priority-005",
+      "case_hash": "9dfc4921077444f5855496c5a18127155ed05c08a8a96cbd8c79c5aef27e3a90",
+      "split": "test"
+    },
+    {
+      "case_id": "gd-queue-001",
+      "case_hash": "148a57a8a683e576ae75e03861da8d37258532d6a746ff7e4fc7ad0aaa1324b3",
+      "split": "development"
+    },
+    {
+      "case_id": "gd-queue-002",
+      "case_hash": "10cd42a36b63b41f3fde7cf76846ac3e22092fb9edc7483a54b912b89077a97e",
+      "split": "test"
+    },
+    {
+      "case_id": "gd-queue-003",
+      "case_hash": "8f0bf086740c5d30a0e31381911aec976348363d0e1ae6e387f6f42a90c858e8",
+      "split": "validation"
+    },
+    {
+      "case_id": "gd-regulatory-001",
+      "case_hash": "f80b84f3291be3677f60d1484da22f8ffaa58bfc96d11f75a4cecaa4baff36ea",
+      "split": "development"
+    },
+    {
+      "case_id": "gd-regulatory-002",
+      "case_hash": "a2cafd8c17e78b02e6eb418877a32c554f02ea99662c29e58852575bf138db0b",
+      "split": "validation"
+    },
+    {
+      "case_id": "gd-regulatory-003",
+      "case_hash": "856d4cfc416f1be58589f4fce051bc592a52807bdc18f688e6d1b6eee4c5467e",
+      "split": "test"
+    },
+    {
+      "case_id": "gd-regulatory-004",
+      "case_hash": "831f10112802fbbfa41fd2d9e89b6a01fb92893e083b639f6a25f42c951fe53c",
+      "split": "test"
+    },
+    {
+      "case_id": "gd-regulatory-005",
+      "case_hash": "c94b338ba48e01dacae6b1b1612c88418dc1b8820a3d1e7efb1b6cf88d496e8c",
+      "split": "development"
+    },
+    {
+      "case_id": "gd-regulatory-006",
+      "case_hash": "2f1ec44400846b1193112db69c3aaaa1c036078be37edef9515a1f84c5268d80",
+      "split": "test"
+    },
+    {
+      "case_id": "gd-regulatory-007",
+      "case_hash": "0ad60fcfe73e8d0cc17e14ca4818759a975f51154f9874f33c08532fcd36fdeb",
+      "split": "test"
+    },
+    {
+      "case_id": "gd-regulatory-008",
+      "case_hash": "7e8113cd195710120822f3400363d3bb069e1cfb019d8a21f8c4bd06c9acc227",
+      "split": "test"
+    },
+    {
+      "case_id": "gd-regulatory-009",
+      "case_hash": "161dc9a37b315a97062eb5012c8475b4acd8fb9dab4349a00326d3a66c7293c1",
+      "split": "validation"
+    },
+    {
+      "case_id": "gd-review-001",
+      "case_hash": "aee42bb3de0d8eea34abb27c780c77c2feb1864814eba731f17599b164f1b8a8",
+      "split": "development"
+    },
+    {
+      "case_id": "gd-review-002",
+      "case_hash": "97907b3f09cb35899d5901bf9e5897a0d686fbf73df5c07dc44d5f192ad1bade",
+      "split": "development"
+    },
+    {
+      "case_id": "gd-review-003",
+      "case_hash": "eca30512e439c8eabb06db0fec893759d22146551e031db691777b80c7343e8f",
+      "split": "validation"
+    },
+    {
+      "case_id": "gd-review-004",
+      "case_hash": "4ebff39377942bf5d6a204096b83f64d7705d1ddae37fd3dbb8042545acb69e0",
+      "split": "test"
+    },
+    {
+      "case_id": "gd-review-005",
+      "case_hash": "2064ffe2bce798baffe33931c03c8f327cf5013519b77dc6f0fca2f37435b9aa",
+      "split": "test"
+    },
+    {
+      "case_id": "gd-review-006",
+      "case_hash": "b63e847727ef53f9d7e2ca386d548a4091376717927d46d4d0ffb5a8f142eb28",
+      "split": "test"
+    },
+    {
+      "case_id": "gd-workflow-001",
+      "case_hash": "9def523acca4017a76b69f4437b2e7984d2bddfe7f57e40a8732f7b87a0b9b92",
+      "split": "development"
+    },
+    {
+      "case_id": "gd-workflow-002",
+      "case_hash": "0cb77a16727e7506bde342a9507fbbfdbffb0db81d52d52d678c45b965f85b84",
+      "split": "development"
+    },
+    {
+      "case_id": "gd-workflow-003",
+      "case_hash": "5db800b7838141e6a86f9f03e4da849850d56a0cd13bcd95c8c5464b63e3e3f8",
+      "split": "validation"
+    },
+    {
+      "case_id": "gd-workflow-004",
+      "case_hash": "a6af788c9f2c6347f82df700c66c137927591952982758c2ae9c817424f693ae",
+      "split": "test"
+    },
+    {
+      "case_id": "gd-workflow-005",
+      "case_hash": "272d0af5d7dae76f47d26eab38b7093d9f6feefb21b0ee59a665c790587365bd",
+      "split": "test"
+    },
+    {
+      "case_id": "gd-workflow-006",
+      "case_hash": "43dea3a7e53b0480d4c92df72a2f787f257e776f00042ae42f8eadb6e8ce26b6",
+      "split": "test"
+    },
+    {
+      "case_id": "gd-workflow-007",
+      "case_hash": "52c9c3c19c242572e6abd96d78f59aaf3f7d4427e6715586d58d32a8bebc1daa",
+      "split": "validation"
+    },
+    {
+      "case_id": "gd-workflow-008",
+      "case_hash": "9c2061dd899fc5ce4160ffeb525a2ce9c9d05b3e3cd01ac608d7bb0942eda463",
+      "split": "validation"
+    },
+    {
+      "case_id": "gd-workflow-009",
+      "case_hash": "c0107767ceb1c132d51fe54d6424ba854a9b8fca1faf53c77d992ee60f5a235c",
+      "split": "test"
+    },
+    {
+      "case_id": "gd-workflow-010",
+      "case_hash": "26a418cc56a8f6ee14b58065ccb16e3b713d5e260b84c09bc641e2e295094a84",
+      "split": "development"
+    }
+  ],
+  "split_distribution": {
+    "development": 20,
+    "validation": 16,
+    "test": 32
+  },
+  "decision_type_distribution": {
+    "choice": 42,
+    "boolean": 10,
+    "score": 8,
+    "ranking": 8
+  },
+  "language_distribution": {
+    "es-AR": 24,
+    "en": 23,
+    "pt-BR": 18,
+    "mixed": 3
+  },
+  "jurisdiction_distribution": {
+    "NONE": 59,
+    "AR": 3,
+    "BR": 2,
+    "UY": 2,
+    "PY": 1,
+    "CL": 1
+  },
+  "capability_distribution": {
+    "synthetic.decision.document_type_classify": 15,
+    "synthetic.decision.evidence_sufficiency": 8,
+    "synthetic.decision.human_review_required": 6,
+    "synthetic.decision.claim_citation_complete": 4,
+    "synthetic.decision.workflow_next_step": 10,
+    "synthetic.decision.regulatory_relevance_triage": 9,
+    "synthetic.decision.document_completeness_score": 8,
+    "synthetic.decision.workflow_priority_rank": 5,
+    "synthetic.decision.document_queue_rank": 3
+  },
+  "dataset_hash": "0f7f429b3d80d42a694ab187a5df114713743b60b6f84246f8a052215767fdf2"
+}

@@ -1,0 +1,203 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/ai-gold-decision-case-evaluation.schema.json",
+  "title": "AI-141 Gold Decision case evaluation",
+  "description": "Contract 1.0.0. Deterministic evaluation of one AI-140 typed decision result against one Gold Decision Case under scoring policy gold-decision-scoring-v1. Evidence only: it never grants promotion, routing or downstream authority, and confidence never changes the outcome. Outcome/correctness/abstention consistency, the closed AI-140 issue vocabulary, strict code order and the self-excluding evaluation_hash are enforced by src/decision-evaluation/validation.ts.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract",
+    "schema_version",
+    "scoring_policy",
+    "case_id",
+    "case_hash",
+    "dataset_id",
+    "dataset_version",
+    "split",
+    "decision_type",
+    "capability_id",
+    "language",
+    "jurisdiction",
+    "abstention_policy",
+    "candidate_result_hash",
+    "outcome",
+    "correctness",
+    "abstention_outcome",
+    "abstention_reason_code",
+    "score_error",
+    "probability_evidence",
+    "error_codes",
+    "result_issue_codes",
+    "evaluation_hash"
+  ],
+  "properties": {
+    "contract": {
+      "const": "gold_decision_case_evaluation"
+    },
+    "schema_version": {
+      "type": "string",
+      "pattern": "^1\\.[0-9]+\\.[0-9]+$"
+    },
+    "scoring_policy": {
+      "const": "gold-decision-scoring-v1"
+    },
+    "case_id": {
+      "$ref": "#/$defs/id"
+    },
+    "case_hash": {
+      "$ref": "#/$defs/hash"
+    },
+    "dataset_id": {
+      "$ref": "#/$defs/id"
+    },
+    "dataset_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "split": {
+      "enum": ["development", "validation", "test"]
+    },
+    "decision_type": {
+      "enum": ["choice", "boolean", "score", "ranking"]
+    },
+    "capability_id": {
+      "type": "string",
+      "pattern": "^synthetic\\.decision(\\.[a-z][a-z0-9_]*)+$"
+    },
+    "language": {
+      "enum": ["es-AR", "en", "pt-BR", "mixed"]
+    },
+    "jurisdiction": {
+      "enum": ["AR", "BR", "UY", "PY", "CL", "NONE"]
+    },
+    "abstention_policy": {
+      "enum": ["required", "allowed", "not_allowed"]
+    },
+    "candidate_result_hash": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/hash"
+        }
+      ]
+    },
+    "outcome": {
+      "enum": [
+        "correct_decision",
+        "incorrect_decision",
+        "correct_abstention",
+        "permitted_abstention",
+        "incorrect_abstention",
+        "no_decision",
+        "invalid_result"
+      ]
+    },
+    "correctness": {
+      "enum": ["correct", "incorrect", "not_applicable"]
+    },
+    "abstention_outcome": {
+      "enum": ["not_abstained", "correct", "permitted", "incorrect"]
+    },
+    "abstention_reason_code": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "enum": [
+            "insufficient_confidence",
+            "insufficient_evidence",
+            "ambiguous",
+            "unsupported_input",
+            "policy_blocked"
+          ]
+        }
+      ]
+    },
+    "score_error": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["scale_id", "absolute_error"],
+          "properties": {
+            "scale_id": {
+              "$ref": "#/$defs/id"
+            },
+            "absolute_error": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            }
+          }
+        }
+      ]
+    },
+    "probability_evidence": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "squared_error_micros2"],
+          "properties": {
+            "kind": {
+              "enum": ["choice_multiclass", "boolean_binary"]
+            },
+            "squared_error_micros2": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 2000000000000
+            }
+          }
+        }
+      ]
+    },
+    "error_codes": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "result_contract_invalid",
+          "result_request_binding_invalid",
+          "result_blocked",
+          "result_failed",
+          "decision_on_abstention_required_case",
+          "abstention_not_allowed",
+          "expected_candidate_mismatch",
+          "expected_value_mismatch",
+          "score_outside_expected",
+          "ranking_order_mismatch"
+        ]
+      }
+    },
+    "result_issue_codes": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z][a-z_]*$"
+      }
+    },
+    "evaluation_hash": {
+      "$ref": "#/$defs/hash"
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{1,127}$"
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    }
+  }
+}

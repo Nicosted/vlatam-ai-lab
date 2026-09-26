@@ -1663,6 +1663,80 @@
       "requires_human_review_semantics": true,
       "requires_traceability": true,
       "downstream_allowed_field_present": true
+    },
+    {
+      "contract_name": "ai_gold_decision_case",
+      "schema_file": "schemas/ai-gold-decision-case.schema.json",
+      "valid_fixture": "data/gold-decision/v1/cases/gd-doctype-001.json",
+      "invalid_fixtures": [
+        "data/fixtures/gold-decision/invalid-case-provider-field.json",
+        "data/fixtures/gold-decision/invalid-case-private-reasoning.json",
+        "data/fixtures/gold-decision/invalid-case-required-abstention-with-answer.json",
+        "data/fixtures/gold-decision/invalid-case-unsupported-schema-major.json"
+      ],
+      "test_file": "tests/decision-evaluation/gold-decision-schemas.test.ts",
+      "status": "implemented_pending_human_review",
+      "purpose": "AI-141 contract 1.0.0: synthetic, provider-neutral Gold Decision Case composing an exact AI-140 typed decision request with an answer key, explicit abstention policy, labeling-rule provenance and language/jurisdiction/split metadata.",
+      "downstream_role": "Provisional evaluation truth while the dataset is draft or in_review; never candidate output, execution, routing, promotion or downstream authority.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": false
+    },
+    {
+      "contract_name": "ai_gold_decision_set",
+      "schema_file": "schemas/ai-gold-decision-set.schema.json",
+      "valid_fixture": "data/gold-decision/v1/manifest.json",
+      "invalid_fixtures": [
+        "data/fixtures/gold-decision/invalid-set-self-declared-approval.json",
+        "data/fixtures/gold-decision/invalid-set-candidate-generated-labels.json",
+        "data/fixtures/gold-decision/invalid-set-test-split-training-allowed.json",
+        "data/fixtures/gold-decision/invalid-set-domain-representative.json",
+        "data/fixtures/gold-decision/invalid-set-promotion-eligible.json",
+        "data/fixtures/gold-decision/invalid-set-blind-holdout-claim.json"
+      ],
+      "test_file": "tests/decision-evaluation/gold-decision-schemas.test.ts",
+      "status": "implemented_pending_human_review",
+      "purpose": "AI-141 contract 1.0.0: versioned synthetic-conformance Gold Decision Set manifest binding exact ordered case hashes, explicit public split policy (no blind holdout), labeling rules, scoring policy and draft/in_review state under a self-excluding dataset hash.",
+      "downstream_role": "Synthetic conformance evaluation corpus identity only; never domain-representative, never promotion-eligible, and never self-approved. Publication requires a future governed human-review binding of the exact dataset hash.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": false
+    },
+    {
+      "contract_name": "ai_gold_decision_case_evaluation",
+      "schema_file": "schemas/ai-gold-decision-case-evaluation.schema.json",
+      "valid_fixture": "data/fixtures/gold-decision/valid-case-evaluation.json",
+      "invalid_fixtures": [
+        "data/fixtures/gold-decision/invalid-evaluation-unknown-outcome.json",
+        "data/fixtures/gold-decision/invalid-evaluation-authority-field.json",
+        "data/fixtures/gold-decision/invalid-evaluation-model-field.json"
+      ],
+      "test_file": "tests/decision-evaluation/gold-decision-schemas.test.ts",
+      "status": "implemented",
+      "purpose": "AI-141 contract 1.0.0: deterministic, hash-bound evaluation of one AI-140 typed decision result against one Gold Decision Case under scoring policy gold-decision-scoring-v1.",
+      "downstream_role": "Evaluation evidence only; never promotion, routing, traffic or downstream authority.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": false
+    },
+    {
+      "contract_name": "ai_gold_decision_evaluation_report",
+      "schema_file": "schemas/ai-gold-decision-evaluation-report.schema.json",
+      "valid_fixture": "data/fixtures/gold-decision/valid-evaluation-report.json",
+      "invalid_fixtures": [
+        "data/fixtures/gold-decision/invalid-report-universal-winner.json",
+        "data/fixtures/gold-decision/invalid-report-calibration-claimed.json",
+        "data/fixtures/gold-decision/invalid-report-promotion-authority.json",
+        "data/fixtures/gold-decision/invalid-report-promotion-eligible.json",
+        "data/fixtures/gold-decision/invalid-report-blind-holdout-claim.json"
+      ],
+      "test_file": "tests/decision-evaluation/gold-decision-schemas.test.ts",
+      "status": "implemented",
+      "purpose": "AI-141 contract 1.0.0: deterministic aggregate metrics (exact rationals) over a complete split scope of Gold Decision case evaluations, overall and per slice.",
+      "downstream_role": "Evidence only; authority is evidence_only, calibration_claimed, universal_winner, promotion_eligible, domain_representative and blind_holdout are always false.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": false
     }
   ]
 }

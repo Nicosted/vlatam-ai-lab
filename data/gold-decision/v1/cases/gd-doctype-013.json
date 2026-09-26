@@ -1,0 +1,115 @@
+{
+  "contract": "gold_decision_case",
+  "schema_version": "1.0.0",
+  "case_id": "gd-doctype-013",
+  "dataset_id": "ai-lab-gold-decisions",
+  "dataset_version": "1.0.0",
+  "split": "development",
+  "request": {
+    "contract": "typed_decision_request",
+    "schema_version": "1.0.0",
+    "request_id": "gd-doctype-013",
+    "capability_id": "synthetic.decision.document_type_classify",
+    "execution_paradigm": "typed_decision",
+    "decision_type": "choice",
+    "bounded_state": {
+      "facts": [
+        {
+          "fact_id": "document.declared_title",
+          "value_type": "string",
+          "value": "Lista de empaque LE-118"
+        },
+        {
+          "fact_id": "document.has_unit_prices",
+          "value_type": "boolean",
+          "value": false
+        },
+        {
+          "fact_id": "document.has_package_weights",
+          "value_type": "boolean",
+          "value": true
+        },
+        {
+          "fact_id": "document.has_certifying_body_declaration",
+          "value_type": "boolean",
+          "value": false
+        },
+        {
+          "fact_id": "document.numbered_safety_sections",
+          "value_type": "integer",
+          "value": 0
+        },
+        {
+          "fact_id": "document.has_carrier_and_ports",
+          "value_type": "boolean",
+          "value": false
+        }
+      ]
+    },
+    "question": {
+      "question_id": "synthetic.document.type",
+      "text": "Regla sintética R-DOC-1: un único marcador estructural determina el tipo — precios unitarios → factura; pesos por bulto → lista de empaque; declaración de un organismo certificador → certificado; exactamente 16 secciones de seguridad numeradas → hoja de datos de seguridad; transportista más puertos de carga y descarga → documento de transporte. Sin marcadores → desconocido. Dos o más marcadores → abstenerse. El título declarado nunca prevalece sobre los marcadores. ¿Qué tipo de documento es este documento sintético?"
+    },
+    "output_domain": {
+      "kind": "choice",
+      "candidates": [
+        {
+          "candidate_id": "doc.certificate",
+          "label": "Certificado"
+        },
+        {
+          "candidate_id": "doc.invoice",
+          "label": "Factura comercial"
+        },
+        {
+          "candidate_id": "doc.unknown",
+          "label": "Desconocido"
+        },
+        {
+          "candidate_id": "doc.packing_list",
+          "label": "Lista de empaque"
+        },
+        {
+          "candidate_id": "doc.transport_document",
+          "label": "Documento de transporte"
+        },
+        {
+          "candidate_id": "doc.msds",
+          "label": "Hoja de datos de seguridad (MSDS)"
+        }
+      ],
+      "complete_distribution_required": false
+    },
+    "policy": {
+      "data_classification": "internal",
+      "human_review_required": false,
+      "abstention_permitted": true,
+      "escalation_policy_ref": null,
+      "downstream_use": "none"
+    },
+    "evidence_refs": []
+  },
+  "expected": {
+    "kind": "choice",
+    "expected_candidate_id": "doc.packing_list"
+  },
+  "abstention_policy": "allowed",
+  "permutation_group_id": "perm-doctype-packing-es",
+  "provenance": {
+    "source_kind": "synthetic_construction",
+    "authoring_method": "repository_fixture",
+    "labeling_rule_id": "rule.document_type.v1",
+    "evidence_basis": [
+      "document.has_carrier_and_ports",
+      "document.has_certifying_body_declaration",
+      "document.has_package_weights",
+      "document.has_unit_prices",
+      "document.numbered_safety_sections"
+    ],
+    "candidate_generated": false
+  },
+  "language": "es-AR",
+  "jurisdiction": "NONE",
+  "tags": ["document_classification", "permutation_pair"],
+  "case_hash": "73b0e2810fe26d6736e60359b98a068ff10f246be0e081dd8b46c974fff3f171"
+}

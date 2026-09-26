@@ -37,6 +37,7 @@
     "typecheck": "tsc --noEmit",
     "test": "tsx --test 'tests/**/*.test.ts'",
     "ai:evaluation:validate-gold": "tsx scripts/validate-regulatory-gold.ts",
+    "ai:gold-decision:validate": "tsx scripts/validate-gold-decision-set.ts",
     "ai:benchmark": "tsx scripts/benchmark.ts",
     "ai:benchmark:validate": "tsx scripts/benchmark.ts validate",
     "ai:benchmark:synthetic": "tsx scripts/benchmark.ts synthetic",

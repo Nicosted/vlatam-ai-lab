@@ -127,13 +127,30 @@ request hashing for permutation-invariance testing. See
 provider, runtime, sandbox, capability, Operator surface, scheduler or traffic
 is added; AI-120 contracts are unchanged.
 
-The following typed decision sequence is a roadmap intention only. None of
-AI-141 through AI-148 exists, and each requires its own review:
+## AI-141 Gold Decision Evaluation Set (implemented 2026-09-26; evaluation only)
+
+AI-141 adds the Gold Decision Case, Set manifest, case evaluation and
+evaluation report contracts `1.0.0` (`src/decision-evaluation/`,
+`schemas/ai-gold-decision-*.schema.json`), the pure evaluator and
+deterministic aggregation under scoring policy `gold-decision-scoring-v1`,
+explicit public `development | validation | test` splits (not a blind
+holdout), and the 68-case level-0 synthetic conformance seed set
+`ai-lab-gold-decisions@1.0.0` (`data/gold-decision/v1/`, review state
+`in_review`; not domain-representative, not promotion-eligible). A set
+cannot approve itself; publication needs a later governed human-review
+binding of the exact dataset hash. Candidates may produce
+answers; evaluators may measure them; candidates may not define their own
+truth. No candidate, registry, runtime, runner, model or provider is added.
+See `docs/architecture/ai-gold-decision-evaluation-set.md` and ADR-006.
+
+The following typed decision sequence is a roadmap intention only. Apart
+from AI-140 and AI-141, none of AI-142 through AI-148 exists, and each
+requires its own review:
 
 | PR         | Title                                      | Intent                                                                                              |
 | ---------- | ------------------------------------------ | --------------------------------------------------------------------------------------------------- |
-| **AI-140** | Governed Typed Decision Plane              | Contracts, validators, hashing, disposition (this PR).                                              |
-| AI-141     | Gold Decision Evaluation Set               | Reviewed, versioned synthetic gold decisions per decision type, including abstention cases.         |
+| **AI-140** | Governed Typed Decision Plane              | Contracts, validators, hashing, disposition (implemented).                                          |
+| **AI-141** | Gold Decision Evaluation Set               | Versioned synthetic gold decisions, evaluator and metrics (implemented; seed set in review).        |
 | AI-142     | Typed Decision Candidate Registry          | Disabled, kill-switched candidate registry; capability-to-paradigm binding.                         |
 | AI-143     | Decision Sandbox Runtime                   | Isolated synthetic-only sandbox admitting a new result origin; no production traffic.               |
 | AI-144     | Direct-Logit Baseline                      | Reference baseline candidate evaluated in the sandbox.                                              |

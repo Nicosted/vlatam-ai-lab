@@ -1,0 +1,92 @@
+{
+  "contract": "gold_decision_case",
+  "schema_version": "1.0.0",
+  "case_id": "gd-regulatory-009",
+  "dataset_id": "ai-lab-gold-decisions",
+  "dataset_version": "1.0.0",
+  "split": "validation",
+  "request": {
+    "contract": "typed_decision_request",
+    "schema_version": "1.0.0",
+    "request_id": "gd-regulatory-009",
+    "capability_id": "synthetic.decision.regulatory_relevance_triage",
+    "execution_paradigm": "typed_decision",
+    "decision_type": "choice",
+    "bounded_state": {
+      "facts": [
+        {
+          "fact_id": "notice.jurisdiction",
+          "value_type": "string",
+          "value": "UY"
+        },
+        {
+          "fact_id": "notice.product_category",
+          "value_type": "string",
+          "value": "synthetic_category_d"
+        },
+        {
+          "fact_id": "operation.destination_jurisdiction",
+          "value_type": "string",
+          "value": "UY"
+        },
+        {
+          "fact_id": "operation.product_category",
+          "value_type": "string",
+          "value": "synthetic_category_d"
+        }
+      ]
+    },
+    "question": {
+      "question_id": "synthetic.regulatory.relevance",
+      "text": "Cenário sintético, sem aconselhamento jurídico. Regra sintética R-REG-1: se a jurisdição do aviso for 'undeclared', abster-se; se diferir do destino da operação → não relevante; se coincidirem e a categoria de produto da operação for 'undeclared' → incerto; se coincidirem e as categorias coincidirem → relevante; se as categorias diferirem → não relevante. O aviso regulatório sintético é relevante para a operação sintética?"
+    },
+    "output_domain": {
+      "kind": "choice",
+      "candidates": [
+        {
+          "candidate_id": "relevance.relevant",
+          "label": "Relevante"
+        },
+        {
+          "candidate_id": "relevance.not_relevant",
+          "label": "Não relevante"
+        },
+        {
+          "candidate_id": "relevance.uncertain",
+          "label": "Incerto"
+        }
+      ],
+      "complete_distribution_required": false
+    },
+    "policy": {
+      "data_classification": "internal",
+      "human_review_required": true,
+      "abstention_permitted": true,
+      "escalation_policy_ref": null,
+      "downstream_use": "none"
+    },
+    "evidence_refs": []
+  },
+  "expected": {
+    "kind": "choice",
+    "expected_candidate_id": "relevance.relevant"
+  },
+  "abstention_policy": "allowed",
+  "permutation_group_id": null,
+  "provenance": {
+    "source_kind": "synthetic_construction",
+    "authoring_method": "repository_fixture",
+    "labeling_rule_id": "rule.regulatory_relevance.v1",
+    "evidence_basis": [
+      "notice.jurisdiction",
+      "notice.product_category",
+      "operation.destination_jurisdiction",
+      "operation.product_category"
+    ],
+    "candidate_generated": false
+  },
+  "language": "pt-BR",
+  "jurisdiction": "UY",
+  "tags": ["regulatory_relevance", "synthetic_regulatory_scenario"],
+  "case_hash": "161dc9a37b315a97062eb5012c8475b4acd8fb9dab4349a00326d3a66c7293c1"
+}

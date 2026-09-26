@@ -1,0 +1,76 @@
+{
+  "contract": "gold_decision_case",
+  "schema_version": "1.0.0",
+  "case_id": "gd-completeness-007",
+  "dataset_id": "ai-lab-gold-decisions",
+  "dataset_version": "1.0.0",
+  "split": "test",
+  "request": {
+    "contract": "typed_decision_request",
+    "schema_version": "1.0.0",
+    "request_id": "gd-completeness-007",
+    "capability_id": "synthetic.decision.document_completeness_score",
+    "execution_paradigm": "typed_decision",
+    "decision_type": "score",
+    "bounded_state": {
+      "facts": [
+        {
+          "fact_id": "document.required_fields",
+          "value_type": "integer",
+          "value": 7
+        },
+        {
+          "fact_id": "document.present_fields",
+          "value_type": "integer",
+          "value": 7
+        },
+        {
+          "fact_id": "document.illegible_fields",
+          "value_type": "integer",
+          "value": 0
+        }
+      ]
+    },
+    "question": {
+      "question_id": "synthetic.document.completeness",
+      "text": "Synthetic rule R-CMP-1 on scale synthetic.completeness.0_4: score = floor(4 × present fields / required fields); illegible fields count as not present. When illegible fields exist, any value from floor(4 × present / required) to floor(4 × (present + illegible) / required) is acceptable. If required fields is 0 the score is undefined: abstain. What is the completeness score of this synthetic document?"
+    },
+    "output_domain": {
+      "kind": "score",
+      "scale_id": "synthetic.completeness.0_4",
+      "minimum": 0,
+      "maximum": 4
+    },
+    "policy": {
+      "data_classification": "internal",
+      "human_review_required": false,
+      "abstention_permitted": true,
+      "escalation_policy_ref": null,
+      "downstream_use": "none"
+    },
+    "evidence_refs": []
+  },
+  "expected": {
+    "kind": "score",
+    "scale_id": "synthetic.completeness.0_4",
+    "match": "exact",
+    "expected_value": 4
+  },
+  "abstention_policy": "not_allowed",
+  "permutation_group_id": null,
+  "provenance": {
+    "source_kind": "synthetic_construction",
+    "authoring_method": "repository_fixture",
+    "labeling_rule_id": "rule.document_completeness_0_4.v1",
+    "evidence_basis": [
+      "document.illegible_fields",
+      "document.present_fields",
+      "document.required_fields"
+    ],
+    "candidate_generated": false
+  },
+  "language": "en",
+  "jurisdiction": "NONE",
+  "tags": ["document_completeness"],
+  "case_hash": "05495a1e1d8cbcf7f9d9523ce58d5479fd6f0498a6e96c4b5ae420329a4d97d2"
+}

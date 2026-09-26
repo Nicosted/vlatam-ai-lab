@@ -1,0 +1,67 @@
+{
+  "contract": "gold_decision_case",
+  "schema_version": "1.0.0",
+  "case_id": "fx-ai140-score",
+  "dataset_id": "gold-decision-fixtures",
+  "dataset_version": "1.0.0",
+  "split": "test",
+  "request": {
+    "contract": "typed_decision_request",
+    "schema_version": "1.0.0",
+    "request_id": "synthetic-document-completeness-request-0001",
+    "capability_id": "synthetic.decision.document_completeness_score",
+    "execution_paradigm": "typed_decision",
+    "decision_type": "score",
+    "bounded_state": {
+      "facts": [
+        {
+          "fact_id": "document.required_fields",
+          "value_type": "integer",
+          "value": 8
+        },
+        {
+          "fact_id": "document.present_fields",
+          "value_type": "integer",
+          "value": 6
+        }
+      ]
+    },
+    "question": {
+      "question_id": "synthetic.document.completeness",
+      "text": "On the declared 0-4 scale, how complete is this synthetic document?"
+    },
+    "output_domain": {
+      "kind": "score",
+      "scale_id": "synthetic.completeness.0_4",
+      "minimum": 0,
+      "maximum": 4
+    },
+    "policy": {
+      "data_classification": "internal",
+      "human_review_required": false,
+      "abstention_permitted": true,
+      "escalation_policy_ref": null,
+      "downstream_use": "none"
+    },
+    "evidence_refs": []
+  },
+  "expected": {
+    "kind": "score",
+    "scale_id": "synthetic.completeness.0_4",
+    "match": "exact",
+    "expected_value": 3
+  },
+  "abstention_policy": "not_allowed",
+  "permutation_group_id": null,
+  "provenance": {
+    "source_kind": "synthetic_construction",
+    "authoring_method": "repository_fixture",
+    "labeling_rule_id": "rule.fixture.completeness_0_4.v1",
+    "evidence_basis": ["document.present_fields", "document.required_fields"],
+    "candidate_generated": false
+  },
+  "language": "en",
+  "jurisdiction": "NONE",
+  "tags": ["fixture"],
+  "case_hash": "ebe292bcb9184bbae07537f967b4254cb41925eb31747325dee30164ce03adef"
+}
