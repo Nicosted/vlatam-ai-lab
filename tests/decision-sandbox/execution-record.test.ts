@@ -7,6 +7,7 @@ import {
   DECISION_SANDBOX_EXECUTION_RECORD_HASH_DOMAIN,
   DECISION_SANDBOX_EXECUTION_STATUSES,
   DECISION_SANDBOX_ISSUE_CODES,
+  DECISION_SANDBOX_RUNTIME_DIAGNOSTICS,
   DECISION_SANDBOX_SEMANTIC_EXECUTION_HASH_DOMAIN,
   buildDecisionSandboxExecutionRecord,
   computeDecisionSandboxExecutionRecordHash,
@@ -66,6 +67,10 @@ describe("AI-143 decision sandbox execution record", () => {
       "process_failed",
       "protocol_failed",
       "output_limit_exceeded",
+      "runtime_failed",
+    ]);
+    assert.deepEqual(DECISION_SANDBOX_RUNTIME_DIAGNOSTICS, [
+      "workspace_cleanup_failed",
     ]);
     assert.equal(
       DECISION_SANDBOX_SEMANTIC_EXECUTION_HASH_DOMAIN,
@@ -287,6 +292,52 @@ describe("AI-143 decision sandbox execution record", () => {
         ),
       ).includes("private_reasoning_forbidden"),
     );
+  });
+
+  it("runtime_failed requires a runtime diagnostic, no accepted output, and never pairs a runtime diagnostic with another status", () => {
+    const runtimeFailed = {
+      ...record(),
+      status: "runtime_failed",
+      protocol_result_hash: null,
+      typed_result_hash: null,
+      diagnostics: ["workspace_cleanup_failed"],
+    };
+    assert.equal(
+      validateDecisionSandboxExecutionRecord(rehash(runtimeFailed)).ok,
+      true,
+    );
+    for (const patch of [
+      { diagnostics: ["process_exit_nonzero"] },
+      { diagnostics: [] },
+      { typed_result_hash: record()["typed_result_hash"] },
+      { preflight_outcome: "blocked" },
+    ])
+      assert.ok(
+        codes(
+          validateDecisionSandboxExecutionRecord(
+            rehash({ ...runtimeFailed, ...patch }),
+          ),
+        ).includes("status_outcome_mismatch"),
+        JSON.stringify(patch),
+      );
+    for (const status of [
+      "succeeded",
+      "process_failed",
+      "protocol_failed",
+      "blocked",
+    ])
+      assert.ok(
+        codes(
+          validateDecisionSandboxExecutionRecord(
+            rehash({
+              ...record(),
+              status,
+              diagnostics: ["workspace_cleanup_failed"],
+            }),
+          ),
+        ).includes("status_outcome_mismatch"),
+        status,
+      );
   });
 
   it("rejects inconsistent status, outcome and diagnostics", () => {

@@ -43,6 +43,7 @@ import {
   DECISION_SANDBOX_ID_PATTERN,
   DECISION_SANDBOX_LIMIT_CEILINGS,
   DECISION_SANDBOX_PREFLIGHT_OUTCOMES,
+  DECISION_SANDBOX_RUNTIME_DIAGNOSTICS,
   DECISION_SANDBOX_TERMINATIONS,
   DECISION_SANDBOX_UNESTABLISHED_PROPERTIES,
   DECISION_SANDBOX_VERSION_PATTERN,
@@ -111,6 +112,8 @@ export const DECISION_SANDBOX_ISSUE_CODES = [
   "timeout_exceeded",
   "stdout_limit_exceeded",
   "stderr_limit_exceeded",
+  // Runtime
+  "workspace_cleanup_failed",
   // Record
   "status_invalid",
   "status_outcome_mismatch",
@@ -854,6 +857,12 @@ function checkStatusConsistency(
     record["preflight_outcome"] === "eligible_for_fixture_execution";
   const bound = record["adapter"] !== null && record["request_hash"] !== null;
   const termination = process["terminated_by_runtime"];
+  const runtimeFailure = diagnostics.some((code) =>
+    (DECISION_SANDBOX_RUNTIME_DIAGNOSTICS as readonly string[]).includes(code),
+  );
+  // A runtime diagnostic appears only under `runtime_failed`, and
+  // `runtime_failed` always carries one: runtime failure is never success.
+  if (runtimeFailure !== (status === "runtime_failed")) mismatch();
   switch (status) {
     case "succeeded":
       if (
@@ -914,6 +923,11 @@ function checkStatusConsistency(
         diagnostics.length === 0
       )
         mismatch();
+      return;
+    case "runtime_failed":
+      // Fail closed: no accepted output; the observed process outcome is
+      // kept as it was, whatever it was.
+      if (!eligible || !bound || hashesPresent) mismatch();
       return;
     case "protocol_failed":
       if (

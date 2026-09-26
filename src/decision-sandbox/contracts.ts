@@ -328,9 +328,18 @@ export const DECISION_SANDBOX_EXECUTION_STATUSES = [
   "process_failed",
   "protocol_failed",
   "output_limit_exceeded",
+  "runtime_failed",
 ] as const;
 export type DecisionSandboxExecutionStatus =
   (typeof DECISION_SANDBOX_EXECUTION_STATUSES)[number];
+
+/**
+ * Closed runtime diagnostics. `runtime_failed` requires one of them. A
+ * runtime failure is fail-closed: never success, no accepted result.
+ */
+export const DECISION_SANDBOX_RUNTIME_DIAGNOSTICS = [
+  "workspace_cleanup_failed",
+] as const;
 
 export const DECISION_SANDBOX_TERMINATIONS = [
   "none",

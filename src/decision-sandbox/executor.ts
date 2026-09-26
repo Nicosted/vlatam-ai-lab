@@ -32,7 +32,12 @@
  *    same observed bytes (`stream-evidence.ts`); stdout is retained only
  *    within its bound and stderr content is never retained.
  *  - No automatic retry and no fallback.
- *  - The temporary working directory is removed after completion.
+ *  - The temporary working directory removal is attempted exactly once
+ *    after completion, with no retry. If the OS reports a failure the
+ *    execution fails closed as `runtime_failed` with
+ *    `workspace_cleanup_failed`: it is never `succeeded`, the result is
+ *    discarded, and no exception escapes. The record states that cleanup
+ *    failed; it cannot guarantee what the OS left behind.
  *
  * Not established (see the policy's `unestablished_properties`): OS-level
  * network or filesystem namespaces, hostile-code containment, resource
@@ -103,6 +108,43 @@ export interface DecisionSandboxFixtureRunOptions {
   readonly clock?: () => number;
   /** Test hook: observes the temporary working directory path. */
   readonly observe_workspace?: (workspace: string) => void;
+  /**
+   * Test hook: replaces the workspace removal operation, so tests can
+   * simulate a cleanup failure deterministically. It is an argument of
+   * this non-exported runner only; no execution request, schema or
+   * protocol field can select or influence it.
+   */
+  readonly workspace_removal?: (workspace: string) => void;
+}
+
+interface Outcome {
+  readonly status: DecisionSandboxExecutionStatus;
+  readonly diagnostics: readonly DecisionSandboxIssueCode[];
+  readonly accepted: {
+    readonly protocol_result_hash: string;
+    readonly result: TypedDecisionResult;
+  } | null;
+}
+
+function removeWorkspace(workspace: string): void {
+  rmSync(workspace, { recursive: true, force: true });
+}
+
+/**
+ * Attempts workspace removal exactly once, with no retry. Returns whether
+ * it reported success. The error itself (message, errno, path) is
+ * deliberately discarded: host details are never execution evidence.
+ */
+function removeWorkspaceOnce(
+  workspace: string,
+  remove: (workspace: string) => void,
+): boolean {
+  try {
+    remove(workspace);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 interface ProcessRun {
@@ -360,6 +402,7 @@ export async function executeDecisionSandboxFixture(
   }
   liveProcesses += 1;
   let run: ProcessRun | null = null;
+  let cleaned = false;
   try {
     options.observe_workspace?.(workspace);
     const artifactPath = join(workspace, ARTIFACT_FILE_NAME);
@@ -374,66 +417,77 @@ export async function executeDecisionSandboxFixture(
       run = await runFixtureProcess(artifactPath, workspace, input, policy);
   } finally {
     liveProcesses -= 1;
-    rmSync(workspace, { recursive: true, force: true });
+    cleaned = removeWorkspaceOnce(
+      workspace,
+      options.workspace_removal ?? removeWorkspace,
+    );
   }
-  if (run === null)
-    return conclude("blocked", ["workspace_unavailable"], null, null, true);
 
-  if (run.spawn_failed)
-    return conclude(
-      "process_failed",
-      ["process_spawn_failed"],
-      run,
-      null,
-      true,
-    );
-  if (run.termination === "timeout")
-    return conclude("timed_out", ["timeout_exceeded"], run, null, true);
-  if (run.termination === "output_limit")
-    return conclude(
-      "output_limit_exceeded",
-      [run.limit_code ?? "stdout_limit_exceeded"],
-      run,
-      null,
-      true,
-    );
-  if (run.signal !== null)
-    return conclude("process_failed", ["process_signaled"], run, null, true);
-  if (run.exit_code !== 0)
-    return conclude(
-      "process_failed",
-      ["process_exit_nonzero"],
-      run,
-      null,
-      true,
-    );
+  const classifyRun = (observed: ProcessRun): Outcome => {
+    const fail = (
+      status: DecisionSandboxExecutionStatus,
+      diagnostics: readonly DecisionSandboxIssueCode[],
+    ): Outcome => ({ status, diagnostics, accepted: null });
+    if (observed.spawn_failed)
+      return fail("process_failed", ["process_spawn_failed"]);
+    if (observed.termination === "timeout")
+      return fail("timed_out", ["timeout_exceeded"]);
+    if (observed.termination === "output_limit")
+      return fail("output_limit_exceeded", [
+        observed.limit_code ?? "stdout_limit_exceeded",
+      ]);
+    if (observed.signal !== null)
+      return fail("process_failed", ["process_signaled"]);
+    if (observed.exit_code !== 0)
+      return fail("process_failed", ["process_exit_nonzero"]);
 
-  const frame = decodeDecisionAdapterFrame(run.stdout, policy.max_stdout_bytes);
-  if (!frame.ok)
-    return conclude("protocol_failed", [frame.code], run, null, true);
-  const output = validateDecisionAdapterOutput(frame.value, {
-    execution_id: executionId,
-    request,
-    request_hash: requestHash,
-    protocol_version: adapter.protocol_version,
-    result_origin: adapter.result_origin,
-  });
-  if (!output.ok)
+    const frame = decodeDecisionAdapterFrame(
+      observed.stdout,
+      policy.max_stdout_bytes,
+    );
+    if (!frame.ok) return fail("protocol_failed", [frame.code]);
+    const output = validateDecisionAdapterOutput(frame.value, {
+      execution_id: executionId,
+      request,
+      request_hash: requestHash,
+      protocol_version: adapter.protocol_version,
+      result_origin: adapter.result_origin,
+    });
+    if (!output.ok) return fail("protocol_failed", issueCodes(output.issues));
+    return {
+      status: "succeeded",
+      diagnostics: [],
+      accepted: {
+        protocol_result_hash: computeDecisionAdapterEnvelopeHash(output.value),
+        result: output.value.result,
+      },
+    };
+  };
+
+  const outcome: Outcome =
+    run === null
+      ? {
+          status: "blocked",
+          diagnostics: ["workspace_unavailable"],
+          accepted: null,
+        }
+      : classifyRun(run);
+  // Cleanup failure fails closed: it overrides any tentative outcome
+  // (success included), discards the result and keeps the observed process
+  // outcome. The underlying diagnostics are kept; they are not authority.
+  if (!cleaned)
     return conclude(
-      "protocol_failed",
-      issueCodes(output.issues),
+      "runtime_failed",
+      [...outcome.diagnostics, "workspace_cleanup_failed"],
       run,
       null,
       true,
     );
   return conclude(
-    "succeeded",
-    [],
+    outcome.status,
+    outcome.diagnostics,
     run,
-    {
-      protocol_result_hash: computeDecisionAdapterEnvelopeHash(output.value),
-      result: output.value.result,
-    },
+    outcome.accepted,
     true,
   );
 }

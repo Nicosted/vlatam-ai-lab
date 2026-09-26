@@ -41,7 +41,12 @@ execution authority, and it must not overclaim isolation.
 5. A pure, fail-closed preflight (`blocked` |
    `eligible_for_fixture_execution`) and an immutable execution record
    (`succeeded`, `blocked`, `timed_out`, `process_failed`,
-   `protocol_failed`, `output_limit_exceeded`). Semantic identity and
+   `protocol_failed`, `output_limit_exceeded`, `runtime_failed`).
+   Workspace cleanup failure is a fail-closed runtime outcome
+   (`runtime_failed` with `workspace_cleanup_failed`): it never converts
+   an execution into success, discards the typed result, keeps the
+   observed process outcome, persists no path or OS error text, and never
+   escapes as an uncontrolled exception. Semantic identity and
    record integrity are separate hashes: `semantic_execution_hash`
    excludes operational telemetry so it is stable across clocks and
    machines; `execution_record_hash` binds the complete persisted record,

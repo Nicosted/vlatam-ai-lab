@@ -215,7 +215,7 @@ self-consistent policy whose hash is not the pinned one
 | `no_shell`                    | `spawn(process.execPath, fixedArgs, { shell: false })`; no command string, no shell expansion.                                 |
 | `fixed_arguments`             | Permission flag, `--allow-fs-read=<artifact copy>`, `--disallow-code-generation-from-strings`, `--no-warnings`, artifact path. |
 | `empty_environment`           | `env: {}` — no inherited `NODE_OPTIONS`, API keys, `HOME` or other variables.                                                  |
-| `ephemeral_working_directory` | Fresh `mkdtemp` directory holding only the artifact copy; removed after completion.                                            |
+| `ephemeral_working_directory` | Fresh `mkdtemp` directory holding only the artifact copy; removal attempted once after completion.                             |
 | `bounded_stdin`               | One input frame ≤ `max_input_bytes`, then EOF.                                                                                 |
 | `bounded_stdout`              | Killed with SIGKILL once stdout exceeds `max_stdout_bytes`.                                                                    |
 | `bounded_stderr`              | Killed with SIGKILL once stderr exceeds `max_stderr_bytes`.                                                                    |
@@ -284,18 +284,46 @@ DecisionSandboxExecutionRecord
 ```
 
 Statuses: `succeeded`, `blocked`, `timed_out`, `process_failed`,
-`protocol_failed`, `output_limit_exceeded`. The validator enforces
-status/outcome consistency (for example `succeeded` requires exit code 0,
-no signal, no runtime termination, both result hashes and no
-diagnostics; `blocked` requires that no process started).
+`protocol_failed`, `output_limit_exceeded`, `runtime_failed`. The
+validator enforces status/outcome consistency (for example `succeeded`
+requires exit code 0, no signal, no runtime termination, both result
+hashes and no diagnostics; `blocked` requires that no process started;
+`runtime_failed` requires a closed runtime diagnostic and no accepted
+output, and a runtime diagnostic may appear under no other status).
 
 - A successful process exit does not imply a valid typed result
   (`silent-exit` → `protocol_failed`).
 - A valid typed result with a non-zero exit is not success
   (`exit-nonzero` → `process_failed`).
+- A clean child run with a valid typed result is not success if the
+  runtime cannot tear down its workspace (`runtime_failed`, see below).
 - A valid typed result does not imply approval: the record's
   `output_authority` is `none`, `downstream_allowed` is `false`, and the
   AI-140 result keeps `downstream_allowed: false`.
+
+### Workspace cleanup failure
+
+Workspace cleanup failure is a fail-closed runtime outcome. It never
+converts an execution into success and never escapes as an uncontrolled
+exception.
+
+- Removal of the temporary workspace is attempted exactly once, after the
+  child has exited, with no retry.
+- If the OS reports a failure, the record's status is `runtime_failed`
+  with the closed runtime diagnostic `workspace_cleanup_failed`, whatever
+  the tentative outcome was (success included). The typed result is
+  discarded (`result`, `protocol_result_hash` and `typed_result_hash` are
+  `null`); the observed `process_outcome` and telemetry are kept as they
+  were; the diagnostics of the underlying outcome, if any, are kept
+  alongside. There is only one authoritative status.
+- The workspace path, OS error text, errno and stack are never persisted.
+- Cleanup failure is semantic state, so it changes
+  `semantic_execution_hash` and therefore `execution_record_hash`.
+- The record states that cleanup failed. It does not, and cannot,
+  guarantee what the OS left on disk after reporting that failure.
+- The removal operation can be replaced only through a test-only option
+  of the non-exported runner; no execution request, schema or protocol
+  field can select or influence it.
 
 Diagnostics are non-authoritative machine codes. stdout content, stderr
 content, private reasoning and adapter-created files are never persisted.
