@@ -1687,14 +1687,17 @@
       "schema_file": "schemas/ai-gold-decision-set.schema.json",
       "valid_fixture": "data/gold-decision/v1/manifest.json",
       "invalid_fixtures": [
-        "data/fixtures/gold-decision/invalid-set-approved-without-approval-ref.json",
+        "data/fixtures/gold-decision/invalid-set-self-declared-approval.json",
         "data/fixtures/gold-decision/invalid-set-candidate-generated-labels.json",
-        "data/fixtures/gold-decision/invalid-set-test-split-training-allowed.json"
+        "data/fixtures/gold-decision/invalid-set-test-split-training-allowed.json",
+        "data/fixtures/gold-decision/invalid-set-domain-representative.json",
+        "data/fixtures/gold-decision/invalid-set-promotion-eligible.json",
+        "data/fixtures/gold-decision/invalid-set-blind-holdout-claim.json"
       ],
       "test_file": "tests/decision-evaluation/gold-decision-schemas.test.ts",
       "status": "implemented_pending_human_review",
-      "purpose": "AI-141 contract 1.0.0: versioned Gold Decision Set manifest binding exact ordered case hashes, explicit split policy, labeling rules, scoring policy and human review state under a self-excluding dataset hash.",
-      "downstream_role": "Evaluation corpus identity only; an in-review set is provisional and only an approved set with an explicit approval reference is published evaluation authority.",
+      "purpose": "AI-141 contract 1.0.0: versioned synthetic-conformance Gold Decision Set manifest binding exact ordered case hashes, explicit public split policy (no blind holdout), labeling rules, scoring policy and draft/in_review state under a self-excluding dataset hash.",
+      "downstream_role": "Synthetic conformance evaluation corpus identity only; never domain-representative, never promotion-eligible, and never self-approved. Publication requires a future governed human-review binding of the exact dataset hash.",
       "requires_human_review_semantics": true,
       "requires_traceability": true,
       "downstream_allowed_field_present": false
@@ -1723,12 +1726,14 @@
       "invalid_fixtures": [
         "data/fixtures/gold-decision/invalid-report-universal-winner.json",
         "data/fixtures/gold-decision/invalid-report-calibration-claimed.json",
-        "data/fixtures/gold-decision/invalid-report-promotion-authority.json"
+        "data/fixtures/gold-decision/invalid-report-promotion-authority.json",
+        "data/fixtures/gold-decision/invalid-report-promotion-eligible.json",
+        "data/fixtures/gold-decision/invalid-report-blind-holdout-claim.json"
       ],
       "test_file": "tests/decision-evaluation/gold-decision-schemas.test.ts",
       "status": "implemented",
       "purpose": "AI-141 contract 1.0.0: deterministic aggregate metrics (exact rationals) over a complete split scope of Gold Decision case evaluations, overall and per slice.",
-      "downstream_role": "Evidence only; authority is evidence_only, calibration_claimed and universal_winner are always false.",
+      "downstream_role": "Evidence only; authority is evidence_only, calibration_claimed, universal_winner, promotion_eligible, domain_representative and blind_holdout are always false.",
       "requires_human_review_semantics": true,
       "requires_traceability": true,
       "downstream_allowed_field_present": false

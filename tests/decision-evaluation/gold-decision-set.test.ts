@@ -272,22 +272,22 @@ describe("AI-141 Gold Decision Set manifest", () => {
     }
   });
 
-  it("never lets a draft or in-review set carry an approval, and never approves without one", () => {
+  it("draft and in_review both validate", () => {
     const { manifest, cases } = seed();
-    const withRef = clone(manifest) as Loose;
-    withRef["review"]["approval_ref"] = {
-      approval_id: "approval-0001",
-      content_hash: "a".repeat(64),
-    };
-    assertSetRejected(rehashSet(withRef), cases, "review_invalid");
-    const approvedWithout = clone(manifest) as Loose;
-    approvedWithout["review"]["state"] = "approved";
-    assertSetRejected(rehashSet(approvedWithout), cases, "review_invalid");
-    const noHuman = clone(manifest) as Loose;
-    noHuman["review"]["human_review_required"] = false;
-    assertSetRejected(rehashSet(noHuman), cases, "review_invalid");
+    assert.equal(manifest.review.state, "in_review");
+    assert.equal(validateGoldDecisionSet(manifest, cases).ok, true);
+    const draft = clone(manifest) as Loose;
+    draft["review"]["state"] = "draft";
+    assert.equal(validateGoldDecisionSet(rehashSet(draft), cases).ok, true);
+  });
+
+  it("rejects a self-declared approved state, with or without an approval reference", () => {
+    const { manifest, cases } = seed();
     const approved = clone(manifest) as Loose;
-    approved["review"] = {
+    approved["review"]["state"] = "approved";
+    assertSetRejected(rehashSet(approved), cases, "review_invalid");
+    const withRef = clone(manifest) as Loose;
+    withRef["review"] = {
       state: "approved",
       human_review_required: true,
       approval_ref: {
@@ -295,7 +295,106 @@ describe("AI-141 Gold Decision Set manifest", () => {
         content_hash: "a".repeat(64),
       },
     };
-    assert.equal(validateGoldDecisionSet(rehashSet(approved), cases).ok, true);
+    assertSetRejected(rehashSet(withRef), cases, "review_invalid");
+    for (const state of ["published", "rejected", "APPROVED", null])
+      assertSetRejected(
+        rehashSet({
+          ...clone(manifest),
+          review: { state, human_review_required: true },
+        }),
+        cases,
+        "review_invalid",
+      );
+  });
+
+  it("an arbitrary approval reference cannot grant authority on any state", () => {
+    const { manifest, cases } = seed();
+    for (const state of ["draft", "in_review"]) {
+      for (const ref of [
+        { approval_id: "approval-0001", content_hash: "a".repeat(64) },
+        { approval_id: "approval-0001", content_hash: manifest.dataset_hash },
+        null,
+      ]) {
+        const mutated = clone(manifest) as Loose;
+        mutated["review"] = {
+          state,
+          human_review_required: true,
+          approval_ref: ref,
+        };
+        assertSetRejected(rehashSet(mutated), cases, "unknown_property");
+      }
+    }
+    for (const key of ["approval", "approved_by", "approved_at", "published"]) {
+      const mutated = clone(manifest) as Loose;
+      mutated[key] = true;
+      assertSetRejected(rehashSet(mutated), cases, "unknown_property");
+    }
+    const noHuman = clone(manifest) as Loose;
+    noHuman["review"]["human_review_required"] = false;
+    assertSetRejected(rehashSet(noHuman), cases, "review_invalid");
+  });
+
+  it("admits only the synthetic_conformance purpose, never domain-representative or promotion-eligible", () => {
+    const { manifest, cases } = seed();
+    assert.equal(manifest.evaluation_purpose, "synthetic_conformance");
+    assert.equal(manifest.domain_representative, false);
+    assert.equal(manifest.promotion_eligible, false);
+    const variants: ((m: Loose) => void)[] = [
+      (m) => (m["evaluation_purpose"] = "domain_benchmark"),
+      (m) => (m["evaluation_purpose"] = "sealed_holdout"),
+      (m) => delete m["evaluation_purpose"],
+      (m) => (m["domain_representative"] = true),
+      (m) => (m["domain_representative"] = "false"),
+      (m) => (m["promotion_eligible"] = true),
+      (m) => delete m["promotion_eligible"],
+    ];
+    for (const mutate of variants) {
+      const mutated = clone(manifest) as Loose;
+      mutate(mutated);
+      const check = validateGoldDecisionSet(rehashSet(mutated), cases);
+      assert.equal(check.ok, false);
+      assert.ok(
+        codes(check).some((code) =>
+          ["evaluation_purpose_invalid", "missing_property"].includes(code),
+        ),
+        codes(check).join(","),
+      );
+    }
+  });
+
+  it("declares public case visibility and no blind holdout; changing either changes the hash and is rejected", () => {
+    const { manifest, cases } = seed();
+    assert.equal(manifest.split_policy.case_visibility, "public");
+    assert.equal(manifest.split_policy.blind_holdout, false);
+    for (const [key, value] of [
+      ["case_visibility", "sealed"],
+      ["case_visibility", "private"],
+      ["blind_holdout", true],
+    ] as const) {
+      const mutated = clone(manifest) as Loose;
+      mutated["split_policy"][key] = value;
+      assert.notEqual(
+        computeGoldDecisionSetHash(mutated as GoldDecisionSet),
+        manifest.dataset_hash,
+      );
+      assertSetRejected(rehashSet(mutated), cases, "split_policy_invalid");
+    }
+  });
+
+  it("purpose, promotion and domain flags are hash-bound", () => {
+    const { manifest } = seed();
+    for (const [key, value] of [
+      ["evaluation_purpose", "domain_benchmark"],
+      ["domain_representative", true],
+      ["promotion_eligible", true],
+    ] as const) {
+      const mutated = clone(manifest) as Loose;
+      mutated[key] = value;
+      assert.notEqual(
+        computeGoldDecisionSetHash(mutated as GoldDecisionSet),
+        manifest.dataset_hash,
+      );
+    }
   });
 
   it("rejects an empty set and unordered labeling rules", () => {
@@ -396,18 +495,12 @@ describe("AI-141 permutation groups", () => {
 });
 
 describe("AI-141 dataset succession and test-split immutability", () => {
-  function approved(): Loose {
-    const { manifest } = seed();
-    const value = clone(manifest) as Loose;
-    value["review"] = {
-      state: "approved",
-      human_review_required: true,
-      approval_ref: {
-        approval_id: "approval-0001",
-        content_hash: "a".repeat(64),
-      },
-    };
-    return rehashSet(value);
+  // No set can be published in AI-141; the frozen-test-split rule is
+  // exercised explicitly, as a future governed publication binding will.
+  const FROZEN = { test_split_frozen: true } as const;
+  const UNFROZEN = { test_split_frozen: false } as const;
+  function previousVersion(): Loose {
+    return clone(seed().manifest) as unknown as Loose;
   }
   function successor(
     previous: Loose,
@@ -415,11 +508,7 @@ describe("AI-141 dataset succession and test-split immutability", () => {
   ): Loose {
     const next = clone(previous);
     next["dataset_version"] = "1.1.0";
-    next["review"] = {
-      state: "in_review",
-      human_review_required: true,
-      approval_ref: null,
-    };
+    next["review"] = { state: "draft", human_review_required: true };
     next["supersedes"] = {
       dataset_version: previous["dataset_version"],
       dataset_hash: previous["dataset_hash"],
@@ -432,7 +521,7 @@ describe("AI-141 dataset succession and test-split immutability", () => {
     next: Loose,
     code: GoldDecisionIssueCode,
   ): void {
-    const check = validateGoldDecisionSetSuccession(previous, next);
+    const check = validateGoldDecisionSetSuccession(previous, next, FROZEN);
     assert.equal(check.ok, false);
     assert.ok(
       codes(check).includes(code),
@@ -440,16 +529,17 @@ describe("AI-141 dataset succession and test-split immutability", () => {
     );
   }
 
-  it("accepts a successor that keeps every published test case intact", () => {
-    const previous = approved();
+  it("accepts a successor that keeps every frozen test case intact", () => {
+    const previous = previousVersion();
     assert.equal(
-      validateGoldDecisionSetSuccession(previous, successor(previous)).ok,
+      validateGoldDecisionSetSuccession(previous, successor(previous), FROZEN)
+        .ok,
       true,
     );
   });
 
   it("rejects a mutated or removed published test case", () => {
-    const previous = approved();
+    const previous = previousVersion();
     const testIndex = previous["cases"].findIndex(
       (e: Loose) => e["split"] === "test",
     );
@@ -472,7 +562,7 @@ describe("AI-141 dataset succession and test-split immutability", () => {
   });
 
   it("rejects moving a published case between splits", () => {
-    const previous = approved();
+    const previous = previousVersion();
     const testIndex = previous["cases"].findIndex(
       (e: Loose) => e["split"] === "test",
     );
@@ -488,7 +578,7 @@ describe("AI-141 dataset succession and test-split immutability", () => {
   });
 
   it("rejects a successor that does not bind or advance the previous version", () => {
-    const previous = approved();
+    const previous = previousVersion();
     assertSuccessionRejected(
       previous,
       successor(previous, (m) => (m["supersedes"] = null)),
@@ -514,12 +604,36 @@ describe("AI-141 dataset succession and test-split immutability", () => {
     );
   });
 
-  it("allows an unpublished (in-review) predecessor's test cases to change", () => {
+  it("allows an unfrozen (unpublished) predecessor's test cases to change, but still binds lineage", () => {
     const { manifest } = seed();
     const testIndex = manifest.cases.findIndex((e) => e.split === "test");
     const next = successor(manifest as unknown as Loose, (m) => {
       m["cases"][testIndex]["case_hash"] = "d".repeat(64);
     });
-    assert.equal(validateGoldDecisionSetSuccession(manifest, next).ok, true);
+    assert.equal(
+      validateGoldDecisionSetSuccession(manifest, next, UNFROZEN).ok,
+      true,
+    );
+    assert.equal(
+      validateGoldDecisionSetSuccession(manifest, next, FROZEN).ok,
+      false,
+    );
+    const unbound = successor(manifest as unknown as Loose, (m) => {
+      m["supersedes"] = null;
+    });
+    assert.equal(
+      validateGoldDecisionSetSuccession(manifest, unbound, UNFROZEN).ok,
+      false,
+    );
+  });
+
+  it("a successor can never become approved", () => {
+    const previous = previousVersion();
+    const next = successor(previous, (m) => {
+      m["review"] = { state: "approved", human_review_required: true };
+    });
+    const check = validateGoldDecisionSetSuccession(previous, next, UNFROZEN);
+    assert.equal(check.ok, false);
+    assert.ok(codes(check).includes("review_invalid"));
   });
 });

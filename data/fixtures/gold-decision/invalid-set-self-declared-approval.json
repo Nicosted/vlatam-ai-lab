@@ -11,15 +11,19 @@
     "policy_id": "gold-decision-split-v1",
     "assignment": "explicit_per_case",
     "splits": ["development", "validation", "test"],
-    "test_split_training_use": "allowed",
+    "test_split_training_use": "forbidden",
     "candidate_case_selection": "forbidden",
     "permutation_groups_share_split": true,
     "case_visibility": "public",
     "blind_holdout": false
   },
   "review": {
-    "state": "draft",
-    "human_review_required": true
+    "state": "approved",
+    "human_review_required": true,
+    "approval_ref": {
+      "approval_id": "approval-0001",
+      "content_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
   },
   "created_from": {
     "source_kind": "synthetic_construction",

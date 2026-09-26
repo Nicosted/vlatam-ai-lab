@@ -177,10 +177,27 @@ describe("AI-141 seed Gold Decision Set quality", () => {
 
   it("is pending human review and never claims published authority by itself", () => {
     assert.equal(manifest.review.state, "in_review");
-    assert.equal(manifest.review.approval_ref, null);
+    assert.equal("approval_ref" in manifest.review, false);
+    assert.deepEqual(Object.keys(manifest.review).sort(), [
+      "human_review_required",
+      "state",
+    ]);
     assert.equal(manifest.created_from.candidate_generated_labels, false);
     assert.equal(manifest.created_from.customer_data, false);
     assert.equal(manifest.created_from.production_data, false);
+  });
+
+  it("is classified as a public synthetic conformance benchmark, not domain or blind-holdout evidence", () => {
+    assert.equal(manifest.evaluation_purpose, "synthetic_conformance");
+    assert.equal(manifest.domain_representative, false);
+    assert.equal(manifest.promotion_eligible, false);
+    assert.equal(manifest.split_policy.case_visibility, "public");
+    assert.equal(manifest.split_policy.blind_holdout, false);
+    // Every test case is committed to the repository: public, not sealed.
+    const testIds = manifest.cases.filter((e) => e.split === "test");
+    assert.ok(testIds.length > 0);
+    const files = new Set(readdirSync(`${SEED_ROOT}/cases`));
+    for (const entry of testIds) assert.ok(files.has(`${entry.case_id}.json`));
   });
 
   it("every answer key is reproduced by an independent oracle of its declared labeling rule", () => {

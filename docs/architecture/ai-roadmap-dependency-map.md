@@ -133,9 +133,12 @@ AI-141 adds the Gold Decision Case, Set manifest, case evaluation and
 evaluation report contracts `1.0.0` (`src/decision-evaluation/`,
 `schemas/ai-gold-decision-*.schema.json`), the pure evaluator and
 deterministic aggregation under scoring policy `gold-decision-scoring-v1`,
-explicit `development | validation | test` splits with test immutability
-after approval, and the 68-case seed set `ai-lab-gold-decisions@1.0.0`
-(`data/gold-decision/v1/`, review state `in_review`). Candidates may produce
+explicit public `development | validation | test` splits (not a blind
+holdout), and the 68-case level-0 synthetic conformance seed set
+`ai-lab-gold-decisions@1.0.0` (`data/gold-decision/v1/`, review state
+`in_review`; not domain-representative, not promotion-eligible). A set
+cannot approve itself; publication needs a later governed human-review
+binding of the exact dataset hash. Candidates may produce
 answers; evaluators may measure them; candidates may not define their own
 truth. No candidate, registry, runtime, runner, model or provider is added.
 See `docs/architecture/ai-gold-decision-evaluation-set.md` and ADR-006.

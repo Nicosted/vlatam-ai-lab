@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://vlatam-ai-lab.local/schemas/ai-gold-decision-set.schema.json",
   "title": "AI-141 Gold Decision Set manifest",
-  "description": "Contract 1.0.0. Versioned, immutable manifest binding an exact ordered list of (case_id, case_hash, split) entries, the explicit split policy (test split never used for training, candidates never select cases), human review state, labeling rules, scoring policy gold-decision-scoring-v1 and recomputable distributions under a self-excluding dataset_hash. Only an approved set with an explicit approval reference is published evaluation authority. Strict ordering, uniqueness, case binding, distribution recomputation and hashes are enforced by src/decision-evaluation/validation.ts.",
+  "description": "Contract 1.0.0. Versioned, immutable manifest binding an exact ordered list of (case_id, case_hash, split) entries, the explicit split policy (test split never used for training, candidates never select cases, every case public, no blind holdout), evaluation purpose synthetic_conformance (never domain-representative, never promotion-eligible), review state draft or in_review (a set can never approve itself; publication requires a future governed human-review binding of the exact dataset hash), labeling rules, scoring policy gold-decision-scoring-v1 and recomputable distributions under a self-excluding dataset_hash. Strict ordering, uniqueness, case binding, distribution recomputation and hashes are enforced by src/decision-evaluation/validation.ts.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -11,6 +11,9 @@
     "dataset_id",
     "dataset_version",
     "scoring_policy",
+    "evaluation_purpose",
+    "domain_representative",
+    "promotion_eligible",
     "split_policy",
     "review",
     "created_from",
@@ -42,6 +45,15 @@
     "scoring_policy": {
       "const": "gold-decision-scoring-v1"
     },
+    "evaluation_purpose": {
+      "const": "synthetic_conformance"
+    },
+    "domain_representative": {
+      "const": false
+    },
+    "promotion_eligible": {
+      "const": false
+    },
     "split_policy": {
       "type": "object",
       "additionalProperties": false,
@@ -51,7 +63,9 @@
         "splits",
         "test_split_training_use",
         "candidate_case_selection",
-        "permutation_groups_share_split"
+        "permutation_groups_share_split",
+        "case_visibility",
+        "blind_holdout"
       ],
       "properties": {
         "policy_id": {
@@ -71,70 +85,27 @@
         },
         "permutation_groups_share_split": {
           "const": true
+        },
+        "case_visibility": {
+          "const": "public"
+        },
+        "blind_holdout": {
+          "const": false
         }
       }
     },
     "review": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["state", "human_review_required", "approval_ref"],
+      "required": ["state", "human_review_required"],
       "properties": {
         "state": {
-          "enum": ["draft", "in_review", "approved"]
+          "enum": ["draft", "in_review"]
         },
         "human_review_required": {
           "const": true
-        },
-        "approval_ref": {
-          "oneOf": [
-            {
-              "type": "null"
-            },
-            {
-              "type": "object",
-              "additionalProperties": false,
-              "required": ["approval_id", "content_hash"],
-              "properties": {
-                "approval_id": {
-                  "$ref": "#/$defs/id"
-                },
-                "content_hash": {
-                  "$ref": "#/$defs/hash"
-                }
-              }
-            }
-          ]
         }
-      },
-      "allOf": [
-        {
-          "if": {
-            "type": "object",
-            "required": ["state"],
-            "properties": {
-              "state": {
-                "const": "approved"
-              }
-            }
-          },
-          "then": {
-            "type": "object",
-            "properties": {
-              "approval_ref": {
-                "type": "object"
-              }
-            }
-          },
-          "else": {
-            "type": "object",
-            "properties": {
-              "approval_ref": {
-                "type": "null"
-              }
-            }
-          }
-        }
-      ]
+      }
     },
     "created_from": {
       "type": "object",

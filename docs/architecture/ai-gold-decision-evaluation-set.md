@@ -3,7 +3,9 @@
 Status: contracts, deterministic evaluator and seed corpus. Contract version
 `1.0.0`, scoring policy `gold-decision-scoring-v1`, split policy
 `gold-decision-split-v1`. Seed dataset `ai-lab-gold-decisions@1.0.0`
-(68 cases), review state **`in_review`**. Branch baseline: `main` at
+(68 cases), review state **`in_review`**, evaluation purpose
+**`synthetic_conformance`**, public cases (**no blind holdout**). Branch
+baseline: `main` at
 `b871294` (AI-140, #139). No model, provider, runtime, candidate registry,
 sandbox, benchmark runner, scheduler, promotion or traffic is added or
 activated by AI-141.
@@ -14,6 +16,35 @@ activated by AI-141.
 
 > **A benchmark is invalid if the candidate can influence the answer key,
 > case selection, scoring policy or evaluation split.**
+
+> **Passing AI-141 proves conformance to bounded synthetic decision
+> workloads. It does not prove competence on real trade documents,
+> regulations or customer operations.**
+
+> **Public test is not blind holdout.**
+
+## 0. Evaluation hierarchy
+
+| Level | Benchmark                       | Status                   | What a result can mean                                                      |
+| ----- | ------------------------------- | ------------------------ | --------------------------------------------------------------------------- |
+| 0     | Synthetic conformance benchmark | **AI-141 (this change)** | The candidate conforms to bounded synthetic typed-decision workloads.       |
+| 1     | Reviewed domain benchmark       | Future, not scheduled    | Quality on reviewed, representative trade-domain decisions.                 |
+| 2     | Blind / sealed holdout          | Future, not scheduled    | Generalization to cases the candidate and its builders could not have seen. |
+
+AI-141 implements level 0 only. Every `1.0.0` manifest and every report
+states this explicitly and hash-bound:
+
+- `evaluation_purpose: "synthetic_conformance"` — the only admitted value;
+- `domain_representative: false` — never evidence of real-world
+  trade-domain quality;
+- `promotion_eligible: false` — performance on this set can never, by
+  itself, authorize candidate promotion;
+- `split_policy.case_visibility: "public"` and
+  `split_policy.blind_holdout: false` — see §4.
+
+Levels 1 and 2 need their own reviewed contract versions (new purpose
+values, sealed storage, access control); none is implemented or implied
+here.
 
 ## 1. What a Gold Decision is
 
@@ -108,8 +139,13 @@ The oracles are test code, never shipped in `src/`, and never a candidate.
 GoldDecisionSet
 ├── dataset_id, dataset_version, schema_version
 ├── scoring_policy        ← gold-decision-scoring-v1
-├── split_policy          ← gold-decision-split-v1 (constant fields, see §4)
-├── review                ← state draft | in_review | approved, human_review_required: true, approval_ref
+├── evaluation_purpose    ← synthetic_conformance (only value)
+├── domain_representative ← false (constant)
+├── promotion_eligible    ← false (constant)
+├── split_policy          ← gold-decision-split-v1 (constant fields incl.
+│                           case_visibility: public, blind_holdout: false; see §4)
+├── review                ← state draft | in_review, human_review_required: true
+│                           (no approval field; `approved` is rejected)
 ├── created_from          ← synthetic_construction, repository_fixture, no customer/production data,
 │                           candidate_generated_labels: false
 ├── supersedes            ← null or { dataset_version, dataset_hash } of the previous version
@@ -137,7 +173,7 @@ path:
 | Answer key         | Case content is hash-bound (`case_hash`) and the manifest binds every hash (`dataset_hash`). Labels cite a declared rule, never a candidate output. |
 | Case selection     | A report requires one evaluation for **every** case in its split scope; missing, duplicated or out-of-scope evaluations fail closed.                |
 | Scoring policy     | The policy ID is part of the manifest hash and every evaluation record; the aggregator rejects records under another policy.                        |
-| Evaluation split   | Split is part of the case hash and manifest hash; published cases may not change split (§4).                                                        |
+| Evaluation split   | Split is part of the case hash and manifest hash; a frozen predecessor's cases may not change split (§4).                                           |
 | Result-side truth  | The evaluator reads truth only from the validated case; a result carrying extra fields (e.g. its own `expected`) is an invalid result.              |
 | Evaluator identity | The evaluator is repository code with no candidate hook, plug-in or callback.                                                                       |
 
@@ -147,26 +183,48 @@ path:
   the manifest and therefore the `dataset_hash`. There is no mutable
   "latest": a change is a new `dataset_version` whose `supersedes` binds
   the exact previous version and hash.
-- **Publication.** A set is published evaluation authority only in review
-  state `approved`, which requires an explicit `approval_ref`
-  (approval ID + content hash) recorded by a human through a separate,
-  reviewed workflow. `draft` and `in_review` sets can never carry an
-  approval reference, and nothing in this module can create one. Reports
-  carry `dataset_review_state` so metrics over an unapproved set are
-  visibly provisional. The seed set is `in_review`: it becomes authority
-  only after independent human review of this PR and a separately recorded
-  approval.
+- **No self-approval.** `1.0.0` admits only the review states `draft` and
+  `in_review`. `approved` is rejected, and the review block is closed with
+  no approval field, so a JSON document cannot grant itself evaluation
+  authority by inserting a syntactically valid reference. No Gold Decision
+  Set is published evaluation authority in AI-141, and reports carry
+  `dataset_review_state` so every metric is visibly provisional.
+- **Future publication (extension point).** Publication/approval requires
+  binding the exact `dataset_hash` to the existing governed human-review
+  authority in a later, separately reviewed change — for example the
+  domain-separated review binding already required for regulated
+  artifacts. That change must add a new contract version and verify the
+  binding against a repository-owned human-review record; it must not be a
+  shape-only reference. AI-141 invents no new human-review system.
+- **Version while in review.** The seed set is an unmerged, in-review
+  artifact, so it keeps `dataset_version: 1.0.0` while it evolves during
+  review; its `dataset_hash` changes with every change. A successor
+  version (`supersedes`) is needed only once a version has been bound by
+  the governed review authority.
 - **Splits.** `development`, `validation` and `test`, assigned explicitly
   per case. The split policy fixes `test_split_training_use: "forbidden"`
   (future AI-146 training work may not read the test split),
   `candidate_case_selection: "forbidden"` and
   `permutation_groups_share_split: true` (a semantic twin in another split
   would leak the answer).
-- **Test immutability.** `validateGoldDecisionSetSuccession(previous, next)`
-  enforces that once `previous` is `approved`, every previous test case is
-  still present in `next` with the identical hash, no published case
-  changes split, the version strictly increases and `supersedes` binds the
-  previous hash. New cases may be added; nothing is rewritten in place.
+- **Public test is not blind holdout.** Every case, including the `test`
+  split, is committed to the repository (`case_visibility: "public"`,
+  `blind_holdout: false`). The test split is a public reproducibility
+  split: immutable once frozen and forbidden for training, but not unseen.
+  Its results must never be described as proof of unseen generalization.
+  A sealed holdout is future work (level 2). A future split vocabulary may
+  distinguish `development`, `validation`, `public_test` and
+  `sealed_holdout`; the current splits are intentionally not renamed.
+- **Succession and test immutability.**
+  `validateGoldDecisionSetSuccession(previous, next, { test_split_frozen })`
+  always requires the same dataset, a strictly increasing version and an
+  exact `supersedes` binding. The caller must state `test_split_frozen`
+  explicitly (no default). With `true`, every previous test case must stay
+  in `next` with the identical hash and no previous case may change split.
+  The option only adds restrictions and grants nothing; the future
+  governed publication binding must set it for every successor of a
+  published version. New cases may be added; nothing is rewritten in
+  place.
 
 ## 5. Scoring (`gold-decision-scoring-v1`)
 
@@ -307,8 +365,10 @@ fixtures.
   candidate is identified outside Gold truth, which never names one.
 - **AI-143 sandbox** may admit a new AI-140 `result_origin`; results still
   pass through `evaluateGoldDecisionCase` unchanged.
-- **AI-144/AI-145 candidates** are evaluated on complete split scopes of an
-  **approved** set; their outputs never enter a case.
+- **AI-144/AI-145 candidates** are evaluated on complete split scopes;
+  their outputs never enter a case. Level-0 results are conformance
+  evidence only; any promotion case needs level-1/level-2 evidence that
+  does not exist yet.
 - **AI-146 research/training** must exclude the test split
   (`test_split_training_use: "forbidden"`) and permutation twins of test
   cases.
@@ -319,7 +379,9 @@ fixtures.
   AI-141. It must recompute evaluations from cases and results rather than
   trust third-party evaluation records.
 - **AI-148 first governed tournament** — promotion remains an independent
-  human decision; there is no universal winner.
+  human decision; there is no universal winner, and a synthetic
+  conformance report (`promotion_eligible: false`) can never be the basis
+  for it on its own.
 
 ## 9. Explicit non-goals
 
@@ -336,8 +398,11 @@ the architecture test that now permits exactly one consumer of
 ## 10. Known limitations
 
 - The seed cases were authored as repository fixtures and are pending
-  independent human review; until an approved successor manifest exists,
-  every report is provisional (`dataset_review_state: "in_review"`).
+  independent human review. No set can be approved in AI-141, so every
+  report is provisional (`dataset_review_state: "in_review"`).
+- The set is a synthetic conformance benchmark (level 0): it is not
+  domain-representative and not promotion-eligible.
+- The test split is public; nothing here is a blind holdout.
 - Labeling rules are stated in each question, so the seed measures rule
   application over bounded facts, not open-world document understanding.
 - 68 cases are too few for calibration analysis or fine-grained slice

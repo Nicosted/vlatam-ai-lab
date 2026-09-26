@@ -8,7 +8,7 @@
   "dataset_review_state": "draft",
   "evaluation_purpose": "synthetic_conformance",
   "domain_representative": false,
-  "promotion_eligible": false,
+  "promotion_eligible": true,
   "case_visibility": "public",
   "blind_holdout": false,
   "split_scope": "all",
@@ -682,7 +682,7 @@
     ]
   },
   "authority": "evidence_only",
-  "calibration_claimed": true,
+  "calibration_claimed": false,
   "universal_winner": false,
   "report_hash": "9129cd17b8414833a2be8bf2c83ec31a84a50268bd1a4def231b361a81b86887"
 }

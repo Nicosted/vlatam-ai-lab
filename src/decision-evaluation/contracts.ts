@@ -30,6 +30,16 @@
  *     promotion, routing, traffic or a universal winner.
  *  7. Scoring semantics are versioned. Changing a rule requires a new
  *     scoring policy identifier, never a rewrite of historical results.
+ *  8. A Gold Decision Set cannot approve itself. `1.0.0` admits only the
+ *     review states `draft` and `in_review`; publication requires a
+ *     future governed human-review binding of the exact dataset hash.
+ *  9. `1.0.0` sets are synthetic conformance benchmarks: never
+ *     domain-representative and never, by themselves, promotion evidence.
+ *     Passing proves conformance to bounded synthetic decision workloads,
+ *     not competence on real trade documents, regulations or operations.
+ * 10. Public test is not blind holdout. Every case, including the `test`
+ *     split, is public in the repository; results are never proof of
+ *     unseen generalization.
  */
 
 import type {
@@ -54,6 +64,30 @@ export const GOLD_DECISION_SCORING_POLICIES = [
 ] as const;
 export type GoldDecisionScoringPolicyId =
   (typeof GOLD_DECISION_SCORING_POLICIES)[number];
+
+/**
+ * Evaluation purposes. `1.0.0` admits exactly one: a synthetic
+ * conformance benchmark (evaluation hierarchy level 0). It measures
+ * conformance to bounded synthetic decision workloads and is never
+ * evidence of real-world trade-domain competence. Reviewed domain
+ * benchmarks (level 1) and blind/sealed holdouts (level 2) are future
+ * work and require their own reviewed contract versions.
+ */
+export const GOLD_DECISION_EVALUATION_PURPOSES = [
+  "synthetic_conformance",
+] as const;
+export type GoldDecisionEvaluationPurpose =
+  (typeof GOLD_DECISION_EVALUATION_PURPOSES)[number];
+
+/**
+ * Case visibility. Every `1.0.0` case, including the `test` split, is
+ * stored in the repository: the test split is a public reproducibility
+ * split, not a blind holdout, and its results are never proof of unseen
+ * generalization.
+ */
+export const GOLD_DECISION_CASE_VISIBILITIES = ["public"] as const;
+export type GoldDecisionCaseVisibility =
+  (typeof GOLD_DECISION_CASE_VISIBILITIES)[number];
 
 /** The only split policy defined in `1.0.0`. */
 export const GOLD_DECISION_SPLIT_POLICY_ID = "gold-decision-split-v1" as const;
@@ -126,17 +160,18 @@ export const GOLD_DECISION_SOURCE_KINDS = ["synthetic_construction"] as const;
 export const GOLD_DECISION_AUTHORING_METHODS = ["repository_fixture"] as const;
 
 /**
- * Dataset review states, a subset of the repository's existing gold
- * review vocabulary (`GOLD_REVIEW_STATUSES`: draft, in_review, approved,
- * rejected). A rejected set is not a valid manifest. `approved` is the
- * published, immutable state and requires an explicit human approval
- * reference; nothing in this module can produce one.
+ * Dataset review states admitted by `1.0.0`: a strict subset of the
+ * repository's existing gold review vocabulary (`GOLD_REVIEW_STATUSES`:
+ * draft, in_review, approved, rejected).
+ *
+ * `approved` is deliberately NOT admitted. A JSON document can never
+ * grant itself evaluation authority: publication requires binding the
+ * exact `dataset_hash` to the existing governed human-review authority,
+ * which is a later, separately reviewed change. Until then no Gold
+ * Decision Set is published evaluation authority, and there is no
+ * approval reference field to self-declare.
  */
-export const GOLD_DECISION_SET_REVIEW_STATES = [
-  "draft",
-  "in_review",
-  "approved",
-] as const;
+export const GOLD_DECISION_SET_REVIEW_STATES = ["draft", "in_review"] as const;
 export type GoldDecisionSetReviewState =
   (typeof GOLD_DECISION_SET_REVIEW_STATES)[number];
 
@@ -273,6 +308,10 @@ export interface GoldDecisionSplitPolicy {
   readonly candidate_case_selection: "forbidden";
   /** Every member of a permutation group shares one split. */
   readonly permutation_groups_share_split: true;
+  /** Every case, test split included, is public in the repository. */
+  readonly case_visibility: GoldDecisionCaseVisibility;
+  /** Constant: the public test split is not a blind/sealed holdout. */
+  readonly blind_holdout: false;
 }
 
 export interface GoldDecisionSetEntry {
@@ -282,17 +321,13 @@ export interface GoldDecisionSetEntry {
 }
 
 export interface GoldDecisionSetReview {
+  /** `draft` or `in_review`; never self-declared `approved`. */
   readonly state: GoldDecisionSetReviewState;
-  /** Always `true`: a Gold Decision Set is evaluation authority. */
-  readonly human_review_required: true;
   /**
-   * Reference to a separately recorded human approval of this exact
-   * dataset. Required iff `state` is `approved`, otherwise `null`.
+   * Always `true`: a Gold Decision Set only becomes evaluation authority
+   * through a future governed human-review binding of its exact hash.
    */
-  readonly approval_ref: {
-    readonly approval_id: string;
-    readonly content_hash: string;
-  } | null;
+  readonly human_review_required: true;
 }
 
 export interface GoldDecisionSetCreatedFrom {
@@ -312,6 +347,12 @@ export interface GoldDecisionSet {
   readonly dataset_id: string;
   readonly dataset_version: string;
   readonly scoring_policy: GoldDecisionScoringPolicyId;
+  /** `synthetic_conformance` only in `1.0.0`. */
+  readonly evaluation_purpose: GoldDecisionEvaluationPurpose;
+  /** Constant: synthetic cases never represent real trade-domain work. */
+  readonly domain_representative: false;
+  /** Constant: results on this set never, by themselves, authorize promotion. */
+  readonly promotion_eligible: false;
   readonly split_policy: GoldDecisionSplitPolicy;
   readonly review: GoldDecisionSetReview;
   readonly created_from: GoldDecisionSetCreatedFrom;
@@ -508,6 +549,13 @@ export interface GoldDecisionEvaluationReport {
   readonly dataset_version: string;
   readonly dataset_hash: string;
   readonly dataset_review_state: GoldDecisionSetReviewState;
+  /** Propagated from the manifest: what these metrics can and cannot mean. */
+  readonly evaluation_purpose: GoldDecisionEvaluationPurpose;
+  readonly domain_representative: false;
+  readonly promotion_eligible: false;
+  /** Propagated from the split policy: results are not blind-holdout evidence. */
+  readonly case_visibility: GoldDecisionCaseVisibility;
+  readonly blind_holdout: false;
   /** Which cases the report covers; every case in scope is required. */
   readonly split_scope: GoldDecisionSplitScope;
   /** Evaluation hashes in ascending `case_id` order. */

@@ -4,8 +4,13 @@
   "scoring_policy": "gold-decision-scoring-v1",
   "dataset_id": "gold-decision-fixtures",
   "dataset_version": "1.0.0",
-  "dataset_hash": "70831bbd5eec889c8a9017729af11ead4a101a3305a9d69171d2d660340e4faa",
+  "dataset_hash": "8db365451b096bfa7b22fc0ce5eb91bc5c749080904a90a93a61f6650e0f3916",
   "dataset_review_state": "draft",
+  "evaluation_purpose": "synthetic_conformance",
+  "domain_representative": false,
+  "promotion_eligible": false,
+  "case_visibility": "public",
+  "blind_holdout": false,
   "split_scope": "all",
   "evaluation_hashes": [
     "5ecbea5b5b5b399d509dec61eedc0014029a6e0c9136af3eea3811c14a556922",
@@ -679,5 +684,5 @@
   "authority": "evidence_only",
   "calibration_claimed": false,
   "universal_winner": true,
-  "report_hash": "d2a22a9da8a925393ad681030378916766077c279ad8f451ee47fbd2f294eb2d"
+  "report_hash": "9129cd17b8414833a2be8bf2c83ec31a84a50268bd1a4def231b361a81b86887"
 }

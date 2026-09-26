@@ -35,8 +35,10 @@ import {
   GOLD_DECISION_ABSTENTION_POLICIES,
   GOLD_DECISION_AUTHORING_METHODS,
   GOLD_DECISION_CAPABILITY_PREFIX,
+  GOLD_DECISION_CASE_VISIBILITIES,
   GOLD_DECISION_CORRECTNESS,
   GOLD_DECISION_EVALUATION_ERROR_CODES,
+  GOLD_DECISION_EVALUATION_PURPOSES,
   GOLD_DECISION_ID_PATTERN,
   GOLD_DECISION_JURISDICTIONS,
   GOLD_DECISION_LANGUAGES,
@@ -90,6 +92,7 @@ export const GOLD_DECISION_ISSUE_CODES = [
   "case_hash_mismatch",
   // set manifest
   "scoring_policy_invalid",
+  "evaluation_purpose_invalid",
   "split_policy_invalid",
   "review_invalid",
   "created_from_invalid",
@@ -585,6 +588,9 @@ const SET_KEYS = [
   "dataset_id",
   "dataset_version",
   "scoring_policy",
+  "evaluation_purpose",
+  "domain_representative",
+  "promotion_eligible",
   "split_policy",
   "review",
   "created_from",
@@ -670,6 +676,14 @@ export function validateGoldDecisionSetManifest(
     c.add("dataset_identity_invalid", "set.dataset_version");
   if (!includes(GOLD_DECISION_SCORING_POLICIES, value["scoring_policy"]))
     c.add("scoring_policy_invalid", "set.scoring_policy");
+  // Synthetic conformance only: never domain-representative evidence and
+  // never, by itself, promotion evidence.
+  if (!includes(GOLD_DECISION_EVALUATION_PURPOSES, value["evaluation_purpose"]))
+    c.add("evaluation_purpose_invalid", "set.evaluation_purpose");
+  if (value["domain_representative"] !== false)
+    c.add("evaluation_purpose_invalid", "set.domain_representative");
+  if (value["promotion_eligible"] !== false)
+    c.add("evaluation_purpose_invalid", "set.promotion_eligible");
 
   checkConstObject(
     value["split_policy"],
@@ -680,6 +694,8 @@ export function validateGoldDecisionSetManifest(
       test_split_training_use: "forbidden",
       candidate_case_selection: "forbidden",
       permutation_groups_share_split: true,
+      case_visibility: GOLD_DECISION_CASE_VISIBILITIES[0],
+      blind_holdout: false,
     },
     "split_policy_invalid",
     "set.split_policy",
@@ -703,37 +719,14 @@ export function validateGoldDecisionSetManifest(
   if (!isRecord(review)) {
     c.add("review_invalid", "set.review");
   } else {
-    closed(
-      review,
-      ["state", "human_review_required", "approval_ref"],
-      "set.review",
-      c,
-    );
-    const state = review["state"];
-    if (!includes(GOLD_DECISION_SET_REVIEW_STATES, state))
+    // Closed: there is no approval field to self-declare. `approved` is
+    // rejected; publication requires a future governed human-review
+    // binding of the exact dataset hash, outside this document.
+    closed(review, ["state", "human_review_required"], "set.review", c);
+    if (!includes(GOLD_DECISION_SET_REVIEW_STATES, review["state"]))
       c.add("review_invalid", "set.review.state");
     if (review["human_review_required"] !== true)
       c.add("review_invalid", "set.review.human_review_required");
-    const ref = review["approval_ref"];
-    if (state === "approved") {
-      if (!isRecord(ref)) {
-        c.add("review_invalid", "set.review.approval_ref");
-      } else {
-        closed(
-          ref,
-          ["approval_id", "content_hash"],
-          "set.review.approval_ref",
-          c,
-        );
-        if (!isGoldDecisionId(ref["approval_id"]))
-          c.add("review_invalid", "set.review.approval_ref.approval_id");
-        if (!isHash(ref["content_hash"]))
-          c.add("review_invalid", "set.review.approval_ref.content_hash");
-      }
-    } else if (ref !== null) {
-      // A draft or in-review set can never carry an approval.
-      c.add("review_invalid", "set.review.approval_ref");
-    }
   }
 
   const supersedes = value["supersedes"];
@@ -1017,17 +1010,31 @@ export function validateGoldDecisionSet(
   return c.result({ set, cases: ordered });
 }
 
+/** Succession checks requested by the caller; there is no default. */
+export interface GoldDecisionSuccessionPolicy {
+  /**
+   * `true` freezes the previous version's test split: every previous
+   * test case must remain in `next` with the same hash, and no previous
+   * case may change split. This option only adds restrictions; it grants
+   * nothing. In AI-141 no set is published, so no caller is required to
+   * set it; a future governed publication binding (which verifies the
+   * exact dataset hash against the existing human-review authority) must
+   * set it for every successor of a published version.
+   */
+  readonly test_split_frozen: boolean;
+}
+
 /**
- * Validates that `next` is a legitimate successor of `previous`. Once a
- * set is `approved` (published), its test cases are immutable: every
- * previous test case must remain in `next` with the same hash and in
- * the test split, and no previously published case may change split.
- * New cases may be added in a new version; nothing is rewritten in
- * place.
+ * Validates that `next` is a legitimate successor of `previous`: same
+ * dataset, strictly increasing version and an exact `supersedes` binding
+ * to the previous version and hash. With `test_split_frozen`, the
+ * previous test split is immutable. New cases may be added in a new
+ * version; nothing is rewritten in place.
  */
 export function validateGoldDecisionSetSuccession(
   previousValue: unknown,
   nextValue: unknown,
+  policy: GoldDecisionSuccessionPolicy,
 ): GoldDecisionValidation<GoldDecisionSet> {
   const c = new GoldDecisionIssueCollector();
   const previousCheck = validateGoldDecisionSetManifest(previousValue);
@@ -1053,7 +1060,7 @@ export function validateGoldDecisionSetSuccession(
     ) <= 0
   )
     c.add("succession_version_not_increased", "next.dataset_version");
-  if (previous.review.state === "approved") {
+  if (policy.test_split_frozen === true) {
     const nextById = new Map(next.cases.map((entry) => [entry.case_id, entry]));
     for (const entry of previous.cases) {
       const successor = nextById.get(entry.case_id);

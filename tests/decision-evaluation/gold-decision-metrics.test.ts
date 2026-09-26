@@ -339,6 +339,63 @@ describe("AI-141 aggregation — probability evidence (Brier, uncalibrated)", ()
   });
 });
 
+describe("AI-141 aggregation — evaluation purpose and visibility propagation", () => {
+  const { cases } = seed();
+  const r = report(evaluateAll(cases, perfect));
+
+  it("a perfect score is still labelled synthetic conformance, not domain or promotion evidence", () => {
+    assert.deepEqual(r.overall.accuracy, ratio(1, 1));
+    assert.equal(r.evaluation_purpose, "synthetic_conformance");
+    assert.equal(r.domain_representative, false);
+    assert.equal(r.promotion_eligible, false);
+    assert.equal(r.authority, "evidence_only");
+    assert.equal(r.universal_winner, false);
+  });
+
+  it("every report, including a test-split report, declares public cases and no blind holdout", () => {
+    for (const scope of ["all", "development", "validation", "test"] as const) {
+      const scoped = report(
+        evaluateAll(
+          cases.filter((c) => scope === "all" || c.split === scope),
+          perfect,
+        ),
+        scope,
+      );
+      assert.equal(scoped.case_visibility, "public", scope);
+      assert.equal(scoped.blind_holdout, false, scope);
+      assert.equal(scoped.dataset_review_state, "in_review", scope);
+    }
+  });
+
+  it("the restrictions are hash-bound: flipping any of them breaks the report hash", () => {
+    for (const [key, value] of [
+      ["promotion_eligible", true],
+      ["domain_representative", true],
+      ["blind_holdout", true],
+      ["case_visibility", "sealed"],
+      ["evaluation_purpose", "domain_benchmark"],
+      ["dataset_review_state", "approved"],
+    ] as const)
+      assert.equal(
+        verifyGoldDecisionReportHash({ ...r, [key]: value } as never),
+        false,
+        key,
+      );
+    assert.equal(verifyGoldDecisionReportHash(r), true);
+  });
+
+  it("the committed fixture report carries the same restrictions", () => {
+    const fx = load<GoldDecisionEvaluationReport>(
+      `${FIXTURE_ROOT}/valid-evaluation-report.json`,
+    );
+    assert.equal(fx.evaluation_purpose, "synthetic_conformance");
+    assert.equal(fx.domain_representative, false);
+    assert.equal(fx.promotion_eligible, false);
+    assert.equal(fx.case_visibility, "public");
+    assert.equal(fx.blind_holdout, false);
+  });
+});
+
 describe("AI-141 aggregation — fail-closed and anti-selection", () => {
   const { manifest, cases } = seed();
   const evaluations = evaluateAll(cases, perfect);

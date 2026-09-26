@@ -125,8 +125,15 @@ describe("AI-141 Gold Decision JSON Schemas", () => {
       const text = JSON.stringify(schema);
       assert.doesNotMatch(
         text,
-        /"downstream_allowed"|"approved_for_production"|"promot(?:e|ion)_/,
+        /"downstream_allowed"|"approved_for_production"|"approval_ref"|"approved"/,
       );
+      // The only promotion-related field is a constant `false`.
+      const promotionKeys = [...text.matchAll(/"(promot[a-z_]*)":/g)].map(
+        (m) => m[1],
+      );
+      for (const key of promotionKeys) assert.equal(key, "promotion_eligible");
+      if (promotionKeys.length > 0)
+        assert.match(text, /"promotion_eligible":\{"const":false\}/);
     }
   });
 });

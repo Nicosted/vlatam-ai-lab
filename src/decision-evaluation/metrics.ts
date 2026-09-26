@@ -25,6 +25,12 @@
  *  - score error          = per declared `scale_id` only; scales are never
  *                           combined or normalized against each other.
  * Ratios with a zero denominator are `null`.
+ *
+ * Every report restates the manifest's evaluation purpose
+ * (`synthetic_conformance`, `domain_representative: false`,
+ * `promotion_eligible: false`) and case visibility (`public`,
+ * `blind_holdout: false`) so that no consumer can read it as real-domain,
+ * promotion or blind-holdout evidence.
  */
 
 import { PROBABILITY_MICROS_SCALE } from "../decision/contracts.js";
@@ -337,6 +343,11 @@ export function aggregateGoldDecisionEvaluations(
     dataset_version: set.dataset_version,
     dataset_hash: set.dataset_hash,
     dataset_review_state: set.review.state,
+    evaluation_purpose: set.evaluation_purpose,
+    domain_representative: set.domain_representative,
+    promotion_eligible: set.promotion_eligible,
+    case_visibility: set.split_policy.case_visibility,
+    blind_holdout: set.split_policy.blind_holdout,
     split_scope: splitScope,
     evaluation_hashes: ordered.map((evaluation) => evaluation.evaluation_hash),
     overall: computeGoldDecisionMetrics(ordered),
