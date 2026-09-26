@@ -143,7 +143,7 @@ answers; evaluators may measure them; candidates may not define their own
 truth. No candidate, registry, runtime, runner, model or provider is added.
 See `docs/architecture/ai-gold-decision-evaluation-set.md` and ADR-006.
 
-## AI-142 Typed Decision Candidate Registry (current PR; inventory only)
+## AI-142 Typed Decision Candidate Registry (implemented 2026-09-26; inventory only)
 
 AI-142 adds the typed decision candidate entry and registry manifest
 contracts `1.0.0` (`src/decision-candidates/`,
@@ -158,17 +158,34 @@ records what we know; it does not authorize what may run. No candidate is
 executed, installed, downloaded, benchmarked or ranked. See
 `docs/architecture/ai-typed-decision-candidate-registry.md` and ADR-007.
 
+## AI-143 Decision Sandbox Runtime + common adapter protocol (current PR; fixture execution only)
+
+AI-143 adds the common adapter protocol `ai-lab-decision-adapter` `1.0.0`
+(framing `json-line-v1`, carrying the AI-140 request and result
+unchanged), one fixed hash-pinned sandbox policy, a pure fail-closed
+preflight, an immutable execution record and a bounded process runner
+(`src/decision-sandbox/`, `schemas/ai-decision-{adapter,sandbox}-*.schema.json`)
+that executes only one repository-owned synthetic fixture adapter bound
+by exact SHA-256. The fixture runner proves the execution contract; it
+does not prove that untrusted candidate code is safe to run. Technical
+ability to spawn a process is not execution authority. Every AI-142
+registered candidate is refused before process creation; OS-level
+network/filesystem isolation and hostile-code containment are recorded as
+not established. No candidate is executed, installed, downloaded or
+benchmarked; AI-141 evaluation and AI-120 lifecycle are not wired. See
+`docs/architecture/ai-decision-sandbox-runtime.md` and ADR-008.
+
 The following typed decision sequence is a roadmap intention only. Apart
-from AI-140, AI-141 and the current AI-142 PR, none of AI-143 through
-AI-148 exists, and each requires its own review:
+from AI-140, AI-141, AI-142 and the current AI-143 PR, none of AI-144
+through AI-148 exists, and each requires its own review:
 
 | PR         | Title                                              | Intent                                                                                              |
 | ---------- | -------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
 | **AI-140** | Governed Typed Decision Plane                      | Contracts, validators, hashing, disposition (implemented).                                          |
 | **AI-141** | Gold Decision Evaluation Set                       | Versioned synthetic gold decisions, evaluator and metrics (implemented; seed set in review).        |
-| **AI-142** | Candidate Registry                                 | Evidence-bound, fail-closed candidate inventory (current PR; no execution).                         |
-| AI-143     | Decision Sandbox Runtime + common adapter protocol | Isolated synthetic-only sandbox admitting a new result origin; no production traffic (future).      |
-| AI-144     | Direct-Logit Baseline                              | Reference baseline candidate evaluated in the sandbox (future).                                     |
+| **AI-142** | Candidate Registry                                 | Evidence-bound, fail-closed candidate inventory (implemented; no execution).                        |
+| **AI-143** | Decision Sandbox Runtime + common adapter protocol | Common adapter protocol and bounded fixture-only runner; no candidate execution (current PR).       |
+| AI-144     | Direct-Logit Baseline                              | Direct-logit baseline / first separately reviewed candidate adapter (future).                       |
 | AI-145     | Specialized Candidates                             | Additional governed candidates admitted only through AI-142/AI-143 (future).                        |
 | AI-146     | Research/Training Lab                              | Separately governed research track; no promotion authority (future).                                |
 | AI-147     | Tournament + Operator integration                  | Additive `execution_paradigm` on AI-120 identity; capability-specific ranking, no universal winner. |

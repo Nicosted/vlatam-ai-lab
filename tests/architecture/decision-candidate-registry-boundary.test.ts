@@ -177,11 +177,22 @@ describe("AI-142 typed decision candidate registry architecture boundary", () =>
             resolveLocal(file, specifier).startsWith(`${REGISTRY_DIR}/`),
         ),
       );
+    // AI-143: the decision sandbox preflight reuses only the candidate id
+    // vocabulary, to refuse registered candidates before process creation
+    // (tests/architecture/decision-sandbox-boundary.test.ts).
     assert.deepEqual(
-      consumers,
+      consumers.filter((file) => !file.startsWith("src/decision-sandbox/")),
       [],
       "no production module may consume the AI-142 candidate registry",
     );
+    for (const file of consumers)
+      for (const specifier of importSpecifiers(readFileSync(file, "utf8")))
+        if (resolveLocal(file, specifier).startsWith(`${REGISTRY_DIR}/`))
+          assert.equal(
+            resolveLocal(file, specifier),
+            `${REGISTRY_DIR}/contracts.ts`,
+            `${file} may only reuse the AI-142 contract vocabulary`,
+          );
     for (const file of ["api"].filter(existsSync).flatMap(walk))
       assert.doesNotMatch(
         readFileSync(file, "utf8"),

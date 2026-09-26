@@ -1,0 +1,225 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/ai-decision-sandbox-execution-record.schema.json",
+  "title": "AI-143 decision sandbox execution record",
+  "description": "Contract 1.0.0. Immutable evidence of one fixture-runner execution: the fixed policy binding, the allowlisted adapter binding, the AI-140 request hash, status, preflight outcome, process outcome, the accepted output envelope hash and AI-140 result hash, and closed non-authoritative machine diagnostics. stderr content is never persisted. telemetry (duration, captured byte counts and hashes) is operational and excluded from the self-excluding execution_record_hash. Sandbox success is not approval, benchmark success or promotion eligibility: output_authority is none and downstream_allowed is false. Status/outcome consistency, the closed diagnostic vocabulary and the hash are enforced by src/decision-sandbox/validation.ts.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract",
+    "schema_version",
+    "execution_id",
+    "sandbox_policy",
+    "adapter",
+    "request_hash",
+    "status",
+    "preflight_outcome",
+    "process_outcome",
+    "protocol_result_hash",
+    "typed_result_hash",
+    "diagnostics",
+    "output_authority",
+    "downstream_allowed",
+    "telemetry",
+    "execution_record_hash"
+  ],
+  "properties": {
+    "contract": {
+      "const": "decision_sandbox_execution_record"
+    },
+    "schema_version": {
+      "type": "string",
+      "pattern": "^1\\.[0-9]+\\.[0-9]+$"
+    },
+    "execution_id": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]{1,127}$"
+        }
+      ]
+    },
+    "sandbox_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["policy_id", "policy_version", "policy_hash"],
+      "properties": {
+        "policy_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]{1,127}$"
+        },
+        "policy_version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "policy_hash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "adapter": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["adapter_id", "adapter_version", "artifact_sha256"],
+          "properties": {
+            "adapter_id": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9._-]{1,127}$"
+            },
+            "adapter_version": {
+              "type": "string",
+              "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+            },
+            "artifact_sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            }
+          }
+        }
+      ]
+    },
+    "request_hash": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      ]
+    },
+    "status": {
+      "enum": [
+        "succeeded",
+        "blocked",
+        "timed_out",
+        "process_failed",
+        "protocol_failed",
+        "output_limit_exceeded"
+      ]
+    },
+    "preflight_outcome": {
+      "enum": ["blocked", "eligible_for_fixture_execution"]
+    },
+    "process_outcome": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["started", "exit_code", "signal", "terminated_by_runtime"],
+      "properties": {
+        "started": {
+          "type": "boolean"
+        },
+        "exit_code": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 255
+            }
+          ]
+        },
+        "signal": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "pattern": "^SIG[A-Z0-9]{2,10}$"
+            }
+          ]
+        },
+        "terminated_by_runtime": {
+          "enum": ["none", "timeout", "output_limit"]
+        }
+      }
+    },
+    "protocol_result_hash": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      ]
+    },
+    "typed_result_hash": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      ]
+    },
+    "diagnostics": {
+      "type": "array",
+      "uniqueItems": true,
+      "maxItems": 64,
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9_]{2,63}$"
+      }
+    },
+    "output_authority": {
+      "const": "none"
+    },
+    "downstream_allowed": {
+      "const": false
+    },
+    "telemetry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "duration_ms",
+        "stdout_bytes",
+        "stdout_sha256",
+        "stderr_bytes",
+        "stderr_sha256"
+      ],
+      "properties": {
+        "duration_ms": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "stdout_bytes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "stdout_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "stderr_bytes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "stderr_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "execution_record_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    }
+  }
+}

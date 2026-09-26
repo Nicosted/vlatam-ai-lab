@@ -651,6 +651,14 @@ and are not deferred to later PRs.
     verification; code, weight, base-model and training-data licensing are
     separate layers and unknown layers stay `unresolved`. See
     `docs/architecture/ai-typed-decision-candidate-registry.md`.
+15. Technical ability to spawn a process is not execution authority
+    (AI-143). A runtime may execute bytes only when the bytes, protocol,
+    limits and execution subject are exactly bound before process
+    creation. The AI-143 fixture runner proves the execution contract with
+    repository-owned synthetic fixtures only; it does not prove that
+    untrusted candidate code is safe to run, and registered candidates
+    stay non-executable. See
+    `docs/architecture/ai-decision-sandbox-runtime.md`.
 
 ## 6. Roadmap alignment
 

@@ -1,0 +1,138 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/ai-decision-sandbox-policy.schema.json",
+  "title": "AI-143 decision sandbox policy",
+  "description": "Contract 1.0.0. The single fixed fixture policy of the AI-143 decision sandbox: protocol, framing, the only executable subject kind (synthetic_fixture_adapter), bounded limits at or below hard ceilings (no unlimited value, no user tuning), one process, no retry, no fallback, and honest isolation claims. OS-level network and filesystem isolation and hostile-code containment are not_established; unestablished_properties can never be dropped. output_authority is none. Only the policy whose self-excluding policy_hash equals the pinned hash is supported (src/decision-sandbox/validation.ts).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract",
+    "schema_version",
+    "policy_id",
+    "policy_version",
+    "protocol",
+    "protocol_version",
+    "framing",
+    "executable_subject_kind",
+    "max_input_bytes",
+    "max_stdout_bytes",
+    "max_stderr_bytes",
+    "timeout_ms",
+    "max_processes",
+    "automatic_retries",
+    "fallback",
+    "network_claim",
+    "filesystem_claim",
+    "hostile_code_containment",
+    "enforced_controls",
+    "unestablished_properties",
+    "output_authority",
+    "policy_hash"
+  ],
+  "properties": {
+    "contract": {
+      "const": "decision_sandbox_policy"
+    },
+    "schema_version": {
+      "type": "string",
+      "pattern": "^1\\.[0-9]+\\.[0-9]+$"
+    },
+    "policy_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{1,127}$"
+    },
+    "policy_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "protocol": {
+      "const": "ai-lab-decision-adapter"
+    },
+    "protocol_version": {
+      "const": "1.0.0"
+    },
+    "framing": {
+      "const": "json-line-v1"
+    },
+    "executable_subject_kind": {
+      "const": "synthetic_fixture_adapter"
+    },
+    "max_input_bytes": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 65536
+    },
+    "max_stdout_bytes": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 65536
+    },
+    "max_stderr_bytes": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 8192
+    },
+    "timeout_ms": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 10000
+    },
+    "max_processes": {
+      "const": 1
+    },
+    "automatic_retries": {
+      "const": 0
+    },
+    "fallback": {
+      "const": "none"
+    },
+    "network_claim": {
+      "const": "not_established"
+    },
+    "filesystem_claim": {
+      "const": "not_established"
+    },
+    "hostile_code_containment": {
+      "const": "not_established"
+    },
+    "enforced_controls": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "bounded_stderr",
+          "bounded_stdin",
+          "bounded_stdout",
+          "empty_environment",
+          "ephemeral_working_directory",
+          "exact_artifact_hash",
+          "fixed_arguments",
+          "no_automatic_retry",
+          "no_shell",
+          "node_permission_model_guard",
+          "single_child_process",
+          "single_request_per_process",
+          "timeout_kill"
+        ]
+      }
+    },
+    "unestablished_properties": {
+      "const": [
+        "gpu_isolation",
+        "hostile_code_containment",
+        "interpreter_hash_binding",
+        "model_supply_chain_safety",
+        "os_filesystem_namespace",
+        "os_network_namespace",
+        "resource_quota_enforcement"
+      ]
+    },
+    "output_authority": {
+      "const": "none"
+    },
+    "policy_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    }
+  }
+}

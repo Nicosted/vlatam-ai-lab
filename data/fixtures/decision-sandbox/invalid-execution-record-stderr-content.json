@@ -1,0 +1,38 @@
+{
+  "contract": "decision_sandbox_execution_record",
+  "schema_version": "1.0.0",
+  "execution_id": "sandbox-fixture-execution-0001",
+  "sandbox_policy": {
+    "policy_id": "ai-lab-decision-sandbox-fixture-policy",
+    "policy_version": "1.0.0",
+    "policy_hash": "6bad0bd18d779acb838ecf37e561d1678b13f0b53649acf40810972b03bc8378"
+  },
+  "adapter": {
+    "adapter_id": "ai-lab-synthetic-decision-fixture-adapter",
+    "adapter_version": "1.0.0",
+    "artifact_sha256": "9fbc93fefa4d65d762424b8b3ccc4bf9da981f3c4561795720ee47fb5767a3c5"
+  },
+  "request_hash": "0eaa461b53efe3d593695a90711746228877bc2432c744a4a8cd0d4742451598",
+  "status": "succeeded",
+  "preflight_outcome": "eligible_for_fixture_execution",
+  "process_outcome": {
+    "started": true,
+    "exit_code": 0,
+    "signal": null,
+    "terminated_by_runtime": "none"
+  },
+  "protocol_result_hash": "fcaeea208de19c62ae6ea055d82ab470e74ef5b353eb076aeb9e027cb86b240f",
+  "typed_result_hash": "20082df9bdf6e6505bd20bdac180a20cc03d1b0d4cd39b0f7c61dd22e199ed44",
+  "diagnostics": [],
+  "output_authority": "none",
+  "downstream_allowed": false,
+  "telemetry": {
+    "duration_ms": 0,
+    "stdout_bytes": 1430,
+    "stdout_sha256": "d300d06dc1527c6842c5933f250a5c8bf864e342fcdcaab79ff4cd76dcd6d3b0",
+    "stderr_bytes": 0,
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr": "synthetic stderr text"
+  },
+  "execution_record_hash": "61d250e22f02e84732acd5983fc9edb4ad9de33471d6705b2f916b0a101cb70d"
+}

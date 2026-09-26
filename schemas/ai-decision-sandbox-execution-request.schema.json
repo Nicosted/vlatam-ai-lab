@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/ai-decision-sandbox-execution-request.schema.json",
+  "title": "AI-143 decision sandbox execution request",
+  "description": "Contract 1.0.0. Binds, before any process exists, exactly what the fixture runner may execute: the fixed sandbox policy by id, version and hash; one allowlisted repository-owned synthetic fixture adapter by id, version, exact artifact SHA-256 and protocol version; and one AI-140 typed decision request with its exact request hash. The only admitted subject kind is synthetic_fixture_adapter: an AI-142 registered candidate is never executable. No executable path, argument, environment, network, credential, routing, promotion or production field exists. output_authority is none. Allowlist, hash and request binding are enforced by src/decision-sandbox/preflight.ts.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract",
+    "schema_version",
+    "execution_id",
+    "policy",
+    "subject",
+    "request",
+    "request_hash",
+    "output_authority"
+  ],
+  "properties": {
+    "contract": {
+      "const": "decision_sandbox_execution_request"
+    },
+    "schema_version": {
+      "type": "string",
+      "pattern": "^1\\.[0-9]+\\.[0-9]+$"
+    },
+    "execution_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{1,127}$"
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["policy_id", "policy_version", "policy_hash"],
+      "properties": {
+        "policy_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]{1,127}$"
+        },
+        "policy_version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "policy_hash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "subject_kind",
+        "adapter_id",
+        "adapter_version",
+        "artifact_sha256",
+        "protocol_version"
+      ],
+      "properties": {
+        "subject_kind": {
+          "const": "synthetic_fixture_adapter"
+        },
+        "adapter_id": {
+          "type": "string",
+          "pattern": "^(?!tdc-)[a-z0-9][a-z0-9._-]{1,127}$"
+        },
+        "adapter_version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "artifact_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "protocol_version": {
+          "const": "1.0.0"
+        }
+      }
+    },
+    "request": {
+      "$ref": "https://vlatam-ai-lab.local/schemas/ai-typed-decision-request.schema.json"
+    },
+    "request_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "output_authority": {
+      "const": "none"
+    }
+  }
+}

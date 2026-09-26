@@ -1,0 +1,37 @@
+{
+  "contract": "decision_sandbox_execution_record",
+  "schema_version": "1.0.0",
+  "execution_id": "fixture-behavior-hang-0001",
+  "sandbox_policy": {
+    "policy_id": "ai-lab-decision-sandbox-fixture-policy",
+    "policy_version": "1.0.0",
+    "policy_hash": "6bad0bd18d779acb838ecf37e561d1678b13f0b53649acf40810972b03bc8378"
+  },
+  "adapter": {
+    "adapter_id": "ai-lab-synthetic-decision-fixture-adapter",
+    "adapter_version": "1.0.0",
+    "artifact_sha256": "9fbc93fefa4d65d762424b8b3ccc4bf9da981f3c4561795720ee47fb5767a3c5"
+  },
+  "request_hash": "0eaa461b53efe3d593695a90711746228877bc2432c744a4a8cd0d4742451598",
+  "status": "timed_out",
+  "preflight_outcome": "eligible_for_fixture_execution",
+  "process_outcome": {
+    "started": true,
+    "exit_code": null,
+    "signal": "SIGKILL",
+    "terminated_by_runtime": "timeout"
+  },
+  "protocol_result_hash": null,
+  "typed_result_hash": null,
+  "diagnostics": ["timeout_exceeded"],
+  "output_authority": "none",
+  "downstream_allowed": false,
+  "telemetry": {
+    "duration_ms": 0,
+    "stdout_bytes": 0,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_bytes": 0,
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "execution_record_hash": "3f721384cb6187a71d6570797b60870b9e68ad69b2f928e37d1585d816bb0533"
+}

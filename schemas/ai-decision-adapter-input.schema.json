@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/ai-decision-adapter-input.schema.json",
+  "title": "AI-143 decision adapter input envelope",
+  "description": "Common adapter protocol ai-lab-decision-adapter 1.0.0, framing json-line-v1: exactly one input envelope written once to the adapter's stdin as one compact UTF-8 JSON line, then EOF. Provider-neutral and candidate-neutral. request is the exact AI-140 typed decision request and request_hash its AI-140 request hash; the hash binding is enforced by src/decision-sandbox/validation.ts. Carries no executable, argument, environment, network, credential or authority field.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract",
+    "protocol",
+    "protocol_version",
+    "execution_id",
+    "request",
+    "request_hash"
+  ],
+  "properties": {
+    "contract": {
+      "const": "decision_adapter_input"
+    },
+    "protocol": {
+      "const": "ai-lab-decision-adapter"
+    },
+    "protocol_version": {
+      "const": "1.0.0"
+    },
+    "execution_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{1,127}$"
+    },
+    "request": {
+      "$ref": "https://vlatam-ai-lab.local/schemas/ai-typed-decision-request.schema.json"
+    },
+    "request_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    }
+  }
+}
