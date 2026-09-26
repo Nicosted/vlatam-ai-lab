@@ -1782,6 +1782,99 @@
       "requires_human_review_semantics": true,
       "requires_traceability": true,
       "downstream_allowed_field_present": false
+    },
+    {
+      "contract_name": "ai_decision_adapter_input",
+      "schema_file": "schemas/ai-decision-adapter-input.schema.json",
+      "valid_fixture": "data/fixtures/decision-sandbox/valid-adapter-input.json",
+      "invalid_fixtures": [
+        "data/fixtures/decision-sandbox/invalid-adapter-input-protocol-major.json",
+        "data/fixtures/decision-sandbox/invalid-adapter-input-executable-field.json",
+        "data/fixtures/decision-sandbox/invalid-adapter-input-environment-field.json"
+      ],
+      "test_file": "tests/decision-sandbox/decision-sandbox-schemas.test.ts",
+      "status": "implemented",
+      "purpose": "AI-143 common adapter protocol 1.0.0 input envelope: one AI-140 typed decision request bound by its exact request hash to one execution id, framed as one compact UTF-8 JSON line on stdin.",
+      "downstream_role": "Protocol message to a repository-owned synthetic fixture adapter only; carries no executable, argument, environment, network or authority field.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": false
+    },
+    {
+      "contract_name": "ai_decision_adapter_output",
+      "schema_file": "schemas/ai-decision-adapter-output.schema.json",
+      "valid_fixture": "data/fixtures/decision-sandbox/valid-adapter-output.json",
+      "invalid_fixtures": [
+        "data/fixtures/decision-sandbox/invalid-adapter-output-private-reasoning.json",
+        "data/fixtures/decision-sandbox/invalid-adapter-output-downstream-authority.json",
+        "data/fixtures/decision-sandbox/invalid-adapter-output-candidate-origin.json",
+        "data/fixtures/decision-sandbox/invalid-adapter-output-protocol-major.json"
+      ],
+      "test_file": "tests/decision-sandbox/decision-sandbox-schemas.test.ts",
+      "status": "implemented",
+      "purpose": "AI-143 common adapter protocol 1.0.0 output envelope: exactly one AI-140 typed decision result bound to the execution id and request hash, framed as the whole of stdout on one compact UTF-8 JSON line.",
+      "downstream_role": "Sandbox output only; the embedded AI-140 result keeps downstream_allowed false and synthetic_fixture origin; never approved intelligence, benchmark evidence or promotion input.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": true
+    },
+    {
+      "contract_name": "ai_decision_sandbox_policy",
+      "schema_file": "schemas/ai-decision-sandbox-policy.schema.json",
+      "valid_fixture": "data/fixtures/decision-sandbox/valid-sandbox-policy.json",
+      "invalid_fixtures": [
+        "data/fixtures/decision-sandbox/invalid-policy-network-enforced.json",
+        "data/fixtures/decision-sandbox/invalid-policy-unbounded-timeout.json",
+        "data/fixtures/decision-sandbox/invalid-policy-arbitrary-command.json",
+        "data/fixtures/decision-sandbox/invalid-policy-multiple-processes.json",
+        "data/fixtures/decision-sandbox/invalid-policy-dropped-isolation-claim.json"
+      ],
+      "test_file": "tests/decision-sandbox/decision-sandbox-schemas.test.ts",
+      "status": "implemented",
+      "purpose": "AI-143 contract 1.0.0: the single fixed fixture policy of the decision sandbox with bounded limits, one process, no retry, no fallback and explicit isolation claims (OS-level network/filesystem isolation and hostile-code containment not established).",
+      "downstream_role": "Constrains the fixture runner only; grants no execution authority for any candidate and no output authority.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": false
+    },
+    {
+      "contract_name": "ai_decision_sandbox_execution_request",
+      "schema_file": "schemas/ai-decision-sandbox-execution-request.schema.json",
+      "valid_fixture": "data/fixtures/decision-sandbox/valid-execution-request.json",
+      "invalid_fixtures": [
+        "data/fixtures/decision-sandbox/invalid-execution-request-registered-candidate.json",
+        "data/fixtures/decision-sandbox/invalid-execution-request-executable-path.json",
+        "data/fixtures/decision-sandbox/invalid-execution-request-environment.json",
+        "data/fixtures/decision-sandbox/invalid-execution-request-provider-credential.json",
+        "data/fixtures/decision-sandbox/invalid-execution-request-output-authority.json",
+        "data/fixtures/decision-sandbox/invalid-execution-request-promotion.json"
+      ],
+      "test_file": "tests/decision-sandbox/decision-sandbox-schemas.test.ts",
+      "status": "implemented",
+      "purpose": "AI-143 contract 1.0.0: binds the fixed sandbox policy, one allowlisted repository-owned synthetic fixture adapter by exact artifact hash, and one AI-140 typed decision request by exact request hash before any process is created.",
+      "downstream_role": "Preflight input only; AI-142 registered candidates are never executable; output_authority is none.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": false
+    },
+    {
+      "contract_name": "ai_decision_sandbox_execution_record",
+      "schema_file": "schemas/ai-decision-sandbox-execution-record.schema.json",
+      "valid_fixture": "data/fixtures/decision-sandbox/valid-execution-record.json",
+      "invalid_fixtures": [
+        "data/fixtures/decision-sandbox/invalid-execution-record-downstream-authority.json",
+        "data/fixtures/decision-sandbox/invalid-execution-record-approved-status.json",
+        "data/fixtures/decision-sandbox/invalid-execution-record-stderr-content.json",
+        "data/fixtures/decision-sandbox/invalid-execution-record-output-authority.json",
+        "data/fixtures/decision-sandbox/invalid-execution-record-private-reasoning.json"
+      ],
+      "test_file": "tests/decision-sandbox/decision-sandbox-schemas.test.ts",
+      "status": "implemented",
+      "purpose": "AI-143 contract 1.0.0: immutable, hash-bound evidence of one fixture-runner execution (policy, adapter, request hash, status, process outcome, accepted envelope and result hashes, closed diagnostics), with a semantic_execution_hash that excludes operational telemetry and an execution_record_hash that binds the complete record including telemetry.",
+      "downstream_role": "Evidence only; output_authority none and downstream_allowed false; sandbox success is not approval, benchmark success or promotion eligibility; not wired into AI-141 evaluation or AI-120 lifecycle.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": true
     }
   ]
 }

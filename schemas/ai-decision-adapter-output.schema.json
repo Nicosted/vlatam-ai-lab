@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/ai-decision-adapter-output.schema.json",
+  "title": "AI-143 decision adapter output envelope",
+  "description": "Common adapter protocol ai-lab-decision-adapter 1.0.0, framing json-line-v1: exactly one output envelope, the whole of the adapter's stdout, as one compact UTF-8 JSON line. result is the exact AI-140 typed decision result (no competing result shape); result_hash must equal result.result_hash and its AI-140 recomputation. Execution id, request hash and result-to-request binding are enforced by src/decision-sandbox/validation.ts. A valid output is sandbox output, not approved intelligence: downstream_allowed stays false inside the result.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract",
+    "protocol",
+    "protocol_version",
+    "execution_id",
+    "request_hash",
+    "result",
+    "result_hash"
+  ],
+  "properties": {
+    "contract": {
+      "const": "decision_adapter_output"
+    },
+    "protocol": {
+      "const": "ai-lab-decision-adapter"
+    },
+    "protocol_version": {
+      "const": "1.0.0"
+    },
+    "execution_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{1,127}$"
+    },
+    "request_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "result": {
+      "$ref": "https://vlatam-ai-lab.local/schemas/ai-typed-decision-result.schema.json"
+    },
+    "result_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    }
+  }
+}

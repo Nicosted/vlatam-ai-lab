@@ -1,0 +1,50 @@
+{
+  "contract": "decision_adapter_output",
+  "protocol": "ai-lab-decision-adapter",
+  "protocol_version": "1.0.0",
+  "execution_id": "sandbox-fixture-execution-0001",
+  "request_hash": "0eaa461b53efe3d593695a90711746228877bc2432c744a4a8cd0d4742451598",
+  "result": {
+    "contract": "typed_decision_result",
+    "schema_version": "1.0.0",
+    "result_id": "synthetic-evidence-sufficiency-result-0001",
+    "result_origin": "synthetic_fixture",
+    "request_binding": {
+      "request_id": "synthetic-evidence-sufficiency-request-0001",
+      "capability_id": "synthetic.decision.evidence_sufficiency_assess",
+      "request_hash": "0eaa461b53efe3d593695a90711746228877bc2432c744a4a8cd0d4742451598",
+      "semantic_request_hash": "b82e5b256292a95d641e316cb67b20478969ab1d3f04b3f267db404bc4ae18c2"
+    },
+    "execution_paradigm": "typed_decision",
+    "decision_type": "boolean",
+    "status": "succeeded",
+    "decision": {
+      "kind": "boolean",
+      "value": true,
+      "probability_true_micros": 910000
+    },
+    "confidence": null,
+    "abstention": null,
+    "block": null,
+    "failure": null,
+    "escalation": {
+      "recommendation": "none",
+      "executed": false,
+      "governed_policy_ref": null
+    },
+    "evidence_refs": [
+      {
+        "evidence_id": "synthetic-fixture-packet-0001",
+        "content_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      }
+    ],
+    "governance": {
+      "human_review_required": true,
+      "downstream_allowed": false,
+      "approval_state": "pending"
+    },
+    "result_hash": "20082df9bdf6e6505bd20bdac180a20cc03d1b0d4cd39b0f7c61dd22e199ed44"
+  },
+  "result_hash": "20082df9bdf6e6505bd20bdac180a20cc03d1b0d4cd39b0f7c61dd22e199ed44",
+  "reasoning": "synthetic placeholder"
+}

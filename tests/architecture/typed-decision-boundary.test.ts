@@ -6,6 +6,7 @@ import { describe, it } from "node:test";
 const DECISION_DIR = "src/decision";
 const EVALUATION_DIR = "src/decision-evaluation/";
 const CANDIDATE_REGISTRY_DIR = "src/decision-candidates/";
+const SANDBOX_DIR = "src/decision-sandbox/";
 
 /**
  * The only modules the typed decision plane may reach, directly or
@@ -134,17 +135,21 @@ describe("AI-140 typed decision plane architecture boundary", () => {
     // AI-142: the pure candidate registry, which reuses only the canonical
     // form and validation vocabulary and is itself unwired
     // (tests/architecture/decision-candidate-registry-boundary.test.ts).
+    // AI-143: the decision sandbox, which reuses the canonical form, the
+    // request/result contracts and validators and is itself unwired
+    // (tests/architecture/decision-sandbox-boundary.test.ts).
     assert.deepEqual(
       consumers.filter(
         (file) =>
           !file.startsWith(EVALUATION_DIR) &&
-          !file.startsWith(CANDIDATE_REGISTRY_DIR),
+          !file.startsWith(CANDIDATE_REGISTRY_DIR) &&
+          !file.startsWith(SANDBOX_DIR),
       ),
       [],
-      "no production module outside the AI-141 evaluation layer and the AI-142 candidate registry may consume the typed decision plane",
+      "no production module outside the AI-141 evaluation layer, the AI-142 candidate registry and the AI-143 decision sandbox may consume the typed decision plane",
     );
-    for (const file of consumers.filter((f) =>
-      f.startsWith(CANDIDATE_REGISTRY_DIR),
+    for (const file of consumers.filter(
+      (f) => f.startsWith(CANDIDATE_REGISTRY_DIR) || f.startsWith(SANDBOX_DIR),
     ))
       for (const specifier of importSpecifiers(readFileSync(file, "utf8")))
         if (resolveLocal(file, specifier).startsWith(`${DECISION_DIR}/`))

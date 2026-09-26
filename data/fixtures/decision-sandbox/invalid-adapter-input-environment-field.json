@@ -1,0 +1,52 @@
+{
+  "contract": "decision_adapter_input",
+  "protocol": "ai-lab-decision-adapter",
+  "protocol_version": "1.0.0",
+  "execution_id": "sandbox-fixture-execution-0001",
+  "request": {
+    "contract": "typed_decision_request",
+    "schema_version": "1.0.0",
+    "request_id": "synthetic-evidence-sufficiency-request-0001",
+    "capability_id": "synthetic.decision.evidence_sufficiency_assess",
+    "execution_paradigm": "typed_decision",
+    "decision_type": "boolean",
+    "bounded_state": {
+      "facts": [
+        {
+          "fact_id": "packet.claim_count",
+          "value_type": "integer",
+          "value": 3
+        },
+        {
+          "fact_id": "packet.cited_claim_count",
+          "value_type": "integer",
+          "value": 3
+        }
+      ]
+    },
+    "question": {
+      "question_id": "synthetic.evidence.sufficient",
+      "text": "Does every claim in this synthetic packet cite at least one declared evidence reference?"
+    },
+    "output_domain": {
+      "kind": "boolean"
+    },
+    "policy": {
+      "data_classification": "internal",
+      "human_review_required": true,
+      "abstention_permitted": true,
+      "escalation_policy_ref": null,
+      "downstream_use": "none"
+    },
+    "evidence_refs": [
+      {
+        "evidence_id": "synthetic-fixture-packet-0001",
+        "content_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      }
+    ]
+  },
+  "request_hash": "0eaa461b53efe3d593695a90711746228877bc2432c744a4a8cd0d4742451598",
+  "env": {
+    "NODE_OPTIONS": "--require=preload.js"
+  }
+}
