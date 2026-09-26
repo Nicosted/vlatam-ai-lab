@@ -117,11 +117,28 @@ canonical JSON and removes floating-point ambiguity. Rules:
   `1_000_000`; `partial` distributions sum to at most `1_000_000`;
 - non-integer, non-finite, negative or > `1_000_000` values fail;
 - a request may require a complete distribution;
-- the selected candidate must appear in the distribution and be modal;
-- a boolean's `probability_true_micros` must be coherent with its value.
+- the selected candidate must be a request candidate and, when a
+  distribution is present, must appear in it;
+- a boolean's `probability_true_micros`, when present, must be in range.
 
 There is no normalization step. A malformed distribution is rejected, never
 repaired.
+
+> Probabilities describe candidate evidence. They do not define the decision
+> policy and they never grant authority.
+
+The contract validates the structure of probabilities, not the rule that maps
+them to a decision. It therefore does **not** require the selected choice to
+be the modal (highest-probability) candidate, and it does **not** apply an
+implicit `0.5` threshold between a boolean `value` and
+`probability_true_micros`. Asymmetric misclassification costs,
+workload-specific or calibrated thresholds, abstention bands and other
+post-probability rules are decision policy. For example, `P(true) = 0.70`
+under a reviewed threshold of `0.80` yields `value: false`, and a
+cost-sensitive policy may select a non-modal candidate; both are structurally
+valid results. AI-140 defines no decision policy and no threshold
+configuration; binding a result to a reviewed decision policy is future work
+that requires its own reviewed PR.
 
 ## 5. Abstention is first-class
 
@@ -182,6 +199,13 @@ canonical candidate order, `compareChoicePermutationInvariance` compares two
 such results per stable candidate identity with an explicitly supplied
 integer tolerance (no default). AI-141+ can use it to test permutation
 invariance of real candidates; AI-140 only proves it on synthetic fixtures.
+
+The canonicalizer in `src/decision/canonical.ts` is a local copy of the
+provider registries' `registry-json-v1` implementation so that the decision
+plane never imports the provider layer. Byte compatibility (outputs and
+rejected inputs) is proven by the contract tests. Extracting a shared,
+layer-neutral canonical JSON utility is recorded as possible future technical
+debt and is intentionally not done in AI-140.
 
 ## 9. No self-promotion; future candidates only as governed candidates
 

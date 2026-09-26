@@ -127,11 +127,6 @@ request hashing for permutation-invariance testing. See
 provider, runtime, sandbox, capability, Operator surface, scheduler or traffic
 is added; AI-120 contracts are unchanged.
 
-Numbering note: an unmerged local branch
-`feat/ai-140-regulatory-storage-contract` also uses the AI-140 label for a
-durable regulatory storage contract. It is not on `main`; whichever lands
-second must be renumbered.
-
 The following typed decision sequence is a roadmap intention only. None of
 AI-141 through AI-148 exists, and each requires its own review:
 

@@ -631,7 +631,8 @@ and are not deferred to later PRs.
 11. A confidence or probability value is evidence about a model output, not
     authority to act (AI-140). No threshold grants downstream authority, and
     confidence is not a probability of truth without a reviewed calibration
-    artifact.
+    artifact. Probabilities describe candidate evidence; they do not define
+    the decision policy.
 12. Typed decision execution may recommend abstention or escalation, but
     escalation must be governed explicitly and must never behave as an
     implicit fallback (AI-140). See

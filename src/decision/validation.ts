@@ -72,14 +72,12 @@ export const TYPED_DECISION_ISSUE_CODES = [
   "status_payload_mismatch",
   "decision_payload_invalid",
   "selected_candidate_unknown",
-  "selected_candidate_not_modal",
   "probability_invalid",
   "distribution_order_invalid",
   "distribution_candidate_unknown",
   "distribution_incomplete",
   "distribution_sum_invalid",
   "distribution_required",
-  "boolean_probability_incoherent",
   "score_out_of_range",
   "score_scale_mismatch",
   "ranking_not_permutation",
@@ -557,8 +555,7 @@ function checkDecisionPayload(
       let structurallyValid = true;
       let previous: string | null = null;
       const seen = new Set<string>();
-      let modal = -1;
-      let selectedProbability: number | null = null;
+      let selectedPresent = false;
       entries.forEach((entry: unknown, index) => {
         const ep = `${at}.distribution.entries[${index}]`;
         if (!isRecord(entry)) {
@@ -587,18 +584,18 @@ function checkDecisionPayload(
           return;
         }
         sum += p;
-        modal = Math.max(modal, p);
-        if (id === decision["selected_candidate_id"]) selectedProbability = p;
+        if (id === decision["selected_candidate_id"]) selectedPresent = true;
       });
       if (!structurallyValid) break;
       if (completeness === "complete" && sum !== PROBABILITY_MICROS_SCALE)
         c.add("distribution_sum_invalid", `${at}.distribution`);
       if (completeness === "partial" && sum > PROBABILITY_MICROS_SCALE)
         c.add("distribution_sum_invalid", `${at}.distribution`);
-      if (selectedProbability === null)
+      // Membership only. Which candidate is selected given a distribution is
+      // decision policy (costs, thresholds, abstention bands), not a
+      // structural invariant, so a non-modal selection is not rejected.
+      if (!selectedPresent)
         c.add("selected_candidate_unknown", `${at}.selected_candidate_id`);
-      else if (selectedProbability < modal)
-        c.add("selected_candidate_not_modal", `${at}.selected_candidate_id`);
       break;
     }
     case "boolean": {
@@ -608,16 +605,10 @@ function checkDecisionPayload(
       if (typeof v !== "boolean")
         c.add("decision_payload_invalid", `${at}.value`);
       if (p === null) break;
-      if (!isMicros(p)) {
+      // Range only. No implicit threshold relates `value` to
+      // `probability_true_micros`; any threshold is decision policy.
+      if (!isMicros(p))
         c.add("probability_invalid", `${at}.probability_true_micros`);
-        break;
-      }
-      const half = PROBABILITY_MICROS_SCALE / 2;
-      if ((v === true && p < half) || (v === false && p > half))
-        c.add(
-          "boolean_probability_incoherent",
-          `${at}.probability_true_micros`,
-        );
       break;
     }
     case "score": {

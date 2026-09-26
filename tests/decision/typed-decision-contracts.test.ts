@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { describe, it } from "node:test";
 
 import { Ajv2020 } from "ajv/dist/2020.js";
@@ -580,14 +580,75 @@ describe("AI-140 typed decision results fail closed", () => {
     );
   });
 
-  it("rejects a selected candidate that is not modal in its own distribution", () => {
+  it("accepts a non-modal selection: choosing among candidates is decision policy, not structure", () => {
+    // A separately governed cost-sensitive policy may select a candidate that
+    // is not the most probable one. The contract validates the distribution
+    // as evidence and does not impose an argmax rule.
+    const nonModal = withDistribution(
+      { completeness: "complete", entries: entries() },
+      "intent.other",
+    );
+    const standalone = validateTypedDecisionResult(nonModal);
+    assert.equal(standalone.ok, true, codes(standalone).join(","));
+    const bound = validateTypedDecisionResultForRequest(
+      nonModal,
+      choiceRequest(),
+    );
+    assert.equal(bound.ok, true, codes(bound).join(","));
+    assert.equal(resultSchema(nonModal), true);
+
+    // Partial distributions and the least probable candidate are admitted too.
+    const partial = withDistribution(
+      {
+        completeness: "partial",
+        entries: entries().filter(
+          (entry) => entry.candidate_id !== "intent.tariff_question",
+        ),
+      },
+      "intent.other",
+    );
+    const partialCheck = validateTypedDecisionResult(partial);
+    assert.equal(partialCheck.ok, true, codes(partialCheck).join(","));
+
+    // Structural invariants still hold for a non-modal selection.
+    const list = entries();
+    list[0]!.probability_micros += 1;
     assertResultRejected(
       withDistribution(
-        { completeness: "complete", entries: entries() },
+        { completeness: "complete", entries: list },
         "intent.other",
       ),
-      "selected_candidate_not_modal",
+      "distribution_sum_invalid",
     );
+    assertResultRejected(
+      withDistribution(
+        { completeness: "complete", entries: entries().reverse() },
+        "intent.other",
+      ),
+      "distribution_order_invalid",
+    );
+    assertResultRejected(
+      withDistribution(
+        {
+          completeness: "partial",
+          entries: entries().filter(
+            (entry) => entry.candidate_id !== "intent.other",
+          ),
+        },
+        "intent.other",
+      ),
+      "selected_candidate_unknown",
+    );
+  });
+
+  it("declares no decision-policy issue codes in the structural contract", () => {
+    const vocabulary =
+      decisionPlane.TYPED_DECISION_ISSUE_CODES as readonly string[];
+    for (const policyCode of [
+      "selected_candidate_not_modal",
+      "boolean_probability_incoherent",
+    ])
+      assert.equal(vocabulary.includes(policyCode), false, policyCode);
   });
 
   it("rejects malformed confidence and any calibration claim", () => {
@@ -877,7 +938,7 @@ describe("AI-140 typed decision results fail closed", () => {
     assertResultRejected(alteredHash, "evidence_not_in_request");
   });
 
-  it("enforces score bounds, score scale, ranking permutation and boolean coherence", () => {
+  it("enforces score bounds, score scale, ranking permutation and boolean structure", () => {
     const scoreRequest = fixture("valid-score-request.json");
     const score = fixture("valid-score-result.json");
     assertResultRejected(
@@ -936,18 +997,19 @@ describe("AI-140 typed decision results fail closed", () => {
 
     const booleanRequest = fixture("valid-boolean-request.json");
     const bool = fixture("valid-boolean-result.json");
-    assertResultRejected(
-      rehash({
-        ...bool,
-        decision: {
-          kind: "boolean",
-          value: true,
-          probability_true_micros: 100_000,
-        },
-      }),
-      "boolean_probability_incoherent",
-      booleanRequest,
-    );
+    for (const bad of [1_000_001, -1, 0.7, 700_000.5])
+      assertResultRejected(
+        rehash({
+          ...bool,
+          decision: {
+            kind: "boolean",
+            value: false,
+            probability_true_micros: bad,
+          },
+        }),
+        "probability_invalid",
+        booleanRequest,
+      );
     assertResultRejected(
       rehash({
         ...bool,
@@ -960,6 +1022,46 @@ describe("AI-140 typed decision results fail closed", () => {
       "decision_payload_invalid",
       booleanRequest,
     );
+  });
+
+  it("applies no implicit 0.5 threshold between a boolean value and its probability", () => {
+    // Example: P(true) = 0.70 under a reviewed threshold of 0.80 yields
+    // false. The threshold is decision policy and is not defined here.
+    const booleanRequest = fixture("valid-boolean-request.json");
+    const bool = fixture("valid-boolean-result.json");
+    for (const [value, probability] of [
+      [false, 700_000],
+      [false, 1_000_000],
+      [true, 100_000],
+      [true, 0],
+      [false, 500_000],
+      [true, 500_000],
+    ] as const) {
+      const result = rehash({
+        ...bool,
+        decision: {
+          kind: "boolean",
+          value,
+          probability_true_micros: probability,
+        },
+      });
+      const check = validateTypedDecisionResultForRequest(
+        result,
+        booleanRequest,
+      );
+      assert.equal(
+        check.ok,
+        true,
+        `${value}@${probability}: ${codes(check).join(",")}`,
+      );
+      assert.equal(resultSchema(result), true);
+      const disposition = deriveTypedDecisionDisposition(
+        result,
+        booleanRequest,
+      );
+      assert.equal(disposition.downstream_allowed, false);
+      assert.equal(disposition.authority_granted, false);
+    }
   });
 
   it("rejects a decision payload whose kind differs from the decision type", () => {
@@ -1109,15 +1211,35 @@ describe("AI-140 governance: results are evidence, never authority", () => {
 describe("AI-140 determinism and candidate-order invariance", () => {
   it("uses the repository registry-json-v1 canonical form byte-for-byte", () => {
     assert.equal(TYPED_DECISION_CANONICALIZATION_VERSION, "registry-json-v1");
+    const fixtureSamples = readdirSync(FIXTURES)
+      .filter((name) => name.endsWith(".json"))
+      .sort()
+      .map((name) => fixture<unknown>(name));
+    assert.ok(fixtureSamples.length > 0);
     for (const sample of [
-      choiceRequest(),
-      choiceResult(),
+      ...fixtureSamples,
       { b: [1, { d: null, c: true }], a: "é " },
+      // UTF-16 code unit key order, astral characters, escapes, extremes.
+      { "\u{1F600}": 1, "\uFFFF": 2, Z: 3, a: 4, "": 5, '\n"': "\u0000" },
+      { n: [0, -0, -1, Number.MAX_SAFE_INTEGER, Number.MIN_SAFE_INTEGER] },
+      { empty_object: {}, empty_array: [], nested: [[[]], [{}]] },
     ]) {
       assert.equal(
         canonicalizeTypedDecisionJson(sample),
         canonicalizeOpenRouterRegistryJson(sample),
       );
+    }
+    // Both implementations reject the same non-canonicalizable inputs.
+    for (const bad of [
+      { p: 0.5 },
+      { p: Number.POSITIVE_INFINITY },
+      { p: Number.MAX_SAFE_INTEGER + 1 },
+      { p: undefined },
+      { p: new Date(0) },
+      { p: 1n },
+    ]) {
+      assert.throws(() => canonicalizeTypedDecisionJson(bad));
+      assert.throws(() => canonicalizeOpenRouterRegistryJson(bad));
     }
     assert.throws(
       () => canonicalizeTypedDecisionJson({ p: 0.5 }),

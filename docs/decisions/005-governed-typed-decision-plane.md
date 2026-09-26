@@ -24,6 +24,13 @@ model automatically when unsure.
    authority to act. Probabilities are exact integer parts-per-million and are
    never normalized or repaired; confidence is uncalibrated and calibration
    claims are rejected until a reviewed calibration artifact exists.
+   Probabilities describe candidate evidence; they do not define the decision
+   policy. The contract enforces structure only (candidate membership, stable
+   identity, range, exact complete-distribution sum, canonical order,
+   complete/partial semantics, request binding) and does not require a modal
+   choice or an implicit `0.5` boolean threshold. Decision policies (costs,
+   thresholds, abstention bands) are out of scope and require a later
+   reviewed PR.
 4. Typed decision execution may recommend abstention or escalation, but
    escalation must be governed explicitly and must never behave as an
    implicit fallback. Escalation is never executed by this plane.
