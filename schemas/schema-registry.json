@@ -1875,6 +1875,68 @@
       "requires_human_review_semantics": true,
       "requires_traceability": true,
       "downstream_allowed_field_present": true
+    },
+    {
+      "contract_name": "ai_typed_decision_candidate_adapter_spec",
+      "schema_file": "schemas/ai-typed-decision-candidate-adapter-spec.schema.json",
+      "valid_fixture": "data/decision-candidate-methods/v1/semif-direct-logit/adapter-spec.json",
+      "invalid_fixtures": [
+        "data/fixtures/decision-candidate-methods/invalid-spec-wrong-candidate-hash.json",
+        "data/fixtures/decision-candidate-methods/invalid-spec-other-candidate.json",
+        "data/fixtures/decision-candidate-methods/invalid-spec-changed-evidence-revision.json",
+        "data/fixtures/decision-candidate-methods/invalid-spec-calibration-applied.json",
+        "data/fixtures/decision-candidate-methods/invalid-spec-boolean-supported.json",
+        "data/fixtures/decision-candidate-methods/invalid-spec-eligibility-granted.json",
+        "data/fixtures/decision-candidate-methods/invalid-spec-mutable-upstream-ref.json",
+        "data/fixtures/decision-candidate-methods/invalid-spec-upstream-code-reused.json",
+        "data/fixtures/decision-candidate-methods/invalid-spec-candidate-model-origin.json"
+      ],
+      "test_file": "tests/decision-candidate-methods/candidate-method-schemas.test.ts",
+      "status": "implemented",
+      "purpose": "AI-144 contract 1.0.0: closed specification of the AI-LAB-owned SemIf direct-logit method adapter, binding the exact AI-142 candidate evidence revision (id, hash, revision), pinned upstream methodology evidence and interpretations, the exact AI-143 fixture artifact hash, fixed method parameters and choice-only scope.",
+      "downstream_role": "Evidence only; executes methodology over synthetic logits, never upstream code or a model; calibration not applied; authority none; no benchmark, promotion or production eligibility; stale on any AI-142 candidate hash drift.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": false
+    },
+    {
+      "contract_name": "ai_typed_decision_synthetic_logit_fixture",
+      "schema_file": "schemas/ai-typed-decision-synthetic-logit-fixture.schema.json",
+      "valid_fixture": "data/decision-candidate-methods/v1/synthetic-logits/synthetic-logits-intent-0001.json",
+      "invalid_fixtures": [
+        "data/fixtures/decision-candidate-methods/invalid-logit-fixture-model-output.json",
+        "data/fixtures/decision-candidate-methods/invalid-logit-fixture-fractional-logit.json",
+        "data/fixtures/decision-candidate-methods/invalid-logit-fixture-out-of-bound-logit.json",
+        "data/fixtures/decision-candidate-methods/invalid-logit-fixture-single-candidate.json",
+        "data/fixtures/decision-candidate-methods/invalid-logit-fixture-model-provenance.json"
+      ],
+      "test_file": "tests/decision-candidate-methods/candidate-method-schemas.test.ts",
+      "status": "implemented",
+      "purpose": "AI-144 contract 1.0.0: repository-owned deterministic synthetic integer micro-logits bound by candidate id to an exact AI-140 request identity (capability, semantic request hash, exact request hashes).",
+      "downstream_role": "Synthetic method-conformance input only; never a model output, never Gold Decision truth, never evaluation evidence.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": false
+    },
+    {
+      "contract_name": "ai_typed_decision_candidate_adapter_evidence_pack",
+      "schema_file": "schemas/ai-typed-decision-candidate-adapter-evidence-pack.schema.json",
+      "valid_fixture": "data/decision-candidate-methods/v1/semif-direct-logit/evidence-pack.json",
+      "invalid_fixtures": [
+        "data/fixtures/decision-candidate-methods/invalid-pack-approved-review.json",
+        "data/fixtures/decision-candidate-methods/invalid-pack-model-executed.json",
+        "data/fixtures/decision-candidate-methods/invalid-pack-ai-lab-executed.json",
+        "data/fixtures/decision-candidate-methods/invalid-pack-eligible-readiness.json",
+        "data/fixtures/decision-candidate-methods/invalid-pack-dropped-standing-blocker.json",
+        "data/fixtures/decision-candidate-methods/invalid-pack-calibration-applied.json"
+      ],
+      "test_file": "tests/decision-candidate-methods/candidate-method-schemas.test.ts",
+      "status": "implemented",
+      "purpose": "AI-144 contract 1.0.0: immutable evidence pack binding the AI-142 SemIf candidate evidence revision, upstream commit, methodology evidence, adapter spec hash, method artifact hash, synthetic logit fixture hashes, unchanged AI-143 policy hash and actual-candidate execution readiness blockers.",
+      "downstream_role": "Evidence for human review only; readiness is always not_eligible_for_candidate_execution; review draft or in_review, never self-approved; not wired into AI-141 evaluation or AI-120 lifecycle.",
+      "requires_human_review_semantics": true,
+      "requires_traceability": true,
+      "downstream_allowed_field_present": false
     }
   ]
 }

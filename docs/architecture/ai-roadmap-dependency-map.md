@@ -158,7 +158,7 @@ records what we know; it does not authorize what may run. No candidate is
 executed, installed, downloaded, benchmarked or ranked. See
 `docs/architecture/ai-typed-decision-candidate-registry.md` and ADR-007.
 
-## AI-143 Decision Sandbox Runtime + common adapter protocol (current PR; fixture execution only)
+## AI-143 Decision Sandbox Runtime + common adapter protocol (implemented 2026-09-26; fixture execution only)
 
 AI-143 adds the common adapter protocol `ai-lab-decision-adapter` `1.0.0`
 (framing `json-line-v1`, carrying the AI-140 request and result
@@ -175,8 +175,26 @@ not established. No candidate is executed, installed, downloaded or
 benchmarked; AI-141 evaluation and AI-120 lifecycle are not wired. See
 `docs/architecture/ai-decision-sandbox-runtime.md` and ADR-008.
 
+## AI-144 SemIf direct-logit method baseline (current PR; synthetic logits only)
+
+AI-144 adds the first candidate-specific typed decision method path: an
+AI-LAB-owned implementation of the pinned SemIf direct option-logit
+methodology (`TheoLeeCJ/SemIf-OpenJev` at
+`23cf1f39fc9534fe81437200959b6dfc7106e45a`), bound to the exact AI-142
+entry `tdc-theoleecj-semif` (evidence revision 1, candidate hash
+`02c465ac…5228f29`) by a closed adapter specification, exercised only over
+repository-owned synthetic logits as one additional AI-143
+`synthetic_fixture_adapter` under the unchanged fixture policy
+(`src/decision-candidate-methods/`, `schemas/ai-typed-decision-*`). Choice
+only; results stay `result_origin: "synthetic_fixture"`; calibration is
+not applied. AI-144 does not execute SemIf upstream code, Qwen or any
+model, and it is not a candidate ranking: the registered SemIf candidate
+stays non-executable (`not_eligible_for_candidate_execution`), AI-141
+evaluation and AI-120 lifecycle are not wired. See
+`docs/architecture/ai-semif-direct-logit-method-adapter.md` and ADR-009.
+
 The following typed decision sequence is a roadmap intention only. Apart
-from AI-140, AI-141, AI-142 and the current AI-143 PR, none of AI-144
+from AI-140 through AI-143 and the current AI-144 PR, none of AI-145
 through AI-148 exists, and each requires its own review:
 
 | PR         | Title                                              | Intent                                                                                              |
@@ -184,9 +202,9 @@ through AI-148 exists, and each requires its own review:
 | **AI-140** | Governed Typed Decision Plane                      | Contracts, validators, hashing, disposition (implemented).                                          |
 | **AI-141** | Gold Decision Evaluation Set                       | Versioned synthetic gold decisions, evaluator and metrics (implemented; seed set in review).        |
 | **AI-142** | Candidate Registry                                 | Evidence-bound, fail-closed candidate inventory (implemented; no execution).                        |
-| **AI-143** | Decision Sandbox Runtime + common adapter protocol | Common adapter protocol and bounded fixture-only runner; no candidate execution (current PR).       |
-| AI-144     | Direct-Logit Baseline                              | Direct-logit baseline / first separately reviewed candidate adapter (future).                       |
-| AI-145     | Specialized Candidates                             | Additional governed candidates admitted only through AI-142/AI-143 (future).                        |
+| **AI-143** | Decision Sandbox Runtime + common adapter protocol | Common adapter protocol and bounded fixture-only runner; no candidate execution (implemented).      |
+| **AI-144** | SemIf direct-logit method baseline                 | AI-LAB-owned SemIf-method adapter over synthetic logits; no upstream/model execution (current PR).  |
+| AI-145     | Specialized candidate paths                        | Additional governed candidates admitted only through AI-142/AI-143 (future).                        |
 | AI-146     | Research/Training Lab                              | Separately governed research track; no promotion authority (future).                                |
 | AI-147     | Tournament + Operator integration                  | Additive `execution_paradigm` on AI-120 identity; capability-specific ranking, no universal winner. |
 | AI-148     | First governed tournament                          | First human-reviewed synthetic tournament; promotion remains an independent human decision.         |

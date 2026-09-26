@@ -1,0 +1,130 @@
+{
+  "contract": "typed_decision_candidate_adapter_evidence_pack",
+  "schema_version": "1.0.0",
+  "pack_id": "ai-lab-semif-direct-logit-method-evidence-pack",
+  "candidate_binding": {
+    "candidate_id": "tdc-theoleecj-semif",
+    "candidate_hash": "02c465ac9c13b88f0cda245eae350f45b0d91cd66b24e0ededf9d73df5228f29",
+    "evidence_revision": 1
+  },
+  "upstream_commit": "23cf1f39fc9534fe81437200959b6dfc7106e45a",
+  "adapter_spec": {
+    "adapter_spec_id": "ai-lab-semif-direct-logit-method-adapter-spec",
+    "adapter_spec_version": "1.0.0",
+    "adapter_spec_hash": "1bed58897043c66765b2c594056e5be2f2adb5a8d75e4a40463f21bc90b39574"
+  },
+  "methodology_evidence": [
+    {
+      "evidence_id": "ev-calibration-doc",
+      "path": "docs/CALIBRATION.md",
+      "blob_sha": "3322779402bb8b64cf76bc732f0714948624316f",
+      "content_sha256": "3682decd5773d1d995423fa37d87053138fcdbc720a4105b27b89a1881f491b1"
+    },
+    {
+      "evidence_id": "ev-core-source",
+      "path": "src/semif_phase1/core.py",
+      "blob_sha": "b3a6968d5d7d509f44328d4e88a29d80d0609462",
+      "content_sha256": "2ed5702373242f62928dbe5339fa8b3eebe716cea94816519b6c1baa27e56da5"
+    },
+    {
+      "evidence_id": "ev-direct-source",
+      "path": "src/semif_phase1/direct.py",
+      "blob_sha": "930eb49368f973212d4cce435ecac4810ab9a885",
+      "content_sha256": "e42b91281b6fa16de3cabaf98b452dc026c0ee77869e5c1b10f44b962f3222cc"
+    },
+    {
+      "evidence_id": "ev-evaluator-source",
+      "path": "benchmarks/evaluate.py",
+      "blob_sha": "1913cf1476a19624a6285ea914bfe0dbc4825c71",
+      "content_sha256": "2b8376577294d6836e2aff1bccf5d4d01aa1ec39e21f8f908281437b2bd4f2af"
+    },
+    {
+      "evidence_id": "ev-license",
+      "path": "LICENSE",
+      "blob_sha": "ca562883550941229de6555a8374fe2c83a18e08",
+      "content_sha256": "f765f2140f8507a8f0d81ec0fd2c4bd72fe6a066841ef27883ff876a76bf61be"
+    },
+    {
+      "evidence_id": "ev-method-doc",
+      "path": "docs/METHOD.md",
+      "blob_sha": "32114ecaaf8d1939fd357ebd736fcd4944161902",
+      "content_sha256": "f328e1d8d11fd801132a409d5de8c73894ddaa4789a3601d072c756f9fb940c0"
+    },
+    {
+      "evidence_id": "ev-model-manifest",
+      "path": "manifests/models.json",
+      "blob_sha": "04ef2347cdc510eed9a9f90cf6d2cde3ba44b0f6",
+      "content_sha256": "b7286bd0a41c15e7c7d39475a33f268ec6edf11066026bb4017bb79c1ca3a8f2"
+    },
+    {
+      "evidence_id": "ev-readme",
+      "path": "README.md",
+      "blob_sha": "8f607dad48e9bff34b5bb5079e3d825715b01134",
+      "content_sha256": "89f00284285ea0dac7b0e10ff04ebe643e37fb1a3165ab7dbd13686e97d65f62"
+    },
+    {
+      "evidence_id": "ev-requirements",
+      "path": "requirements.txt",
+      "blob_sha": "a6efd38c18d1de68871759ac2d0f7eef8ff8c03e",
+      "content_sha256": "bc215c87d5eed29b4c4db100d53c1d763f807fbb7164a1c47ad8d89166fff87f"
+    },
+    {
+      "evidence_id": "ev-third-party",
+      "path": "THIRD_PARTY.md",
+      "blob_sha": "c11c1a471d6d9d35173dd244c2a4148dda098e90",
+      "content_sha256": "cf1815041c71181c6601c8acde1dd0d93fc4c9528efcd4a0637922d7fa96286b"
+    }
+  ],
+  "method_artifact": {
+    "ownership": "ai_lab",
+    "adapter_id": "ai-lab-direct-logit-method-fixture-adapter",
+    "adapter_version": "1.0.0",
+    "artifact_sha256": "5cc95a5209b2b8a60ef68735772fd9fc3fc93796173fcbedd67d8ecab38d509d"
+  },
+  "synthetic_logit_fixtures": [
+    {
+      "fixture_id": "synthetic-logits-bucket-0001",
+      "fixture_hash": "d719613a0496b861dc91111c9d2278722b7b3c0f34dc2d3d06931ce381808636"
+    },
+    {
+      "fixture_id": "synthetic-logits-hold-0001",
+      "fixture_hash": "1bb649c6f16d58b84887b19276218c545627cd8fee4399c8c551721694dc7da9"
+    },
+    {
+      "fixture_id": "synthetic-logits-intent-0001",
+      "fixture_hash": "22320b8d899196ba781d54274e37981101abbd0974673bec1967f4a9bb7ab515"
+    },
+    {
+      "fixture_id": "synthetic-logits-route-0001",
+      "fixture_hash": "5c1b65bd9734563aa982a51b47027a8cf048d2b5165ffedfa1acbca0452f7355"
+    }
+  ],
+  "sandbox_policy_hash": "6bad0bd18d779acb838ecf37e561d1678b13f0b53649acf40810972b03bc8378",
+  "calibration_state": "not_applied",
+  "result_origin": "synthetic_fixture",
+  "execution_readiness": {
+    "state": "eligible_for_candidate_execution",
+    "blockers": [
+      "archive_state_unresolved",
+      "base_model_license_unresolved",
+      "candidate_execution_not_authorized",
+      "hostile_code_isolation_not_established",
+      "model_artifact_not_bound",
+      "runtime_dependency_set_not_bound",
+      "upstream_code_not_admitted_to_sandbox"
+    ]
+  },
+  "execution_facts": {
+    "upstream_code_executed": false,
+    "model_executed": false,
+    "model_weights_downloaded": false,
+    "candidate_dependencies_installed": false,
+    "ai_lab_executed": false
+  },
+  "review": {
+    "state": "draft",
+    "human_review_required": true
+  },
+  "authority": "none",
+  "evidence_pack_hash": "c2b5bc46cc4ec554138195fd82d467b4917610b6d6cd257811c59cd31c333280"
+}

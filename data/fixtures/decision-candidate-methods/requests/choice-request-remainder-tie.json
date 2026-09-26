@@ -1,0 +1,56 @@
+{
+  "contract": "typed_decision_request",
+  "schema_version": "1.0.0",
+  "request_id": "synthetic-route-request-0001",
+  "capability_id": "synthetic.decision.queue_route",
+  "execution_paradigm": "typed_decision",
+  "decision_type": "choice",
+  "bounded_state": {
+    "facts": [
+      {
+        "fact_id": "ticket.channel",
+        "value_type": "string",
+        "value": "synthetic_portal"
+      },
+      {
+        "fact_id": "ticket.attachment_count",
+        "value_type": "integer",
+        "value": 2
+      }
+    ]
+  },
+  "question": {
+    "question_id": "synthetic.route.primary",
+    "text": "Which declared queue should receive this synthetic ticket?"
+  },
+  "output_domain": {
+    "kind": "choice",
+    "candidates": [
+      {
+        "candidate_id": "route.alpha",
+        "label": "Synthetic queue alpha"
+      },
+      {
+        "candidate_id": "route.beta",
+        "label": "Synthetic queue beta"
+      },
+      {
+        "candidate_id": "route.gamma",
+        "label": "Synthetic queue gamma"
+      },
+      {
+        "candidate_id": "route.delta",
+        "label": "Synthetic queue delta"
+      }
+    ],
+    "complete_distribution_required": true
+  },
+  "policy": {
+    "data_classification": "internal",
+    "human_review_required": true,
+    "abstention_permitted": true,
+    "escalation_policy_ref": null,
+    "downstream_use": "none"
+  },
+  "evidence_refs": []
+}

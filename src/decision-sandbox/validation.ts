@@ -88,6 +88,9 @@ export const DECISION_SANDBOX_ISSUE_CODES = [
   "request_hash_mismatch",
   "input_limit_exceeded",
   "output_authority_invalid",
+  // Adapter request support (AI-144)
+  "adapter_decision_type_unsupported",
+  "adapter_candidate_limit_exceeded",
   // Response binding
   "execution_id_mismatch",
   "typed_result_invalid",

@@ -1,0 +1,47 @@
+{
+  "contract": "typed_decision_request",
+  "schema_version": "1.0.0",
+  "request_id": "synthetic-hold-request-0001",
+  "capability_id": "synthetic.decision.hold_or_release",
+  "execution_paradigm": "typed_decision",
+  "decision_type": "choice",
+  "bounded_state": {
+    "facts": [
+      {
+        "fact_id": "record.flag_count",
+        "value_type": "integer",
+        "value": 1
+      }
+    ]
+  },
+  "question": {
+    "question_id": "synthetic.hold.primary",
+    "text": "Should this synthetic shipment record be held, released or escalated?"
+  },
+  "output_domain": {
+    "kind": "choice",
+    "candidates": [
+      {
+        "candidate_id": "hold.release",
+        "label": "Release the synthetic record"
+      },
+      {
+        "candidate_id": "hold.keep",
+        "label": "Keep the synthetic record on hold"
+      },
+      {
+        "candidate_id": "hold.escalate",
+        "label": "Escalate the synthetic record"
+      }
+    ],
+    "complete_distribution_required": true
+  },
+  "policy": {
+    "data_classification": "internal",
+    "human_review_required": true,
+    "abstention_permitted": true,
+    "escalation_policy_ref": null,
+    "downstream_use": "none"
+  },
+  "evidence_refs": []
+}

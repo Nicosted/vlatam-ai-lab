@@ -443,6 +443,14 @@ subject contract to bind `candidate_id`, `candidate_hash` and
 AI-144 (direct-logit baseline / first separately reviewed candidate
 adapter) is not started here. Nothing in AI-143 authorizes it.
 
+> AI-144 update: AI-144 admitted exactly one additional repository-owned
+> `synthetic_fixture_adapter` (the AI-LAB-owned direct option-logit method
+> fixture) under the unchanged fixture policy, and added per-adapter
+> decision-type and candidate-count checks to preflight. It executes no
+> upstream code and no model; none of the requirements above is met, and
+> every registered candidate is still refused before process creation. See
+> `docs/architecture/ai-semif-direct-logit-method-adapter.md`.
+
 ## 14. Explicit non-goals
 
 AI-143 does not execute any AI-142 candidate; clone candidate repositories;

@@ -10,10 +10,12 @@
  * AI-143 validates the adapter protocol, process containment mechanics,
  * bounded I/O, timeouts and evidence capture using trusted
  * repository-owned fixtures. It does not establish that arbitrary
- * upstream code is safely sandboxed. The only executable subject is the
- * repository-owned synthetic fixture adapter pinned below by exact
- * artifact SHA-256. An AI-142 registered candidate is recognised as a
- * subject kind only so that it can be refused before process creation.
+ * upstream code is safely sandboxed. The only executable subjects are the
+ * repository-owned synthetic fixture adapters allowlisted below by exact
+ * artifact SHA-256 (the AI-143 replay fixture and, since AI-144, the
+ * AI-LAB-owned direct option-logit method fixture). An AI-142 registered
+ * candidate is recognised as a subject kind only so that it can be
+ * refused before process creation.
  *
  * Invariants (full statement in
  * `docs/architecture/ai-decision-sandbox-runtime.md`):
@@ -36,9 +38,12 @@
  *     are recorded as not established.
  */
 
-import type {
-  TypedDecisionRequest,
-  TypedDecisionResult,
+import {
+  TYPED_DECISION_LIMITS,
+  TYPED_DECISION_TYPES,
+  type TypedDecisionRequest,
+  type TypedDecisionResult,
+  type TypedDecisionType,
 } from "../decision/contracts.js";
 
 export const DECISION_SANDBOX_CONTRACT_VERSION = "1.0.0" as const;
@@ -142,9 +147,19 @@ export interface DecisionSandboxFixtureAdapter {
   readonly artifact_sha256: string;
   readonly protocol_version: typeof DECISION_ADAPTER_PROTOCOL_VERSION;
   readonly result_origin: "synthetic_fixture";
+  /**
+   * AI-144: AI-140 decision types this adapter accepts. Preflight blocks
+   * any other type before process creation.
+   */
+  readonly supported_decision_types: readonly TypedDecisionType[];
+  /**
+   * AI-144: the largest declared candidate set (choice/ranking) this
+   * adapter accepts. Preflight blocks larger sets before process creation.
+   */
+  readonly max_candidates: number;
 }
 
-/** The single repository-owned synthetic fixture adapter admitted by AI-143. */
+/** The repository-owned synthetic replay fixture adapter admitted by AI-143. */
 export const DECISION_SANDBOX_FIXTURE_ADAPTER: DecisionSandboxFixtureAdapter =
   Object.freeze({
     adapter_id: "ai-lab-synthetic-decision-fixture-adapter",
@@ -156,11 +171,42 @@ export const DECISION_SANDBOX_FIXTURE_ADAPTER: DecisionSandboxFixtureAdapter =
       "9fbc93fefa4d65d762424b8b3ccc4bf9da981f3c4561795720ee47fb5767a3c5",
     protocol_version: DECISION_ADAPTER_PROTOCOL_VERSION,
     result_origin: "synthetic_fixture",
+    supported_decision_types: Object.freeze([...TYPED_DECISION_TYPES]),
+    max_candidates: TYPED_DECISION_LIMITS.max_candidates,
+  });
+
+/**
+ * AI-144: the repository-owned direct option-logit method fixture adapter.
+ *
+ * An AI-LAB-owned method implementation exercised only over embedded,
+ * repository-owned synthetic logits. It is a `synthetic_fixture_adapter`
+ * subject like the AI-143 fixture, runs under the same fixed policy and
+ * returns `result_origin: "synthetic_fixture"`. It is not a registered
+ * candidate and does not make any registered candidate executable; which
+ * upstream methodology it implements is recorded outside the sandbox, in
+ * the AI-144 candidate adapter specification.
+ */
+export const DECISION_SANDBOX_DIRECT_LOGIT_METHOD_ADAPTER: DecisionSandboxFixtureAdapter =
+  Object.freeze({
+    adapter_id: "ai-lab-direct-logit-method-fixture-adapter",
+    adapter_version: "1.0.0",
+    subject_kind: "synthetic_fixture_adapter",
+    artifact_path:
+      "src/decision-sandbox/fixture/direct-logit-method-adapter.mjs",
+    artifact_sha256:
+      "5cc95a5209b2b8a60ef68735772fd9fc3fc93796173fcbedd67d8ecab38d509d",
+    protocol_version: DECISION_ADAPTER_PROTOCOL_VERSION,
+    result_origin: "synthetic_fixture",
+    supported_decision_types: Object.freeze(["choice"] as const),
+    max_candidates: 16,
   });
 
 /** Closed allowlist. Extending it is a reviewed code change, never input. */
 export const DECISION_SANDBOX_FIXTURE_ADAPTERS: readonly DecisionSandboxFixtureAdapter[] =
-  Object.freeze([DECISION_SANDBOX_FIXTURE_ADAPTER]);
+  Object.freeze([
+    DECISION_SANDBOX_FIXTURE_ADAPTER,
+    DECISION_SANDBOX_DIRECT_LOGIT_METHOD_ADAPTER,
+  ]);
 
 // ---------------------------------------------------------------------
 // Sandbox policy

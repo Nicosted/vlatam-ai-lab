@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/ai-typed-decision-synthetic-logit-fixture.schema.json",
+  "title": "AI-144 Typed Decision Synthetic Logit Fixture",
+  "description": "Contract 1.0.0. Repository-owned, deterministic synthetic logits (never a model or a model output; model_output is false) bound to an exact AI-140 request identity: capability, semantic request hash and the exact request hashes (presented candidate orders) it answers. Each logit is an integer micro-logit (1 logit = 1000000) within +/-100000000, bound to a stable candidate_id, never to array position. No natural-language inference is performed. Candidate uniqueness, strictly ascending candidate order, request-hash ordering, the exact candidate-set match against a request and the self-excluding fixture_hash are enforced by src/decision-candidate-methods/validation.ts.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract",
+    "schema_version",
+    "fixture_id",
+    "provenance",
+    "model_output",
+    "request_binding",
+    "logit_unit",
+    "candidate_logits",
+    "fixture_hash"
+  ],
+  "properties": {
+    "contract": {
+      "const": "typed_decision_synthetic_logit_fixture"
+    },
+    "schema_version": {
+      "type": "string",
+      "pattern": "^1\\.[0-9]+\\.[0-9]+$"
+    },
+    "fixture_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{1,127}$"
+    },
+    "provenance": {
+      "const": "repository_owned_synthetic"
+    },
+    "model_output": {
+      "const": false
+    },
+    "request_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["capability_id", "semantic_request_hash", "request_hashes"],
+      "properties": {
+        "capability_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$"
+        },
+        "semantic_request_hash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "request_hashes": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        }
+      }
+    },
+    "logit_unit": {
+      "const": "micro_logit"
+    },
+    "candidate_logits": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 16,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["candidate_id", "logit_micros"],
+        "properties": {
+          "candidate_id": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9._-]{1,127}$"
+          },
+          "logit_micros": {
+            "type": "integer",
+            "minimum": -100000000,
+            "maximum": 100000000
+          }
+        }
+      }
+    },
+    "fixture_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    }
+  }
+}

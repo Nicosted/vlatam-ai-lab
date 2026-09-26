@@ -29,6 +29,8 @@ import * as sandbox from "../../src/decision-sandbox/index.js";
 const SANDBOX_DIR = "src/decision-sandbox";
 const EXECUTOR = `${SANDBOX_DIR}/executor.ts`;
 const FIXTURE_ADAPTER = `${SANDBOX_DIR}/fixture/synthetic-decision-adapter.mjs`;
+/** AI-144: the AI-LAB-owned direct option-logit method fixture adapter. */
+const METHOD_ADAPTER = `${SANDBOX_DIR}/fixture/direct-logit-method-adapter.mjs`;
 
 /** Modules the pure sandbox surface may reach. */
 const PURE_CLOSURE = new Set([
@@ -195,7 +197,20 @@ describe("AI-143 decision sandbox architecture boundary", () => {
       Object.isFrozen(sandbox.DECISION_SANDBOX_FIXTURE_ADAPTER),
       true,
     );
-    assert.equal(sandbox.DECISION_SANDBOX_FIXTURE_ADAPTERS.length, 1);
+    assert.equal(
+      Object.isFrozen(sandbox.DECISION_SANDBOX_DIRECT_LOGIT_METHOD_ADAPTER),
+      true,
+    );
+    // AI-144 admits exactly one additional repository-owned fixture.
+    assert.deepEqual(
+      sandbox.DECISION_SANDBOX_FIXTURE_ADAPTERS.map((a) => a.artifact_path),
+      [FIXTURE_ADAPTER, METHOD_ADAPTER],
+    );
+    for (const adapter of sandbox.DECISION_SANDBOX_FIXTURE_ADAPTERS) {
+      assert.equal(adapter.subject_kind, "synthetic_fixture_adapter");
+      assert.equal(adapter.result_origin, "synthetic_fixture");
+      assert.doesNotMatch(adapter.adapter_id, /^tdc-/);
+    }
   });
 
   it("the sandbox runtime has no network, provider, credential or environment access", () => {
@@ -229,6 +244,33 @@ describe("AI-143 decision sandbox architecture boundary", () => {
       /"?(?:reasoning|chain_of_thought|thinking)"?\s*:/,
     );
     assert.doesNotMatch(source, /api[_-]?key|secret|password|bearer|token/i);
+  });
+
+  it("the AI-144 method adapter has no network, filesystem, process, worker, model or code-generation access", () => {
+    const source = read(METHOD_ADAPTER);
+    const imports = importSpecifiers(source).sort();
+    assert.deepEqual(imports, [
+      "node:buffer",
+      "node:crypto",
+      "node:process",
+      "node:url",
+      "node:util",
+    ]);
+    assert.doesNotMatch(source, NETWORK_OR_PROVIDER);
+    assert.doesNotMatch(
+      source,
+      /node:fs|child_process|worker_threads|node:vm|node:os|\beval\s*\(|new Function\s*\(|\bimport\s*\(|\brequire\s*\(|readFile|writeFile|\bspawn\b|\bexec\b|process\.chdir|process\.kill|process\.binding|dlopen|setInterval|setTimeout|Math\.random|Date\.now|new Date\(/,
+    );
+    assert.doesNotMatch(
+      source,
+      /torch|transformers|safetensors|huggingface|tokenizer\.|\bmlx\b|llama|gguf|onnx|cuda|\bmps\b|webgpu/i,
+    );
+    assert.doesNotMatch(
+      source,
+      /"?(?:reasoning|chain_of_thought|thinking)"?\s*:/,
+    );
+    assert.doesNotMatch(source, /api[_-]?key|secret|password|bearer|token/i);
+    assert.doesNotMatch(source, /candidate_model/);
   });
 
   it("is not wired into any production module, API route, script, scheduler, provider, operator, tournament or evaluator", () => {
@@ -330,6 +372,8 @@ describe("AI-143 decision sandbox architecture boundary", () => {
       "src/decision-sandbox/canonical.ts",
       "src/decision-sandbox/contracts.ts",
       "src/decision-sandbox/executor.ts",
+      "src/decision-sandbox/fixture/direct-logit-method-adapter.d.mts",
+      "src/decision-sandbox/fixture/direct-logit-method-adapter.mjs",
       "src/decision-sandbox/fixture/synthetic-decision-adapter.mjs",
       "src/decision-sandbox/index.ts",
       "src/decision-sandbox/preflight.ts",
