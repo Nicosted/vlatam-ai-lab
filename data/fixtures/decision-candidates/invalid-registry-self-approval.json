@@ -1,0 +1,43 @@
+{
+  "contract": "typed_decision_candidate_registry",
+  "schema_version": "1.0.0",
+  "registry_id": "ai-lab-fixture-decision-candidates",
+  "registry_version": "1.0.0",
+  "review": {
+    "state": "in_review",
+    "human_review_required": true,
+    "approval_ref": "self"
+  },
+  "supersedes": null,
+  "authority": "evidence_only",
+  "universal_winner": false,
+  "candidates": [
+    {
+      "candidate_id": "tdc-fixture-decision-model",
+      "evidence_revision": 1,
+      "candidate_hash": "6207535525e79af7fcdfd30961a0fe10fc61e56055d0064d44c7081374fa62cf",
+      "repository": "ai-lab-fixtures/synthetic-decision-model",
+      "pinned_commit_sha": "0123456789abcdef0123456789abcdef01234567",
+      "roles": ["typed_decision_model"],
+      "evidence_completeness": "incomplete"
+    },
+    {
+      "candidate_id": "tdc-fixture-direct-logit-adapter",
+      "evidence_revision": 1,
+      "candidate_hash": "dfe296bfbff08a96aac64147ccc3f988a10138bc5027786bafbdc10b7d26dd9c",
+      "repository": "ai-lab-fixtures/synthetic-direct-logit-adapter",
+      "pinned_commit_sha": "89abcdef0123456789abcdef0123456789abcdef",
+      "roles": ["research_methodology", "typed_decision_adapter"],
+      "evidence_completeness": "incomplete"
+    }
+  ],
+  "role_distribution": {
+    "typed_decision_model": 1,
+    "research_methodology": 1,
+    "typed_decision_adapter": 1
+  },
+  "evidence_completeness_distribution": {
+    "incomplete": 2
+  },
+  "registry_hash": "9892ca5761568e7c4b9f5fb75e2b0a400a5f5ee76a435fc291ba86ff8107c209"
+}

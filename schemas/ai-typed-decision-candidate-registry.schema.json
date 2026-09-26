@@ -1,0 +1,178 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/ai-typed-decision-candidate-registry.schema.json",
+  "title": "AI-142 Typed Decision Candidate Registry manifest",
+  "description": "Contract 1.0.0. Versioned manifest binding an exact, strictly ordered set of typed decision candidate entries by (candidate_id, evidence_revision, candidate_hash, repository, pinned_commit_sha, roles, evidence_completeness), with recomputable role and evidence-completeness distributions under a self-excluding registry_hash. Review state is draft or in_review only: a registry can never approve itself; publication requires a future governed human-review binding of the exact registry hash. authority is evidence_only and universal_winner is false: the registry inventories candidates and never ranks, prefers, benchmarks, promotes or runs them. Ordering, uniqueness, entry binding, distribution recomputation and the hash are enforced by src/decision-candidates/validation.ts.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract",
+    "schema_version",
+    "registry_id",
+    "registry_version",
+    "review",
+    "supersedes",
+    "authority",
+    "universal_winner",
+    "candidates",
+    "role_distribution",
+    "evidence_completeness_distribution",
+    "registry_hash"
+  ],
+  "properties": {
+    "contract": {
+      "const": "typed_decision_candidate_registry"
+    },
+    "schema_version": {
+      "type": "string",
+      "pattern": "^1\\.[0-9]+\\.[0-9]+$"
+    },
+    "registry_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{1,127}$"
+    },
+    "registry_version": {
+      "$ref": "#/$defs/version"
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "human_review_required"],
+      "properties": {
+        "state": {
+          "enum": ["draft", "in_review"]
+        },
+        "human_review_required": {
+          "const": true
+        }
+      }
+    },
+    "supersedes": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["registry_version", "registry_hash"],
+          "properties": {
+            "registry_version": {
+              "$ref": "#/$defs/version"
+            },
+            "registry_hash": {
+              "$ref": "#/$defs/sha256"
+            }
+          }
+        }
+      ]
+    },
+    "authority": {
+      "const": "evidence_only"
+    },
+    "universal_winner": {
+      "const": false
+    },
+    "candidates": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 256,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "candidate_id",
+          "evidence_revision",
+          "candidate_hash",
+          "repository",
+          "pinned_commit_sha",
+          "roles",
+          "evidence_completeness"
+        ],
+        "properties": {
+          "candidate_id": {
+            "type": "string",
+            "pattern": "^tdc-[a-z0-9][a-z0-9-]{1,60}$"
+          },
+          "evidence_revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "candidate_hash": {
+            "$ref": "#/$defs/sha256"
+          },
+          "repository": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9-]{0,38}/[A-Za-z0-9._-]{1,100}$"
+          },
+          "pinned_commit_sha": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{40}$"
+          },
+          "roles": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 4,
+            "uniqueItems": true,
+            "items": {
+              "enum": [
+                "research_methodology",
+                "typed_decision_adapter",
+                "typed_decision_model",
+                "typed_decision_runtime"
+              ]
+            }
+          },
+          "evidence_completeness": {
+            "enum": ["complete", "incomplete"]
+          }
+        }
+      }
+    },
+    "role_distribution": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {
+        "type": "string",
+        "enum": [
+          "research_methodology",
+          "typed_decision_adapter",
+          "typed_decision_model",
+          "typed_decision_runtime"
+        ]
+      },
+      "additionalProperties": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 256
+      }
+    },
+    "evidence_completeness_distribution": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {
+        "type": "string",
+        "enum": ["complete", "incomplete"]
+      },
+      "additionalProperties": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 256
+      }
+    },
+    "registry_hash": {
+      "$ref": "#/$defs/sha256"
+    }
+  },
+  "$defs": {
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    }
+  }
+}

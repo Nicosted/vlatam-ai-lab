@@ -1,0 +1,166 @@
+{
+  "contract": "typed_decision_candidate_entry",
+  "schema_version": "1.0.0",
+  "candidate_id": "tdc-nandhakishorm-laya",
+  "evidence_revision": 1,
+  "supersedes": null,
+  "display_name": "Laya",
+  "roles": [
+    {
+      "role": "typed_decision_model",
+      "evidence_refs": ["ev-readme"]
+    }
+  ],
+  "upstream": {
+    "host": "github.com",
+    "requested_repository": "NandhaKishorM/laya",
+    "repository": "NandhaKishorM/laya",
+    "repository_url": "https://github.com/NandhaKishorM/laya",
+    "pinned_commit_sha": "4066d5d5fbf08b66c6757ddeedbd797bd7655bc0",
+    "default_branch_at_observation": "main",
+    "archive_state": "unresolved",
+    "observed_at": "2026-09-26T13:31:57Z"
+  },
+  "evidence": [
+    {
+      "evidence_id": "ev-license",
+      "evidence_kind": "license",
+      "locator": {
+        "repository": "NandhaKishorM/laya",
+        "commit_sha": "4066d5d5fbf08b66c6757ddeedbd797bd7655bc0",
+        "path": "LICENSE",
+        "blob_sha": "d9a10c0d8e868ebf8da0b3dc95bb0be634c34bfe",
+        "source_url": "https://github.com/NandhaKishorM/laya/blob/4066d5d5fbf08b66c6757ddeedbd797bd7655bc0/LICENSE"
+      },
+      "content_sha256": "a6cba85bc92e0cff7a450b1d873c0eaa2e9fc96bf472df0247a26bec77bf3ff9",
+      "observed_at": "2026-09-26T13:31:57Z"
+    },
+    {
+      "evidence_id": "ev-pyproject",
+      "evidence_kind": "package_manifest",
+      "locator": {
+        "repository": "NandhaKishorM/laya",
+        "commit_sha": "4066d5d5fbf08b66c6757ddeedbd797bd7655bc0",
+        "path": "pyproject.toml",
+        "blob_sha": "27b6688056c6077894bc1acbb9d119e53275504e",
+        "source_url": "https://github.com/NandhaKishorM/laya/blob/4066d5d5fbf08b66c6757ddeedbd797bd7655bc0/pyproject.toml"
+      },
+      "content_sha256": "95b594bc7e55ac82e0065de599d028101174a5ebe6400046e20bae517875ca27",
+      "observed_at": "2026-09-26T13:31:57Z"
+    },
+    {
+      "evidence_id": "ev-readme",
+      "evidence_kind": "readme",
+      "locator": {
+        "repository": "NandhaKishorM/laya",
+        "commit_sha": "4066d5d5fbf08b66c6757ddeedbd797bd7655bc0",
+        "path": "README.md",
+        "blob_sha": "54c20cf9ad116f2ab3a0f59e356883d23fbb7de4",
+        "source_url": "https://github.com/NandhaKishorM/laya/blob/4066d5d5fbf08b66c6757ddeedbd797bd7655bc0/README.md"
+      },
+      "content_sha256": "051dd4af3383b41e1a687b90faeee4203fd2182db247c87dd82dafc02a0622fd",
+      "observed_at": "2026-09-26T13:31:57Z"
+    }
+  ],
+  "licensing": {
+    "code": {
+      "status": "evidenced",
+      "declared_identifier": "Apache-2.0",
+      "evidence_refs": ["ev-license"]
+    },
+    "weights": {
+      "involvement": "involved",
+      "location": "external_reference",
+      "declared_reference": "huggingface.co/convaiinnovations/laya, laya-multilingual, laya-typed-decisions",
+      "status": "unresolved",
+      "declared_identifier": null,
+      "evidence_refs": ["ev-readme"]
+    },
+    "base_model": {
+      "status": "unresolved",
+      "declared_name": "ModernBERT-large; mmBERT-base",
+      "declared_identifier": null,
+      "evidence_refs": ["ev-readme"]
+    },
+    "training_data": {
+      "status": "partially_evidenced",
+      "evidence_refs": ["ev-readme"]
+    }
+  },
+  "upstream_claims": [
+    {
+      "claim_id": "claim-base-encoders",
+      "claim_kind": "base_model_relationship",
+      "statement": "README lists three checkpoints: laya and laya-typed-decisions on a ModernBERT-large encoder (421M) and laya-multilingual on an mmBERT-base encoder (322M).",
+      "evidence_refs": ["ev-readme"],
+      "verification": "upstream_claim"
+    },
+    {
+      "claim_id": "claim-calibration",
+      "claim_kind": "calibration",
+      "statement": "README states the checkpoints are over-confident as shipped and laya-multilingual has no fitted temperatures; it reports ECE 0.081 post-temperature in a comparison table.",
+      "evidence_refs": ["ev-readme"],
+      "verification": "upstream_claim"
+    },
+    {
+      "claim_id": "claim-execution-surfaces",
+      "claim_kind": "execution_surface",
+      "statement": "README states CPU, CUDA and MPS devices, an ONNX Runtime extra, a TileLang GPU fast path, an HTTP server (laya-serve) and an optional MCP server.",
+      "evidence_refs": ["ev-readme"],
+      "verification": "upstream_claim"
+    },
+    {
+      "claim_id": "claim-languages",
+      "claim_kind": "language_support",
+      "statement": "README states laya-multilingual handles 100+ languages and lists 45 of 51 languages as usable in a comparison table.",
+      "evidence_refs": ["ev-readme"],
+      "verification": "upstream_claim"
+    },
+    {
+      "claim_id": "claim-latency",
+      "claim_kind": "performance",
+      "statement": "README reports p50 latency of 32.8 ms for one question on a Tesla T4.",
+      "evidence_refs": ["ev-readme"],
+      "verification": "upstream_claim"
+    },
+    {
+      "claim_id": "claim-training-method",
+      "claim_kind": "training_methodology",
+      "statement": "README states training with reinforcement learning against strictly proper scoring rules (RLCD).",
+      "evidence_refs": ["ev-readme"],
+      "verification": "upstream_claim"
+    },
+    {
+      "claim_id": "claim-training-scope",
+      "claim_kind": "performance",
+      "statement": "README states the base checkpoints are near chance on typed-decisions zero-shot; its 0.766 accuracy figure comes from a checkpoint fine-tuned on that benchmark's own training split.",
+      "evidence_refs": ["ev-readme"],
+      "verification": "upstream_claim"
+    },
+    {
+      "claim_id": "claim-weights-license-statement",
+      "claim_kind": "weights_reference",
+      "statement": "README comparison table lists the weights as Apache 2.0 and links three checkpoints on Hugging Face.",
+      "evidence_refs": ["ev-readme"],
+      "verification": "upstream_claim"
+    }
+  ],
+  "evidence_gaps": [
+    "archive_state_unresolved",
+    "base_model_license_unresolved",
+    "training_data_provenance_incomplete",
+    "weights_license_unresolved"
+  ],
+  "evidence_completeness": "incomplete",
+  "lifecycle": {
+    "registry_state": "discovered",
+    "ai_lab_executed": false,
+    "execution_enabled": false,
+    "benchmark_execution_enabled": false,
+    "promotion_eligible": false,
+    "production_eligible": false,
+    "routing_enabled": false,
+    "authority": "evidence_only"
+  },
+  "candidate_hash": "3f1a251931275a7fb530ebc6f889fb1597741ee645cdfaa7d8a2b1e7f1d1a974"
+}

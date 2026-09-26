@@ -1,0 +1,136 @@
+{
+  "contract": "typed_decision_candidate_entry",
+  "schema_version": "1.0.0",
+  "candidate_id": "tdc-tianyucodings-nanojev",
+  "evidence_revision": 1,
+  "supersedes": null,
+  "display_name": "NanoJev",
+  "roles": [
+    {
+      "role": "research_methodology",
+      "evidence_refs": ["ev-readme"]
+    },
+    {
+      "role": "typed_decision_model",
+      "evidence_refs": ["ev-readme"]
+    }
+  ],
+  "upstream": {
+    "host": "github.com",
+    "requested_repository": "TianyuCodings/NanoJev",
+    "repository": "TianyuCodings/NanoJev",
+    "repository_url": "https://github.com/TianyuCodings/NanoJev",
+    "pinned_commit_sha": "76fdfc9ecdca45a9bcef17991a07d3041a87685a",
+    "default_branch_at_observation": "main",
+    "archive_state": "unresolved",
+    "observed_at": "2026-09-26T13:32:13Z"
+  },
+  "evidence": [
+    {
+      "evidence_id": "ev-license",
+      "evidence_kind": "license",
+      "locator": {
+        "repository": "TianyuCodings/NanoJev",
+        "commit_sha": "76fdfc9ecdca45a9bcef17991a07d3041a87685a",
+        "path": "LICENSE",
+        "blob_sha": "f6cd1f1b6511c81f43c8be48004a53332ed4f73c",
+        "source_url": "https://github.com/TianyuCodings/NanoJev/blob/76fdfc9ecdca45a9bcef17991a07d3041a87685a/LICENSE"
+      },
+      "content_sha256": "c69c1bb0b33112f68f9e8ef7e91dd38ec59066fcba3f62f70cbc8c9c83cf6a8e",
+      "observed_at": "2026-09-26T13:32:13Z"
+    },
+    {
+      "evidence_id": "ev-readme",
+      "evidence_kind": "readme",
+      "locator": {
+        "repository": "TianyuCodings/NanoJev",
+        "commit_sha": "76fdfc9ecdca45a9bcef17991a07d3041a87685a",
+        "path": "README.md",
+        "blob_sha": "a8f8afeb7e4462e45211aaeee391bfd4ee2e9cc2",
+        "source_url": "https://github.com/TianyuCodings/NanoJev/blob/76fdfc9ecdca45a9bcef17991a07d3041a87685a/README.md"
+      },
+      "content_sha256": "4536f6769de55391a83a2282632f5ad66f16966a7204cf3278242fe5d2892809",
+      "observed_at": "2026-09-26T13:32:13Z"
+    }
+  ],
+  "licensing": {
+    "code": {
+      "status": "evidenced",
+      "declared_identifier": "MIT",
+      "evidence_refs": ["ev-license"]
+    },
+    "weights": {
+      "involvement": "involved",
+      "location": "external_reference",
+      "declared_reference": "huggingface.co/C-Tianyu/NanoJev (release tag unified-games-v1)",
+      "status": "unresolved",
+      "declared_identifier": null,
+      "evidence_refs": ["ev-readme"]
+    },
+    "base_model": {
+      "status": "unresolved",
+      "declared_name": "Qwen3-0.6B",
+      "declared_identifier": null,
+      "evidence_refs": ["ev-readme"]
+    },
+    "training_data": {
+      "status": "partially_evidenced",
+      "evidence_refs": ["ev-readme"]
+    }
+  },
+  "upstream_claims": [
+    {
+      "claim_id": "claim-backbone",
+      "claim_kind": "base_model_relationship",
+      "statement": "README states a single Qwen3-0.6B backbone with decision heads shared across four game tasks.",
+      "evidence_refs": ["ev-readme"],
+      "verification": "upstream_claim"
+    },
+    {
+      "claim_id": "claim-evaluation-domain",
+      "claim_kind": "evaluation_documentation",
+      "statement": "README reports held-out results only on gameplay tasks (ViZDoom Basic and Predict Position, maze, snake) over a 274-case test set.",
+      "evidence_refs": ["ev-readme"],
+      "verification": "upstream_claim"
+    },
+    {
+      "claim_id": "claim-execution-surface",
+      "claim_kind": "execution_surface",
+      "statement": "README describes starting inference in a CUDA environment and a persistent inference service.",
+      "evidence_refs": ["ev-readme"],
+      "verification": "upstream_claim"
+    },
+    {
+      "claim_id": "claim-training-data",
+      "claim_kind": "training_methodology",
+      "statement": "README states 18,760 generated decision questions per target variant and 896 expert Predict Position episodes, trained with complete-question cross entropy.",
+      "evidence_refs": ["ev-readme"],
+      "verification": "upstream_claim"
+    },
+    {
+      "claim_id": "claim-weights",
+      "claim_kind": "weights_reference",
+      "statement": "README states the model and dataset are public on Hugging Face under release tag unified-games-v1.",
+      "evidence_refs": ["ev-readme"],
+      "verification": "upstream_claim"
+    }
+  ],
+  "evidence_gaps": [
+    "archive_state_unresolved",
+    "base_model_license_unresolved",
+    "training_data_provenance_incomplete",
+    "weights_license_unresolved"
+  ],
+  "evidence_completeness": "incomplete",
+  "lifecycle": {
+    "registry_state": "discovered",
+    "ai_lab_executed": false,
+    "execution_enabled": false,
+    "benchmark_execution_enabled": false,
+    "promotion_eligible": false,
+    "production_eligible": false,
+    "routing_enabled": false,
+    "authority": "evidence_only"
+  },
+  "candidate_hash": "f7b2aec5293cb428a81f65d7818b2378f0c8ff52b488948d22a63c4fad0fd3db"
+}

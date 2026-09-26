@@ -1,0 +1,169 @@
+{
+  "contract": "typed_decision_candidate_entry",
+  "schema_version": "1.0.0",
+  "candidate_id": "tdc-rizzo-ai-academy-rizzo-flow",
+  "evidence_revision": 1,
+  "supersedes": null,
+  "display_name": "Rizzo Flow",
+  "roles": [
+    {
+      "role": "typed_decision_model",
+      "evidence_refs": ["ev-readme"]
+    },
+    {
+      "role": "typed_decision_runtime",
+      "evidence_refs": ["ev-readme"]
+    }
+  ],
+  "upstream": {
+    "host": "github.com",
+    "requested_repository": "Rizzo-AI-Academy/rizzo-flow",
+    "repository": "Rizzo-AI-Academy/rizzo-flow",
+    "repository_url": "https://github.com/Rizzo-AI-Academy/rizzo-flow",
+    "pinned_commit_sha": "b9ba007ee4d2928bbab5b1d8bfe9009c3696b6de",
+    "default_branch_at_observation": "main",
+    "archive_state": "unresolved",
+    "observed_at": "2026-09-26T13:32:11Z"
+  },
+  "evidence": [
+    {
+      "evidence_id": "ev-license",
+      "evidence_kind": "license",
+      "locator": {
+        "repository": "Rizzo-AI-Academy/rizzo-flow",
+        "commit_sha": "b9ba007ee4d2928bbab5b1d8bfe9009c3696b6de",
+        "path": "LICENSE",
+        "blob_sha": "ac4613f4f8ecde1c4d221029871c14cb013e351f",
+        "source_url": "https://github.com/Rizzo-AI-Academy/rizzo-flow/blob/b9ba007ee4d2928bbab5b1d8bfe9009c3696b6de/LICENSE"
+      },
+      "content_sha256": "5f5c9b5ea1d10393364f6ad2a8de43be1ab157b83e39a44ca443668a29bca234",
+      "observed_at": "2026-09-26T13:32:11Z"
+    },
+    {
+      "evidence_id": "ev-notice",
+      "evidence_kind": "third_party_notice",
+      "locator": {
+        "repository": "Rizzo-AI-Academy/rizzo-flow",
+        "commit_sha": "b9ba007ee4d2928bbab5b1d8bfe9009c3696b6de",
+        "path": "NOTICE",
+        "blob_sha": "d05c30a3368bd2ca2512b2548fec0e4c53a3c36f",
+        "source_url": "https://github.com/Rizzo-AI-Academy/rizzo-flow/blob/b9ba007ee4d2928bbab5b1d8bfe9009c3696b6de/NOTICE"
+      },
+      "content_sha256": "36eca8af7705979a1fa674d5d25f62262aa1d00ea0e6ba7454730184e9905149",
+      "observed_at": "2026-09-26T13:32:11Z"
+    },
+    {
+      "evidence_id": "ev-readme",
+      "evidence_kind": "readme",
+      "locator": {
+        "repository": "Rizzo-AI-Academy/rizzo-flow",
+        "commit_sha": "b9ba007ee4d2928bbab5b1d8bfe9009c3696b6de",
+        "path": "README.md",
+        "blob_sha": "bcbee9f97bb84a225ac23a44a194cb130ddc4da2",
+        "source_url": "https://github.com/Rizzo-AI-Academy/rizzo-flow/blob/b9ba007ee4d2928bbab5b1d8bfe9009c3696b6de/README.md"
+      },
+      "content_sha256": "45ed5fdfa5c7e32fbd99ad1c822896bf6c098a683bfaebe083c379a3c39c21f5",
+      "observed_at": "2026-09-26T13:32:11Z"
+    },
+    {
+      "evidence_id": "ev-training-doc",
+      "evidence_kind": "dataset_document",
+      "locator": {
+        "repository": "Rizzo-AI-Academy/rizzo-flow",
+        "commit_sha": "b9ba007ee4d2928bbab5b1d8bfe9009c3696b6de",
+        "path": "docs/training.md",
+        "blob_sha": "ca5eeb6c6c11b76d11462a3dd2603a63ee0a1bd2",
+        "source_url": "https://github.com/Rizzo-AI-Academy/rizzo-flow/blob/b9ba007ee4d2928bbab5b1d8bfe9009c3696b6de/docs/training.md"
+      },
+      "content_sha256": "6743c4b4701b19f0dae1e34a67df11c029c74119eb45649665bf4c1831711195",
+      "observed_at": "2026-09-26T13:32:11Z"
+    }
+  ],
+  "licensing": {
+    "code": {
+      "status": "evidenced",
+      "declared_identifier": "Apache-2.0",
+      "evidence_refs": ["ev-license"]
+    },
+    "weights": {
+      "involvement": "involved",
+      "location": "external_reference",
+      "declared_reference": "huggingface.co/rizzoaiacademy/rizzo-flow; huggingface.co/rizzoaiacademy/rizzo-flow-1.7b",
+      "status": "unresolved",
+      "declared_identifier": null,
+      "evidence_refs": ["ev-readme"]
+    },
+    "base_model": {
+      "status": "unresolved",
+      "declared_name": "XHToken/Spark-X2.5-4B; XHToken/Spark-X2.5-1.7B",
+      "declared_identifier": null,
+      "evidence_refs": ["ev-notice", "ev-readme"]
+    },
+    "training_data": {
+      "status": "partially_evidenced",
+      "evidence_refs": ["ev-readme", "ev-training-doc"]
+    }
+  },
+  "upstream_claims": [
+    {
+      "claim_id": "claim-base-license-statement",
+      "claim_kind": "base_model_relationship",
+      "statement": "NOTICE states the Spark-X2.5-4B and Spark-X2.5-1.7B base weights are Apache-2.0 by XHToken and are downloaded at run time, not redistributed.",
+      "evidence_refs": ["ev-notice"],
+      "verification": "upstream_claim"
+    },
+    {
+      "claim_id": "claim-calibration",
+      "claim_kind": "calibration",
+      "statement": "README states probabilities are uncalibrated unless calibrated on the user's own data, and reports Brier 0.205 and ECE 0.112 for the 4B fine-tune on typed-decisions.",
+      "evidence_refs": ["ev-readme"],
+      "verification": "upstream_claim"
+    },
+    {
+      "claim_id": "claim-execution-surfaces",
+      "claim_kind": "execution_surface",
+      "statement": "README states a llama.cpp runtime on Metal, CUDA, Vulkan, ROCm, SYCL or CPU, an MLX backend and a TypeSafe-compatible HTTP interface; Windows with an RTX 5060 Ti is the stated tested setup.",
+      "evidence_refs": ["ev-readme"],
+      "verification": "upstream_claim"
+    },
+    {
+      "claim_id": "claim-fine-tune",
+      "claim_kind": "base_model_relationship",
+      "statement": "README states the default weights since 2026-09-25 are Spark-X2.5 with a LoRA fine-tune for typed decisions merged in and converted to GGUF.",
+      "evidence_refs": ["ev-readme"],
+      "verification": "upstream_claim"
+    },
+    {
+      "claim_id": "claim-performance",
+      "claim_kind": "performance",
+      "statement": "README reports typed-decisions accuracy 0.648 for the 4B fine-tune versus 0.574 for the original Spark-X2.5-4B, stated as still below Jev.",
+      "evidence_refs": ["ev-readme"],
+      "verification": "upstream_claim"
+    },
+    {
+      "claim_id": "claim-training-data",
+      "claim_kind": "training_methodology",
+      "statement": "Training doc lists three public sources at pinned revisions with declared licenses (Apache-2.0, CC0, mixed per source) and names configs excluded for research-only or unknown licenses.",
+      "evidence_refs": ["ev-training-doc"],
+      "verification": "upstream_claim"
+    }
+  ],
+  "evidence_gaps": [
+    "archive_state_unresolved",
+    "base_model_license_unresolved",
+    "training_data_provenance_incomplete",
+    "weights_license_unresolved"
+  ],
+  "evidence_completeness": "incomplete",
+  "lifecycle": {
+    "registry_state": "discovered",
+    "ai_lab_executed": false,
+    "execution_enabled": false,
+    "benchmark_execution_enabled": false,
+    "promotion_eligible": false,
+    "production_eligible": false,
+    "routing_enabled": false,
+    "authority": "evidence_only"
+  },
+  "candidate_hash": "1189c1cf30b14d26d239d456e7f06042ea1f9b7b39988d0856e9759ce753b06c"
+}

@@ -1,0 +1,123 @@
+{
+  "contract": "typed_decision_candidate_entry",
+  "schema_version": "1.0.0",
+  "candidate_id": "tdc-fixture-decision-model",
+  "evidence_revision": 1,
+  "supersedes": null,
+  "display_name": "Synthetic fixture decision model",
+  "roles": [
+    {
+      "role": "typed_decision_model",
+      "evidence_refs": ["ev-readme"]
+    }
+  ],
+  "upstream": {
+    "host": "github.com",
+    "requested_repository": "ai-lab-fixtures/synthetic-decision-model",
+    "repository": "ai-lab-fixtures/synthetic-decision-model",
+    "repository_url": "https://github.com/ai-lab-fixtures/synthetic-decision-model",
+    "pinned_commit_sha": "0123456789abcdef0123456789abcdef01234567",
+    "default_branch_at_observation": "main",
+    "archive_state": "not_archived",
+    "observed_at": "2026-09-26T12:00:00Z"
+  },
+  "evidence": [
+    {
+      "evidence_id": "ev-license",
+      "evidence_kind": "license",
+      "locator": {
+        "repository": "ai-lab-fixtures/synthetic-decision-model",
+        "commit_sha": "0123456789abcdef0123456789abcdef01234567",
+        "path": "LICENSE",
+        "blob_sha": "c7ceccdd14ae51f19a238269bd713c50ac7aea18",
+        "source_url": "https://github.com/ai-lab-fixtures/synthetic-decision-model/blob/0123456789abcdef0123456789abcdef01234567/LICENSE"
+      },
+      "content_sha256": "05bac3bf3331f932ed5feb0d015a21bf3da9aefb2532ab90f0d6ec7aec13e89b",
+      "observed_at": "2026-09-26T12:00:00Z"
+    },
+    {
+      "evidence_id": "ev-metadata",
+      "evidence_kind": "repository_metadata",
+      "locator": {
+        "repository": "ai-lab-fixtures/synthetic-decision-model",
+        "commit_sha": "0123456789abcdef0123456789abcdef01234567",
+        "path": null,
+        "blob_sha": null,
+        "source_url": "https://github.com/ai-lab-fixtures/synthetic-decision-model/tree/0123456789abcdef0123456789abcdef01234567"
+      },
+      "content_sha256": "cc247347ca32c0111dac5ebd0a3a19164827d0107282bed808701e3f5e62743e",
+      "observed_at": "2026-09-26T12:00:00Z"
+    },
+    {
+      "evidence_id": "ev-readme",
+      "evidence_kind": "readme",
+      "locator": {
+        "repository": "ai-lab-fixtures/synthetic-decision-model",
+        "commit_sha": "0123456789abcdef0123456789abcdef01234567",
+        "path": "README.md",
+        "blob_sha": "005a68603b1d8421b80ecd26019bccec658562d3",
+        "source_url": "https://github.com/ai-lab-fixtures/synthetic-decision-model/blob/0123456789abcdef0123456789abcdef01234567/README.md"
+      },
+      "content_sha256": "b69eeab0f10140be4d8bd17fbdab1bf037063a2b3f505cf662322e3f9dcf5c57",
+      "observed_at": "2026-09-26T12:00:00Z"
+    }
+  ],
+  "licensing": {
+    "code": {
+      "status": "evidenced",
+      "declared_identifier": "MIT",
+      "evidence_refs": ["ev-license"]
+    },
+    "weights": {
+      "involvement": "involved",
+      "location": "external_reference",
+      "declared_reference": "synthetic-fixture/weights",
+      "status": "unresolved",
+      "declared_identifier": null,
+      "evidence_refs": ["ev-readme"]
+    },
+    "base_model": {
+      "status": "unresolved",
+      "declared_name": "synthetic-fixture/base",
+      "declared_identifier": null,
+      "evidence_refs": ["ev-readme"]
+    },
+    "training_data": {
+      "status": "unresolved",
+      "evidence_refs": []
+    }
+  },
+  "upstream_claims": [
+    {
+      "claim_id": "claim-execution-surface",
+      "claim_kind": "execution_surface",
+      "statement": "Synthetic README states CPU inference support.",
+      "evidence_refs": ["ev-readme"],
+      "verification": "upstream_claim"
+    },
+    {
+      "claim_id": "claim-languages",
+      "claim_kind": "language_support",
+      "statement": "Synthetic README states English and Spanish support.",
+      "evidence_refs": ["ev-readme"],
+      "verification": "upstream_claim"
+    }
+  ],
+  "evidence_gaps": [
+    "base_model_license_unresolved",
+    "training_data_provenance_incomplete",
+    "weights_license_unresolved"
+  ],
+  "evidence_completeness": "incomplete",
+  "lifecycle": {
+    "registry_state": "discovered",
+    "ai_lab_executed": false,
+    "execution_enabled": false,
+    "benchmark_execution_enabled": false,
+    "promotion_eligible": false,
+    "production_eligible": false,
+    "routing_enabled": false,
+    "authority": "evidence_only"
+  },
+  "candidate_hash": "6207535525e79af7fcdfd30961a0fe10fc61e56055d0064d44c7081374fa62cf"
+}
