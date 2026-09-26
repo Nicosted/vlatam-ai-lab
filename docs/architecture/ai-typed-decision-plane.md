@@ -55,7 +55,10 @@ The typed decision plane sits beside the Capability Contract Layer. It reuses
 the AI-71 `ResultGovernance` shape and invariants, the AI-71 forbidden-field
 guard, and the repository `registry-json-v1` canonical JSON form. It adds no
 path into the Model Execution, Routing, Review, Export or Operator layers; an
-architecture test proves no module outside `src/decision/` imports it.
+architecture test proves no module outside `src/decision/` imports it, except
+the pure, unwired AI-141 Gold Decision evaluation layer
+(`src/decision-evaluation/`, see
+`docs/architecture/ai-gold-decision-evaluation-set.md`).
 
 ## 3. Contract `1.0.0`
 

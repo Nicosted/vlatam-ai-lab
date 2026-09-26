@@ -1,0 +1,683 @@
+{
+  "contract": "gold_decision_evaluation_report",
+  "schema_version": "1.0.0",
+  "scoring_policy": "gold-decision-scoring-v1",
+  "dataset_id": "gold-decision-fixtures",
+  "dataset_version": "1.0.0",
+  "dataset_hash": "70831bbd5eec889c8a9017729af11ead4a101a3305a9d69171d2d660340e4faa",
+  "dataset_review_state": "draft",
+  "split_scope": "all",
+  "evaluation_hashes": [
+    "5ecbea5b5b5b399d509dec61eedc0014029a6e0c9136af3eea3811c14a556922",
+    "e44110599616496b86d5e14286cf38ed99c7252eb32815458c4af478a1ba2f27",
+    "8fbb245b39cea92e5e4b3a08a9c282eb2ccdfbecd26233378907433864bafdfc",
+    "957063042427852734a84c4d01daa718325718cf9fc10430e303b7a9f2e09315"
+  ],
+  "overall": {
+    "total_cases": 4,
+    "valid_results": 4,
+    "invalid_results": 0,
+    "decisions": 4,
+    "correct_decisions": 4,
+    "incorrect_decisions": 0,
+    "abstentions": 0,
+    "correct_abstentions": 0,
+    "permitted_abstentions": 0,
+    "incorrect_abstentions": 0,
+    "no_decisions": 0,
+    "abstention_required_cases": 0,
+    "accuracy": {
+      "numerator": "1",
+      "denominator": "1"
+    },
+    "coverage": {
+      "numerator": "1",
+      "denominator": "1"
+    },
+    "accuracy_at_coverage": {
+      "numerator": "1",
+      "denominator": "1"
+    },
+    "abstention_rate": {
+      "numerator": "0",
+      "denominator": "1"
+    },
+    "brier_choice_multiclass": {
+      "eligible_decisions": 2,
+      "decisions_without_probability": 0,
+      "sum_squared_error_micros2": "128200000000",
+      "brier_score": {
+        "numerator": "641",
+        "denominator": "10000"
+      }
+    },
+    "brier_boolean_binary": {
+      "eligible_decisions": 1,
+      "decisions_without_probability": 0,
+      "sum_squared_error_micros2": "8100000000",
+      "brier_score": {
+        "numerator": "81",
+        "denominator": "10000"
+      }
+    },
+    "score_error_by_scale": [
+      {
+        "scale_id": "synthetic.completeness.0_4",
+        "scored_decisions": 1,
+        "exact_or_in_range": 1,
+        "sum_absolute_error": "0",
+        "mean_absolute_error": {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      }
+    ]
+  },
+  "slices": {
+    "capability_id": [
+      {
+        "key": "synthetic.decision.document_completeness_score",
+        "metrics": {
+          "total_cases": 1,
+          "valid_results": 1,
+          "invalid_results": 0,
+          "decisions": 1,
+          "correct_decisions": 1,
+          "incorrect_decisions": 0,
+          "abstentions": 0,
+          "correct_abstentions": 0,
+          "permitted_abstentions": 0,
+          "incorrect_abstentions": 0,
+          "no_decisions": 0,
+          "abstention_required_cases": 0,
+          "accuracy": {
+            "numerator": "1",
+            "denominator": "1"
+          },
+          "coverage": {
+            "numerator": "1",
+            "denominator": "1"
+          },
+          "accuracy_at_coverage": {
+            "numerator": "1",
+            "denominator": "1"
+          },
+          "abstention_rate": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "brier_choice_multiclass": {
+            "eligible_decisions": 0,
+            "decisions_without_probability": 0,
+            "sum_squared_error_micros2": "0",
+            "brier_score": null
+          },
+          "brier_boolean_binary": {
+            "eligible_decisions": 0,
+            "decisions_without_probability": 0,
+            "sum_squared_error_micros2": "0",
+            "brier_score": null
+          },
+          "score_error_by_scale": [
+            {
+              "scale_id": "synthetic.completeness.0_4",
+              "scored_decisions": 1,
+              "exact_or_in_range": 1,
+              "sum_absolute_error": "0",
+              "mean_absolute_error": {
+                "numerator": "0",
+                "denominator": "1"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "key": "synthetic.decision.evidence_sufficiency_assess",
+        "metrics": {
+          "total_cases": 1,
+          "valid_results": 1,
+          "invalid_results": 0,
+          "decisions": 1,
+          "correct_decisions": 1,
+          "incorrect_decisions": 0,
+          "abstentions": 0,
+          "correct_abstentions": 0,
+          "permitted_abstentions": 0,
+          "incorrect_abstentions": 0,
+          "no_decisions": 0,
+          "abstention_required_cases": 0,
+          "accuracy": {
+            "numerator": "1",
+            "denominator": "1"
+          },
+          "coverage": {
+            "numerator": "1",
+            "denominator": "1"
+          },
+          "accuracy_at_coverage": {
+            "numerator": "1",
+            "denominator": "1"
+          },
+          "abstention_rate": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "brier_choice_multiclass": {
+            "eligible_decisions": 0,
+            "decisions_without_probability": 0,
+            "sum_squared_error_micros2": "0",
+            "brier_score": null
+          },
+          "brier_boolean_binary": {
+            "eligible_decisions": 1,
+            "decisions_without_probability": 0,
+            "sum_squared_error_micros2": "8100000000",
+            "brier_score": {
+              "numerator": "81",
+              "denominator": "10000"
+            }
+          },
+          "score_error_by_scale": []
+        }
+      },
+      {
+        "key": "synthetic.decision.intent_classify",
+        "metrics": {
+          "total_cases": 2,
+          "valid_results": 2,
+          "invalid_results": 0,
+          "decisions": 2,
+          "correct_decisions": 2,
+          "incorrect_decisions": 0,
+          "abstentions": 0,
+          "correct_abstentions": 0,
+          "permitted_abstentions": 0,
+          "incorrect_abstentions": 0,
+          "no_decisions": 0,
+          "abstention_required_cases": 0,
+          "accuracy": {
+            "numerator": "1",
+            "denominator": "1"
+          },
+          "coverage": {
+            "numerator": "1",
+            "denominator": "1"
+          },
+          "accuracy_at_coverage": {
+            "numerator": "1",
+            "denominator": "1"
+          },
+          "abstention_rate": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "brier_choice_multiclass": {
+            "eligible_decisions": 2,
+            "decisions_without_probability": 0,
+            "sum_squared_error_micros2": "128200000000",
+            "brier_score": {
+              "numerator": "641",
+              "denominator": "10000"
+            }
+          },
+          "brier_boolean_binary": {
+            "eligible_decisions": 0,
+            "decisions_without_probability": 0,
+            "sum_squared_error_micros2": "0",
+            "brier_score": null
+          },
+          "score_error_by_scale": []
+        }
+      }
+    ],
+    "decision_type": [
+      {
+        "key": "boolean",
+        "metrics": {
+          "total_cases": 1,
+          "valid_results": 1,
+          "invalid_results": 0,
+          "decisions": 1,
+          "correct_decisions": 1,
+          "incorrect_decisions": 0,
+          "abstentions": 0,
+          "correct_abstentions": 0,
+          "permitted_abstentions": 0,
+          "incorrect_abstentions": 0,
+          "no_decisions": 0,
+          "abstention_required_cases": 0,
+          "accuracy": {
+            "numerator": "1",
+            "denominator": "1"
+          },
+          "coverage": {
+            "numerator": "1",
+            "denominator": "1"
+          },
+          "accuracy_at_coverage": {
+            "numerator": "1",
+            "denominator": "1"
+          },
+          "abstention_rate": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "brier_choice_multiclass": {
+            "eligible_decisions": 0,
+            "decisions_without_probability": 0,
+            "sum_squared_error_micros2": "0",
+            "brier_score": null
+          },
+          "brier_boolean_binary": {
+            "eligible_decisions": 1,
+            "decisions_without_probability": 0,
+            "sum_squared_error_micros2": "8100000000",
+            "brier_score": {
+              "numerator": "81",
+              "denominator": "10000"
+            }
+          },
+          "score_error_by_scale": []
+        }
+      },
+      {
+        "key": "choice",
+        "metrics": {
+          "total_cases": 2,
+          "valid_results": 2,
+          "invalid_results": 0,
+          "decisions": 2,
+          "correct_decisions": 2,
+          "incorrect_decisions": 0,
+          "abstentions": 0,
+          "correct_abstentions": 0,
+          "permitted_abstentions": 0,
+          "incorrect_abstentions": 0,
+          "no_decisions": 0,
+          "abstention_required_cases": 0,
+          "accuracy": {
+            "numerator": "1",
+            "denominator": "1"
+          },
+          "coverage": {
+            "numerator": "1",
+            "denominator": "1"
+          },
+          "accuracy_at_coverage": {
+            "numerator": "1",
+            "denominator": "1"
+          },
+          "abstention_rate": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "brier_choice_multiclass": {
+            "eligible_decisions": 2,
+            "decisions_without_probability": 0,
+            "sum_squared_error_micros2": "128200000000",
+            "brier_score": {
+              "numerator": "641",
+              "denominator": "10000"
+            }
+          },
+          "brier_boolean_binary": {
+            "eligible_decisions": 0,
+            "decisions_without_probability": 0,
+            "sum_squared_error_micros2": "0",
+            "brier_score": null
+          },
+          "score_error_by_scale": []
+        }
+      },
+      {
+        "key": "score",
+        "metrics": {
+          "total_cases": 1,
+          "valid_results": 1,
+          "invalid_results": 0,
+          "decisions": 1,
+          "correct_decisions": 1,
+          "incorrect_decisions": 0,
+          "abstentions": 0,
+          "correct_abstentions": 0,
+          "permitted_abstentions": 0,
+          "incorrect_abstentions": 0,
+          "no_decisions": 0,
+          "abstention_required_cases": 0,
+          "accuracy": {
+            "numerator": "1",
+            "denominator": "1"
+          },
+          "coverage": {
+            "numerator": "1",
+            "denominator": "1"
+          },
+          "accuracy_at_coverage": {
+            "numerator": "1",
+            "denominator": "1"
+          },
+          "abstention_rate": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "brier_choice_multiclass": {
+            "eligible_decisions": 0,
+            "decisions_without_probability": 0,
+            "sum_squared_error_micros2": "0",
+            "brier_score": null
+          },
+          "brier_boolean_binary": {
+            "eligible_decisions": 0,
+            "decisions_without_probability": 0,
+            "sum_squared_error_micros2": "0",
+            "brier_score": null
+          },
+          "score_error_by_scale": [
+            {
+              "scale_id": "synthetic.completeness.0_4",
+              "scored_decisions": 1,
+              "exact_or_in_range": 1,
+              "sum_absolute_error": "0",
+              "mean_absolute_error": {
+                "numerator": "0",
+                "denominator": "1"
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "jurisdiction": [
+      {
+        "key": "NONE",
+        "metrics": {
+          "total_cases": 4,
+          "valid_results": 4,
+          "invalid_results": 0,
+          "decisions": 4,
+          "correct_decisions": 4,
+          "incorrect_decisions": 0,
+          "abstentions": 0,
+          "correct_abstentions": 0,
+          "permitted_abstentions": 0,
+          "incorrect_abstentions": 0,
+          "no_decisions": 0,
+          "abstention_required_cases": 0,
+          "accuracy": {
+            "numerator": "1",
+            "denominator": "1"
+          },
+          "coverage": {
+            "numerator": "1",
+            "denominator": "1"
+          },
+          "accuracy_at_coverage": {
+            "numerator": "1",
+            "denominator": "1"
+          },
+          "abstention_rate": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "brier_choice_multiclass": {
+            "eligible_decisions": 2,
+            "decisions_without_probability": 0,
+            "sum_squared_error_micros2": "128200000000",
+            "brier_score": {
+              "numerator": "641",
+              "denominator": "10000"
+            }
+          },
+          "brier_boolean_binary": {
+            "eligible_decisions": 1,
+            "decisions_without_probability": 0,
+            "sum_squared_error_micros2": "8100000000",
+            "brier_score": {
+              "numerator": "81",
+              "denominator": "10000"
+            }
+          },
+          "score_error_by_scale": [
+            {
+              "scale_id": "synthetic.completeness.0_4",
+              "scored_decisions": 1,
+              "exact_or_in_range": 1,
+              "sum_absolute_error": "0",
+              "mean_absolute_error": {
+                "numerator": "0",
+                "denominator": "1"
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "language": [
+      {
+        "key": "en",
+        "metrics": {
+          "total_cases": 4,
+          "valid_results": 4,
+          "invalid_results": 0,
+          "decisions": 4,
+          "correct_decisions": 4,
+          "incorrect_decisions": 0,
+          "abstentions": 0,
+          "correct_abstentions": 0,
+          "permitted_abstentions": 0,
+          "incorrect_abstentions": 0,
+          "no_decisions": 0,
+          "abstention_required_cases": 0,
+          "accuracy": {
+            "numerator": "1",
+            "denominator": "1"
+          },
+          "coverage": {
+            "numerator": "1",
+            "denominator": "1"
+          },
+          "accuracy_at_coverage": {
+            "numerator": "1",
+            "denominator": "1"
+          },
+          "abstention_rate": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "brier_choice_multiclass": {
+            "eligible_decisions": 2,
+            "decisions_without_probability": 0,
+            "sum_squared_error_micros2": "128200000000",
+            "brier_score": {
+              "numerator": "641",
+              "denominator": "10000"
+            }
+          },
+          "brier_boolean_binary": {
+            "eligible_decisions": 1,
+            "decisions_without_probability": 0,
+            "sum_squared_error_micros2": "8100000000",
+            "brier_score": {
+              "numerator": "81",
+              "denominator": "10000"
+            }
+          },
+          "score_error_by_scale": [
+            {
+              "scale_id": "synthetic.completeness.0_4",
+              "scored_decisions": 1,
+              "exact_or_in_range": 1,
+              "sum_absolute_error": "0",
+              "mean_absolute_error": {
+                "numerator": "0",
+                "denominator": "1"
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "split": [
+      {
+        "key": "development",
+        "metrics": {
+          "total_cases": 2,
+          "valid_results": 2,
+          "invalid_results": 0,
+          "decisions": 2,
+          "correct_decisions": 2,
+          "incorrect_decisions": 0,
+          "abstentions": 0,
+          "correct_abstentions": 0,
+          "permitted_abstentions": 0,
+          "incorrect_abstentions": 0,
+          "no_decisions": 0,
+          "abstention_required_cases": 0,
+          "accuracy": {
+            "numerator": "1",
+            "denominator": "1"
+          },
+          "coverage": {
+            "numerator": "1",
+            "denominator": "1"
+          },
+          "accuracy_at_coverage": {
+            "numerator": "1",
+            "denominator": "1"
+          },
+          "abstention_rate": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "brier_choice_multiclass": {
+            "eligible_decisions": 2,
+            "decisions_without_probability": 0,
+            "sum_squared_error_micros2": "128200000000",
+            "brier_score": {
+              "numerator": "641",
+              "denominator": "10000"
+            }
+          },
+          "brier_boolean_binary": {
+            "eligible_decisions": 0,
+            "decisions_without_probability": 0,
+            "sum_squared_error_micros2": "0",
+            "brier_score": null
+          },
+          "score_error_by_scale": []
+        }
+      },
+      {
+        "key": "test",
+        "metrics": {
+          "total_cases": 1,
+          "valid_results": 1,
+          "invalid_results": 0,
+          "decisions": 1,
+          "correct_decisions": 1,
+          "incorrect_decisions": 0,
+          "abstentions": 0,
+          "correct_abstentions": 0,
+          "permitted_abstentions": 0,
+          "incorrect_abstentions": 0,
+          "no_decisions": 0,
+          "abstention_required_cases": 0,
+          "accuracy": {
+            "numerator": "1",
+            "denominator": "1"
+          },
+          "coverage": {
+            "numerator": "1",
+            "denominator": "1"
+          },
+          "accuracy_at_coverage": {
+            "numerator": "1",
+            "denominator": "1"
+          },
+          "abstention_rate": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "brier_choice_multiclass": {
+            "eligible_decisions": 0,
+            "decisions_without_probability": 0,
+            "sum_squared_error_micros2": "0",
+            "brier_score": null
+          },
+          "brier_boolean_binary": {
+            "eligible_decisions": 0,
+            "decisions_without_probability": 0,
+            "sum_squared_error_micros2": "0",
+            "brier_score": null
+          },
+          "score_error_by_scale": [
+            {
+              "scale_id": "synthetic.completeness.0_4",
+              "scored_decisions": 1,
+              "exact_or_in_range": 1,
+              "sum_absolute_error": "0",
+              "mean_absolute_error": {
+                "numerator": "0",
+                "denominator": "1"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "key": "validation",
+        "metrics": {
+          "total_cases": 1,
+          "valid_results": 1,
+          "invalid_results": 0,
+          "decisions": 1,
+          "correct_decisions": 1,
+          "incorrect_decisions": 0,
+          "abstentions": 0,
+          "correct_abstentions": 0,
+          "permitted_abstentions": 0,
+          "incorrect_abstentions": 0,
+          "no_decisions": 0,
+          "abstention_required_cases": 0,
+          "accuracy": {
+            "numerator": "1",
+            "denominator": "1"
+          },
+          "coverage": {
+            "numerator": "1",
+            "denominator": "1"
+          },
+          "accuracy_at_coverage": {
+            "numerator": "1",
+            "denominator": "1"
+          },
+          "abstention_rate": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "brier_choice_multiclass": {
+            "eligible_decisions": 0,
+            "decisions_without_probability": 0,
+            "sum_squared_error_micros2": "0",
+            "brier_score": null
+          },
+          "brier_boolean_binary": {
+            "eligible_decisions": 1,
+            "decisions_without_probability": 0,
+            "sum_squared_error_micros2": "8100000000",
+            "brier_score": {
+              "numerator": "81",
+              "denominator": "10000"
+            }
+          },
+          "score_error_by_scale": []
+        }
+      }
+    ]
+  },
+  "authority": "evidence_only",
+  "calibration_claimed": false,
+  "universal_winner": false,
+  "report_hash": "d2a22a9da8a925393ad681030378916766077c279ad8f451ee47fbd2f294eb2d"
+}

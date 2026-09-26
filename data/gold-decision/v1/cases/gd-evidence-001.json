@@ -1,0 +1,92 @@
+{
+  "contract": "gold_decision_case",
+  "schema_version": "1.0.0",
+  "case_id": "gd-evidence-001",
+  "dataset_id": "ai-lab-gold-decisions",
+  "dataset_version": "1.0.0",
+  "split": "development",
+  "request": {
+    "contract": "typed_decision_request",
+    "schema_version": "1.0.0",
+    "request_id": "gd-evidence-001",
+    "capability_id": "synthetic.decision.evidence_sufficiency",
+    "execution_paradigm": "typed_decision",
+    "decision_type": "choice",
+    "bounded_state": {
+      "facts": [
+        {
+          "fact_id": "evidence.required_items",
+          "value_type": "integer",
+          "value": 3
+        },
+        {
+          "fact_id": "evidence.item.invoice.status",
+          "value_type": "string",
+          "value": "present_verified"
+        },
+        {
+          "fact_id": "evidence.item.packing_list.status",
+          "value_type": "string",
+          "value": "present_verified"
+        },
+        {
+          "fact_id": "evidence.item.origin_certificate.status",
+          "value_type": "string",
+          "value": "present_verified"
+        }
+      ]
+    },
+    "question": {
+      "question_id": "synthetic.evidence.sufficiency",
+      "text": "Regla sintética R-EVD-1: la evidencia es suficiente cuando cada ítem requerido está present_verified; insuficiente cuando algún ítem requerido está missing; incierta cuando ninguno está missing y al menos uno está present_unverified. Si la cantidad declarada de ítems requeridos difiere de la cantidad de ítems listados, los hechos se contradicen: abstenerse. ¿Qué tan suficiente es la evidencia de este expediente sintético?"
+    },
+    "output_domain": {
+      "kind": "choice",
+      "candidates": [
+        {
+          "candidate_id": "evidence.sufficient",
+          "label": "Suficiente"
+        },
+        {
+          "candidate_id": "evidence.insufficient",
+          "label": "Insuficiente"
+        },
+        {
+          "candidate_id": "evidence.uncertain",
+          "label": "Incierta"
+        }
+      ],
+      "complete_distribution_required": false
+    },
+    "policy": {
+      "data_classification": "internal",
+      "human_review_required": true,
+      "abstention_permitted": true,
+      "escalation_policy_ref": null,
+      "downstream_use": "none"
+    },
+    "evidence_refs": []
+  },
+  "expected": {
+    "kind": "choice",
+    "expected_candidate_id": "evidence.sufficient"
+  },
+  "abstention_policy": "allowed",
+  "permutation_group_id": null,
+  "provenance": {
+    "source_kind": "synthetic_construction",
+    "authoring_method": "repository_fixture",
+    "labeling_rule_id": "rule.evidence_sufficiency.v1",
+    "evidence_basis": [
+      "evidence.item.invoice.status",
+      "evidence.item.origin_certificate.status",
+      "evidence.item.packing_list.status",
+      "evidence.required_items"
+    ],
+    "candidate_generated": false
+  },
+  "language": "es-AR",
+  "jurisdiction": "NONE",
+  "tags": ["evidence_sufficiency"],
+  "case_hash": "53ed741b53c67695d538075e013d855f0252407bb3b3b19ec669e4694a5614ae"
+}

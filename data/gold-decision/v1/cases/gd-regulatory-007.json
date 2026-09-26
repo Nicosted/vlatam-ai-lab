@@ -1,0 +1,92 @@
+{
+  "contract": "gold_decision_case",
+  "schema_version": "1.0.0",
+  "case_id": "gd-regulatory-007",
+  "dataset_id": "ai-lab-gold-decisions",
+  "dataset_version": "1.0.0",
+  "split": "test",
+  "request": {
+    "contract": "typed_decision_request",
+    "schema_version": "1.0.0",
+    "request_id": "gd-regulatory-007",
+    "capability_id": "synthetic.decision.regulatory_relevance_triage",
+    "execution_paradigm": "typed_decision",
+    "decision_type": "choice",
+    "bounded_state": {
+      "facts": [
+        {
+          "fact_id": "notice.jurisdiction",
+          "value_type": "string",
+          "value": "AR"
+        },
+        {
+          "fact_id": "notice.product_category",
+          "value_type": "string",
+          "value": "synthetic_category_c"
+        },
+        {
+          "fact_id": "operation.destination_jurisdiction",
+          "value_type": "string",
+          "value": "AR"
+        },
+        {
+          "fact_id": "operation.product_category",
+          "value_type": "string",
+          "value": "synthetic_category_c"
+        }
+      ]
+    },
+    "question": {
+      "question_id": "synthetic.regulatory.relevance",
+      "text": "Synthetic scenario, not legal advice. Synthetic rule R-REG-1: if the notice jurisdiction is 'undeclared', abstain; if it differs from the operation destination → not relevant; if they match and the operation product category is 'undeclared' → uncertain; if they match and the categories match → relevant; if the categories differ → not relevant. Is the synthetic regulatory notice relevant to the synthetic operation?"
+    },
+    "output_domain": {
+      "kind": "choice",
+      "candidates": [
+        {
+          "candidate_id": "relevance.relevant",
+          "label": "Relevant"
+        },
+        {
+          "candidate_id": "relevance.not_relevant",
+          "label": "Not relevant"
+        },
+        {
+          "candidate_id": "relevance.uncertain",
+          "label": "Uncertain"
+        }
+      ],
+      "complete_distribution_required": false
+    },
+    "policy": {
+      "data_classification": "internal",
+      "human_review_required": true,
+      "abstention_permitted": true,
+      "escalation_policy_ref": null,
+      "downstream_use": "none"
+    },
+    "evidence_refs": []
+  },
+  "expected": {
+    "kind": "choice",
+    "expected_candidate_id": "relevance.relevant"
+  },
+  "abstention_policy": "allowed",
+  "permutation_group_id": null,
+  "provenance": {
+    "source_kind": "synthetic_construction",
+    "authoring_method": "repository_fixture",
+    "labeling_rule_id": "rule.regulatory_relevance.v1",
+    "evidence_basis": [
+      "notice.jurisdiction",
+      "notice.product_category",
+      "operation.destination_jurisdiction",
+      "operation.product_category"
+    ],
+    "candidate_generated": false
+  },
+  "language": "en",
+  "jurisdiction": "AR",
+  "tags": ["regulatory_relevance", "synthetic_regulatory_scenario"],
+  "case_hash": "0ad60fcfe73e8d0cc17e14ca4818759a975f51154f9874f33c08532fcd36fdeb"
+}

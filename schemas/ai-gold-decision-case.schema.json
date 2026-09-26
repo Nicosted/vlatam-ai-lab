@@ -1,0 +1,309 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vlatam-ai-lab.local/schemas/ai-gold-decision-case.schema.json",
+  "title": "AI-141 Gold Decision Case",
+  "description": "Contract 1.0.0. One reviewed, synthetic, provider-neutral evaluation case: an exact AI-140 typed decision request, an answer key inside its declared output domain, an explicit abstention policy (required | allowed | not_allowed), provenance bound to declared facts and a labeling rule, and language/jurisdiction/split slicing metadata. Candidates never create or modify it. Cross-field rules JSON Schema cannot express (expected kind equals decision type, expected candidate membership, score within scale, ranking permutation, evidence basis facts, strict tag order, self-hash) are enforced by src/decision-evaluation/validation.ts.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract",
+    "schema_version",
+    "case_id",
+    "dataset_id",
+    "dataset_version",
+    "split",
+    "request",
+    "expected",
+    "abstention_policy",
+    "permutation_group_id",
+    "provenance",
+    "language",
+    "jurisdiction",
+    "tags",
+    "case_hash"
+  ],
+  "properties": {
+    "contract": {
+      "const": "gold_decision_case"
+    },
+    "schema_version": {
+      "type": "string",
+      "pattern": "^1\\.[0-9]+\\.[0-9]+$"
+    },
+    "case_id": {
+      "$ref": "#/$defs/id"
+    },
+    "dataset_id": {
+      "$ref": "#/$defs/id"
+    },
+    "dataset_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "split": {
+      "enum": ["development", "validation", "test"]
+    },
+    "request": {
+      "$ref": "ai-typed-decision-request.schema.json"
+    },
+    "expected": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/choice_expectation"
+        },
+        {
+          "$ref": "#/$defs/boolean_expectation"
+        },
+        {
+          "$ref": "#/$defs/score_exact_expectation"
+        },
+        {
+          "$ref": "#/$defs/score_range_expectation"
+        },
+        {
+          "$ref": "#/$defs/ranking_expectation"
+        },
+        {
+          "$ref": "#/$defs/abstention_expectation"
+        }
+      ]
+    },
+    "abstention_policy": {
+      "enum": ["required", "allowed", "not_allowed"]
+    },
+    "permutation_group_id": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/id"
+        }
+      ]
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_kind",
+        "authoring_method",
+        "labeling_rule_id",
+        "evidence_basis",
+        "candidate_generated"
+      ],
+      "properties": {
+        "source_kind": {
+          "const": "synthetic_construction"
+        },
+        "authoring_method": {
+          "const": "repository_fixture"
+        },
+        "labeling_rule_id": {
+          "$ref": "#/$defs/id"
+        },
+        "evidence_basis": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/id"
+          }
+        },
+        "candidate_generated": {
+          "const": false
+        }
+      }
+    },
+    "language": {
+      "enum": ["es-AR", "en", "pt-BR", "mixed"]
+    },
+    "jurisdiction": {
+      "enum": ["AR", "BR", "UY", "PY", "CL", "NONE"]
+    },
+    "tags": {
+      "type": "array",
+      "maxItems": 16,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/id"
+      }
+    },
+    "case_hash": {
+      "$ref": "#/$defs/hash"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "type": "object",
+        "required": ["abstention_policy"],
+        "properties": {
+          "abstention_policy": {
+            "const": "required"
+          }
+        }
+      },
+      "then": {
+        "type": "object",
+        "properties": {
+          "expected": {
+            "$ref": "#/$defs/abstention_expectation"
+          }
+        }
+      },
+      "else": {
+        "type": "object",
+        "properties": {
+          "expected": {
+            "not": {
+              "$ref": "#/$defs/abstention_expectation"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "type": "object",
+        "required": ["jurisdiction"],
+        "properties": {
+          "jurisdiction": {
+            "not": {
+              "const": "NONE"
+            }
+          }
+        }
+      },
+      "then": {
+        "type": "object",
+        "properties": {
+          "tags": {
+            "type": "array",
+            "contains": {
+              "const": "synthetic_regulatory_scenario"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{1,127}$"
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "choice_expectation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "expected_candidate_id"],
+      "properties": {
+        "kind": {
+          "const": "choice"
+        },
+        "expected_candidate_id": {
+          "$ref": "#/$defs/id"
+        }
+      }
+    },
+    "boolean_expectation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "expected_value"],
+      "properties": {
+        "kind": {
+          "const": "boolean"
+        },
+        "expected_value": {
+          "type": "boolean"
+        }
+      }
+    },
+    "score_exact_expectation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "scale_id", "match", "expected_value"],
+      "properties": {
+        "kind": {
+          "const": "score"
+        },
+        "scale_id": {
+          "$ref": "#/$defs/id"
+        },
+        "match": {
+          "const": "exact"
+        },
+        "expected_value": {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        }
+      }
+    },
+    "score_range_expectation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "scale_id",
+        "match",
+        "acceptable_minimum",
+        "acceptable_maximum"
+      ],
+      "properties": {
+        "kind": {
+          "const": "score"
+        },
+        "scale_id": {
+          "$ref": "#/$defs/id"
+        },
+        "match": {
+          "const": "acceptable_range"
+        },
+        "acceptable_minimum": {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        },
+        "acceptable_maximum": {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        }
+      }
+    },
+    "ranking_expectation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "expected_order"],
+      "properties": {
+        "kind": {
+          "const": "ranking"
+        },
+        "expected_order": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 32,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/id"
+          }
+        }
+      }
+    },
+    "abstention_expectation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind"],
+      "properties": {
+        "kind": {
+          "const": "abstention"
+        }
+      }
+    }
+  }
+}

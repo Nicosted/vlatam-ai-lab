@@ -1,0 +1,73 @@
+{
+  "contract": "gold_decision_case",
+  "schema_version": "1.0.0",
+  "case_id": "gd-completeness-008",
+  "dataset_id": "ai-lab-gold-decisions",
+  "dataset_version": "1.0.0",
+  "split": "test",
+  "request": {
+    "contract": "typed_decision_request",
+    "schema_version": "1.0.0",
+    "request_id": "gd-completeness-008",
+    "capability_id": "synthetic.decision.document_completeness_score",
+    "execution_paradigm": "typed_decision",
+    "decision_type": "score",
+    "bounded_state": {
+      "facts": [
+        {
+          "fact_id": "document.required_fields",
+          "value_type": "integer",
+          "value": 0
+        },
+        {
+          "fact_id": "document.present_fields",
+          "value_type": "integer",
+          "value": 0
+        },
+        {
+          "fact_id": "document.illegible_fields",
+          "value_type": "integer",
+          "value": 0
+        }
+      ]
+    },
+    "question": {
+      "question_id": "synthetic.document.completeness",
+      "text": "Regla sintética R-CMP-1 en la escala synthetic.completeness.0_4: puntaje = piso(4 × campos presentes / campos requeridos); los campos ilegibles cuentan como no presentes. Si hay campos ilegibles, es aceptable cualquier valor entre piso(4 × presentes / requeridos) y piso(4 × (presentes + ilegibles) / requeridos). Si los campos requeridos son 0, el puntaje no está definido: abstenerse. ¿Cuál es el puntaje de completitud de este documento sintético?"
+    },
+    "output_domain": {
+      "kind": "score",
+      "scale_id": "synthetic.completeness.0_4",
+      "minimum": 0,
+      "maximum": 4
+    },
+    "policy": {
+      "data_classification": "internal",
+      "human_review_required": false,
+      "abstention_permitted": true,
+      "escalation_policy_ref": null,
+      "downstream_use": "none"
+    },
+    "evidence_refs": []
+  },
+  "expected": {
+    "kind": "abstention"
+  },
+  "abstention_policy": "required",
+  "permutation_group_id": null,
+  "provenance": {
+    "source_kind": "synthetic_construction",
+    "authoring_method": "repository_fixture",
+    "labeling_rule_id": "rule.document_completeness_0_4.v1",
+    "evidence_basis": [
+      "document.illegible_fields",
+      "document.present_fields",
+      "document.required_fields"
+    ],
+    "candidate_generated": false
+  },
+  "language": "es-AR",
+  "jurisdiction": "NONE",
+  "tags": ["adversarial.missing_evidence", "document_completeness"],
+  "case_hash": "c330b82c8853d080eaabe96c896235176fc21cfe8be623ba9b3b9611a79662fd"
+}

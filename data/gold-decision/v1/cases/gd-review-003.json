@@ -1,0 +1,77 @@
+{
+  "contract": "gold_decision_case",
+  "schema_version": "1.0.0",
+  "case_id": "gd-review-003",
+  "dataset_id": "ai-lab-gold-decisions",
+  "dataset_version": "1.0.0",
+  "split": "validation",
+  "request": {
+    "contract": "typed_decision_request",
+    "schema_version": "1.0.0",
+    "request_id": "gd-review-003",
+    "capability_id": "synthetic.decision.human_review_required",
+    "execution_paradigm": "typed_decision",
+    "decision_type": "boolean",
+    "bounded_state": {
+      "facts": [
+        {
+          "fact_id": "item.declares_hazardous_goods",
+          "value_type": "boolean",
+          "value": false
+        },
+        {
+          "fact_id": "item.declared_value_usd",
+          "value_type": "integer",
+          "value": 25000
+        },
+        {
+          "fact_id": "item.has_unverified_evidence",
+          "value_type": "boolean",
+          "value": false
+        },
+        {
+          "fact_id": "item.contains_regulatory_claim",
+          "value_type": "boolean",
+          "value": false
+        }
+      ]
+    },
+    "question": {
+      "question_id": "synthetic.review.required",
+      "text": "Regra sintética R-HRV-1: a revisão humana é exigida quando o item declara mercadoria perigosa, declara valor de 10000 USD ou mais, tem evidência não verificada ou contém uma afirmação regulatória. Esta regra nunca remove uma revisão exigida por outra política. Este item sintético exige revisão humana segundo R-HRV-1?"
+    },
+    "output_domain": {
+      "kind": "boolean"
+    },
+    "policy": {
+      "data_classification": "internal",
+      "human_review_required": true,
+      "abstention_permitted": true,
+      "escalation_policy_ref": null,
+      "downstream_use": "none"
+    },
+    "evidence_refs": []
+  },
+  "expected": {
+    "kind": "boolean",
+    "expected_value": true
+  },
+  "abstention_policy": "allowed",
+  "permutation_group_id": null,
+  "provenance": {
+    "source_kind": "synthetic_construction",
+    "authoring_method": "repository_fixture",
+    "labeling_rule_id": "rule.human_review_routing.v1",
+    "evidence_basis": [
+      "item.contains_regulatory_claim",
+      "item.declared_value_usd",
+      "item.declares_hazardous_goods",
+      "item.has_unverified_evidence"
+    ],
+    "candidate_generated": false
+  },
+  "language": "pt-BR",
+  "jurisdiction": "NONE",
+  "tags": ["human_review_routing"],
+  "case_hash": "eca30512e439c8eabb06db0fec893759d22146551e031db691777b80c7343e8f"
+}

@@ -1,0 +1,124 @@
+{
+  "contract": "gold_decision_case",
+  "schema_version": "1.0.0",
+  "case_id": "gd-priority-002",
+  "dataset_id": "ai-lab-gold-decisions",
+  "dataset_version": "1.0.0",
+  "split": "validation",
+  "request": {
+    "contract": "typed_decision_request",
+    "schema_version": "1.0.0",
+    "request_id": "gd-priority-002",
+    "capability_id": "synthetic.decision.workflow_priority_rank",
+    "execution_paradigm": "typed_decision",
+    "decision_type": "ranking",
+    "bounded_state": {
+      "facts": [
+        {
+          "fact_id": "task.customs_filing.deadline_days",
+          "value_type": "integer",
+          "value": 7
+        },
+        {
+          "fact_id": "task.customs_filing.blocked_operations",
+          "value_type": "integer",
+          "value": 0
+        },
+        {
+          "fact_id": "task.freight_booking.deadline_days",
+          "value_type": "integer",
+          "value": 3
+        },
+        {
+          "fact_id": "task.freight_booking.blocked_operations",
+          "value_type": "integer",
+          "value": 2
+        },
+        {
+          "fact_id": "task.insurance_quote.deadline_days",
+          "value_type": "integer",
+          "value": 12
+        },
+        {
+          "fact_id": "task.insurance_quote.blocked_operations",
+          "value_type": "integer",
+          "value": 0
+        },
+        {
+          "fact_id": "task.supplier_followup.deadline_days",
+          "value_type": "integer",
+          "value": 1
+        },
+        {
+          "fact_id": "task.supplier_followup.blocked_operations",
+          "value_type": "integer",
+          "value": 0
+        }
+      ]
+    },
+    "question": {
+      "question_id": "synthetic.workflow.priority",
+      "text": "Synthetic rule R-PRI-1: order the tasks by fewest days to deadline first; break ties by more blocked operations first. Rank the synthetic tasks from first to last."
+    },
+    "output_domain": {
+      "kind": "ranking",
+      "candidates": [
+        {
+          "candidate_id": "task.customs_filing",
+          "label": "Customs filing"
+        },
+        {
+          "candidate_id": "task.freight_booking",
+          "label": "Freight booking"
+        },
+        {
+          "candidate_id": "task.insurance_quote",
+          "label": "Insurance quote"
+        },
+        {
+          "candidate_id": "task.supplier_followup",
+          "label": "Supplier follow-up"
+        }
+      ]
+    },
+    "policy": {
+      "data_classification": "internal",
+      "human_review_required": false,
+      "abstention_permitted": true,
+      "escalation_policy_ref": null,
+      "downstream_use": "none"
+    },
+    "evidence_refs": []
+  },
+  "expected": {
+    "kind": "ranking",
+    "expected_order": [
+      "task.supplier_followup",
+      "task.freight_booking",
+      "task.customs_filing",
+      "task.insurance_quote"
+    ]
+  },
+  "abstention_policy": "allowed",
+  "permutation_group_id": null,
+  "provenance": {
+    "source_kind": "synthetic_construction",
+    "authoring_method": "repository_fixture",
+    "labeling_rule_id": "rule.workflow_priority.v1",
+    "evidence_basis": [
+      "task.customs_filing.blocked_operations",
+      "task.customs_filing.deadline_days",
+      "task.freight_booking.blocked_operations",
+      "task.freight_booking.deadline_days",
+      "task.insurance_quote.blocked_operations",
+      "task.insurance_quote.deadline_days",
+      "task.supplier_followup.blocked_operations",
+      "task.supplier_followup.deadline_days"
+    ],
+    "candidate_generated": false
+  },
+  "language": "en",
+  "jurisdiction": "NONE",
+  "tags": ["workflow_priority"],
+  "case_hash": "1a856444566ee945b84aa35ff9e25fa55ddd284d9187c407d4799ee48c60f9f3"
+}

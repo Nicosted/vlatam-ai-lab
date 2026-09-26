@@ -1,0 +1,65 @@
+{
+  "contract": "gold_decision_case",
+  "schema_version": "1.0.0",
+  "case_id": "gd-citation-001",
+  "dataset_id": "ai-lab-gold-decisions",
+  "dataset_version": "1.0.0",
+  "split": "development",
+  "request": {
+    "contract": "typed_decision_request",
+    "schema_version": "1.0.0",
+    "request_id": "gd-citation-001",
+    "capability_id": "synthetic.decision.claim_citation_complete",
+    "execution_paradigm": "typed_decision",
+    "decision_type": "boolean",
+    "bounded_state": {
+      "facts": [
+        {
+          "fact_id": "packet.claims_count",
+          "value_type": "integer",
+          "value": 5
+        },
+        {
+          "fact_id": "packet.claims_with_citation_count",
+          "value_type": "integer",
+          "value": 5
+        }
+      ]
+    },
+    "question": {
+      "question_id": "synthetic.packet.fully_cited",
+      "text": "Synthetic rule R-CIT-1: a packet is fully cited when it has at least one claim and every claim cites evidence (claims_with_citation_count equals claims_count). Is this synthetic packet fully cited?"
+    },
+    "output_domain": {
+      "kind": "boolean"
+    },
+    "policy": {
+      "data_classification": "internal",
+      "human_review_required": false,
+      "abstention_permitted": true,
+      "escalation_policy_ref": null,
+      "downstream_use": "none"
+    },
+    "evidence_refs": []
+  },
+  "expected": {
+    "kind": "boolean",
+    "expected_value": true
+  },
+  "abstention_policy": "not_allowed",
+  "permutation_group_id": null,
+  "provenance": {
+    "source_kind": "synthetic_construction",
+    "authoring_method": "repository_fixture",
+    "labeling_rule_id": "rule.citation_completeness.v1",
+    "evidence_basis": [
+      "packet.claims_count",
+      "packet.claims_with_citation_count"
+    ],
+    "candidate_generated": false
+  },
+  "language": "en",
+  "jurisdiction": "NONE",
+  "tags": ["claim_citation"],
+  "case_hash": "8fc06c9999d2cb728e05f74dd4a63f3c7a420363268b185f7d56a724c52d577d"
+}

@@ -1,0 +1,29 @@
+{
+  "contract": "gold_decision_case_evaluation",
+  "schema_version": "1.0.0",
+  "scoring_policy": "gold-decision-scoring-v1",
+  "case_id": "fx-ai140-choice",
+  "case_hash": "932419f52aef5b9c87c5490cc650143d92821df0f1f992f5e279955c95d45cbc",
+  "dataset_id": "gold-decision-fixtures",
+  "dataset_version": "1.0.0",
+  "split": "development",
+  "decision_type": "choice",
+  "capability_id": "synthetic.decision.intent_classify",
+  "language": "en",
+  "jurisdiction": "NONE",
+  "abstention_policy": "allowed",
+  "candidate_result_hash": "8c189bec4f60e648016dc22939b9d803937e627fd119490b7c8e88c76f9e988b",
+  "outcome": "correct_decision",
+  "correctness": "correct",
+  "abstention_outcome": "not_abstained",
+  "abstention_reason_code": null,
+  "score_error": null,
+  "probability_evidence": {
+    "kind": "choice_multiclass",
+    "squared_error_micros2": 65000000000
+  },
+  "error_codes": [],
+  "result_issue_codes": [],
+  "evaluation_hash": "e44110599616496b86d5e14286cf38ed99c7252eb32815458c4af478a1ba2f27",
+  "model": "synthetic-model"
+}

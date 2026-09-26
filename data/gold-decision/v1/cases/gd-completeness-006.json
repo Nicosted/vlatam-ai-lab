@@ -1,0 +1,77 @@
+{
+  "contract": "gold_decision_case",
+  "schema_version": "1.0.0",
+  "case_id": "gd-completeness-006",
+  "dataset_id": "ai-lab-gold-decisions",
+  "dataset_version": "1.0.0",
+  "split": "validation",
+  "request": {
+    "contract": "typed_decision_request",
+    "schema_version": "1.0.0",
+    "request_id": "gd-completeness-006",
+    "capability_id": "synthetic.decision.document_completeness_score",
+    "execution_paradigm": "typed_decision",
+    "decision_type": "score",
+    "bounded_state": {
+      "facts": [
+        {
+          "fact_id": "document.required_fields",
+          "value_type": "integer",
+          "value": 12
+        },
+        {
+          "fact_id": "document.present_fields",
+          "value_type": "integer",
+          "value": 5
+        },
+        {
+          "fact_id": "document.illegible_fields",
+          "value_type": "integer",
+          "value": 4
+        }
+      ]
+    },
+    "question": {
+      "question_id": "synthetic.document.completeness",
+      "text": "Regra sintética R-CMP-1 na escala synthetic.completeness.0_4: pontuação = piso(4 × campos presentes / campos exigidos); campos ilegíveis contam como ausentes. Se houver campos ilegíveis, qualquer valor entre piso(4 × presentes / exigidos) e piso(4 × (presentes + ilegíveis) / exigidos) é aceitável. Se os campos exigidos forem 0, a pontuação é indefinida: abster-se. Qual é a pontuação de completude deste documento sintético?"
+    },
+    "output_domain": {
+      "kind": "score",
+      "scale_id": "synthetic.completeness.0_4",
+      "minimum": 0,
+      "maximum": 4
+    },
+    "policy": {
+      "data_classification": "internal",
+      "human_review_required": false,
+      "abstention_permitted": true,
+      "escalation_policy_ref": null,
+      "downstream_use": "none"
+    },
+    "evidence_refs": []
+  },
+  "expected": {
+    "kind": "score",
+    "scale_id": "synthetic.completeness.0_4",
+    "match": "acceptable_range",
+    "acceptable_minimum": 1,
+    "acceptable_maximum": 3
+  },
+  "abstention_policy": "allowed",
+  "permutation_group_id": null,
+  "provenance": {
+    "source_kind": "synthetic_construction",
+    "authoring_method": "repository_fixture",
+    "labeling_rule_id": "rule.document_completeness_0_4.v1",
+    "evidence_basis": [
+      "document.illegible_fields",
+      "document.present_fields",
+      "document.required_fields"
+    ],
+    "candidate_generated": false
+  },
+  "language": "pt-BR",
+  "jurisdiction": "NONE",
+  "tags": ["acceptable_range", "document_completeness"],
+  "case_hash": "c62cdb3c0652be0811d51790439aa3a884079e98d409b5de1948dce92ceff0c5"
+}

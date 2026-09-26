@@ -1,0 +1,67 @@
+{
+  "contract": "gold_decision_case",
+  "schema_version": "1.0.0",
+  "case_id": "fx-ai140-boolean",
+  "dataset_id": "gold-decision-fixtures",
+  "dataset_version": "1.0.0",
+  "split": "validation",
+  "request": {
+    "contract": "typed_decision_request",
+    "schema_version": "1.0.0",
+    "request_id": "synthetic-evidence-sufficiency-request-0001",
+    "capability_id": "synthetic.decision.evidence_sufficiency_assess",
+    "execution_paradigm": "typed_decision",
+    "decision_type": "boolean",
+    "bounded_state": {
+      "facts": [
+        {
+          "fact_id": "packet.claim_count",
+          "value_type": "integer",
+          "value": 3
+        },
+        {
+          "fact_id": "packet.cited_claim_count",
+          "value_type": "integer",
+          "value": 3
+        }
+      ]
+    },
+    "question": {
+      "question_id": "synthetic.evidence.sufficient",
+      "text": "Does every claim in this synthetic packet cite at least one declared evidence reference?"
+    },
+    "output_domain": {
+      "kind": "boolean"
+    },
+    "policy": {
+      "data_classification": "internal",
+      "human_review_required": true,
+      "abstention_permitted": true,
+      "escalation_policy_ref": null,
+      "downstream_use": "none"
+    },
+    "evidence_refs": [
+      {
+        "evidence_id": "synthetic-fixture-packet-0001",
+        "content_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      }
+    ]
+  },
+  "expected": {
+    "kind": "boolean",
+    "expected_value": true
+  },
+  "abstention_policy": "not_allowed",
+  "permutation_group_id": null,
+  "provenance": {
+    "source_kind": "synthetic_construction",
+    "authoring_method": "repository_fixture",
+    "labeling_rule_id": "rule.fixture.citation.v1",
+    "evidence_basis": ["packet.cited_claim_count", "packet.claim_count"],
+    "candidate_generated": false
+  },
+  "language": "en",
+  "jurisdiction": "NONE",
+  "tags": ["fixture"],
+  "case_hash": "77639074bef8db7add85b475bf49f2fb6a689ae78e3baf1a4fcd975603b2f477"
+}

@@ -1,0 +1,89 @@
+{
+  "contract": "gold_decision_set",
+  "schema_version": "1.0.0",
+  "dataset_id": "gold-decision-fixtures",
+  "dataset_version": "1.0.0",
+  "scoring_policy": "gold-decision-scoring-v1",
+  "split_policy": {
+    "policy_id": "gold-decision-split-v1",
+    "assignment": "explicit_per_case",
+    "splits": ["development", "validation", "test"],
+    "test_split_training_use": "allowed",
+    "candidate_case_selection": "forbidden",
+    "permutation_groups_share_split": true
+  },
+  "review": {
+    "state": "draft",
+    "human_review_required": true,
+    "approval_ref": null
+  },
+  "created_from": {
+    "source_kind": "synthetic_construction",
+    "authoring_method": "repository_fixture",
+    "customer_data": false,
+    "production_data": false,
+    "candidate_generated_labels": false
+  },
+  "supersedes": null,
+  "labeling_rules": [
+    {
+      "rule_id": "rule.fixture.citation.v1",
+      "capability_id": "synthetic.decision.evidence_sufficiency_assess",
+      "statement": "Fixture rule: true iff packet.claim_count is at least 1 and packet.cited_claim_count equals packet.claim_count."
+    },
+    {
+      "rule_id": "rule.fixture.completeness_0_4.v1",
+      "capability_id": "synthetic.decision.document_completeness_score",
+      "statement": "Fixture rule on scale synthetic.completeness.0_4: score = floor(4 * document.present_fields / document.required_fields)."
+    },
+    {
+      "rule_id": "rule.fixture.intent.v1",
+      "capability_id": "synthetic.decision.intent_classify",
+      "statement": "Fixture rule: a synthetic inbound message whose message.mentions_tariff_code fact is true is a tariff classification question."
+    }
+  ],
+  "cases": [
+    {
+      "case_id": "fx-ai140-boolean",
+      "case_hash": "77639074bef8db7add85b475bf49f2fb6a689ae78e3baf1a4fcd975603b2f477",
+      "split": "validation"
+    },
+    {
+      "case_id": "fx-ai140-choice",
+      "case_hash": "932419f52aef5b9c87c5490cc650143d92821df0f1f992f5e279955c95d45cbc",
+      "split": "development"
+    },
+    {
+      "case_id": "fx-ai140-choice-permuted",
+      "case_hash": "e641ed0d8d8f28896e72aa638eb65f5552f814020f76c68d429b387661077088",
+      "split": "development"
+    },
+    {
+      "case_id": "fx-ai140-score",
+      "case_hash": "ebe292bcb9184bbae07537f967b4254cb41925eb31747325dee30164ce03adef",
+      "split": "test"
+    }
+  ],
+  "split_distribution": {
+    "validation": 1,
+    "development": 2,
+    "test": 1
+  },
+  "decision_type_distribution": {
+    "boolean": 1,
+    "choice": 2,
+    "score": 1
+  },
+  "language_distribution": {
+    "en": 4
+  },
+  "jurisdiction_distribution": {
+    "NONE": 4
+  },
+  "capability_distribution": {
+    "synthetic.decision.evidence_sufficiency_assess": 1,
+    "synthetic.decision.intent_classify": 2,
+    "synthetic.decision.document_completeness_score": 1
+  },
+  "dataset_hash": "70831bbd5eec889c8a9017729af11ead4a101a3305a9d69171d2d660340e4faa"
+}

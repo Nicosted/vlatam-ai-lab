@@ -1,0 +1,115 @@
+{
+  "contract": "gold_decision_case",
+  "schema_version": "1.0.0",
+  "case_id": "gd-doctype-007",
+  "dataset_id": "ai-lab-gold-decisions",
+  "dataset_version": "1.0.0",
+  "split": "validation",
+  "request": {
+    "contract": "typed_decision_request",
+    "schema_version": "1.0.0",
+    "request_id": "gd-doctype-007",
+    "capability_id": "synthetic.decision.document_type_classify",
+    "execution_paradigm": "typed_decision",
+    "decision_type": "choice",
+    "bounded_state": {
+      "facts": [
+        {
+          "fact_id": "document.declared_title",
+          "value_type": "string",
+          "value": "Commercial Invoice CI-7781"
+        },
+        {
+          "fact_id": "document.has_unit_prices",
+          "value_type": "boolean",
+          "value": true
+        },
+        {
+          "fact_id": "document.has_package_weights",
+          "value_type": "boolean",
+          "value": false
+        },
+        {
+          "fact_id": "document.has_certifying_body_declaration",
+          "value_type": "boolean",
+          "value": false
+        },
+        {
+          "fact_id": "document.numbered_safety_sections",
+          "value_type": "integer",
+          "value": 0
+        },
+        {
+          "fact_id": "document.has_carrier_and_ports",
+          "value_type": "boolean",
+          "value": false
+        }
+      ]
+    },
+    "question": {
+      "question_id": "synthetic.document.type",
+      "text": "Regla sintética R-DOC-1: un único marcador estructural determina el tipo — precios unitarios → factura; pesos por bulto → lista de empaque; declaración de un organismo certificador → certificado; exactamente 16 secciones de seguridad numeradas → hoja de datos de seguridad; transportista más puertos de carga y descarga → documento de transporte. Sin marcadores → desconocido. Dos o más marcadores → abstenerse. El título declarado nunca prevalece sobre los marcadores. ¿Qué tipo de documento es este documento sintético?"
+    },
+    "output_domain": {
+      "kind": "choice",
+      "candidates": [
+        {
+          "candidate_id": "doc.invoice",
+          "label": "Commercial invoice"
+        },
+        {
+          "candidate_id": "doc.packing_list",
+          "label": "Packing list"
+        },
+        {
+          "candidate_id": "doc.certificate",
+          "label": "Certificate"
+        },
+        {
+          "candidate_id": "doc.msds",
+          "label": "Material safety data sheet (MSDS)"
+        },
+        {
+          "candidate_id": "doc.transport_document",
+          "label": "Transport document"
+        },
+        {
+          "candidate_id": "doc.unknown",
+          "label": "Unknown"
+        }
+      ],
+      "complete_distribution_required": false
+    },
+    "policy": {
+      "data_classification": "internal",
+      "human_review_required": false,
+      "abstention_permitted": true,
+      "escalation_policy_ref": null,
+      "downstream_use": "none"
+    },
+    "evidence_refs": []
+  },
+  "expected": {
+    "kind": "choice",
+    "expected_candidate_id": "doc.invoice"
+  },
+  "abstention_policy": "allowed",
+  "permutation_group_id": null,
+  "provenance": {
+    "source_kind": "synthetic_construction",
+    "authoring_method": "repository_fixture",
+    "labeling_rule_id": "rule.document_type.v1",
+    "evidence_basis": [
+      "document.has_carrier_and_ports",
+      "document.has_certifying_body_declaration",
+      "document.has_package_weights",
+      "document.has_unit_prices",
+      "document.numbered_safety_sections"
+    ],
+    "candidate_generated": false
+  },
+  "language": "mixed",
+  "jurisdiction": "NONE",
+  "tags": ["document_classification", "mixed_language"],
+  "case_hash": "41b79b7b42210e771882ef4cbb3610d2ee1ad346b61913dae2353fe8772ca50b"
+}

@@ -1,0 +1,107 @@
+{
+  "contract": "gold_decision_case",
+  "schema_version": "1.0.0",
+  "case_id": "gd-priority-001",
+  "dataset_id": "ai-lab-gold-decisions",
+  "dataset_version": "1.0.0",
+  "split": "development",
+  "request": {
+    "contract": "typed_decision_request",
+    "schema_version": "1.0.0",
+    "request_id": "gd-priority-001",
+    "capability_id": "synthetic.decision.workflow_priority_rank",
+    "execution_paradigm": "typed_decision",
+    "decision_type": "ranking",
+    "bounded_state": {
+      "facts": [
+        {
+          "fact_id": "task.customs_filing.deadline_days",
+          "value_type": "integer",
+          "value": 2
+        },
+        {
+          "fact_id": "task.customs_filing.blocked_operations",
+          "value_type": "integer",
+          "value": 1
+        },
+        {
+          "fact_id": "task.freight_booking.deadline_days",
+          "value_type": "integer",
+          "value": 5
+        },
+        {
+          "fact_id": "task.freight_booking.blocked_operations",
+          "value_type": "integer",
+          "value": 0
+        },
+        {
+          "fact_id": "task.insurance_quote.deadline_days",
+          "value_type": "integer",
+          "value": 9
+        },
+        {
+          "fact_id": "task.insurance_quote.blocked_operations",
+          "value_type": "integer",
+          "value": 0
+        }
+      ]
+    },
+    "question": {
+      "question_id": "synthetic.workflow.priority",
+      "text": "Regla sintética R-PRI-1: ordenar las tareas por menor cantidad de días hasta el vencimiento primero; en caso de empate, primero la que bloquea más operaciones. Ordená las tareas sintéticas de la primera a la última."
+    },
+    "output_domain": {
+      "kind": "ranking",
+      "candidates": [
+        {
+          "candidate_id": "task.freight_booking",
+          "label": "Reserva de flete"
+        },
+        {
+          "candidate_id": "task.insurance_quote",
+          "label": "Cotización de seguro"
+        },
+        {
+          "candidate_id": "task.customs_filing",
+          "label": "Presentación aduanera"
+        }
+      ]
+    },
+    "policy": {
+      "data_classification": "internal",
+      "human_review_required": false,
+      "abstention_permitted": true,
+      "escalation_policy_ref": null,
+      "downstream_use": "none"
+    },
+    "evidence_refs": []
+  },
+  "expected": {
+    "kind": "ranking",
+    "expected_order": [
+      "task.customs_filing",
+      "task.freight_booking",
+      "task.insurance_quote"
+    ]
+  },
+  "abstention_policy": "allowed",
+  "permutation_group_id": null,
+  "provenance": {
+    "source_kind": "synthetic_construction",
+    "authoring_method": "repository_fixture",
+    "labeling_rule_id": "rule.workflow_priority.v1",
+    "evidence_basis": [
+      "task.customs_filing.blocked_operations",
+      "task.customs_filing.deadline_days",
+      "task.freight_booking.blocked_operations",
+      "task.freight_booking.deadline_days",
+      "task.insurance_quote.blocked_operations",
+      "task.insurance_quote.deadline_days"
+    ],
+    "candidate_generated": false
+  },
+  "language": "es-AR",
+  "jurisdiction": "NONE",
+  "tags": ["workflow_priority"],
+  "case_hash": "2925077783d0c4a476af2e760df8014a1d8117e58ca533623367404cdf5bff74"
+}

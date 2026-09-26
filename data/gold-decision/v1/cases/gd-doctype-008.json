@@ -1,0 +1,115 @@
+{
+  "contract": "gold_decision_case",
+  "schema_version": "1.0.0",
+  "case_id": "gd-doctype-008",
+  "dataset_id": "ai-lab-gold-decisions",
+  "dataset_version": "1.0.0",
+  "split": "development",
+  "request": {
+    "contract": "typed_decision_request",
+    "schema_version": "1.0.0",
+    "request_id": "gd-doctype-008",
+    "capability_id": "synthetic.decision.document_type_classify",
+    "execution_paradigm": "typed_decision",
+    "decision_type": "choice",
+    "bounded_state": {
+      "facts": [
+        {
+          "fact_id": "document.declared_title",
+          "value_type": "string",
+          "value": "Air waybill (synthetic)"
+        },
+        {
+          "fact_id": "document.has_unit_prices",
+          "value_type": "boolean",
+          "value": false
+        },
+        {
+          "fact_id": "document.has_package_weights",
+          "value_type": "boolean",
+          "value": false
+        },
+        {
+          "fact_id": "document.has_certifying_body_declaration",
+          "value_type": "boolean",
+          "value": false
+        },
+        {
+          "fact_id": "document.numbered_safety_sections",
+          "value_type": "integer",
+          "value": 0
+        },
+        {
+          "fact_id": "document.has_carrier_and_ports",
+          "value_type": "boolean",
+          "value": true
+        }
+      ]
+    },
+    "question": {
+      "question_id": "synthetic.document.type",
+      "text": "Synthetic rule R-DOC-1: exactly one structural marker determines the type — unit prices → invoice; package weights → packing list; certifying body declaration → certificate; exactly 16 numbered safety sections → MSDS; carrier plus ports of loading and discharge → transport document. No marker → unknown. Two or more markers → abstain. The declared title never overrides the markers. Which document type is this synthetic document?"
+    },
+    "output_domain": {
+      "kind": "choice",
+      "candidates": [
+        {
+          "candidate_id": "doc.invoice",
+          "label": "Commercial invoice"
+        },
+        {
+          "candidate_id": "doc.packing_list",
+          "label": "Packing list"
+        },
+        {
+          "candidate_id": "doc.certificate",
+          "label": "Certificate"
+        },
+        {
+          "candidate_id": "doc.msds",
+          "label": "Material safety data sheet (MSDS)"
+        },
+        {
+          "candidate_id": "doc.transport_document",
+          "label": "Transport document"
+        },
+        {
+          "candidate_id": "doc.unknown",
+          "label": "Unknown"
+        }
+      ],
+      "complete_distribution_required": false
+    },
+    "policy": {
+      "data_classification": "internal",
+      "human_review_required": false,
+      "abstention_permitted": true,
+      "escalation_policy_ref": null,
+      "downstream_use": "none"
+    },
+    "evidence_refs": []
+  },
+  "expected": {
+    "kind": "choice",
+    "expected_candidate_id": "doc.transport_document"
+  },
+  "abstention_policy": "allowed",
+  "permutation_group_id": null,
+  "provenance": {
+    "source_kind": "synthetic_construction",
+    "authoring_method": "repository_fixture",
+    "labeling_rule_id": "rule.document_type.v1",
+    "evidence_basis": [
+      "document.has_carrier_and_ports",
+      "document.has_certifying_body_declaration",
+      "document.has_package_weights",
+      "document.has_unit_prices",
+      "document.numbered_safety_sections"
+    ],
+    "candidate_generated": false
+  },
+  "language": "en",
+  "jurisdiction": "NONE",
+  "tags": ["document_classification"],
+  "case_hash": "f7dc22a3f4db343d80dc59c77d3d59deefe0ff702f3e8b770d585dacf8a76958"
+}

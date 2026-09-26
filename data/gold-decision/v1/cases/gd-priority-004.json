@@ -1,0 +1,107 @@
+{
+  "contract": "gold_decision_case",
+  "schema_version": "1.0.0",
+  "case_id": "gd-priority-004",
+  "dataset_id": "ai-lab-gold-decisions",
+  "dataset_version": "1.0.0",
+  "split": "test",
+  "request": {
+    "contract": "typed_decision_request",
+    "schema_version": "1.0.0",
+    "request_id": "gd-priority-004",
+    "capability_id": "synthetic.decision.workflow_priority_rank",
+    "execution_paradigm": "typed_decision",
+    "decision_type": "ranking",
+    "bounded_state": {
+      "facts": [
+        {
+          "fact_id": "task.customs_filing.deadline_days",
+          "value_type": "integer",
+          "value": 4
+        },
+        {
+          "fact_id": "task.customs_filing.blocked_operations",
+          "value_type": "integer",
+          "value": 0
+        },
+        {
+          "fact_id": "task.freight_booking.deadline_days",
+          "value_type": "integer",
+          "value": 2
+        },
+        {
+          "fact_id": "task.freight_booking.blocked_operations",
+          "value_type": "integer",
+          "value": 1
+        },
+        {
+          "fact_id": "task.supplier_followup.deadline_days",
+          "value_type": "integer",
+          "value": 6
+        },
+        {
+          "fact_id": "task.supplier_followup.blocked_operations",
+          "value_type": "integer",
+          "value": 3
+        }
+      ]
+    },
+    "question": {
+      "question_id": "synthetic.workflow.priority",
+      "text": "Regra sintética R-PRI-1: ordenar as tarefas pelo menor número de dias até o prazo primeiro; em caso de empate, primeiro a que bloqueia mais operações. Ordene as tarefas sintéticas da primeira à última."
+    },
+    "output_domain": {
+      "kind": "ranking",
+      "candidates": [
+        {
+          "candidate_id": "task.supplier_followup",
+          "label": "Acompanhamento do fornecedor"
+        },
+        {
+          "candidate_id": "task.customs_filing",
+          "label": "Registro aduaneiro"
+        },
+        {
+          "candidate_id": "task.freight_booking",
+          "label": "Reserva de frete"
+        }
+      ]
+    },
+    "policy": {
+      "data_classification": "internal",
+      "human_review_required": false,
+      "abstention_permitted": true,
+      "escalation_policy_ref": null,
+      "downstream_use": "none"
+    },
+    "evidence_refs": []
+  },
+  "expected": {
+    "kind": "ranking",
+    "expected_order": [
+      "task.freight_booking",
+      "task.customs_filing",
+      "task.supplier_followup"
+    ]
+  },
+  "abstention_policy": "allowed",
+  "permutation_group_id": "perm-priority-pt",
+  "provenance": {
+    "source_kind": "synthetic_construction",
+    "authoring_method": "repository_fixture",
+    "labeling_rule_id": "rule.workflow_priority.v1",
+    "evidence_basis": [
+      "task.customs_filing.blocked_operations",
+      "task.customs_filing.deadline_days",
+      "task.freight_booking.blocked_operations",
+      "task.freight_booking.deadline_days",
+      "task.supplier_followup.blocked_operations",
+      "task.supplier_followup.deadline_days"
+    ],
+    "candidate_generated": false
+  },
+  "language": "pt-BR",
+  "jurisdiction": "NONE",
+  "tags": ["permutation_pair", "workflow_priority"],
+  "case_hash": "8a46b139965d783f40fc370519a8aa8cc5f121267b87d103d8c13e1e5672aa6a"
+}
