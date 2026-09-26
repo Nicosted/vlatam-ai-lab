@@ -278,8 +278,10 @@ export interface GlmFirstRunReadOnlyProjection {
   readonly secret_resolution_allowed: boolean;
 }
 
-export function projectGlmFirstRunReadiness(): GlmFirstRunReadOnlyProjection {
-  const governance = evaluateGlmGovernanceArtifacts();
+export function projectGlmFirstRunReadiness(
+  now = new Date(),
+): GlmFirstRunReadOnlyProjection {
+  const governance = evaluateGlmGovernanceArtifacts(now);
   if (governance.outcome !== "eligible")
     return Object.freeze({
       outcome: "blocked",
